@@ -245,27 +245,24 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // Berikan saldo cuti tahunan 2026 untuk kedua karyawan tersebut
 
-        $userIds = [
-            $spvUmbulan->id,
-            $spvBooster->id,
-            $karyawanUmbulan->id,
-            $karyawanBooster->id
-        ];
+        // semua ID user
+        $userIds = User::orderBy('id', 'asc')->pluck('id');
 
+        // semua ID jenis cuti
         $jenisCutiIds = [
             $cutiTahunan->id,
             $cutiSakit->id,
             $cutiMelahirkan->id
         ];
 
+        // Looping
         foreach ($userIds as $userId) {
-            $user = User::find($userId);// Ambil data gender user
+            $user = User::find($userId);
             foreach ($jenisCutiIds as $jenisCutiId) {
-                // JIKA jenis cuti melahirkan DAN user tersebut bukan wanita, jangan buat saldonya (skip)
-                if ($jenisCutiId == $cutiMelahirkan->id && !in_array(strtolower($user->gender), ['perempuan', 'wanita'])) {
-                    continue;
-                }
-
+                // Cek Gender
+                // if ($jenisCutiId == $cutiMelahirkan->id && !in_array(strtolower($user->gender), ['wanita'])) {
+                //     continue;
+                // }
                 SaldoCuti::create([
                     'user_id'       => $userId,
                     'jenis_cuti_id' => $jenisCutiId,
@@ -274,26 +271,5 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-
-        // SaldoCuti::create([
-        //     'user_id' => $spvUmbulan->id, $spvBooster->id, $karyawanUmbulan->id, $karyawanBooster->id,
-        //     'jenis_cuti_id' => $cutiTahunan->id,
-        //     'sisa_saldo' => 12,
-        //     'tahun' => 2026
-        // ]);
-
-        // SaldoCuti::create([
-        //     'user_id' => $spvUmbulan->id, $spvBooster->id, $karyawanUmbulan->id, $karyawanBooster->id,
-        //     'jenis_cuti_id' => $cutiSakit->id,
-        //     'sisa_saldo' => 12,
-        //     'tahun' => 2026
-        // ]);
-
-        // SaldoCuti::create([
-        //     'user_id' => $spvUmbulan->id, $spvBooster->id, $karyawanUmbulan->id, $karyawanBooster->id,
-        //     'jenis_cuti_id' => $cutiMelahirkan->id,
-        //     'sisa_saldo' => 12,
-        //     'tahun' => 2026
-        // ]);
     }
 }
