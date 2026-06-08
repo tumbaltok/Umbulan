@@ -11,7 +11,6 @@ use Carbon\Carbon;
 
 class PengajuanCutiController extends Controller
 {
-
     // KARYAWAN: Melihat riwayat cuti milik diri sendiri
     public function index(Request $request)
     {
@@ -212,7 +211,7 @@ class PengajuanCutiController extends Controller
         return response()->json(['message' => 'Status pengajuan cuti berhasil diperbarui.']);
     }
 
-    public function show($id)
+    public function show(Request $request, int $id)
     {
         $pengajuan = PengajuanCuti::with(['user', 'jenisCuti'])->findOrFail($id);
         return response()->json(['data' => $pengajuan], 200);
