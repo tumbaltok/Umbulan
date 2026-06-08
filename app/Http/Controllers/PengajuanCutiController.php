@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PengajuanCuti;
 use App\Models\SaldoCuti;
-use App\Models\JenisCuti; // Memastikan model JenisCuti di-import
+use App\Models\JenisCuti;
 use Carbon\Carbon;
 // use Illuminate\Support\Facades\Auth;
 
@@ -25,14 +25,15 @@ class PengajuanCutiController extends Controller
 
         // Ambil data jenis cuti untuk validasi nama/tipe cuti secara dinamis
         $jenisCuti = JenisCuti::findOrFail($request->jenis_cuti_id);
-        $namaCuti = strtolower($jenisCuti->nama ?? $jenisCuti->name ?? '');
+        $namaCuti = strtolower($jenisCuti->name_cuti??'');
 
         // 1. ATURAN: Cuti Melahirkan hanya boleh diambil oleh wanita
         if (str_contains($namaCuti, 'melahirkan')) {
-            $genderUser = strtolower($user->gender ?? '');
+            $genderUser = strtolower($user->gender->name ?? '');
             if (!in_array($genderUser, ['wanita'])) {
                 return response()->json([
-                    'message' => 'Ditolak! Cuti melahirkan hanya boleh diambil oleh karyawan wanita.'
+                    'message' => 'Ditolak! Cuti melahirkan hanya boleh diambil oleh karyawan wanita.',
+                    'debug_gender_terbaca' => 'Karena kamu seorang '.$genderUser
                 ], 403);
             }
         }
@@ -42,11 +43,12 @@ class PengajuanCutiController extends Controller
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
 
-        // 2. ATURAN: Cuti Sakit tidak memerlukan pengecekan saldo cuti (bebas/unlimited)
+        // Cuti Sakit tidak memerlukan pengecekan saldo cuti (bebas/unlimited)
         $isCutiSakit = str_contains($namaCuti, 'sakit');
+        $isCutiMelahirkan = str_contains($namaCuti, 'melahirkan');
 
-        if (!$isCutiSakit) {
-            // Cek Saldo Cuti Karyawan selain cuti sakit
+        if (!$isCutiSakit&&!$isCutiMelahirkan) {
+            // Cek Saldo Cuti Karyawan selain cuti sakit & melahirkan
             $saldo = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $request->jenis_cuti_id)
                 ->where('tahun', Carbon::now()->year)
@@ -65,6 +67,8 @@ class PengajuanCutiController extends Controller
             }
         }
 
+        $jenisCuti = JenisCuti::find($request->jenis_cuti_id);
+
         // Simpan Pengajuan
         $pengajuan = PengajuanCuti::create([
             'user_id' => $user->id,
@@ -78,7 +82,7 @@ class PengajuanCutiController extends Controller
             'status_akhir' => 'pending',
         ]);
 
-        return response()->json(['message' => 'Cuti berhasil diajukan!', 'data' => $pengajuan], 201);
+        return response()->json(['message' => 'Cuti ' . $jenisCuti->name_cuti . ' berhasil diajukan!', 'data' => $pengajuan], 201);
     }
 
     // ATASAN: Menyetujui atau Menolak Cuti
@@ -89,17 +93,17 @@ class PengajuanCutiController extends Controller
             'catatan' => 'nullable|string'
         ]);
 
-        // Eager load relasi 'user' dan 'jenisCuti' (pastikan relasi ini ada di model PengajuanCuti)
+        // Eager load relasi 'user' dan 'jenisCuti'
         $pengajuan = PengajuanCuti::with(['user', 'jenisCuti'])->findOrFail($id);
 
         // Memuat relasi 'role' pada atasan yang sedang login
         $atasan = $request->user()->load('role');
-        $roleName = $atasan->role->name ?? null;
+        $roleName = strtolower($atasan->role->role_name ?? '');
 
         // JIKA YANG LOGIN ADALAH SUPERVISOR
-        if ($roleName === 'Supervisor') {
+        if ($roleName === 'supervisor') {
 
-            // ATURAN: Cek stasiun kerja (Harus sama dengan karyawan)
+            // Cek stasiun kerja (Harus sama dengan karyawan)
             if ($atasan->station_id !== $pengajuan->user->station_id) {
                 return response()->json([
                     'message' => 'Ditolak! Anda hanya bisa memproses cuti karyawan di stasiun yang sama.'
@@ -114,11 +118,16 @@ class PengajuanCutiController extends Controller
         }
 
         // JIKA YANG LOGIN ADALAH MANAGER
-        if ($roleName === 'Manager') {
+        if ($roleName === 'manager') {
 
             // Pengamanan tambahan: mencegah manager menyetujui jika sudah ditolak supervisor sebelumnya
             if ($pengajuan->status_supervisor === 'rejected') {
                 return response()->json(['message' => 'Ditolak! Pengajuan ini sudah ditolak oleh Supervisor sebelumnya.'], 400);
+            }
+
+            // Cegah manager approve jika SPV belum approve (masih pending)
+            if ($request->aksi === 'approved' && $pengajuan->status_supervisor === 'pending') {
+                return response()->json(['message' => 'Ditolak! Menunggu persetujuan Supervisor terlebih dahulu.'], 400);
             }
 
             $pengajuan->update([
@@ -133,9 +142,10 @@ class PengajuanCutiController extends Controller
                 // Ambil nama cuti dari relasi
                 $namaCuti = strtolower($pengajuan->jenisCuti->nama ?? $pengajuan->jenisCuti->name ?? '');
                 $isCutiSakit = str_contains($namaCuti, 'sakit');
+                $isCutiMelahirkan = str_contains($namaCuti, 'melahirkan');
 
                 // ATURAN: Hanya potong saldo jika jenis cutinya BUKAN cuti sakit
-                if (!$isCutiSakit) {
+                if (!$isCutiSakit&&!$isCutiMelahirkan) {
                     $saldo = SaldoCuti::where('user_id', $pengajuan->user_id)
                         ->where('jenis_cuti_id', $pengajuan->jenis_cuti_id)
                         ->where('tahun', Carbon::parse($pengajuan->tanggal_mulai)->year)
@@ -146,8 +156,8 @@ class PengajuanCutiController extends Controller
                     }
                 }
             }
+            return response()->json(['message' => 'Manager berhasil memperbarui status pengajuan.']);
         }
-
         return response()->json(['message' => 'Status pengajuan cuti berhasil diperbarui.']);
     }
 }

@@ -152,7 +152,7 @@ class DatabaseSeeder extends Seeder
             'nip' => '121',
             'name' => 'MAINTANANCE_UMBULAN (Karyawan Umbulan)',
             'email' => 'maintanance.umbulan@meta.com',
-            'role_id' => $maintanance->id,
+            'role_id' => $roleKaryawan->id,
             'tipe_id' => $maintanance->id,
             'gender_id' => $pria->id,
             'station_id' => $stasiunUmbulan->id,
@@ -258,11 +258,15 @@ class DatabaseSeeder extends Seeder
         // Looping
         foreach ($userIds as $userId) {
             $user = User::find($userId);
+            if (!$user) {
+                continue;
+            }
             foreach ($jenisCutiIds as $jenisCutiId) {
-                // Cek Gender
-                // if ($jenisCutiId == $cutiMelahirkan->id && !in_array(strtolower($user->gender), ['wanita'])) {
-                //     continue;
-                // }
+                $genderUser = strtolower($user->gender->name ?? '');
+                //Cek Gender
+                if ($jenisCutiId == $cutiMelahirkan->id && $genderUser!=='wanita') {
+                    continue;
+                }
                 SaldoCuti::create([
                     'user_id'       => $userId,
                     'jenis_cuti_id' => $jenisCutiId,

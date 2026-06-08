@@ -40,4 +40,9 @@ class User extends Authenticatable
     public function role() {
         return $this->belongsTo(Role::class);
     }
+
+    // Relasi ke Gender
+    public function gender() {
+        return $this->belongsTo(Gender::class);
+    }
 }
