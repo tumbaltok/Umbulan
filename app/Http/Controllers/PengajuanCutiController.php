@@ -7,6 +7,9 @@ use App\Models\PengajuanCuti;
 use App\Models\SaldoCuti;
 use App\Models\JenisCuti;
 use Carbon\Carbon;
+use App\Models\Absensi;
+use PhpParser\Node\Stmt\ElseIf_;
+
 // use Illuminate\Support\Facades\Auth;
 
 class PengajuanCutiController extends Controller
@@ -85,6 +88,21 @@ class PengajuanCutiController extends Controller
         }
 
         $jenisCuti = JenisCuti::find($request->jenis_cuti_id);
+        $roleName = strtolower($user->role->role_name ?? $user->role ?? '');
+
+        $statusSupervisor = 'pending';
+        $statusManager    = 'pending';
+        $statusAkhir      = 'pending';
+
+        if ($roleName === 'manager') {
+            $statusSupervisor = 'approved';
+            $statusManager    = 'approved';
+            $statusAkhir      = 'approved';
+        } elseif ($roleName === 'supervisor') {
+            $statusSupervisor = 'approved';
+            $statusManager    = 'pending';
+            $statusAkhir      = 'pending';
+        }
 
         // Simpan Pengajuan
         $pengajuan = PengajuanCuti::create([
@@ -94,9 +112,9 @@ class PengajuanCutiController extends Controller
             'tanggal_selesai' => $request->tanggal_selesai,
             'total_hari' => $totalHari,
             'alasan_cuti' => $request->alasan_cuti,
-            'status_supervisor' => 'pending',
-            'status_manager' => 'pending',
-            'status_akhir' => 'pending',
+            'status_supervisor' => $statusSupervisor,
+            'status_manager' => $statusManager,
+            'status_akhir' => $statusAkhir,
         ]);
 
         return response()->json(['message' => 'Cuti ' . $jenisCuti->name_cuti . ' berhasil diajukan!', 'data' => $pengajuan], 201);
@@ -186,7 +204,7 @@ class PengajuanCutiController extends Controller
                 'catatan_penolakan' => $request->aksi === 'rejected' ? $request->catatan : null
             ]);
 
-            // Potong saldo cuti otomatis jika disetujui penuh oleh Manager
+            // Potong saldo cuti otomatis jika disetujui oleh Manager
             if ($request->aksi === 'approved') {
 
                 // Ambil nama cuti dari relasi
@@ -205,10 +223,37 @@ class PengajuanCutiController extends Controller
                         $saldo->decrement('sisa_saldo', $pengajuan->total_hari);
                     }
                 }
+                $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
+                $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
+
+                // Lakukan looping dari tanggal mulai sampai tanggal selesai cuti
+                for ($date = $tanggalMulai; $date->lte($tanggalSelesai); $date->addDay()) {
+
+                    // Format tanggal menjadi Y-m-d (contoh: 2026-06-10)
+                    $tanggalCuti = $date->format('Y-m-d');
+
+                    // Gunakan updateOrCreate agar tidak duplikat jika absen sudah terlanjur dibuat
+                    // Sesuaikan nama kolom tabel absensi Anda di bawah ini
+                    \App\Models\Absensi::updateOrCreate(
+                        [
+                            'user_id' => $pengajuan->user_id,
+                            'tanggal' => $tanggalCuti
+                        ],
+                        [
+                            'status_kehadiran' => 'Cuti', // Menyatakan karyawan sedang cuti resmi
+                            'keterangan' => 'Cuti disetujui: ' . ($pengajuan->jenisCuti->name_cuti ?? 'Cuti Tahunan'),
+                            'jam_masuk' => null, // Tidak perlu jam masuk karena cuti
+                            'jam_pulang' => null
+                        ]
+                    );
+                }
             }
             return response()->json(['message' => 'Manager berhasil memperbarui status pengajuan.']);
         }
-        return response()->json(['message' => 'Status pengajuan cuti berhasil diperbarui.']);
+        return response()->json([
+            'message' => 'Gagal! Akun Anda tidak dikenali sebagai Supervisor maupun Manager.',
+            'debug_role_terbaca' => $roleName
+        ], 403);
     }
 
     public function show(Request $request, int $id)
