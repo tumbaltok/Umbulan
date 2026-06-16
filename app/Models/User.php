@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['nip', 'name', 'email', 'password', 'role_id', 'gender_id', 'station_id', 'tipe_id', 'supervisor_id', 'manager_id'])]
 #[Hidden(['password', 'remember_token'])]
@@ -38,11 +39,17 @@ class User extends Authenticatable
 
     // Relasi ke Role
     public function role() {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     // Relasi ke Gender
     public function gender() {
-        return $this->belongsTo(Gender::class);
+        return $this->belongsTo(Gender::class, 'gender_id');
+    }
+
+    public function stations(): BelongsToMany
+    {
+        // Hubungkan User ke Station melalui tabel pivot station_supervisor
+        return $this->belongsToMany(Station::class, 'station_supervisor', 'supervisor_id', 'station_id');
     }
 }

@@ -132,7 +132,7 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- NIP Input -->
-                            <div>
+                            {{-- <div>
                                 <label for="nip" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">NIP / ID Karyawan</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -143,7 +143,7 @@
                                         class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Contoh: TA-2026045">
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <!-- Name Input -->
                             <div>
@@ -211,7 +211,7 @@
                                     <!-- PERBAIKAN: Ditambahkan name="role_id" -->
                                     <select id="role_id" name="role_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none">
                                         <option value="" disabled selected>Pilih Peran Jabatan</option>
-                                        <option value="4">Staff Operasional / Lapangan</option>
+                                        <option value="4">Staff Operasional/Lapangan</option>
                                         <option value="3">Supervisor</option>
                                         <option value="2">Manager</option>
                                         <option class="hidden" value="1">Admin</option>
@@ -241,8 +241,8 @@
                                 </div>
                             </div>
 
-                            <!-- Tipe Karyawan -->
-                            <div>
+                            <!-- Jobdesk Karyawan -->
+                            {{-- <div>
                                 <label for="tipe_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tipe Pekerjaan</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -260,7 +260,7 @@
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
 

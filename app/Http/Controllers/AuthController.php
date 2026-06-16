@@ -17,14 +17,13 @@ class AuthController extends Controller
     {
         // 1. Validasi Inputan sesuai skema database Anda
         $request->validate([
-            'nip' => 'required|string|max:50|unique:users,nip',
+            'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'role_id' => 'required|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
-            'tipe_id' => 'required|exists:tipes,id',
-            'password' => 'required|string|min:8|confirmed', // Harus ada input password_confirmation di form
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         // 2. Simpan Data ke Database
@@ -35,8 +34,7 @@ class AuthController extends Controller
             'role_id' => $request->role_id,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
-            'tipe_id' => $request->tipe_id,
-            'password' => Hash::make($request->password), // Enkripsi password
+            'password' => Hash::make($request->password),
         ]);
 
         // 3. Alihkan ke halaman login dengan pesan sukses
@@ -51,17 +49,16 @@ class AuthController extends Controller
     {
         // 1. Validasi Inputan API
         $request->validate([
-            'nip' => 'required|string|max:50|unique:users,nip',
+            'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'role_id' => 'required|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
-            'tipe_id' => 'required|exists:tipes,id',
-            'password' => 'required|string|min:8', // Pada API umumnya konfirmasi ditangani client-side
+            'password' => 'required|string|min:8', // Konfirmasi diurus client-side (Mobile/Frontend)
         ]);
 
-        // 2. Simpan Data ke Database
+        // 2. Simpan Data ke Database (Dengan Atasan Otomatis)
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
@@ -69,14 +66,14 @@ class AuthController extends Controller
             'role_id' => $request->role_id,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
-            'tipe_id' => $request->tipe_id,
             'password' => Hash::make($request->password),
         ]);
 
         // 3. Buat token akses Sanctum untuk login otomatis setelah mendaftar
         $token = $user->createToken('auth_token')->plainTextToken;
+        $user->load('role');
 
-        // 4. Kirim respons sukses berupa JSON
+        // 4. Kirim respons sukses berupa JSON beserta info atasan yang didapat
         return response()->json([
             'status' => 'success',
             'message' => 'Registrasi berhasil lewat API!',
@@ -87,6 +84,9 @@ class AuthController extends Controller
                 'nip' => $user->nip,
                 'name' => $user->name,
                 'email' => $user->email,
+                'role' => $user->role->role_name,
+                'assigned_supervisor_id' => $user->supervisor_id, // Bagus untuk info di aplikasi mobile/frontend
+                'assigned_manager_id' => $user->manager_id,
             ]
         ], 201);
     }
