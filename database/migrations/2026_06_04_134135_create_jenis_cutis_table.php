@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('jenis_cutis', function (Blueprint $table) {
             $table->id();
             $table->string('name_cuti');
-            $table->integer('kuota_default')->default(0); // Misal: 12 hari untuk tahunan
+            $table->integer('kuota_default')->default(0)->nullable(); // Misal: 12 hari untuk tahunan
             $table->boolean('butuh_surat_dokter')->default(false); // Untuk cuti sakit
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }

@@ -37,7 +37,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard', compact(
+        return view('dashboard/index', compact(
             'user',
             'kuotaTahunan',
             'totalCutiDiambil',

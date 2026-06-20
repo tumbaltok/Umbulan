@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('station_id')->constrained('stations');
             $table->string('job_title')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('profile_photo')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

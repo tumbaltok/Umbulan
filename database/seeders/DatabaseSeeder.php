@@ -9,9 +9,9 @@ use Illuminate\Database\Seeder;
 use App\Models\Gender;
 use App\Models\JenisCuti;
 use App\Models\Station;
-use Illuminate\Support\Facades\hash;
+use Illuminate\Support\Facades\Hash;
 use App\Models\SaldoCuti;
-
+use App\Models\SubCuti;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,8 +22,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         // DATA MASTER ROLES
         $roleAdmin = Role::create(['role_name' => 'Admin']);
         $roleManager = Role::create(['role_name' => 'Manager']);
@@ -45,31 +43,88 @@ class DatabaseSeeder extends Seeder
             'name' => 'Stasiun Booster-M'
         ]);
 
-        // DATA MASTER JENIS CUTI
-        $cutiTahunan = JenisCuti::create([
-            'name_cuti' => 'Cuti Tahunan',
-            'kuota_default' => 12,
-            'butuh_surat_dokter' => false
+        // ==========================================
+        // ONLY 4 UTAMA JENIS CUTI & SUB-CUTI (KETERANGAN)
+        // ==========================================
+
+        // 1. Ijin Meninggalkan Pekerjaan (Membawahi ijin-ijin khusus tanpa potong cuti)
+        $ijinMeninggalkanPekerjaan = JenisCuti::create([
+            'name_cuti'          => 'Ijin Meninggalkan Pekerjaan',
+            'kuota_default'      => null,
+            'butuh_surat_dokter' => false,
+            'keterangan'         => null // Sudah tidak butuh kolom JSON lagi karena beralih ke tabel
         ]);
 
-        $cutiSakit = JenisCuti::create([
-            'name_cuti' => 'Sakit',
-            // 'kuota_default' => null,
-            'butuh_surat_dokter' => true
+        $dataSubCuti = [
+            ['nama' => 'Cuti Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
+            ['nama' => 'Cuti Haid', 'durasi' => 2, 'ket' => 'Tidak memotong kuota tahunan (Khusus Wanita)'],
+            ['nama' => 'Pernikahan Karyawan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Istri Karyawan Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
+            ['nama' => 'Kematian Suami/Istri/Anak/Orang Tua/Mertua', 'durasi' => 3, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Kakak/Adik Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pernikahan Anak/Kakak/Adik Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Khitanan Anak Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pembaptisan Anak Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Tanggungan Tinggal di Rumah Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Karyawan Pindah Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Bencana Alam', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Cuti Ibadah Haji/Umroh', 'durasi' => null, 'ket' => 'Umroh maks 2 tahun sekali - Tidak memotong kuota tahunan'],
+        ];
+
+        foreach ($dataSubCuti as $sub) {
+            SubCuti::create([
+                'jenis_cuti_id'       => $ijinMeninggalkanPekerjaan->id,
+                'nama_sub_cuti'       => $sub['nama'],
+                'durasi_default'      => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket']
+            ]);
+        }
+
+        // 2. Cuti Family Visit
+        $cutiFamilyVisit = JenisCuti::create([
+            'name_cuti' => 'Cuti Family Visit/ Penugasan Sementara per 3 bulan',
+            'kuota_default' => null,
+            'butuh_surat_dokter' => false,
+            'keterangan' => null
         ]);
 
+        // 3. Cuti Melahirkan (Membawahi bersalin & gugur kandungan khusus wanita)
         $cutiMelahirkan = JenisCuti::create([
-            'name_cuti' => 'Melahirkan',
-            // 'kuota_default' => null,
-            'butuh_surat_dokter' => true
+            'name_cuti'          => 'Cuti Melahirkan',
+            'kuota_default'      => 45,
+            'butuh_surat_dokter' => true,
+            'keterangan'         => null
         ]);
+
+        $subMelahirkan = [
+            ['nama' => 'Istirahat Bersalin', 'durasi' => 45, 'ket' => '1,5 Bulan sebelum/sesudah melahirkan'],
+            ['nama' => 'Istirahat Gugur Kandungan', 'durasi' => 45, 'ket' => '1,5 Bulan sesuai surat keterangan dokter'],
+        ];
+
+        foreach ($subMelahirkan as $sub) {
+            SubCuti::create([
+                'jenis_cuti_id'       => $cutiMelahirkan->id, // Mengarah ke ID Cuti Melahirkan
+                'nama_sub_cuti'       => $sub['nama'],
+                'durasi_default'      => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket']
+            ]);
+        }
+
+        // 4. Cuti (Membawahi Cuti Tahunan umum, Cuti Haid, dan Cuti Ibadah)
+        $cutiTahunan = JenisCuti::create([
+            'name_cuti' => 'Cuti',
+            'kuota_default' => 12, // Slot utama 12 hari dalam setahun
+            'butuh_surat_dokter' => false,
+            'keterangan' => []
+        ]);
+
 
         // ==========================================
-        // DATA USERS (Karyawan & Atasan)
+        // DATA USERS
         // ==========================================
 
         // Akun ADMIN
-        $manager = User::create([
+        User::create([
             'nip' => '000',
             'name' => 'Admin',
             'email' => 'admin@meta.com',
@@ -79,8 +134,8 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('admin123'),
         ]);
 
-        // Akun Manager (Bebas Stasiun)
-        $manager = User::create([
+        // Akun Manager
+        User::create([
             'nip' => '100',
             'name' => 'Manager',
             'email' => 'manager@meta.com',
@@ -90,239 +145,75 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('manager123'),
         ]);
 
-        // // --- STASIUN UMBULAN ---
-        $spvUmbulan = User::create([
+        // SPV Umbulan
+        User::create([
             'nip' => '110',
-            'name' => 'SPV_OPRATOR_UMBULAN (SPV Operator Umbulan)',
-            'email' => 'spv.operator.umbulan@meta.com',
+            'name' => 'SPV  Umbulan',
+            'email' => 'spv.umbulan@meta.com',
             'role_id' => $roleSpv->id,
             'gender_id' => $pria->id,
             'station_id' => $stasiunUmbulan->id,
-            // 'manager_id' => $manager->id, // Lapor ke Manager
             'password' => Hash::make('supervisor123'),
         ]);
 
-        // $spvUmbulan = User::create([
-        //     'nip' => '111',
-        //     'name' => 'SPV_MAINTANACE_UMBULAN (SPV Maintanance Umbulan)',
-        //     'email' => 'spv.maintanance.umbulan@meta.com',
-        //     'role_id' => $roleSpv->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'manager_id' => $manager->id, // Lapor ke Manager
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $spvUmbulan = User::create([
-        //     'nip' => '112',
-        //     'name' => 'SPV_HSE_UMBULAN (SPV HSE Umbulan)',
-        //     'email' => 'spv.hse.umbulan@meta.com',
-        //     'role_id' => $roleSpv->id,
-        //     'gender_id' => $wanita->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'manager_id' => $manager->id, // Lapor ke Manager
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanUmbulan = User::create([
-        //     'nip' => '120',
-        //     'name' => 'OPERATOR_UMBULAN',
-        //     'email' => 'operator.umbulan@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'supervisor_id' => $spvUmbulan->id, //Lapor ke SPV-nya adalah SPV Umbulan
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanUmbulan = User::create([
-        //     'nip' => '121',
-        //     'name' => 'MAINTANANCE_UMBULAN (Karyawan Umbulan)',
-        //     'email' => 'maintanance.umbulan@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'supervisor_id' => $spvUmbulan->id, //Lapor ke SPV-nya adalah SPV Umbulan
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanUmbulan = User::create([
-        //     'nip' => '122',
-        //     'name' => 'HSE_umbulan',
-        //     'email' => 'hse.umbulan@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'supervisor_id' => $spvUmbulan->id, //Lapor ke SPV-nya adalah SPV Umbulan
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanUmbulan = User::create([
-        //     'nip' => '123',
-        //     'name' => 'DOCS_UMBULAN',
-        //     'email' => 'docs.umbulan@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $wanita->id,
-        //     'station_id' => $stasiunUmbulan->id,
-        //     'supervisor_id' => $spvUmbulan->id, //Lapor ke SPV-nya adalah SPV Umbulan
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-
-        // --- STASIUN Booster-M ---
-        $spvBooster = User::create([
+        // SPV Booster
+        User::create([
             'nip' => '210',
-            'name' => 'SPV_Booster-M',
+            'name' => 'SPV Booster-M',
             'email' => 'spv.booster@meta.com',
             'role_id' => $roleSpv->id,
             'gender_id' => $pria->id,
             'station_id' => $stasiunBooster->id,
-            // 'manager_id' => $manager->id, // Lapor ke Manager yang sama
             'password' => Hash::make('supervisor123'),
         ]);
 
-        // $karyawanBooster = User::create([
-        //     'nip' => '220',
-        //     'name' => 'Operator_Booster-M',
-        //     'email' => 'operator.booster@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunBooster->id,
-        //     'supervisor_id' => $spvBooster->id, //Lapor ke SPV-nya adalah SPV Booster
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanBooster = User::create([
-        //     'nip' => '221',
-        //     'name' => 'Maintanance_Booster-M',
-        //     'email' => 'maintanance.booster@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $pria->id,
-        //     'station_id' => $stasiunBooster->id,
-        //     'supervisor_id' => $spvBooster->id, //Lapor ke SPV-nya adalah SPV Booster
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        // $karyawanBooster = User::create([
-        //     'nip' => '222',
-        //     'name' => 'HSE_Booster-M',
-        //     'email' => 'hse.booster@meta.com',
-        //     'role_id' => $roleKaryawan->id,
-        //     'gender_id' => $wanita->id,
-        //     'station_id' => $stasiunBooster->id,
-        //     'supervisor_id' => $spvBooster->id, //Lapor ke SPV-nya adalah SPV Booster
-        //     'manager_id' => $manager->id,
-        //     'password' => Hash::make('123'),
-        // ]);
-
-        $karyawanBooster = User::create([
+        // Karyawan Wanita (Untuk tes validasi cuti khusus wanita)
+        $karyawanWanita = User::create([
             'nip' => '223',
-            'name' => 'Karyawan',
+            'name' => 'Karyawan Wanita',
             'email' => 'karyawan@meta.com',
             'role_id' => $roleKaryawan->id,
             'gender_id' => $wanita->id,
             'station_id' => $stasiunBooster->id,
-            // 'supervisor_id' => $spvBooster->id, //Lapor ke SPV-nya adalah SPV Booster
-            // 'manager_id' => $manager->id,
             'password' => Hash::make('karyawan123'),
         ]);
 
-        // ==========================================
-        // 6. ISI DATA SALDO CUTI OTOMATIS
-        // ==========================================
-        // Berikan saldo cuti tahunan 2026 untuk kedua karyawan tersebut
 
-        // semua ID user
+        // ==========================================
+        // ISI DATA SALDO CUTI UTOMATIS (TAHUN 2026)
+        // ==========================================
+
         $userIds = User::orderBy('id', 'asc')->pluck('id');
 
-        // semua ID jenis cuti
-        $jenisCutiIds = [
-            $cutiTahunan->id,
-            $cutiSakit->id,
-            $cutiMelahirkan->id
+        // Menyiapkan mapping alokasi jatah default 4 jenis cuti utama
+        $jenisCutiSaldos = [
+            ['id' => $cutiTahunan->id, 'saldo' => 12], // Default kuota cuti tahunan
+            ['id' => $ijinMeninggalkanPekerjaan->id, 'saldo' => 0], // Diisi berdasarkan case pengajuan khusus
+            ['id' => $cutiFamilyVisit->id, 'saldo' => 0],
+            ['id' => $cutiMelahirkan->id, 'saldo' => 45], // Default 1,5 bulan perlindungan melahirkan
         ];
 
-        // Looping
         foreach ($userIds as $userId) {
             $user = User::find($userId);
-            if (!$user) {
-                continue;
-            }
-            foreach ($jenisCutiIds as $jenisCutiId) {
+            if (!$user) continue;
+
+            foreach ($jenisCutiSaldos as $cutiData) {
                 $genderUser = strtolower($user->gender->name ?? '');
-                //Cek Gender
-                if ($jenisCutiId == $cutiMelahirkan->id && $genderUser!=='wanita') {
-                    continue;
+
+                // 🌟 PROTEKSI GENDER: Cuti Melahirkan hanya dimasukkan saldonya jika user berjenis kelamin Wanita
+                if ($cutiData['id'] == $cutiMelahirkan->id) {
+                    if ($genderUser !== 'wanita') {
+                        continue; // Lewati pemberian saldo melahirkan jika user adalah pria
+                    }
                 }
+
                 SaldoCuti::create([
                     'user_id'       => $userId,
-                    'jenis_cuti_id' => $jenisCutiId,
-                    'sisa_saldo'    => 12,
+                    'jenis_cuti_id' => $cutiData['id'],
+                    'sisa_saldo'    => $cutiData['saldo'],
                     'tahun'         => 2026
                 ]);
             }
         }
     }
 }
-// class DatabaseSeeder extends Seeder
-// {
-//     /**
-//      * Seed the application's database.
-//      */
-//     public function run(): void
-//     {
-//         // Panggil seeder lain jika diperlukan, misalnya:
-//         // $this->call(RolesTableSeeder::class);
-//         // $this->call(UsersTableSeeder::class);
-//         // $this->call(StationsTableSeeder::class);
-//         // $this->call(TipesTableSeeder::class);
-//         // $this->call(GendersTableSeeder::class);
-//         // $this->call(JenisCutiTableSeeder::class);
-
-//         // DATA MASTER ROLES
-//         $roleAdmin = Role::create(['role_name' => 'Admin']);
-//         $roleManager = Role::create(['role_name' => 'Manager']);
-//         $roleSpv = Role::create(['role_name' => 'Supervisor']);
-//         $roleKaryawan = Role::create(['role_name' => 'Staff']);
-
-//         // DATA MASTER GENDERS
-//         $pria = Gender::create(['name' => 'Pria']);
-//         $wanita = Gender::create(['name' => 'Wanita']);
-
-//         // DATA MASTER STATIONS
-//         $stasiunUmbulan = Station::create([
-//             'kode_stasiun' => 'umbulan',
-//             'name' => 'Stasiun Umbulan'
-//         ]);
-
-//         $stasiunBooster = Station::create([
-//             'kode_stasiun' => 'booster',
-//             'name' => 'Stasiun Booster-M'
-//         ]);
-
-//         // DATA MASTER JENIS CUTI
-//         $cutiTahunan = JenisCuti::create([
-//             'name_cuti' => 'Cuti Tahunan',
-//             'kuota_default' => 12,
-//             'butuh_surat_dokter' => false
-//         ]);
-
-//         $cutiSakit = JenisCuti::create([
-//             'name_cuti' => 'Sakit',
-//             // 'kuota_default' => null,
-//             'butuh_surat_dokter' => true
-//         ]);
-
-//         $cutiMelahirkan = JenisCuti::create([
-//             'name_cuti' => 'Melahirkan',
-//             // 'kuota_default' => null,
-//             'butuh_surat_dokter' => true
-//         ]);
-//     }
-// }

@@ -20,8 +20,8 @@
                         <th class="px-6 py-4 w-20 text-center">ID</th>
                         <th class="px-6 py-4">Nama Sektor / Stasiun</th>
                         <th class="px-6 py-4 text-center">Total Penempatan Staf</th>
-                        <th class="px-6 py-4 text-center">Status Operasional</th>
-                        <th class="px-6 py-4 text-center">Aksi</th>
+                        {{-- <th class="px-6 py-4 text-center">Status Operasional</th>
+                        <th class="px-6 py-4 text-center">Aksi</th> --}}
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -42,14 +42,14 @@
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4 text-center">
+                            {{-- <td class="px-6 py-4 text-center">
                                 <span class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
                                     Aktif
                                 </span>
-                            </td>
+                            </td> --}}
 
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                            {{-- <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="inline-flex space-x-1">
                                     <a href="#" class="px-2.5 py-1.5 bg-slate-50 hover:bg-amber-50 text-slate-500 hover:text-amber-700 rounded-lg text-xs font-semibold transition-colors border border-slate-100">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
@@ -58,7 +58,7 @@
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </div>
-                            </td>
+                            </td> --}}
                         </tr>
                     @empty
                         <tr>

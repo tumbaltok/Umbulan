@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendaftaran Karyawan - Portal Cuti META</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -42,6 +43,16 @@
 
             <!-- Logo Brand Bagian Atas -->
             <div class="z-10 flex items-center space-x-3">
+                <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-12 h-12 flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+                </div>
+
+                <div>
+                    <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
+                    <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
+                </div>
+            </div>
+            {{-- <div class="z-10 flex items-center space-x-3">
                 <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
                     <svg class="w-6 h-6 text-cyan-200 fill-current" viewBox="0 0 24 24">
                         <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
@@ -51,7 +62,7 @@
                     <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
                     <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Konten Tengah -->
             <div class="my-auto py-8 z-10 hidden lg:flex flex-col items-start">

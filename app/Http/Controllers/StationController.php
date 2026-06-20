@@ -18,7 +18,7 @@ class StationController extends Controller
                 DB::raw('COUNT(users.id) as total_karyawan')
             )
             ->groupBy('stations.id', 'stations.name') // Sesuaikan kolom groupBy jika nama kolom berbeda
-            ->orderBy('stations.name', 'asc')
+            ->orderBy('stations.name', 'desc')
             ->get();
 
         return view('admin.stations.index', compact('daftarStasiun'));

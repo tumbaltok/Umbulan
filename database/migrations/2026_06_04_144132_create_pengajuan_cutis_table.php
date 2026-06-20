@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id');
             $table->integer('jenis_cuti_id');
+            $table->foreignId('sub_cuti_id')->nullable()->constrained('sub_cutis')->onDelete('set null');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->integer('total_hari');
-            $table->text('alasan_cuti');
+            $table->text('alasan_cuti')->nullable()->change();
             $table->string('dokumen_pendukung')->nullable();
             // Alur Persetujuan Bertingkat
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
