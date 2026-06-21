@@ -25,7 +25,8 @@
                         id="jenis_cuti_id"
                         class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('jenis_cuti_id') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
                         required>
-                        <option value="">-- Pilih Jenis Cuti --</option>
+                        {{-- DI-PERBARUI: Ditambahkan disabled dan hidden dari awal --}}
+                        <option value="" disabled selected hidden>-- Pilih Jenis Cuti --</option>
                         @foreach($jenisCuti as $jenis)
                             @php
                                 $userGender = strtolower(auth()->user()->gender->name ?? '');
@@ -33,12 +34,11 @@
                                 $namaCutiLower = strtolower($jenis->name_cuti);
                             @endphp
 
-                            {{-- PROTEKSI SISI VIEW: Sembunyikan kategori utama Cuti Melahirkan jika user pria --}}
                             @if($isPria && (str_contains($namaCutiLower, 'melahirkan') || str_contains($namaCutiLower, 'haid')))
                                 @continue
                             @endif
 
-                            <option value="{{ $jenis->id }}" {{ old('jenis_cuti_id') == $jenis->id ? 'selected' : '' }}>
+                            <option value="{{ $jenis->id }}" data-nama-cuti="{{ $jenis->name_cuti }}" {{ old('jenis_cuti_id') == $jenis->id ? 'selected' : '' }}>
                                 {{ $jenis->name_cuti }}
                             </option>
                         @endforeach
@@ -46,20 +46,20 @@
                     @error('jenis_cuti_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                {{-- SUB-CUTI / DETAIL PILIHAN (Dinamis dari Tabel Database) --}}
+                {{-- SUB-CUTI / DETAIL PILIHAN --}}
                 <div id="wrapper_sub_cuti" style="display: none;">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Detail Keperluan / Sub-Cuti</label>
                     <select id="sub_cuti_id"
                             name="sub_cuti_id"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 bg-sky-50/20 {{ $errors->has('sub_cuti_id') ? 'border-rose-500' : 'border-slate-200' }}">
-                        <option value="">-- Pilih Detail Perizinan --</option>
+                        {{-- DI-PERBARUI: Ditambahkan disabled, selected, dan hidden dari awal --}}
+                        <option value="" disabled selected hidden>-- Pilih Detail Perizinan --</option>
                     </select>
                     @error('sub_cuti_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- GRID TANGGAL MULAI & SELESAI --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {{-- INPUT TANGGAL MULAI --}}
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Mulai</label>
                         <input type="date"
@@ -72,7 +72,6 @@
                         @error('tanggal_mulai') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- INPUT TANGGAL SELESAI --}}
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Selesai</label>
                         <input type="date"
@@ -88,7 +87,7 @@
 
                 {{-- ALASAN CUTI --}}
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    <label id="label-alasan" class="block text-sm font-semibold text-slate-700 mb-2">
                         Alasan / Catatan Tambahan <span class="text-xs font-normal text-slate-400">(Opsional)</span>
                     </label>
                     <textarea name="alasan_cuti"
@@ -101,10 +100,7 @@
 
                 {{-- DOKUMEN PENDUKUNG --}}
                 <div>
-                    {{-- DI-BENARKAN: Menambahkan id="label-dokumen" --}}
                     <label id="label-dokumen" class="block text-sm font-semibold text-slate-700 mb-2">Dokumen Pendukung <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
-
-                    {{-- DI-BENARKAN: Menambahkan id="input-dokumen" --}}
                     <input type="file"
                            name="dokumen_pendukung"
                            id="input-dokumen"
@@ -127,10 +123,8 @@
     </div>
 </div>
 
-{{-- LOGIKA JAVASCRIPT DINAMIS TERBARU (SUDAH DI-BENARKAN) --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Ambil data Jenis Cuti beserta SubCutis hasil pemanggilan 'with' dari Controller
         const dataJenisCuti = @json($jenisCuti);
         const isPria = {{ (strtolower(auth()->user()->gender->name ?? '') === 'pria' || strtolower(auth()->user()->gender->name ?? '') === 'male') ? 'true' : 'false' }};
 
@@ -139,6 +133,8 @@
         const subCutiSelect = document.getElementById('sub_cuti_id');
         const tanggalMulai = document.getElementById('tanggal_mulai');
         const tanggalSelesai = document.getElementById('tanggal_selesai');
+        const labelAlasan = document.getElementById('label-alasan');
+        const alasanCuti = document.getElementById('alasan_cuti');
 
         tanggalMulai.addEventListener('mousedown', function(e) {
             e.preventDefault();
@@ -158,17 +154,26 @@
         // ==========================================
         jenisCutiSelect.addEventListener('change', function () {
             const selectedId = this.value;
+            const optionTerpilih = this.options[this.selectedIndex];
+            const namaCuti = optionTerpilih ? optionTerpilih.getAttribute('data-nama-cuti') : '';
 
-            // Bersihkan dropdown sub-cuti sebelumnya
-            subCutiSelect.innerHTML = '<option value="">-- Pilih Detail Perizinan --</option>';
+            // Validasi Wajib Alasan untuk jenis "Cuti"
+            if (namaCuti === 'Cuti') {
+                labelAlasan.innerHTML = 'Alasan / Catatan Tambahan <span class="text-rose-600">*</span>';
+                alasanCuti.setAttribute('required', 'required');
+            } else {
+                labelAlasan.innerHTML = 'Alasan / Catatan Tambahan <span class="text-xs font-normal text-slate-400">(Opsional)</span>';
+                alasanCuti.removeAttribute('required');
+            }
 
-            // Cari objek jenis cuti terpilih di dalam variabel JSON
+            // Bersihkan dropdown sub-cuti sebelumnya & setel ulang placeholder awal dengan disabled hidden
+            subCutiSelect.innerHTML = '<option value="" disabled selected hidden>-- Pilih Detail Perizinan --</option>';
+
             const jenisTerpilih = dataJenisCuti.find(item => item.id == selectedId);
 
             if (jenisTerpilih) {
                 let subCutis = jenisTerpilih.sub_cutis || jenisTerpilih.subCutis || [];
 
-                // PROTEKSI SISI JS: Saring sub-cuti khusus wanita jika user adalah pria
                 if (isPria) {
                     subCutis = subCutis.filter(sub => {
                         const namaLower = sub.nama_sub_cuti.toLowerCase();
@@ -185,10 +190,7 @@
                         option.value = sub.id;
                         option.textContent = `${sub.nama_sub_cuti} ${sub.durasi_default ? '(' + sub.durasi_default + ' Hari)' : ''}`;
                         option.setAttribute('data-durasi', sub.durasi_default || '');
-
-                        // Tanam status 'apakah_wajib_dokumen' ke dalam atribut HTML data
                         option.setAttribute('data-wajib-dokumen', sub.apakah_wajib_dokumen ? '1' : '0');
-
                         subCutiSelect.appendChild(option);
                     });
 
@@ -197,7 +199,6 @@
                 }
             }
 
-            // Kondisi default jika tidak ada sub-cuti atau tidak ada jenis cuti yang dipilih
             wrapperSubCuti.style.display = 'none';
             subCutiSelect.removeAttribute('required');
             subCutiSelect.value = '';
@@ -206,7 +207,7 @@
 
 
         // ==========================================
-        // 2. LOGIKA SAAT DROPDOWN SUB-CUTI BERUBAH (DI-BENARKAN: DI KELUARKAN DARI NESTED)
+        // 2. LOGIKA SAAT DROPDOWN SUB-CUTI BERUBAH
         // ==========================================
         subCutiSelect.addEventListener('change', function() {
             const optionTerpilih = this.options[this.selectedIndex];
@@ -215,7 +216,6 @@
                 const teksOpsi = optionTerpilih.textContent.toLowerCase();
                 const val = optionTerpilih.getAttribute('data-wajib-dokumen');
 
-                // JIKA teks mengandung kata 'sakit' ATAU data-wajib-dokumen bernilai true
                 if (teksOpsi.includes('sakit') || val === '1' || val === 1 || val === 'true') {
                     document.getElementById('label-dokumen').innerHTML = 'Dokumen Pendukung <span class="text-rose-600">*</span>';
                     document.getElementById('input-dokumen').required = true;
@@ -257,7 +257,7 @@
         });
 
         // ==========================================
-        // 4. HELPER FUNCTION (DI-BENARKAN: DI KELUARKAN DARI NESTED)
+        // 4. HELPER FUNCTION
         // ==========================================
         function resetStatusDokumen() {
             const labelDokumen = document.getElementById('label-dokumen');

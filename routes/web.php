@@ -47,9 +47,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/stations', [StationController::class, 'index'])->name('stations.index');
 
     // Rute untuk pengelolaan cuti versi Web
-    Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'createView'])->name('cuti.ajukan');
+    Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
     Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
+    Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
     // Proses Logout Web
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');

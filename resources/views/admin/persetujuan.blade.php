@@ -27,7 +27,7 @@
                             <td class="px-6 py-4 font-medium text-slate-900">{{ $item->user_name }}</td>
 
                             <td class="px-6 py-4">
-                                <div class="font-medium text-slate-800">{{ $item->name_cuti }}</div>
+                                <div class="font-medium text-slate-800">{{ $item->nama_sub_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
                                     <div class="mt-1">
                                         <a href="{{ asset('uploads/dokumen_cuti/' . $item->dokumen_pendukung) }}" target="_blank" class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline">

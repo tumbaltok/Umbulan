@@ -38,7 +38,7 @@
             height: 55px; /* Sesuaikan ukuran logo Anda */
         }
 
-        /* Main Border Box (Kotak Utama seperti di Gambar) */
+        /* Main Border Box */
         .main-box {
             border: 1.5px solid #000;
             width: 100%;
@@ -209,7 +209,7 @@
                 <div style="margin-bottom: 12px;">
                     <div>
                         <span class="checkbox-rect">@if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'meninggalkan pekerjaan')) v @endif</span>
-                        <span class="font-weight: bold;"><strong>Ijin Meninggalkan Pekerjaan</strong></span>
+                        <span style="font-weight: bold;"><strong>Ijin Meninggalkan Pekerjaan</strong></span>
                     </div>
                     <table style="width: 100%; margin-left: 28px; font-size: 10.5pt;">
                         <tr>
@@ -222,7 +222,13 @@
                         <tr>
                             <td style="padding: 2px 0;">Keperluan</td>
                             <td>:</td>
-                            <td colspan="3"><span class="dots-line" style="width: 96%;">@if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'meninggalkan pekerjaan')) {{ $pengajuan->subCuti->nama_sub_cuti }} @endif</span></td>
+                            <td colspan="3">
+                                <span class="dots-line" style="width: 96%;">
+                                    @if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'meninggalkan pekerjaan'))
+                                        {{ $pengajuan->alasan_cuti ?: $pengajuan->jenisCuti->name_cuti }}
+                                    @endif
+                                </span>
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -230,7 +236,7 @@
                 <div style="margin-bottom: 12px;">
                     <div>
                         <span class="checkbox-rect">@if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'family visit')) v @endif</span>
-                        <span class="font-weight: bold;"><strong>Cuti Family Visit/ Penugasan Sementara per 3 bulan</strong></span>
+                        <span style="font-weight: bold;"><strong>Cuti Family Visit/ Penugasan Sementara per 3 bulan</strong></span>
                     </div>
                     <table style="width: 100%; margin-left: 28px; font-size: 10.5pt;">
                         <tr>
@@ -246,7 +252,7 @@
                 <div style="margin-bottom: 12px;">
                     <div>
                         <span class="checkbox-rect">@if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'melahirkan')) v @endif</span>
-                        <span class="font-weight: bold;"><strong>Cuti Melahirkan</strong></span>
+                        <span style="font-weight: bold;"><strong>Cuti Melahirkan</strong></span>
                     </div>
                     <table style="width: 100%; margin-left: 28px; font-size: 10.5pt;">
                         <tr>
@@ -260,7 +266,6 @@
                 </div>
 
                 @php
-                    // Cek jika tidak masuk kategori ijin/visit/melahirkan, berarti masuk cuti tahunan umum
                     $isCutiUmum = !str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'meninggalkan pekerjaan') &&
                                   !str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'family visit') &&
                                   !str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'melahirkan');
@@ -268,7 +273,7 @@
                 <div>
                     <div>
                         <span class="checkbox-rect">@if($isCutiUmum) v @endif</span>
-                        <span class="font-weight: bold;"><strong>Cuti</strong></span>
+                        <span style="font-weight: bold;"><strong>Cuti</strong></span>
                     </div>
                     <table style="width: 100%; margin-left: 28px; font-size: 10.5pt;">
                         <tr>
@@ -294,11 +299,11 @@
                         <tr>
                             <td style="padding: 2px 0;">Keperluan</td>
                             <td>:</td>
-                            <td colspan="3"><span class="dots-line" style="width: 96%;">@if($isCutiUmum) {{ $pengajuan->alasan_cuti }}@endif</span></td>
+                            <td colspan="3"><span class="dots-line" style="width: 96%;">@if($isCutiUmum) {{ $pengajuan->alasan_cuti }} @endif</span></td>
                         </tr>
                         <tr>
                             <td colspan="5" style="padding-top: 15px; text-align: right; padding-right: 25px;">
-                                No Telp yang bisa dihubungi : <span class="dots-line" style="width: 45%;">{{ $pengajuan->user->phone_number}}</span>
+                                No Telp yang bisa dihubungi : <span class="dots-line" style="width: 45%;">{{ $pengajuan->user->phone_number }}</span>
                             </td>
                         </tr>
                     </table>
@@ -382,23 +387,6 @@
             </td>
         </tr>
     </table>
-
-    {{-- <div class="footer-notes">
-        <table>
-            <tr>
-                <td class="num">1.</td>
-                <td>Permohonan cuti harus diajukan paling lambat 7 (tujuh) hari sebelum hari cuti diambil dan terlebih dahulu mendapat persetujuan dari atasanya.</td>
-            </tr>
-            <tr>
-                <td class="num">2.</td>
-                <td>Ijin meninggalkan pekerjaan akan diperhitungkan sesuai ketentuan yang berlaku di Perusahaan.</td>
-            </tr>
-            <tr>
-                <td class="num">3.</td>
-                <td>Lembar pertama (asli) untuk Bag SDM dan lembar kedua untuk pekerja ybs.</td>
-            </tr>
-        </table>
-    </div> --}}
 
 </body>
 </html>

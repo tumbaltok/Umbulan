@@ -34,21 +34,21 @@ class PengajuanCutiController extends Controller
     // KARYAWAN: Mengajukan Cuti (API Dasar)
     public function store(Request $request)
     {
+        $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';
+
         $request->validate([
             'jenis_cuti_id' => 'required|exists:jenis_cutis,id',
             'sub_cuti_id'   => 'nullable|exists:sub_cutis,id',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'alasan_cuti' => 'nullable|string',
-            $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
         ],[
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai cuti.',
         ]);
 
         if ($request->sub_cuti_id) {
-            $subCuti = \App\Models\SubCuti::find($request->sub_cuti_id);
+            $subCuti = SubCuti::find($request->sub_cuti_id);
 
-            // Karena sudah menggunakan $casts boolean di model, kita bisa langsung cek seperti ini
             if ($subCuti && $subCuti->apakah_wajib_dokumen) {
                 $aturanDokumen = 'required|file|mimes:pdf,jpg,jpeg,png|max:2048';
             }
@@ -64,14 +64,12 @@ class PengajuanCutiController extends Controller
         $jenisCuti = JenisCuti::findOrFail($request->jenis_cuti_id);
         $namaCutiUtama = strtolower($jenisCuti->name_cuti ?? '');
 
-        // Cari teks nama sub cuti jika sub_cuti_id dikirim
         $namaSubCuti = '';
         if ($request->sub_cuti_id) {
             $subDb = SubCuti::find($request->sub_cuti_id);
             $namaSubCuti = $subDb ? strtolower($subDb->nama_sub_cuti) : '';
         }
 
-        // 1. ATURAN GENDER UTAMA (Back-end Guard)
         $genderUser = strtolower($user->gender_id ?? $user->gender->name ?? $user->gender ?? '');
         $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'lki-laki' || $genderUser === 'male');
 
@@ -83,12 +81,10 @@ class PengajuanCutiController extends Controller
             }
         }
 
-        // Hitung total hari cuti
         $mulai = Carbon::parse($request->tanggal_mulai);
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
 
-        // 2. LOGIKA VALIDASI SALDO
         $apakahMemotongSaldo = $this->cekApakahMemotongSaldo($namaCutiUtama, $request->sub_cuti_id);
 
         if ($apakahMemotongSaldo) {
@@ -108,7 +104,6 @@ class PengajuanCutiController extends Controller
             }
         }
 
-        // Proses Dokumen Pendukung
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $file = $request->file('dokumen_pendukung');
@@ -131,7 +126,6 @@ class PengajuanCutiController extends Controller
             $statusAkhir      = 'pending';
         }
 
-        // Simpan Pengajuan
         $pengajuan = PengajuanCuti::create([
             'user_id' => $user->id,
             'jenis_cuti_id' => $request->jenis_cuti_id,
@@ -226,7 +220,6 @@ class PengajuanCutiController extends Controller
         return response()->json(['message' => 'Status pengajuan berhasil diperbarui oleh ' . $roleName]);
     }
 
-    // Helper Function: Cek Aturan Pemotongan Saldo Utama (Aman Berdasarkan ID Database)
     private function cekApakahMemotongSaldo(string $namaCutiUtama, $subCutiId = null)
     {
         if (str_contains(strtolower($namaCutiUtama), 'cuti')) {
@@ -234,7 +227,6 @@ class PengajuanCutiController extends Controller
                 $sub = SubCuti::find($subCutiId);
                 if ($sub) {
                     $namaSub = strtolower($sub->nama_sub_cuti);
-                    // Jika sub-cuti mengandung kata-kata pengecualian ini, jangan potong saldo utama
                     if (str_contains($namaSub, 'haid') || str_contains($namaSub, 'ibadah') || str_contains($namaSub, 'haji') || str_contains($namaSub, 'umroh')) {
                         return false;
                     }
@@ -246,7 +238,6 @@ class PengajuanCutiController extends Controller
         return false;
     }
 
-    // Helper Function: Sinkronisasi Sinkron Cuti Ke Saldo & Absen
     private function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
     {
         $namaCutiUtama = strtolower($pengajuan->jenisCuti->name_cuti ?? '');
@@ -286,13 +277,6 @@ class PengajuanCutiController extends Controller
         return response()->json(['data' => $pengajuan], 200);
     }
 
-    // Menampilkan Formulir Pengajuan Cuti (Web View) - DIPERBAIKI: Menggunakan with('subCutis') agar javascript dapet datanya
-    public function createView()
-    {
-        $jenisCuti = JenisCuti::with('subCutis')->get();
-        return view('cuti.create', compact('jenisCuti'));
-    }
-
     // Memproses Simpan Data dari Form HTML Web
     public function storeWeb(Request $request)
     {
@@ -315,7 +299,6 @@ class PengajuanCutiController extends Controller
             $namaSubCuti = $subDb ? strtolower($subDb->nama_sub_cuti) : '';
         }
 
-        // ATURAN GENDER UTAMA (Back-end Guard)
         $genderUser = strtolower($user->gender_id ?? $user->gender->name ?? $user->gender ?? '');
         $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'lki-laki' || $genderUser === 'male');
 
@@ -346,8 +329,8 @@ class PengajuanCutiController extends Controller
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $file = $request->file('dokumen_pendukung');
-            $namaDokumen = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/dokumen_cuti'), $namaDokumen);
+            $path = $file->store('dokumen_cuti', 'public');
+            $namaDokumen = $path;
         }
 
         $roleName = strtolower($user->role->role_name ?? $user->role ?? '');
@@ -385,7 +368,6 @@ class PengajuanCutiController extends Controller
     // Menampilkan Halaman Riwayat Cuti (Web View)
     public function riwayatView(Request $request)
     {
-        // Mengambil data riwayat cuti khusus untuk user yang sedang login
         $pengajuanCuti = DB::table('pengajuan_cutis')
             ->leftJoin('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
@@ -394,7 +376,38 @@ class PengajuanCutiController extends Controller
             ->orderBy('pengajuan_cutis.created_at', 'desc')
             ->get();
 
+        // Memformat tanggal untuk SETIAP BARIS DATA di dalam collection
+        $pengajuanCuti->map(function ($item) {
+            $item->tanggal_mulai_formatted = \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y');
+            $item->tanggal_selesai_formatted = \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y');
+            return $item;
+        });
+
         return view('cuti.riwayat', compact('pengajuanCuti'));
+    }
+
+    public function detailCutiJSON(int $id, Request $request)
+    {
+        // Cari 1 data spesifik berdasarkan ID cuti dan milik user yang login
+        $cuti = DB::table('pengajuan_cutis')
+            ->leftJoin('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
+            ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
+            ->where('pengajuan_cutis.id', $id)
+            ->where('pengajuan_cutis.user_id', $request->user()->id) // Proteksi keamanan data
+            ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti')
+            ->first(); // Wajib first() karena kita hanya butuh 1 objek data saja
+
+        // Jika data tidak ditemukan
+        if (!$cuti) {
+            return response()->json(['message' => 'Data detail tidak ditemukan'], 404);
+        }
+
+        // Format tanggal khusus untuk dibaca oleh element JavaScript Modal Anda
+        $cuti->tanggal_mulai_formatted = \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d M Y');
+        $cuti->tanggal_selesai_formatted = \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d M Y');
+
+        // Kembalikan dalam bentuk response JSON
+        return response()->json($cuti);
     }
 
     // Menampilkan Halaman List Pengajuan Masuk untuk Atasan (Web View)
@@ -405,7 +418,8 @@ class PengajuanCutiController extends Controller
         $query = DB::table('pengajuan_cutis')
             ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
-            ->select('pengajuan_cutis.*', 'users.name as user_name', 'jenis_cutis.name_cuti', 'users.station_id')
+            ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
+            ->select('pengajuan_cutis.*', 'users.name as user_name', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti', 'users.station_id')
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
         if ($user->role_id == 3) { // Supervisor
@@ -460,6 +474,20 @@ class PengajuanCutiController extends Controller
         return redirect()->back()->with('success', 'Status pengajuan cuti karyawan berhasil diperbarui!');
     }
 
+    public function viewSuratCuti(int $id)
+    {
+        $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
+
+        if ($pengajuan->status_manager !== 'approved') {
+            return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');
+        }
+
+        return view('cuti.pembungkus_pdf', [
+            'id' => $id,
+            'title' => 'Surat Cuti - ' . $pengajuan->user->name
+        ]);
+    }
+
     public function cetakSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with(['user', 'jenisCuti', 'subCuti'])->findOrFail($id);
@@ -480,7 +508,7 @@ class PengajuanCutiController extends Controller
         return response()->json($jenis->subCutis);
     }
 
-    // Dipastikan mengembalikan view dengan data ber-relasi subCutis
+    // PERBAIKAN: Mengarahkan return view ke 'cuti.ajukan' agar sinkron dengan nama route web Anda
     public function create()
     {
         $jenisCuti = JenisCuti::with('subCutis')->get();

@@ -56,8 +56,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $dataSubCuti = [
-            ['nama' => 'Cuti Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
-            ['nama' => 'Cuti Haid', 'durasi' => 2, 'ket' => 'Tidak memotong kuota tahunan (Khusus Wanita)'],
+            ['nama' => 'Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
+            ['nama' => 'Haid', 'durasi' => 2, 'ket' => 'Tidak memotong kuota tahunan (Khusus Wanita)'],
             ['nama' => 'Pernikahan Karyawan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
             ['nama' => 'Istri Karyawan Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
             ['nama' => 'Kematian Suami/Istri/Anak/Orang Tua/Mertua', 'durasi' => 3, 'ket' => 'Hari Kerja'],
