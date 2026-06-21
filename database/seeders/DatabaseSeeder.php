@@ -47,26 +47,26 @@ class DatabaseSeeder extends Seeder
         // ONLY 4 UTAMA JENIS CUTI & SUB-CUTI (KETERANGAN)
         // ==========================================
 
-        // 1. Ijin Meninggalkan Pekerjaan (Membawahi ijin-ijin khusus tanpa potong cuti)
+        // 1. Ijin Meninggalkan Pekerjaan
         $ijinMeninggalkanPekerjaan = JenisCuti::create([
             'name_cuti'          => 'Ijin Meninggalkan Pekerjaan',
             'kuota_default'      => null,
             'butuh_surat_dokter' => false,
-            'keterangan'         => null // Sudah tidak butuh kolom JSON lagi karena beralih ke tabel
+            'keterangan'         => null
         ]);
 
         $dataSubCuti = [
             ['nama' => 'Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
             ['nama' => 'Haid', 'durasi' => 2, 'ket' => 'Tidak memotong kuota tahunan (Khusus Wanita)'],
-            ['nama' => 'Pernikahan Karyawan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Istri Karyawan Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
+            ['nama' => 'Pernikahan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Istri Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
             ['nama' => 'Kematian Suami/Istri/Anak/Orang Tua/Mertua', 'durasi' => 3, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Kematian Kakak/Adik Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Pernikahan Anak/Kakak/Adik Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Khitanan Anak Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Pembaptisan Anak Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Kematian Tanggungan Tinggal di Rumah Karyawan', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Karyawan Pindah Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pernikahan Anak/Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Khitanan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pembaptisan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Tanggungan Tinggal di Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pindah Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
             ['nama' => 'Bencana Alam', 'durasi' => 2, 'ket' => 'Hari Kerja'],
             ['nama' => 'Cuti Ibadah Haji/Umroh', 'durasi' => null, 'ket' => 'Umroh maks 2 tahun sekali - Tidak memotong kuota tahunan'],
         ];
@@ -88,7 +88,7 @@ class DatabaseSeeder extends Seeder
             'keterangan' => null
         ]);
 
-        // 3. Cuti Melahirkan (Membawahi bersalin & gugur kandungan khusus wanita)
+        // 3. Cuti Melahirkan
         $cutiMelahirkan = JenisCuti::create([
             'name_cuti'          => 'Cuti Melahirkan',
             'kuota_default'      => 45,
@@ -103,19 +103,20 @@ class DatabaseSeeder extends Seeder
 
         foreach ($subMelahirkan as $sub) {
             SubCuti::create([
-                'jenis_cuti_id'       => $cutiMelahirkan->id, // Mengarah ke ID Cuti Melahirkan
+                'jenis_cuti_id'       => $cutiMelahirkan->id,
                 'nama_sub_cuti'       => $sub['nama'],
                 'durasi_default'      => $sub['durasi'],
                 'keterangan_opsional' => $sub['ket']
             ]);
         }
 
-        // 4. Cuti (Membawahi Cuti Tahunan umum, Cuti Haid, dan Cuti Ibadah)
+        // 4. Cuti (Membawahi Cuti Tahunan umum)
+        // PERBAIKAN: Mengubah isi properti 'keterangan' dari [] menjadi null agar tidak error saat tipe kolom database adalah string.
         $cutiTahunan = JenisCuti::create([
             'name_cuti' => 'Cuti',
-            'kuota_default' => 12, // Slot utama 12 hari dalam setahun
+            'kuota_default' => 12,
             'butuh_surat_dokter' => false,
-            'keterangan' => []
+            'keterangan' => null
         ]);
 
 
@@ -148,7 +149,7 @@ class DatabaseSeeder extends Seeder
         // SPV Umbulan
         User::create([
             'nip' => '110',
-            'name' => 'SPV  Umbulan',
+            'name' => 'SPV Umbulan',
             'email' => 'spv.umbulan@meta.com',
             'role_id' => $roleSpv->id,
             'gender_id' => $pria->id,
@@ -167,7 +168,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('supervisor123'),
         ]);
 
-        // Karyawan Wanita (Untuk tes validasi cuti khusus wanita)
+        // Karyawan Wanita
         $karyawanWanita = User::create([
             'nip' => '223',
             'name' => 'Karyawan Wanita',
@@ -180,17 +181,16 @@ class DatabaseSeeder extends Seeder
 
 
         // ==========================================
-        // ISI DATA SALDO CUTI UTOMATIS (TAHUN 2026)
+        // ISI DATA SALDO CUTI OTOMATIS (TAHUN 2026)
         // ==========================================
 
         $userIds = User::orderBy('id', 'asc')->pluck('id');
 
-        // Menyiapkan mapping alokasi jatah default 4 jenis cuti utama
         $jenisCutiSaldos = [
-            ['id' => $cutiTahunan->id, 'saldo' => 12], // Default kuota cuti tahunan
-            ['id' => $ijinMeninggalkanPekerjaan->id, 'saldo' => 0], // Diisi berdasarkan case pengajuan khusus
+            ['id' => $cutiTahunan->id, 'saldo' => 12],
+            ['id' => $ijinMeninggalkanPekerjaan->id, 'saldo' => 0],
             ['id' => $cutiFamilyVisit->id, 'saldo' => 0],
-            ['id' => $cutiMelahirkan->id, 'saldo' => 45], // Default 1,5 bulan perlindungan melahirkan
+            ['id' => $cutiMelahirkan->id, 'saldo' => 45],
         ];
 
         foreach ($userIds as $userId) {
@@ -198,12 +198,10 @@ class DatabaseSeeder extends Seeder
             if (!$user) continue;
 
             foreach ($jenisCutiSaldos as $cutiData) {
-                $genderUser = strtolower($user->gender->name ?? '');
-
-                // 🌟 PROTEKSI GENDER: Cuti Melahirkan hanya dimasukkan saldonya jika user berjenis kelamin Wanita
+                // PERBAIKAN: Menggunakan ID relasi langsung (gender_id) untuk proteksi agar lebih aman dari error "Property on null"
                 if ($cutiData['id'] == $cutiMelahirkan->id) {
-                    if ($genderUser !== 'wanita') {
-                        continue; // Lewati pemberian saldo melahirkan jika user adalah pria
+                    if ($user->gender_id != $wanita->id) {
+                        continue;
                     }
                 }
 

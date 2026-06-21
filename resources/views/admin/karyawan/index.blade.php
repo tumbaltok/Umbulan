@@ -16,9 +16,9 @@
                 <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
                 <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
             </div>
-            <a href="#" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors flex items-center">
+            {{-- <a href="#" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors flex items-center">
                 <i class="fa-solid fa-user-plus mr-1.5"></i> Tambah Karyawan
-            </a>
+            </a> --}}
         </div>
 
         <div class="overflow-x-auto">
@@ -26,7 +26,7 @@
                 <thead>
                     <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
                         <th class="px-6 py-4">Nama Lengkap</th>
-                        <th class="px-6 py-4">Email</th>
+                        {{-- <th class="px-6 py-4">Email</th> --}}
                         <th class="px-6 py-4">Jabatan</th>
                         <th class="px-6 py-4">Jobdesk</th>
                         <th class="px-6 py-4 text-center">Penempatan Stasiun</th>
@@ -57,7 +57,7 @@
                             </td>
 
                             {{-- Kolom Email --}}
-                            <td class="px-6 py-4 text-slate-600 text-sm">{{ $karyawan->email }}</td>
+                            {{-- <td class="px-6 py-4 text-slate-600 text-sm">{{ $karyawan->email }}</td> --}}
 
                             {{-- Kolom Jabatan (Role) --}}
                             <td class="px-6 py-4">

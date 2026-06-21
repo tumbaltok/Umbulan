@@ -8,9 +8,9 @@
                 <h2 class="text-xl font-bold text-slate-800">Daftar Sektor / Stasiun Kerja</h2>
                 <p class="text-sm text-slate-500 mt-0.5">Manajemen titik lokasi wilayah kerja untuk distribusi karyawan dan validasi struktur persetujuan.</p>
             </div>
-            <button class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors">
+            {{-- <button class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors">
                 + Tambah Stasiun
-            </button>
+            </button> --}}
         </div>
 
         <div class="overflow-x-auto">

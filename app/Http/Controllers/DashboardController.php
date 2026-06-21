@@ -24,8 +24,8 @@ class DashboardController extends Controller
             ->where('status_manager', 'pending')
             ->count();
 
-        // 3. Ambil kuota tahunan dari saldo_cuti milik user (default 12 jika kosong)
-        $kuotaTahunan = $user->saldo_cuti ?? 12;
+        // 3. Ambil kuota tahunan dari saldo_cuti milik user
+        $kuotaTahunan = $user->saldo_cuti->sisa_saldo;
         $sisaKuota = $kuotaTahunan - $totalCutiDiambil;
 
         // 4. Mengambil 5 riwayat transaksi pengajuan cuti terakhir

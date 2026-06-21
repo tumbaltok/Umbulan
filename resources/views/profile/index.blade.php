@@ -78,7 +78,7 @@
                     </div>
 
                     {{-- No. Telephone --}}
-                    <div>
+                    {{-- <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">No. Telephone</label>
                         <div class="flex items-center space-x-2">
                             <div class="relative flex-1">
@@ -98,7 +98,7 @@
                         @error('phone_number')
                             <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span>
                         @enderror
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 

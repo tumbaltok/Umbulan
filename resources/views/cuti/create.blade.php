@@ -15,6 +15,9 @@
                 </div>
             @endif
 
+            {{-- ELEMEN PENAMPUNG PESAN ERROR SALDO --}}
+            <div id="pesan-error-saldo" class="mb-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-sm font-medium" style="display: none;"></div>
+
             <form action="{{ route('cuti.storeWeb') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                 @csrf
 
@@ -25,16 +28,15 @@
                         id="jenis_cuti_id"
                         class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('jenis_cuti_id') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
                         required>
-                        {{-- DI-PERBARUI: Ditambahkan disabled dan hidden dari awal --}}
                         <option value="" disabled selected hidden>-- Pilih Jenis Cuti --</option>
                         @foreach($jenisCuti as $jenis)
                             @php
-                                $userGender = strtolower(auth()->user()->gender->name ?? '');
-                                $isPria = ($userGender === 'pria' || $userGender === 'male');
+                                $userGender = strtolower(auth()->user()->gender->name ?? auth()->user()->gender ?? '');
+                                $isPria = ($userGender === 'pria' || $userGender === 'male' || $userGender === '1');
                                 $namaCutiLower = strtolower($jenis->name_cuti);
                             @endphp
 
-                            @if($isPria && (str_contains($namaCutiLower, 'melahirkan') || str_contains($namaCutiLower, 'haid')))
+                            @if($isPria && (str_contains($namaCutiLower, 'melahirkan') || str_contains($namaCutiLower, 'haid') || str_contains($namaCutiLower, 'bersalin')))
                                 @continue
                             @endif
 
@@ -51,8 +53,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Detail Keperluan / Sub-Cuti</label>
                     <select id="sub_cuti_id"
                             name="sub_cuti_id"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 bg-sky-50/20 {{ $errors->has('sub_cuti_id') ? 'border-rose-500' : 'border-slate-200' }}">
-                        {{-- DI-PERBARUI: Ditambahkan disabled, selected, dan hidden dari awal --}}
+                            class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 bg-sky-50/20 {{ $errors->has('sub_cuti_id') ? 'border-rose-500' : 'border-slate-200' }}">
                         <option value="" disabled selected hidden>-- Pilih Detail Perizinan --</option>
                     </select>
                     @error('sub_cuti_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
@@ -114,7 +115,7 @@
                     <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">
                         Batal
                     </a>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold shadow-sm shadow-sky-100 transition-colors">
+                    <button type="submit" id="btn-submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold shadow-sm shadow-sky-100 transition-colors">
                         Kirim Pengajuan
                     </button>
                 </div>
@@ -126,7 +127,12 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const dataJenisCuti = @json($jenisCuti);
-        const isPria = {{ (strtolower(auth()->user()->gender->name ?? '') === 'pria' || strtolower(auth()->user()->gender->name ?? '') === 'male') ? 'true' : 'false' }};
+
+        const oldJenisCutiId = "{{ old('jenis_cuti_id') }}";
+        const oldSubCutiId = "{{ old('sub_cuti_id') }}";
+
+        const userGender = "{{ strtolower(auth()->user()->gender->name ?? auth()->user()->gender ?? '') }}";
+        const isPria = (userGender === 'pria' || userGender === 'male' || userGender === '1');
 
         const jenisCutiSelect = document.getElementById('jenis_cuti_id');
         const wrapperSubCuti = document.getElementById('wrapper_sub_cuti');
@@ -136,28 +142,43 @@
         const labelAlasan = document.getElementById('label-alasan');
         const alasanCuti = document.getElementById('alasan_cuti');
 
+        const sisaSaldoCutiTahunan = {{ $sisaSaldo ?? 0 }};
+
+        const tombolSubmit = document.getElementById('btn-submit');
+        const pesanErrorSaldo = document.getElementById('pesan-error-saldo');
+
+        function periksaSaldo() {
+            const idTerpilih = parseInt(jenisCutiSelect.value);
+
+            if (idTerpilih === 4 && sisaSaldoCutiTahunan <= 0) {
+                pesanErrorSaldo.textContent = 'Ditolak! Sisa kuota Cuti Tahunan Anda sudah habis (0 hari).';
+                pesanErrorSaldo.style.display = 'block';
+                tombolSubmit.disabled = true;
+                tombolSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                pesanErrorSaldo.style.display = 'none';
+                tombolSubmit.disabled = false;
+                tombolSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
         tanggalMulai.addEventListener('mousedown', function(e) {
-            e.preventDefault();
             if (typeof this.showPicker === 'function') {
+                e.preventDefault();
                 this.showPicker();
             }
         });
         tanggalSelesai.addEventListener('mousedown', function(e) {
-            e.preventDefault();
             if (typeof this.showPicker === 'function') {
+                e.preventDefault();
                 this.showPicker();
             }
         });
 
-        // ==========================================
-        // 1. LOGIKA SAAT DROPDOWN JENIS CUTI BERUBAH
-        // ==========================================
-        jenisCutiSelect.addEventListener('change', function () {
-            const selectedId = this.value;
-            const optionTerpilih = this.options[this.selectedIndex];
+        function handleJenisCutiChange(selectedId, isInitialLoad = false) {
+            const optionTerpilih = jenisCutiSelect.options[jenisCutiSelect.selectedIndex];
             const namaCuti = optionTerpilih ? optionTerpilih.getAttribute('data-nama-cuti') : '';
 
-            // Validasi Wajib Alasan untuk jenis "Cuti"
             if (namaCuti === 'Cuti') {
                 labelAlasan.innerHTML = 'Alasan / Catatan Tambahan <span class="text-rose-600">*</span>';
                 alasanCuti.setAttribute('required', 'required');
@@ -166,9 +187,7 @@
                 alasanCuti.removeAttribute('required');
             }
 
-            // Bersihkan dropdown sub-cuti sebelumnya & setel ulang placeholder awal dengan disabled hidden
             subCutiSelect.innerHTML = '<option value="" disabled selected hidden>-- Pilih Detail Perizinan --</option>';
-
             const jenisTerpilih = dataJenisCuti.find(item => item.id == selectedId);
 
             if (jenisTerpilih) {
@@ -189,12 +208,18 @@
                         const option = document.createElement('option');
                         option.value = sub.id;
                         option.textContent = `${sub.nama_sub_cuti} ${sub.durasi_default ? '(' + sub.durasi_default + ' Hari)' : ''}`;
+                        option.setAttribute('data-nama-sub', sub.nama_sub_cuti);
                         option.setAttribute('data-durasi', sub.durasi_default || '');
                         option.setAttribute('data-wajib-dokumen', sub.apakah_wajib_dokumen ? '1' : '0');
+
+                        if (isInitialLoad && oldSubCutiId == sub.id) {
+                            option.setAttribute('selected', 'selected');
+                        }
+
                         subCutiSelect.appendChild(option);
                     });
 
-                    resetStatusDokumen();
+                    checkDokumenRequirement();
                     return;
                 }
             }
@@ -203,20 +228,20 @@
             subCutiSelect.removeAttribute('required');
             subCutiSelect.value = '';
             resetStatusDokumen();
-        });
-
+        }
 
         // ==========================================
-        // 2. LOGIKA SAAT DROPDOWN SUB-CUTI BERUBAH
+        // PERBAIKAN UTAMA PADA LOGIKA WAJIB DOKUMEN
         // ==========================================
-        subCutiSelect.addEventListener('change', function() {
-            const optionTerpilih = this.options[this.selectedIndex];
+        function checkDokumenRequirement() {
+            const optionTerpilih = subCutiSelect.options[subCutiSelect.selectedIndex];
 
-            if (optionTerpilih) {
-                const teksOpsi = optionTerpilih.textContent.toLowerCase();
-                const val = optionTerpilih.getAttribute('data-wajib-dokumen');
+            if (optionTerpilih && optionTerpilih.value !== "") {
+                const namaSubCuti = (optionTerpilih.getAttribute('data-nama-sub') || optionTerpilih.textContent).toLowerCase().trim();
+                const valWajib = optionTerpilih.getAttribute('data-wajib-dokumen');
 
-                if (teksOpsi.includes('sakit') || val === '1' || val === 1 || val === 'true') {
+                // Jika nama sub-cuti mengandung kata 'sakit' atau flag database bernilai true/1
+                if (namaSubCuti.includes('sakit') || valWajib === '1' || valWajib === 'true') {
                     document.getElementById('label-dokumen').innerHTML = 'Dokumen Pendukung <span class="text-rose-600">*</span>';
                     document.getElementById('input-dokumen').required = true;
                 } else {
@@ -225,12 +250,8 @@
             } else {
                 resetStatusDokumen();
             }
-        });
+        }
 
-
-        // ==========================================
-        // 3. AUTOMATISASI HITUNG TANGGAL SELESAI
-        // ==========================================
         function hitungTanggalSelesaiOtomatis() {
             const selectedOption = subCutiSelect.options[subCutiSelect.selectedIndex];
             if (!selectedOption) return;
@@ -244,7 +265,25 @@
             }
         }
 
-        subCutiSelect.addEventListener('change', hitungTanggalSelesaiOtomatis);
+        function resetStatusDokumen() {
+            const labelDokumen = document.getElementById('label-dokumen');
+            const inputDokumen = document.getElementById('input-dokumen');
+
+            if (labelDokumen && inputDokumen) {
+                labelDokumen.innerHTML = 'Dokumen Pendukung <span class="text-xs font-normal text-slate-400">(Opsional)</span>';
+                inputDokumen.required = false;
+            }
+        }
+
+        jenisCutiSelect.addEventListener('change', function () {
+            handleJenisCutiChange(this.value, false);
+            periksaSaldo();
+        });
+
+        subCutiSelect.addEventListener('change', function() {
+            checkDokumenRequirement();
+            hitungTanggalSelesaiOtomatis();
+        });
 
         tanggalMulai.addEventListener('change', function() {
             if (this.value) {
@@ -256,18 +295,10 @@
             }
         });
 
-        // ==========================================
-        // 4. HELPER FUNCTION
-        // ==========================================
-        function resetStatusDokumen() {
-            const labelDokumen = document.getElementById('label-dokumen');
-            const inputDokumen = document.getElementById('input-dokumen');
-
-            if (labelDokumen && inputDokumen) {
-                labelDokumen.innerHTML = 'Dokumen Pendukung <span class="text-xs font-normal text-slate-400">(Opsional - Surat Dokter / Undangan / dll)</span>';
-                inputDokumen.required = false;
-            }
+        if (oldJenisCutiId) {
+            handleJenisCutiChange(oldJenisCutiId, true);
         }
+        periksaSaldo();
     });
 </script>
 @endsection

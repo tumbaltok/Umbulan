@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\SaldoCuti;
 
 #[Fillable(['nip', 'name', 'email', 'password', 'role_id', 'gender_id', 'station_id', 'job_title', 'phone_number', 'profile_photo'])]
 #[Hidden(['password', 'remember_token'])]
@@ -51,5 +52,14 @@ class User extends Authenticatable
     {
         // Hubungkan User ke Station melalui tabel pivot station_supervisor
         return $this->belongsToMany(Station::class, 'station_supervisor', 'supervisor_id', 'station_id');
+    }
+
+    public function saldo_cuti()
+    {
+        // Cuti Tahunan utama biasanya memiliki jenis_cuti_id = 4 (sesuai DatabaseSeeder Anda)
+        // dan difilter berdasarkan tahun saat ini
+        return $this->hasOne(SaldoCuti::class, 'user_id')
+                    ->where('jenis_cuti_id', 4) // Sesuaikan ID Cuti Tahunan Anda
+                    ->where('tahun', date('Y'));
     }
 }

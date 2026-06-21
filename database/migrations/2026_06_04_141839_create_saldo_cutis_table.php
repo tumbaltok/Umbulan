@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('jenis_cuti_id')->constrained('jenis_cutis')->onDelete('cascade');
+            $table->integer('kuota_awal')->default(12);
             $table->integer('sisa_saldo'); // Jumlah hari yang tersisa
             $table->year('tahun'); // Tahun saat ini
             $table->timestamps();

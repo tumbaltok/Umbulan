@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->integer('total_hari');
-            $table->text('alasan_cuti')->nullable()->change();
+            $table->text('alasan_cuti')->nullable();
             $table->string('dokumen_pendukung')->nullable();
             // Alur Persetujuan Bertingkat
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');

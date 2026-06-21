@@ -166,7 +166,6 @@
     </style>
 </head>
 <body>
-
     <table class="header-table">
         <tr>
             <td class="company-name">PT.META ADHYA TIRTA UMBULAN</td>
@@ -224,8 +223,8 @@
                             <td>:</td>
                             <td colspan="3">
                                 <span class="dots-line" style="width: 96%;">
-                                    @if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti), 'meninggalkan pekerjaan'))
-                                        {{ $pengajuan->alasan_cuti ?: $pengajuan->jenisCuti->name_cuti }}
+                                    @if(str_contains(strtolower($pengajuan->jenisCuti->name_cuti ?? ''), 'meninggalkan pekerjaan'))
+                                        {{ $pengajuan->alasan_cuti ?: ($pengajuan->subCuti?->nama_sub_cuti ?? '-') }}
                                     @endif
                                 </span>
                             </td>
