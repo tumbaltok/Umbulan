@@ -12,6 +12,7 @@ use App\Models\Station;
 use Illuminate\Support\Facades\Hash;
 use App\Models\SaldoCuti;
 use App\Models\SubCuti;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,6 +23,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // ==========================================
+        // OTOMATIS BERSIHKAN & BUAT ULANG PENYIMPANAN FILE
+        // ==========================================
+        Storage::disk('public')->deleteDirectory('profile_photos');
+        Storage::disk('public')->deleteDirectory('dokumen_cuti');
+
+        Storage::disk('public')->makeDirectory('profile_photos');
+        Storage::disk('public')->makeDirectory('dokumen_cuti');
+
         // DATA MASTER ROLES
         $roleAdmin = Role::create(['role_name' => 'Admin']);
         $roleManager = Role::create(['role_name' => 'Manager']);
@@ -44,7 +54,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ==========================================
-        // ONLY 4 UTAMA JENIS CUTI & SUB-CUTI (KETERANGAN)
+        // DATA MASTER JENIS CUTI & SUB-CUTI
         // ==========================================
 
         // 1. Ijin Meninggalkan Pekerjaan
@@ -110,8 +120,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 4. Cuti (Membawahi Cuti Tahunan umum)
-        // PERBAIKAN: Mengubah isi properti 'keterangan' dari [] menjadi null agar tidak error saat tipe kolom database adalah string.
+        // 4. Cuti Tahunan Utama
         $cutiTahunan = JenisCuti::create([
             'name_cuti' => 'Cuti',
             'kuota_default' => 12,
@@ -121,7 +130,7 @@ class DatabaseSeeder extends Seeder
 
 
         // ==========================================
-        // DATA USERS
+        // DATA SEEDING USERS
         // ==========================================
 
         // Akun ADMIN
@@ -169,7 +178,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Karyawan Wanita
-        $karyawanWanita = User::create([
+        User::create([
             'nip' => '223',
             'name' => 'Karyawan Wanita',
             'email' => 'karyawan@meta.com',
@@ -184,7 +193,8 @@ class DatabaseSeeder extends Seeder
         // ISI DATA SALDO CUTI OTOMATIS (TAHUN 2026)
         // ==========================================
 
-        $userIds = User::orderBy('id', 'asc')->pluck('id');
+        // Mengambil semua user sekaligus dari database agar hemat query (Aman dari N+1)
+        $daftarUser = User::orderBy('id', 'asc')->get();
 
         $jenisCutiSaldos = [
             ['id' => $cutiTahunan->id, 'saldo' => 12],
@@ -193,12 +203,10 @@ class DatabaseSeeder extends Seeder
             ['id' => $cutiMelahirkan->id, 'saldo' => 45],
         ];
 
-        foreach ($userIds as $userId) {
-            $user = User::find($userId);
-            if (!$user) continue;
-
+        foreach ($daftarUser as $user) {
             foreach ($jenisCutiSaldos as $cutiData) {
-                // PERBAIKAN: Menggunakan ID relasi langsung (gender_id) untuk proteksi agar lebih aman dari error "Property on null"
+
+                // Proteksi: Cuti Melahirkan hanya disuntikkan jika user berjenis kelamin Wanita
                 if ($cutiData['id'] == $cutiMelahirkan->id) {
                     if ($user->gender_id != $wanita->id) {
                         continue;
@@ -206,7 +214,7 @@ class DatabaseSeeder extends Seeder
                 }
 
                 SaldoCuti::create([
-                    'user_id'       => $userId,
+                    'user_id'       => $user->id,
                     'jenis_cuti_id' => $cutiData['id'],
                     'sisa_saldo'    => $cutiData['saldo'],
                     'tahun'         => 2026

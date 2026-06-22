@@ -207,7 +207,7 @@
                     subCutis.forEach(function (sub) {
                         const option = document.createElement('option');
                         option.value = sub.id;
-                        option.textContent = `${sub.nama_sub_cuti} ${sub.durasi_default ? '(' + sub.durasi_default + ' Hari)' : ''}`;
+                        option.textContent = `${sub.nama_sub_cuti}`;
                         option.setAttribute('data-nama-sub', sub.nama_sub_cuti);
                         option.setAttribute('data-durasi', sub.durasi_default || '');
                         option.setAttribute('data-wajib-dokumen', sub.apakah_wajib_dokumen ? '1' : '0');
@@ -220,6 +220,8 @@
                     });
 
                     checkDokumenRequirement();
+                    // Jalankan pembatasan tanggal setelah sub-cuti berhasil dimuat
+                    batasiKalenderSelesai();
                     return;
                 }
             }
@@ -228,11 +230,9 @@
             subCutiSelect.removeAttribute('required');
             subCutiSelect.value = '';
             resetStatusDokumen();
+            tanggalSelesai.removeAttribute('max');
         }
 
-        // ==========================================
-        // PERBAIKAN UTAMA PADA LOGIKA WAJIB DOKUMEN
-        // ==========================================
         function checkDokumenRequirement() {
             const optionTerpilih = subCutiSelect.options[subCutiSelect.selectedIndex];
 
@@ -240,7 +240,6 @@
                 const namaSubCuti = (optionTerpilih.getAttribute('data-nama-sub') || optionTerpilih.textContent).toLowerCase().trim();
                 const valWajib = optionTerpilih.getAttribute('data-wajib-dokumen');
 
-                // Jika nama sub-cuti mengandung kata 'sakit' atau flag database bernilai true/1
                 if (namaSubCuti.includes('sakit') || valWajib === '1' || valWajib === 'true') {
                     document.getElementById('label-dokumen').innerHTML = 'Dokumen Pendukung <span class="text-rose-600">*</span>';
                     document.getElementById('input-dokumen').required = true;
@@ -252,16 +251,47 @@
             }
         }
 
-        function hitungTanggalSelesaiOtomatis() {
+        // ==========================================
+        // FUNGSI UTAMA UNTUK MEMBATASI KALENDER
+        // ==========================================
+        function batasiKalenderSelesai() {
             const selectedOption = subCutiSelect.options[subCutiSelect.selectedIndex];
-            if (!selectedOption) return;
+            if (!selectedOption || selectedOption.value === "") {
+                tanggalSelesai.removeAttribute('max');
+                return;
+            }
 
             const durasi = selectedOption.getAttribute('data-durasi');
 
-            if (durasi && tanggalMulai.value) {
-                const dateMulai = new Date(tanggalMulai.value);
-                const dateSelesai = new Date(dateMulai.setDate(dateMulai.getDate() + parseInt(durasi) - 1));
-                tanggalSelesai.value = dateSelesai.toISOString().split('T')[0];
+            // Set batas minimal tanggal selesai agar tidak bisa kurang dari tanggal mulai
+            if (tanggalMulai.value) {
+                tanggalSelesai.min = tanggalMulai.value;
+            }
+
+            // Jika durasi kosong atau tidak terdefinisi berarti "Sakit" / Tidak terbatas
+            if (!durasi || durasi === '') {
+                tanggalSelesai.removeAttribute('max');
+            } else {
+                if (tanggalMulai.value) {
+                    const maxDays = parseInt(durasi);
+                    let dateMulai = new Date(tanggalMulai.value);
+
+                    // Rumus batas maksimal kalender: Tanggal Mulai + (Durasi - 1)
+                    dateMulai.setDate(dateMulai.getDate() + (maxDays - 1));
+
+                    const yyyy = dateMulai.getFullYear();
+                    const mm = String(dateMulai.getMonth() + 1).padStart(2, '0');
+                    const dd = String(dateMulai.getDate()).padStart(2, '0');
+                    const maxDateString = `${yyyy}-${mm}-${dd}`;
+
+                    // Masukkan batasan ke attribute 'max' HTML sehingga tanggal setelahnya tidak bisa diklik
+                    tanggalSelesai.max = maxDateString;
+
+                    // Jika user mengubah sub-cuti dan tanggal selesai saat ini melanggar batas max, reset nilainya
+                    if (tanggalSelesai.value && tanggalSelesai.value > maxDateString) {
+                        tanggalSelesai.value = '';
+                    }
+                }
             }
         }
 
@@ -282,7 +312,7 @@
 
         subCutiSelect.addEventListener('change', function() {
             checkDokumenRequirement();
-            hitungTanggalSelesaiOtomatis();
+            batasiKalenderSelesai();
         });
 
         tanggalMulai.addEventListener('change', function() {
@@ -291,7 +321,7 @@
                 if (tanggalSelesai.value && tanggalSelesai.value < this.value) {
                     tanggalSelesai.value = this.value;
                 }
-                hitungTanggalSelesaiOtomatis();
+                batasiKalenderSelesai();
             }
         });
 

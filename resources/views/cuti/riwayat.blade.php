@@ -260,19 +260,21 @@
                                     </div>`;
                             } else {
                                 // Jika format PDF atau dokumen lainnya
-                                previewTemplate = `
-                                    <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-                                        <div class="flex items-center space-x-2.5 overflow-hidden">
-                                            <div class="p-2 bg-rose-50 text-rose-600 rounded-lg text-lg"><i class="fa-solid fa-file-pdf"></i></div>
-                                            <div class="flex flex-col truncate">
-                                                <span class="text-xs font-semibold text-slate-700 truncate">${data.dokumen_pendukung.split('/').pop()}</span>
-                                                <span class="text-[10px] text-slate-400 uppercase font-bold">${fileExtension} Dokumen</span>
-                                            </div>
+                                // KODE YANG SUDAH DIPERBAIKI:
+                            previewTemplate = `
+                                <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                                    <div class="flex items-center space-x-2.5 overflow-hidden">
+                                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg text-lg"><i class="fa-solid fa-file-pdf"></i></div>
+                                        <div class="flex flex-col truncate">
+                                            <span class="text-xs font-semibold text-slate-700 truncate">${data.dokumen_pendukung.split('/').pop()}</span>
+                                            <span class="text-[10px] text-slate-400 uppercase font-bold">${fileExtension} Dokumen</span>
                                         </div>
-                                        <a href="${fileUrl}" target="_blank" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm shadow-sky-100 transition-colors shrink-0">
-                                            Unduh / Lihat
-                                        </a>
-                                    </div>`;
+                                    </div>
+                                    {/* Menggunakan ${fileUrl} murni JavaScript, bukan sintaks Blade */}
+                                    <a href="${fileUrl}" target="_blank" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm shadow-sky-100 transition-colors shrink-0">
+                                        Unduh / Lihat
+                                    </a>
+                                </div>`;
                             }
                             docArea.innerHTML = previewTemplate;
                         } else {

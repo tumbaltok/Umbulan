@@ -65,19 +65,16 @@ class PengajuanCutiController extends Controller
         $mulai = Carbon::parse($request->tanggal_mulai);
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
+        $tahunPengajuan = $mulai->year;
 
-        // ==========================================
-        // PERBAIKAN 1: KUNCI MATI VALIDASI SALDO (API)
-        // ==========================================
         if ($this->cekApakahMemotongSaldo($request->jenis_cuti_id)) {
             $saldo = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $request->jenis_cuti_id)
-                ->where('tahun', Carbon::now()->year)
+                ->where('tahun', $tahunPengajuan)
                 ->first();
 
             $sisaSaldoDatabase = $saldo ? (int)$saldo->sisa_saldo : 0;
 
-            // Hitung beban antrean cuti yang masih pending
             $totalCutiPending = DB::table('pengajuan_cutis')
                 ->where('user_id', $user->id)
                 ->where('jenis_cuti_id', $request->jenis_cuti_id)
@@ -107,11 +104,11 @@ class PengajuanCutiController extends Controller
                       ->orWhereRaw('LOWER(status_akhir) = ?', ['approved']);
             })
             ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
-                $query->where(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                $query->where(function ($q) use ($tanggalMulaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)
                       ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
                 })
-                ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)
                       ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
                 })
@@ -168,9 +165,6 @@ class PengajuanCutiController extends Controller
             $statusAkhir      = 'pending';
         }
 
-        // ==========================================
-        // PERBAIKAN 2: INTEGRITAS DATA DENGAN TRANSACTION (API)
-        // ==========================================
         DB::beginTransaction();
         try {
             $pengajuan = PengajuanCuti::create([
@@ -188,11 +182,7 @@ class PengajuanCutiController extends Controller
             ]);
 
             if ($statusAkhir === 'approved') {
-                $berhasil = $this->sinkronisasiCutiDanAbsen($pengajuan);
-                if (!$berhasil) {
-                    DB::rollBack();
-                    return response()->json(['message' => 'Ditolak! Sisa saldo jatah cuti tidak mencukupi.'], 400);
-                }
+                $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
 
             DB::commit();
@@ -235,14 +225,12 @@ class PengajuanCutiController extends Controller
         $mulai = Carbon::parse($request->tanggal_mulai);
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
+        $tahunPengajuan = $mulai->year;
 
-        // ==========================================
-        // PERBAIKAN 3: KUNCI MATI VALIDASI SALDO (WEB)
-        // ==========================================
         if ($this->cekApakahMemotongSaldo($request->jenis_cuti_id)) {
             $saldo = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $request->jenis_cuti_id)
-                ->where('tahun', Carbon::now()->year)
+                ->where('tahun', $tahunPengajuan)
                 ->first();
 
             $sisaSaldoDatabase = $saldo ? (int)$saldo->sisa_saldo : 0;
@@ -271,11 +259,11 @@ class PengajuanCutiController extends Controller
                       ->orWhereRaw('LOWER(status_akhir) = ?', ['approved']);
             })
             ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
-                $query->where(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                $query->where(function ($q) use ($tanggalMulaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)
                       ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
                 })
-                ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)
                       ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
                 })
@@ -309,9 +297,7 @@ class PengajuanCutiController extends Controller
 
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
-            $file = $request->file('dokumen_pendukung');
-            $path = $file->store('dokumen_cuti', 'public');
-            $namaDokumen = $path;
+            $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public');
         }
 
         $roleName = strtolower($user->role->role_name ?? $user->role ?? '');
@@ -328,9 +314,6 @@ class PengajuanCutiController extends Controller
             $statusAkhir      = 'pending';
         }
 
-        // ==========================================
-        // PERBAIKAN 4: INTEGRITAS DATA DENGAN TRANSACTION (WEB)
-        // ==========================================
         DB::beginTransaction();
         try {
             $pengajuan = PengajuanCuti::create([
@@ -348,11 +331,7 @@ class PengajuanCutiController extends Controller
             ]);
 
             if ($statusAkhir === 'approved') {
-                $berhasil = $this->sinkronisasiCutiDanAbsen($pengajuan);
-                if (!$berhasil) {
-                    DB::rollBack();
-                    return back()->withErrors(['error' => 'Ditolak! Sisa saldo jatah cuti anda tidak mencukupi.'])->withInput();
-                }
+                $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
 
             DB::commit();
@@ -437,33 +416,24 @@ class PengajuanCutiController extends Controller
                 ]);
 
                 if ($request->aksi === 'approved') {
-                    $berhasil = $this->sinkronisasiCutiDanAbsen($pengajuan);
-                    if (!$berhasil) {
-                        DB::rollBack();
-                        return response()->json(['message' => 'Ditolak! Sisa saldo jatah cuti tidak mencukupi.'], 400);
-                    }
+                    $this->sinkronisasiCutiDanAbsen($pengajuan);
                 }
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                return response()->json(['message' => 'Terjadi kesalahan sistem.'], 500);
+                return response()->json(['message' => 'Gagal menyetujui: ' . $e->getMessage()], 400);
             }
         }
 
         return response()->json(['message' => 'Status pengajuan berhasil diperbarui oleh ' . $roleName]);
     }
 
-    // ==========================================
-    // PERBAIKAN 5: AMANKAN TIPE DATA PADA HELPER (==)
-    // ==========================================
-    private function cekApakahMemotongSaldo($jenisCutiId)
+    private function cekApakahMemotongSaldo(int $jenisCutiId)
     {
-        if ($jenisCutiId == 4) {
-            return true;
-        }
-        return false;
+        return (int)$jenisCutiId === 4;
     }
 
+    // PERBAIKAN UTAMA: Menggunakan Exception agar validasi tertangkap oleh DB::rollBack() dengan info yang benar
     private function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
     {
         if ($this->cekApakahMemotongSaldo($pengajuan->jenis_cuti_id)) {
@@ -478,22 +448,12 @@ class PengajuanCutiController extends Controller
                 $jumlahHariDipotong = (int)$pengajuan->total_hari;
 
                 if ($sisaJatah <= 0 || $sisaJatah < $jumlahHariDipotong) {
-                    $pengajuan->update([
-                        'status_manager' => 'rejected',
-                        'status_akhir' => 'rejected',
-                        'catatan_penolakan' => 'Sistem Otomatis: Persetujuan dibatalkan karena sisa saldo jatah cuti tidak mencukupi.'
-                    ]);
-                    return false;
+                    throw new \Exception("Sisa saldo jatah cuti tidak mencukupi (Sisa: {$sisaJatah} hari, Diajukan: {$jumlahHariDipotong} hari).");
                 }
 
                 $saldo->decrement('sisa_saldo', $jumlahHariDipotong);
             } else {
-                $pengajuan->update([
-                    'status_manager' => 'rejected',
-                    'status_akhir' => 'rejected',
-                    'catatan_penolakan' => 'Sistem Otomatis: Data saldo cuti tahunan tidak ditemukan.'
-                ]);
-                return false;
+                throw new \Exception("Data saldo jatah cuti tahunan karyawan belum terdaftar di database untuk tahun berjalan.");
             }
         }
 
@@ -573,10 +533,10 @@ class PengajuanCutiController extends Controller
             ->select('pengajuan_cutis.*', 'users.name as user_name', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti', 'users.station_id')
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
-        if ($user->role_id == 3) { // Supervisor
+        if ((int)$user->role_id === 3) { // Supervisor
             $query->where('pengajuan_cutis.status_supervisor', 'pending')
                 ->where('users.station_id', $user->station_id);
-        } elseif ($user->role_id == 2) { // Manager
+        } elseif ((int)$user->role_id === 2) { // Manager
             $query->where('pengajuan_cutis.status_manager', 'pending')
                 ->where('pengajuan_cutis.status_supervisor', 'approved');
         } else {
@@ -600,13 +560,13 @@ class PengajuanCutiController extends Controller
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
 
-        if ($user->role_id == 3) { // Supervisor
+        if ((int)$user->role_id === 3) { // Supervisor
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
-        } elseif ($user->role_id == 2) { // Manager
+        } elseif ((int)$user->role_id === 2) { // Manager
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
             }
@@ -623,16 +583,12 @@ class PengajuanCutiController extends Controller
                 ]);
 
                 if ($tindakan === 'approved') {
-                    $berhasil = $this->sinkronisasiCutiDanAbsen($pengajuan);
-                    if (!$berhasil) {
-                        DB::rollBack();
-                        return redirect()->back()->with('error', 'Ditolak! Sisa saldo jatah cuti tidak mencukupi.');
-                    }
+                    $this->sinkronisasiCutiDanAbsen($pengajuan);
                 }
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Terjadi kesalahan sistem.');
+                return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
             }
         }
 

@@ -2,6 +2,19 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto mt-8 px-4">
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-check mr-2 text-emerald-500"></i>
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 bg-slate-50/50">
             <h2 class="text-xl font-bold text-slate-800">Daftar Pengajuan Cuti Karyawan</h2>
@@ -30,7 +43,7 @@
                                 <div class="font-medium text-slate-800">{{ $item->nama_sub_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
                                     <div class="mt-1">
-                                        <a href="{{ asset('uploads/dokumen_cuti/' . $item->dokumen_pendukung) }}" target="_blank" class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline">
+                                        <a href="{{ asset('storage/dokumen_cuti/' . $item->dokumen_pendukung) }}" target="_blank" class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline">
                                             <i class="fa-solid fa-paperclip mr-1"></i> Lihat Berkas Fisik
                                         </a>
                                     </div>
@@ -40,38 +53,42 @@
                             </td>
 
                             <td class="px-6 py-4 text-sm text-slate-500">
-                                {{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }} -
-                                {{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($item->tanggal_mulai)->isoFormat('D MMMM Y') }} -
+                                {{ \Carbon\Carbon::parse($item->tanggal_selesai)->isoFormat('D MMMM Y') }}
                             </td>
 
                             <td class="px-6 py-4 font-mono font-bold">{{ $item->total_hari }} Hari</td>
 
                             <td class="px-6 py-4">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_supervisor == 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_supervisor == 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
-                                    {{ ucfirst($item->status_supervisor) }}
+                                    {{ $item->status_supervisor === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_supervisor === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    {{ $item->status_supervisor === 'pending' ? 'Pending' : ucfirst($item->status_supervisor) }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_manager == 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_manager == 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
-                                    {{ ucfirst($item->status_manager) }}
+                                    {{ $item->status_manager === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_manager === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    {{ $item->status_manager === 'pending' ? 'Pending' : ucfirst($item->status_manager) }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <form action="{{ route('cuti.proses-persetujuan', $item->id) }}" method="POST" class="inline-flex space-x-2">
-                                    @csrf
-                                    <input type="text" name="catatan_penolakan" placeholder="Alasan jika menolak..." class="px-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-sky-500">
+                                @if(($item->status_supervisor === 'pending' || $item->status_manager === 'pending'))
+                                    <form action="{{ route('cuti.proses-persetujuan', $item->id) }}" method="POST" class="inline-flex space-x-2 items-center align-middle" onsubmit="return confirm('Apakah Anda yakin ingin memproses tindakan ini?')">
+                                        @csrf
+                                        <input type="text" name="catatan_penolakan" placeholder="Alasan jika menolak..." class="px-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-sky-500">
 
-                                    <button type="submit" name="tindakan" value="approved" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
-                                        Approve
-                                    </button>
-                                    <button type="submit" name="tindakan" value="rejected" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
-                                        Reject
-                                    </button>
-                                </form>
+                                        <button type="submit" name="tindakan" value="approved" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
+                                            Approve
+                                        </button>
+                                        <button type="submit" name="tindakan" value="rejected" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
+                                            Reject
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-xs text-slate-400 italic">Selesai Diproses</span>
+                                @endif
                             </td>
                         </tr>
                     @empty

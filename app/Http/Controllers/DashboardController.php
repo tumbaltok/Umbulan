@@ -2,33 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
+        $tahunSekarang = now()->year;
 
-        // 1. Cuti dianggap benar-benar diambil jika sudah disetujui sampai tahap akhir (status_manager = approved)
+        // 1. Ambil data saldo cuti tahunan milik user
+        $saldoTahunan = $user->saldo_cuti;
+
+        $kuotaTahunan = $saldoTahunan ? $saldoTahunan->kuota_awal : 12;
+
+        // 2. Hanya hitung Cuti Tahunan yang benar-benar SUDAH DIAMBEL
         $totalCutiDiambil = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
+            ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
             ->where('status_manager', 'approved')
+            ->whereYear('tanggal_mulai', $tahunSekarang)
             ->sum('total_hari');
 
-        // 2. Hitung jumlah pengajuan yang masih dalam proses peninjauan (status_manager = pending)
+        // 3. Hitung jumlah pengajuan yang statusnya MASIH PENDING
         $totalPending = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('status_manager', 'pending')
+            ->where('status_supervisor', '!=', 'rejected')
             ->count();
 
-        // 3. Ambil kuota tahunan dari saldo_cuti milik user
-        $kuotaTahunan = $user->saldo_cuti->sisa_saldo;
+        // 4. Hitung sisa kuota cuti
         $sisaKuota = $kuotaTahunan - $totalCutiDiambil;
 
-        // 4. Mengambil 5 riwayat transaksi pengajuan cuti terakhir
+        // 5. Mengambil 5 riwayat transaksi pengajuan cuti terakhir
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->where('pengajuan_cutis.user_id', $user->id)

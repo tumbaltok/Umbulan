@@ -3,63 +3,42 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\User; // Menggunakan model Eloquent User
+use Illuminate\Http\JsonResponse;
 
 class KaryawanController extends Controller
 {
     public function index()
     {
-
-        $hariIni = now()->format('Y-m-d'); // Mengambil tanggal hari ini
-
-        // Mengambil data karyawan dengan melakukan join ke tabel roles dan stations
-        $daftarKaryawan = DB::table('users')
-            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
-            ->leftJoin('stations', 'users.station_id', '=', 'stations.id') // Sesuaikan nama tabel stasiun Anda (misal: stations atau stasiuns)
-            ->leftJoin('pengajuan_cutis', function($join) use ($hariIni) {
-                $join->on('users.id', '=', 'pengajuan_cutis.user_id')
-                    ->where('pengajuan_cutis.status_akhir', '=', 'Approved') // Jika menggunakan kolom status
-                    ->whereDate('pengajuan_cutis.tanggal_mulai', '<=', $hariIni)
-                    ->whereDate('pengajuan_cutis.tanggal_selesai', '>=', $hariIni);
-            })
-            ->select(
-                'users.nip',
-                'users.id',
-                'users.name',
-                'users.email',
-                'users.station_id',
-                'roles.role_name',
-                'users.job_title',
-                'users.profile_photo',
-                'stations.name as nama_stasiun', // Sesuaikan nama kolom stasiun di database Anda
-                // 'users.status_jadwal',
-                'pengajuan_cutis.id as sedang_cuti'
-            )
-            ->orderBy('users.name', 'asc')
+        // AMAN DARI N+1: Pastikan 'cuti_aktif' sudah didefinisikan di app\Models\User.php
+        $daftarKaryawan = User::with(['role', 'station', 'cuti_aktif'])
+            ->orderBy('name', 'asc')
             ->get();
 
         return view('admin.karyawan.index', compact('daftarKaryawan'));
     }
 
-    public function showDetail($id)
+    public function showDetail(int $id): JsonResponse
     {
-        // Menggunakan Query Builder yang disesuaikan dengan query Anda sebelumnya
-        $karyawan = DB::table('users')
-            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
-            ->leftJoin('stations', 'users.station_id', '=', 'stations.id')
-            ->select([
-                'users.*',
-                'roles.role_name',
-                'stations.name as nama_stasiun'
-            ])
-            ->where('users.id', $id)
-            ->first();
+        // Memanfaatkan Eloquent + Eager Loading untuk data detail
+        $karyawan = User::with(['role', 'station'])->find($id);
 
         if (!$karyawan) {
             return response()->json(['message' => 'Karyawan tidak ditemukan'], 404);
         }
 
-        // Mengembalikan data berupa JSON agar bisa ditangkap oleh JavaScript/AJAX
-        return response()->json($karyawan);
+        // AMAN DARI LEAK PASSWORD & SAFE FROM NULL POINTER EXCEPTION
+        return response()->json([
+            'id'            => $karyawan->id,
+            'nip'           => $karyawan->nip,
+            'name'          => $karyawan->name,
+            'email'         => $karyawan->email,
+            'phone_number'  => $karyawan->phone_number,
+            'profile_photo' => $karyawan->profile_photo,
+            // Menggunakan optional() atau null-coalescing yang aman jika relasi null
+            'role_name'     => optional($karyawan->role)->role_name ?? 'Tidak Ada Role',
+            'nama_stasiun'  => optional($karyawan->station)->name ?? '-',
+            'job_title'     => $karyawan->job_title,
+        ]);
     }
 }
