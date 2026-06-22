@@ -12,4 +12,4 @@ Artisan::command('inspire', function () {
 Schedule::command('saldo:reset-haid')->monthlyOn(1, '00:00');
 
 // Dijalankan otomatis setiap tanggal 1 Januari jam 00:00 tengah malam
-Schedule::command('saldo:reset-tahunan')->yearly();
+Schedule::command('saldo:reset-tahunan')->yearlyOn(1, 1, '00:00');
