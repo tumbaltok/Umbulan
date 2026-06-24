@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -26,11 +26,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-x-hidden">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
 
-    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] transition-all duration-300">
+    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:min-h-[600px] transition-all duration-300 my-4 md:my-0">
 
-        <div class="md:w-1/2 wave-bg text-white p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
+        <div class="w-full md:w-1/2 wave-bg text-white p-6 sm:p-8 md:p-12 flex flex-col justify-between relative overflow-hidden shrink-0">
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
                 <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
@@ -38,30 +38,18 @@
             </div>
 
             <div class="z-10 flex items-center space-x-3">
-                <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-12 h-12 flex items-center justify-center overflow-hidden shrink-0">
+                <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center overflow-hidden shrink-0">
                     <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
                 </div>
 
                 <div>
-                    <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
+                    <h2 class="font-bold tracking-wide text-xs sm:text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
+                    <p class="text-[9px] sm:text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
                 </div>
             </div>
 
-            {{-- <div class="z-10 flex items-center space-x-3">
-                <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                    <svg class="w-6 h-6 text-cyan-200 fill-current" viewBox="0 0 24 24">
-                        <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
-                </div>
-            </div> --}}
-
-            <div class="my-auto py-8 z-10 flex flex-col items-center md:items-start text-center md:text-left">
-                <div class="float-animation mb-6 hidden md:block">
+            <div class="my-auto py-8 z-10 hidden md:flex flex-col items-start text-left">
+                <div class="float-animation mb-6">
                     <svg class="w-56 h-56 text-cyan-100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M40 100H160" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
                         <path d="M100 40V160" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
@@ -79,29 +67,27 @@
                 </p>
             </div>
 
-            <div class="z-10 text-xs text-white/50 hidden md:block">
+            <div class="z-10 text-[10px] sm:text-xs text-white/50 hidden md:block">
                 &copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan. All rights reserved.
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-between">
+        <div class="w-full md:w-1/2 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white">
 
-            <div class="flex items-center space-x-3 mb-8 md:hidden">
-                <div class="bg-sky-100 p-2 rounded-xl">
-                    <svg class="w-6 h-6 text-sky-600 fill-current" viewBox="0 0 24 24">
-                        <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
-                    </svg>
+            {{-- <div class="flex items-center space-x-3 mb-6 md:hidden border-b border-slate-100 pb-4">
+                <div class="bg-sky-100 p-2 rounded-xl text-sky-600">
+                    <i class="fa-solid fa-faucet-drip text-sm"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold tracking-wide text-sm text-sky-950">META ADHYA TIRTA UMBULAN</h2>
+                    <h2 class="font-bold tracking-wide text-xs text-slate-800">META ADHYA TIRTA UMBULAN</h2>
                     <p class="text-[9px] text-sky-600 uppercase tracking-widest font-bold">Penyaluran Air Bersih</p>
                 </div>
-            </div>
+            </div> --}}
 
-            <div class="my-auto">
-                <div class="mb-8">
+            <div class="w-full my-auto">
+                <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Selamat Datang</h2>
-                    <p class="text-slate-500 text-sm mt-2">Silakan masuk menggunakan akun kepegawaian Anda.</p>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-1">Silakan masuk menggunakan akun kepegawaian Anda.</p>
                 </div>
 
                 @if ($errors->any())
@@ -139,7 +125,6 @@
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Kata Sandi</label>
-                            {{-- <a href="#" class="text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline">Lupa Sandi?</a> --}}
                         </div>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -188,7 +173,6 @@
     </div>
 
     <script>
-        // Toggle password visibility
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('password-toggle-icon');
@@ -204,7 +188,6 @@
             }
         }
 
-        // PERBAIKAN LOGIKA: Tangani Pengiriman Form Secara Nyata Tanpa Sukses Palsu
         function handleLogin(event) {
             event.preventDefault();
 
@@ -217,7 +200,6 @@
 
             notification.style.display = 'none';
 
-            // Validasi format minimal di sisi client
             if (employeeId.trim().length < 4 || password.length < 4) {
                 notification.style.display = 'flex';
                 notification.className = "mb-6 p-4 rounded-2xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
@@ -226,7 +208,6 @@
                 return;
             }
 
-            // Langsung ubah tombol ke status Loading dan kirim data ke Laravel Backend
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -236,7 +217,6 @@
                 <span>Memproses Autentikasi...</span>
             `;
 
-            // Kirim form langsung ke Controller Laravel untuk diperiksa keaslian datanya
             document.getElementById('loginForm').submit();
         }
     </script>

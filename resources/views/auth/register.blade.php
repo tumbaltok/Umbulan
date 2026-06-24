@@ -92,7 +92,7 @@
         <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
 
             <!-- Header Mobile (Hanya tampil di perangkat mobile/tablet) -->
-            <div class="flex items-center space-x-3 mb-6 lg:hidden">
+            {{-- <div class="flex items-center space-x-3 mb-6 lg:hidden">
                 <div class="bg-sky-100 p-2 rounded-xl">
                     <svg class="w-5 h-5 text-sky-600 fill-current" viewBox="0 0 24 24">
                         <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
@@ -102,7 +102,7 @@
                     <h2 class="font-bold tracking-wide text-xs text-sky-950">META ADHYA TIRTA UMBULAN</h2>
                     <p class="text-[8px] text-sky-600 uppercase tracking-widest font-bold">Penyaluran Air Bersih</p>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Wrapper Form -->
             <div>
