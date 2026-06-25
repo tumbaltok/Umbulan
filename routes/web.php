@@ -17,17 +17,44 @@ Route::get('/', function () {
 
 // Grup Route untuk Pengguna yang BELUM Login (Tamu / Guest)
 Route::middleware('guest')->group(function () {
-    // Halaman & Proses Login Web
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
-    Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
-    // Halaman & Proses Registrasi Web
+    // ==========================================
+    // HALAMAN & PROSES REGISTRASI WEB
+    // ==========================================
     Route::get('/register', function () {
         return view('auth.register');
     })->name('register');
+
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
+
+
+    // ==========================================
+    // HALAMAN & PROSES LOGIN WEB
+    // ==========================================
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
+
+
+    // ==========================================
+    // ALUR LUPA PASSWORD (FORGOT PASSWORD)
+    // ==========================================
+    // 1. Tampilan Halaman Utama Lupa Password
+    Route::get('/forgot', function () {
+        return view('auth.forgot');
+    })->name('forgot');
+
+    // 2. Endpoint AJAX untuk Kirim OTP ke Email
+    Route::post('/forgot/send-otp', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
+
+    // 3. Endpoint AJAX untuk Verifikasi Kode OTP (Koreksi di sini)
+    Route::post('/forgot/verify-otp', [AuthController::class, 'verifyOtpWeb'])->name('forgot.verify_otp');
+
+    // 4. Eksekusi Form Akhir untuk Simpan Password Baru Pilihan User
+    Route::post('/forgot', [AuthController::class, 'forgotWeb'])->name('forgot.post');
+
 });
 
 // Grup Route untuk Pengguna yang SUDAH Login (Berbasis Session Web)

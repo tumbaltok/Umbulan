@@ -74,16 +74,6 @@
 
         <div class="w-full md:w-1/2 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white">
 
-            {{-- <div class="flex items-center space-x-3 mb-6 md:hidden border-b border-slate-100 pb-4">
-                <div class="bg-sky-100 p-2 rounded-xl text-sky-600">
-                    <i class="fa-solid fa-faucet-drip text-sm"></i>
-                </div>
-                <div>
-                    <h2 class="font-bold tracking-wide text-xs text-slate-800">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[9px] text-sky-600 uppercase tracking-widest font-bold">Penyaluran Air Bersih</p>
-                </div>
-            </div> --}}
-
             <div class="w-full my-auto">
                 <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Selamat Datang</h2>
@@ -125,6 +115,9 @@
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Kata Sandi</label>
+                            <a href="{{ route('forgot') }}" class="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">
+                                Lupa kata sandi?
+                            </a>
                         </div>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

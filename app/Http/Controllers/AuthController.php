@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -156,6 +159,82 @@ class AuthController extends Controller
                 'email' => $user->email,
             ]
         ], 200);
+    }
+
+    // 1. KIRIM OTP KE EMAIL (AJAX)
+    public function sendOtpWeb(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $userExists = DB::table('users')->where('email', $request->email)->exists();
+
+        if (!$userExists) {
+            return response()->json(['status' => 'error', 'message' => 'Email tidak terdaftar.'], 404);
+        }
+
+        $otp = rand(100000, 999999);
+        session([
+            'reset_email' => $request->email,
+            'reset_otp' => $otp,
+            'reset_otp_expires' => now()->addMinutes(5)
+        ]);
+
+        try {
+            Mail::raw("Kode OTP Pemulihan Akun Anda: " . $otp, function ($message) use ($request) {
+                $message->to($request->email)->subject("Kode OTP Lupa Password");
+            });
+            return response()->json(['status' => 'success', 'message' => 'Kode OTP berhasil dikirim ke email!']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal mengirim email OTP.'], 500);
+        }
+    }
+
+    // 2. VERIFIKASI OTP SAJA (AJAX)
+    public function verifyOtpWeb(Request $request)
+    {
+        $request->validate(['email' => 'required|email', 'otp' => 'required']);
+
+        $sessionEmail = session('reset_email');
+        $sessionOtp = session('reset_otp');
+        $sessionExpires = session('reset_otp_expires');
+
+        if (!$sessionOtp || $sessionEmail !== $request->email || now()->greaterThan($sessionExpires)) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi habis atau OTP kadaluarsa.'], 400);
+        }
+
+        if ($sessionOtp != $request->otp) {
+            return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
+        }
+
+        // Beri tanda di session bahwa OTP sudah sukses lolos verifikasi
+        session(['otp_verified' => true]);
+
+        return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
+    }
+
+    // 3. SIMPAN PASSWORD BARU PILIHAN USER (POST FORM)
+    public function forgotWeb(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required',
+            'password' => 'required|min:6|confirmed', // Harus sama dengan password_confirmation
+        ]);
+
+        // Proteksi keamanan: pastikan session OTP sudah terverifikasi sebelumnya
+        if (!session('otp_verified') || session('reset_email') !== $request->email) {
+            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid. Proses verifikasi salah.']);
+        }
+
+        // Update password baru pilihan user ke database
+        DB::table('users')->where('email', $request->email)->update([
+            'password' => Hash::make($request->password),
+            'updated_at' => now()
+        ]);
+
+        // Bersihkan semua session pemulihan
+        session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified']);
+
+        return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui! Silakan login.');
     }
 
     /**
