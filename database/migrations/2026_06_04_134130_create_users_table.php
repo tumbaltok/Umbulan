@@ -21,8 +21,11 @@ return new class extends Migration
             $table->foreignId('gender_id')->nullable()->constrained('genders');
             $table->foreignId('station_id')->constrained('stations');
             $table->string('job_title')->nullable();
-            $table->string('phone_number')->nullable();
             $table->string('profile_photo')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->timestamp('phone_verified_at')->nullable();
+            $table->string('phone_otp_code')->nullable();
+            $table->timestamp('phone_otp_expires_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

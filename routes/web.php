@@ -10,7 +10,7 @@ use App\Http\Controllers\AccountController;
 
 // Halaman Selamat Datang / Landing Page Utama
 Route::get('/', function () {
-    return view('welcome');
+    return view('welcome1');
 });
 
 // Grup Route untuk Pengguna yang BELUM Login (Tamu / Guest)
