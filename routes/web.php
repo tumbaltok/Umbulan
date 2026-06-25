@@ -50,19 +50,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
     Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
-    // // --- PENGELOLAAN CUTI VERSI WEB (KARYAWAN) ---
-    // Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
-    // Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
-    // Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
-
-    // // Tampilan Pembungkus PDF & Cetak Surat Cuti (Khusus Web)
-    // Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
-    // Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
-
-    // // --- ROUTE UTALITAS / AJAX (DIREKOMENDASIKAN UNTUK FORM WEB) ---
-    // Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
-    // Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
-
     Route::get('/email/verify', function () {
         return view('auth.verify-email');
     })->name('verification.notice');
