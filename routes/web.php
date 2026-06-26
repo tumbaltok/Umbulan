@@ -106,16 +106,38 @@ Route::middleware('auth')->group(function () {
     // FITUR YANG MEMBUTUHKAN VERIFIKASI
     // ==========================================
     Route::middleware('verified')->group(function () {
-        // Form & Proses Pengajuan Cuti Web
-        Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
-        Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
 
-        // Fitur Cetak & Pembungkus PDF Surat Cuti
-        Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
-        Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
+        // Menggunakan Route::group untuk membungkus inline middleware dengan benar
+        Route::group(['middleware' => function ($request, $next) {
+            $user = $request->user();
 
-        // Utalitas / AJAX pendukung Form Pengajuan Cuti
-        Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
+            // Jika nomor telepon belum diverifikasi (phone_verified_at masih NULL)
+            if ($user && !$user->phone_verified_at) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Nomor telepon Anda belum diverifikasi.'], 403);
+                }
+
+                // Redirect langsung ke halaman profil bawaan route Anda
+                return redirect()->route('account.index')
+                    ->with('error', 'Silakan verifikasi nomor telepon Anda terlebih dahulu untuk mengakses fitur pengajuan cuti.');
+            }
+
+            return $next($request);
+        }], function () {
+
+            // Form & Proses Pengajuan Cuti Web
+            Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
+            Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
+
+            // Fitur Cetak & Pembungkus PDF Surat Cuti
+            Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
+            Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
+
+            // Utalitas / AJAX pendukung Form Pengajuan Cuti
+            Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
+
+        });
+
     });
 
     // Proses Logout Web

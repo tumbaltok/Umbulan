@@ -21,6 +21,23 @@
                 </div>
             </div>
         </div>
+    @elseif(auth()->check() && !auth()->user()->phone_verified_at)
+        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl flex items-start space-x-3 shadow-sm">
+            <div class="p-2 bg-indigo-100 text-indigo-700 rounded-xl mt-0.5">
+                <i class="fa-solid fa-phone-slash text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-indigo-800 text-sm">Nomor Telepon Belum Diverifikasi</h4>
+                <p class="text-xs text-indigo-600 mt-0.5 leading-relaxed">
+                    Email Anda berhasil diverifikasi! Satu langkah lagi, silakan <strong>verifikasi nomor telepon</strong> Anda untuk dapat menggunakan fitur Pengajuan Cuti.
+                </p>
+                <div class="mt-2">
+                    <a href="profile" class="text-xs font-bold text-indigo-800 underline hover:text-indigo-900 transition-colors">
+                        Klik di sini untuk memverifikasi nomor telepon &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
     @endif
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
