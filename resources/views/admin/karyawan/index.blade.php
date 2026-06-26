@@ -98,15 +98,15 @@
                                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
                                         On Leave (Cuti)
                                     </span>
-                                @elseif(now()->isSunday())
+                                {{-- @elseif(now()->isSunday())
                                     <span class="inline-flex items-center text-xs text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full font-bold">
                                         <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5"></span>
                                         OFF (Libur)
-                                    </span>
+                                    </span> --}}
                                 @else
                                     <span class="inline-flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold">
                                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
-                                        Ready (Kerja)
+                                        On Call (Kerja)
                                     </span>
                                 @endif
                             </td>
