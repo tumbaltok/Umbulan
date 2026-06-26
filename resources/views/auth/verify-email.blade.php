@@ -33,11 +33,13 @@
         <div class="flex flex-col space-y-3">
 
             {{-- Form Kirim Ulang Tautan --}}
-            <form method="POST" action="{{ route('verification.send') }}" class="w-full">
+            <form method="POST" action="{{ route('verification.send') }}" class="w-full" id="resend-email-form">
                 @csrf
-                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center space-x-2 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+                <button type="submit"
+                    id="btn-resend-email"
+                    class="w-full bg-sky-600 hover:bg-sky-700 disabled:bg-sky-400 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center space-x-2 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
                     <i class="fa-solid fa-rotate-right text-xs"></i>
-                    <span>Kirim Ulang Email Verifikasi</span>
+                    <span id="btn-text">Kirim Ulang Email Verifikasi</span>
                 </button>
             </form>
 
@@ -63,3 +65,58 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("resend-email-form");
+        const btnResend = document.getElementById("btn-resend-email");
+        const btnText = document.getElementById("btn-text");
+        const COOLDOWN_TIME = 60; // Durasi jeda dalam detik
+
+        // Fungsi utama hitung mundur
+        function startCooldown(duration) {
+            btnResend.disabled = true;
+            let timeLeft = duration;
+
+            const timer = setInterval(function () {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    localStorage.removeItem("email_cooldown_expiry"); // Hapus memori simpanan jika habis
+                    btnResend.disabled = false;
+                    btnText.innerText = "Kirim Ulang Email Verifikasi";
+                } else {
+                    btnText.innerText = `Tunggu (${timeLeft}s)`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        // Cek saat halaman dimuat: Apakah masih dalam masa cooldown sebelumnya?
+        const expiryTime = localStorage.getItem("email_cooldown_expiry");
+        if (expiryTime) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            const remainingTime = expiryTime - currentTime;
+
+            if (remainingTime > 0) {
+                startCooldown(remainingTime);
+            } else {
+                localStorage.removeItem("email_cooldown_expiry");
+            }
+        }
+
+        // Jalankan pemicu ketika form disubmit/diklik pertama kali
+        if (form) {
+            form.addEventListener("submit", function () {
+                // Set waktu kadaluarsa 60 detik dari sekarang ke localStorage
+                const expiryTimestamp = Math.floor(Date.now() / 1000) + COOLDOWN_TIME;
+                localStorage.setItem("email_cooldown_expiry", expiryTimestamp);
+
+                // Ubah UI tombol sementara sebelum halaman beralih/muat ulang
+                btnResend.disabled = true;
+                btnText.innerText = "Mengirim...";
+            });
+        }
+    });
+</script>
+@endpush

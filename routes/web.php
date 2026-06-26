@@ -47,10 +47,10 @@ Route::middleware('guest')->group(function () {
     })->name('forgot');
 
     // 2. Endpoint AJAX untuk Kirim OTP ke Email
-    Route::post('/forgot/send-otp', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
+    Route::post('/forgot/send-otp-mail', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
 
     // 3. Endpoint AJAX untuk Verifikasi Kode OTP (Koreksi di sini)
-    Route::post('/forgot/verify-otp', [AuthController::class, 'verifyOtpWeb'])->name('forgot.verify_otp');
+    Route::post('/forgot/verify-otp-mail', [AuthController::class, 'verifyOtpMailWeb'])->name('forgot.verify_otp');
 
     // 4. Eksekusi Form Akhir untuk Simpan Password Baru Pilihan User
     Route::post('/forgot', [AuthController::class, 'forgotWeb'])->name('forgot.post');
@@ -77,35 +77,45 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
     Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
+    // ==========================================
+    // ALUR VERIFIKASI EMAIL
+    // ==========================================
     Route::get('/email/verify', function () {
         return view('auth.verify-email');
     })->name('verification.notice');
 
-    // 2. Proses saat link verifikasi di email di-klik
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
         return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
     })->middleware('signed')->name('verification.verify');
 
-    // 3. Proses kirim ulang email verifikasi via tombol di view
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
 
-    Route::middleware('verified')->group(function () {
+    // ==========================================
+    // ALUR VERIFIKASI NOMOR TELEPON (OTP)
+    // ==========================================
+    // Endpoint AJAX untuk Kirim & Verifikasi OTP
+    Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
+    Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
+
+    // ==========================================
+    // FITUR YANG MEMBUTUHKAN VERIFIKASI
+    // ==========================================
+    Route::middleware('verified')->group(function () {
         // Form & Proses Pengajuan Cuti Web
         Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
         Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
 
-        // Fitur Cetak & Pembungkus PDF Surat Cuti (Dikunci karena bagian dari proses pasca-pengajuan)
+        // Fitur Cetak & Pembungkus PDF Surat Cuti
         Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
         Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
 
         // Utalitas / AJAX pendukung Form Pengajuan Cuti
         Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
-
     });
 
     // Proses Logout Web

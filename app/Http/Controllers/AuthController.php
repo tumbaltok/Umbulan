@@ -8,17 +8,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator; // Tambahan untuk validasi API
 
 class AuthController extends Controller
 {
     /**
      * Menangani pendaftaran (registrasi) pengguna lewat WEB.
-     * Mengarahkan kembali ke halaman login setelah berhasil mendaftar.
      */
     public function registerWeb(Request $request)
     {
-        // 1. Validasi Inputan sesuai skema database Anda
         $request->validate([
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
@@ -29,8 +28,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 2. Simpan Data ke Database
-        $user = User::create([
+        User::create([
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
@@ -40,28 +38,34 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // 3. Alihkan ke halaman login dengan pesan sukses
         return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
     }
 
     /**
      * Menangani pendaftaran (registrasi) pengguna lewat API (Mobile App).
-     * Mengembalikan response JSON beserta token Sanctum.
      */
     public function registerApi(Request $request)
     {
-        // 1. Validasi Inputan API
-        $request->validate([
+        // PERBAIKAN: Validasi manual agar mengembalikan JSON jika gagal di Mobile/API
+        $validator = Validator::make($request->all(), [
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'role_id' => 'required|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
-            'password' => 'required|string|min:8', // Konfirmasi diurus client-side (Mobile/Frontend)
+            'password' => 'required|string|min:8',
         ]);
 
-        // 2. Simpan Data ke Database (Dengan Atasan Otomatis)
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        /** @var User $user */
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
@@ -72,11 +76,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // 3. Buat token akses Sanctum untuk login otomatis setelah mendaftar
         $token = $user->createToken('auth_token')->plainTextToken;
         $user->load('role');
 
-        // 4. Kirim respons sukses berupa JSON beserta info atasan yang didapat
         return response()->json([
             'status' => 'success',
             'message' => 'Registrasi berhasil lewat API!',
@@ -87,56 +89,55 @@ class AuthController extends Controller
                 'nip' => $user->nip,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role->role_name,
-                'assigned_supervisor_id' => $user->supervisor_id, // Bagus untuk info di aplikasi mobile/frontend
-                'assigned_manager_id' => $user->manager_id,
+                'role' => $user->role->role_name ?? null,
+                'assigned_supervisor_id' => $user->supervisor_id ?? null,
+                'assigned_manager_id' => $user->manager_id ?? null,
             ]
         ], 201);
     }
 
     /**
-     * Menangani login untuk pengguna lewat WEB (Session & Cookie).
-     * Fungsi inilah yang akan membuat halaman berpindah/redirect.
+     * Menangani login untuk pengguna lewat WEB.
      */
     public function loginWeb(Request $request)
     {
-        // 1. Validasi Inputan
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        // 2. Coba Autentikasi Menggunakan Session Laravel (Standar Web)
         if (Auth::attempt($credentials)) {
-            // Regenerasi session untuk keamanan dari Session Fixation Attack
             $request->session()->regenerate();
-
-            // Redirect (pindahkan halaman) ke dashboard / pengajuan cuti
             return redirect()->intended('/dashboard');
         }
 
-        // 3. Jika gagal, kembalikan ke halaman login dengan pesan error
         return back()->withErrors([
             'email' => 'Kombinasi Email atau Password salah!',
         ])->withInput($request->only('email'));
     }
 
     /**
-     * Menangani login untuk pengguna lewat API (Sanctum Token).
-     * Fungsi ini mengembalikan JSON dan digunakan untuk Mobile App / Postman.
+     * Menangani login untuk pengguna lewat API.
      */
     public function loginApi(Request $request)
     {
-        // Validasi Inputan
-        $request->validate([
+        // PERBAIKAN: Validasi API JSON
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        // Cari user berdasarkan email
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        /** @var User $user */
         $user = User::where('email', $request->email)->first();
 
-        // Autentikasi Menggunakan Hash
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
@@ -144,10 +145,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Buat Token Sanctum sebagai pengganti Session
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // Kirim respons sukses berupa JSON beserta Tokennya
         return response()->json([
             'status' => 'success',
             'message' => 'Login sukses lewat API!',
@@ -162,7 +161,7 @@ class AuthController extends Controller
     }
 
     // 1. KIRIM OTP KE EMAIL (AJAX)
-    public function sendOtpWeb(Request $request)
+    public function sendOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email']);
         $userExists = DB::table('users')->where('email', $request->email)->exists();
@@ -189,7 +188,7 @@ class AuthController extends Controller
     }
 
     // 2. VERIFIKASI OTP SAJA (AJAX)
-    public function verifyOtpWeb(Request $request)
+    public function verifyOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required']);
 
@@ -201,40 +200,125 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi habis atau OTP kadaluarsa.'], 400);
         }
 
-        if ($sessionOtp != $request->otp) {
+        // PERBAIKAN: Casting ke string/int untuk menghindari type juggling bug
+        if ((string)$sessionOtp !== (string)$request->otp) {
             return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
         }
 
-        // Beri tanda di session bahwa OTP sudah sukses lolos verifikasi
         session(['otp_verified' => true]);
 
         return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
     }
 
-    // 3. SIMPAN PASSWORD BARU PILIHAN USER (POST FORM)
+    // 3. SIMPAN PASSWORD BARU PILIHAN USER (POST FORM COLD SUBMIT)
     public function forgotWeb(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'otp' => 'required',
-            'password' => 'required|min:6|confirmed', // Harus sama dengan password_confirmation
+            'password' => 'required|min:8|confirmed', // Disamakan standar min 8 karakter
         ]);
 
-        // Proteksi keamanan: pastikan session OTP sudah terverifikasi sebelumnya
-        if (!session('otp_verified') || session('reset_email') !== $request->email) {
-            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid. Proses verifikasi salah.']);
+        $sessionOtp = session('reset_otp');
+        $sessionExpires = session('reset_otp_expires');
+
+        // PERBAIKAN CRITICAL: Cek ulang kecocokan OTP, Email, dan masa kedaluwarsa saat form disubmit akhir
+        if (!session('otp_verified') ||
+            session('reset_email') !== $request->email ||
+            (string)$sessionOtp !== (string)$request->otp ||
+            now()->greaterThan($sessionExpires)) {
+            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid atau kode OTP telah kedaluwarsa.']);
         }
 
-        // Update password baru pilihan user ke database
         DB::table('users')->where('email', $request->email)->update([
             'password' => Hash::make($request->password),
             'updated_at' => now()
         ]);
 
-        // Bersihkan semua session pemulihan
         session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified']);
 
         return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui! Silakan login.');
+    }
+
+    // 1. Fungsi untuk mengirim OTP via Fonnte
+    public function sendOtpPhone(Request $request)
+    {
+        $request->validate([
+            'phone_number' => 'required|numeric|digits_between:10,14',
+        ]);
+
+        $phone = $request->phone_number;
+        $otp = rand(100000, 999999);
+
+        session([
+            'otp_code' => $otp,
+            'otp_phone' => $phone,
+            'otp_expires_at' => now()->addMinutes(5)
+        ]);
+
+        $message = "Kode verifikasi (OTP) Anda adalah: *{$otp}*.\nJangan bagikan kode ini kepada siapapun. Kode berlaku selama 5 menit.";
+
+        $response = Http::withHeaders([
+            'Authorization' => env('FONNTE_TOKEN'),
+        ])->post('https://api.fonnte.com/send', [
+            'target' => $phone,
+            'message' => $message,
+            'all' => 'true' // Rekomendasi Fonnte untuk parameter kestabilan kirim
+        ]);
+
+        if ($response->successful()) {
+            $result = $response->json();
+            if (isset($result['status']) && $result['status'] == true) {
+                return response()->json(['success' => true, 'message' => 'Kode OTP berhasil dikirim ke WhatsApp Anda!']);
+            }
+            return response()->json(['success' => false, 'message' => $result['reason'] ?? 'Gagal mengirim pesan dari gateway.'], 422);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal terhubung ke server WhatsApp. Coba lagi nanti.'], 500);
+    }
+
+    // 2. Fungsi untuk mencocokkan OTP yang diinput user via HP
+    public function verifyOtpPhone(Request $request)
+    {
+        // 1. Validasi input dari Ajax
+        $request->validate([
+            'otp_input' => 'required|numeric|digits:6',
+        ]);
+
+        // 2. Cek apakah session OTP ada dan belum kedaluwarsa
+        if (!session()->has('otp_code') || now()->isAfter(session('otp_expires_at'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP sudah kedaluwarsa atau tidak valid. Silakan kirim ulang.'
+            ], 422);
+        }
+
+        // 3. Bandingkan OTP yang diinput dengan yang ada di session
+        if ((string)$request->otp_input === (string)session('otp_code')) {
+
+            // Perbaikan: Langsung ambil objek user yang sedang login tanpa query manual User::find()
+            if (Auth::check()) {
+                // Menghindari ambigitas tipe data dengan mencari berdasarkan ID
+                User::where('id', Auth::id())->update([
+                    'phone_number'      => session('otp_phone'),
+                    'phone_verified_at' => now(),
+                ]);
+            }
+
+            // Hapus session OTP agar tidak bisa digunakan ulang (Replay Attack)
+            session()->forget(['otp_code', 'otp_phone', 'otp_expires_at']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Nomor telepon berhasil diverifikasi!'
+            ]);
+        }
+
+        // 4. Jika OTP salah
+        return response()->json([
+            'success' => false,
+            'message' => 'Kode OTP yang Anda masukkan salah.'
+        ], 422);
     }
 
     /**
@@ -255,8 +339,17 @@ class AuthController extends Controller
      */
     public function logoutApi(Request $request)
     {
-        // Menghapus token yang sedang digunakan saat ini oleh client API
-        $request->user()->currentAccessToken()->delete();
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        if ($user) {
+            /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+            $token = $user->currentAccessToken();
+
+            if ($token) {
+                $token->delete();
+            }
+        }
 
         return response()->json([
             'status' => 'success',

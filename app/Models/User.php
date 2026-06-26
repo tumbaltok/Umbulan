@@ -27,11 +27,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'station_id',
         'job_title',
         'phone_number',
-        'profile_photo'
+        'profile_photo',
+        'phone_verified_at'
     ];
 
     protected $hidden = [
         'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
         'password',
         'remember_token',
     ];
