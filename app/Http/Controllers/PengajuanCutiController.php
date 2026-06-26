@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PengajuanCutiController extends Controller
 {
@@ -33,12 +35,12 @@ class PengajuanCutiController extends Controller
     }
 
     /**
-     * FUNGSI UTALITAS BARU: Cek apakah pengajuan ini masuk kategori potong kuota.
+     * FUNGSI UTALITAS: Cek apakah pengajuan ini masuk kategori potong kuota.
      * Memotong saldo jika Jenis Cuti Utama adalah Cuti Tahunan (ID: 4) ATAU Sub-Cutinya adalah 'Haid'.
      */
     private function alurPotongSaldo(int $jenisCutiId, ?int $subCutiId): bool
     {
-        if ($jenisCutiId === 4) {
+        if ($jenisCutiId === User::CUTI_TAHUNAN_ID) {
             return true;
         }
 
@@ -50,6 +52,34 @@ class PengajuanCutiController extends Controller
         }
 
         return false;
+    }
+
+    private function sendWhatsAppNotification(?string $targetPhone, string $message)
+    {
+        if (!$targetPhone) {
+            return false;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
+
+        if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
+            $cleanPhone = '62' . substr($cleanPhone, 1);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => env('FONNTE_TOKEN'),
+            ])->post('https://api.fonnte.com/send', [
+                'target' => $cleanPhone,
+                'message' => $message,
+                'all' => 'true'
+            ]);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error("Gagal mengirim WA ke atasan: " . $e->getMessage());
+            return false;
+        }
     }
 
     // KARYAWAN: Mengajukan Cuti (API)
@@ -124,7 +154,7 @@ class PengajuanCutiController extends Controller
             $totalCutiPending = DB::table('pengajuan_cutis')
                 ->where('user_id', $user->id)
                 ->where('jenis_cuti_id', $jenisCutiId)
-                ->where('sub_cuti_id', $subCutiId) // Kelompokkan sub-cutinya juga agar tidak salah hitung jenis ijin lain
+                ->where('sub_cuti_id', $subCutiId)
                 ->where('status_akhir', 'pending')
                 ->sum('total_hari');
 
@@ -397,6 +427,38 @@ class PengajuanCutiController extends Controller
             }
 
             DB::commit();
+
+            if ($statusAkhir === 'pending') {
+                // PERBAIKAN: Cari target atasan di station yang sama berdasarkan nama Role-nya (Supervisor & Manager)
+                $targetAtasan = User::where('station_id', $user->station_id)
+                    ->whereHas('role', function($query) {
+                        $query->whereIn(DB::raw('LOWER(role_name)'), ['supervisor', 'manager']);
+                    })
+                    ->whereNotNull('phone_verified_at')
+                    ->get();
+
+                $namaStation = $user->station->nama_stasiun ?? 'Pusat / Utama';
+                $perihal = $subCutiId && isset($subDb) ? $subDb->nama_sub_cuti : ($jenisCuti->name_cuti ?? 'Cuti/Izin');
+
+                $templatePesan = "📢 *NOTIFIKASI PENGAJUAN " . strtoupper($perihal) . "*\n\n"
+                    . "Halo Bapak/Ibu Atasan,\n"
+                    . "Terdapat dokumen pengajuan baru yang membutuhkan persetujuan Anda.\n\n"
+                    . "▪ *Nama Karyawan:* {$user->name}\n"
+                    . "▪ *NIP:* " . ($user->nip ?? '-') . "\n"
+                    . "▪ *Station:* {$namaStation}\n"
+                    . "▪ *Tanggal:* {$request->tanggal_mulai} s/d {$request->tanggal_selesai} ({$totalHari} Hari)\n"
+                    . "▪ *Alasan:* " . ($request->alasan_cuti ?? '-') . "\n\n"
+                    . "Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
+                    . "Link: " . url('/admin/persetujuan') . "\n\n"
+                    . "_Pesan otomatis sistem META AdhyaTirta Umbulan._";
+
+                foreach ($targetAtasan as $atasan) {
+                    if ($atasan->phone_number) {
+                        $this->sendWhatsAppNotification($atasan->phone_number, $templatePesan);
+                    }
+                }
+            }
+
             return redirect()->route('dashboard')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -664,18 +726,6 @@ class PengajuanCutiController extends Controller
             'id' => $id,
             'title' => 'Surat Cuti - ' . $pengajuan->user->name
         ]);
-    }
-
-    public function cetakSuratCuti(int $id)
-    {
-        $pengajuan = PengajuanCuti::with(['user', 'jenisCuti', 'subCuti'])->findOrFail($id);
-        if ($pengajuan->status_manager !== 'approved') {
-            return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');
-        }
-
-        $pdf = Pdf::loadView('cuti.cetak', compact('pengajuan'));
-        $pdf->setPaper('a4', 'portrait');
-        return $pdf->stream('Surat_Cuti_' . str_replace(' ', '_', $pengajuan->user->name) . '.pdf');
     }
 
     public function handleSubCuti(int $id)

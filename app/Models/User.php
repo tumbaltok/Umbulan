@@ -32,8 +32,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $hidden = [
-        'email_verified_at' => 'datetime',
-        'phone_verified_at' => 'datetime',
         'password',
         'remember_token',
     ];
@@ -42,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -85,7 +84,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * PERBAIKAN: Melengkapi relasi saldo cuti tahunan yang terpotong
      */
-    public function saldo_cuti_tahunan($jenisCutiId): HasOne
+    public function saldo_cuti_tahunan(int $jenisCutiId): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
                     ->where('jenis_cuti_id', $jenisCutiId)
