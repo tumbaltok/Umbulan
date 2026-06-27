@@ -1,4 +1,4 @@
-anduan Deployment Project Laravel (Production)
+Panduan Deployment Project Laravel (Production)
 
 Dokumen ini berisi panduan langkah-demi-langkah untuk melakukan deployment aplikasi Laravel dari repositori Git ke server produksi (VPS Linux/Ubuntu).
 

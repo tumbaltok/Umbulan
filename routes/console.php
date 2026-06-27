@@ -109,4 +109,5 @@ Schedule::call(function () {
 })
 // ->everyMinute();
 ->everyTenMinutes()
-->between('08:00', '16:00'); // Batasan Pukul (Setiap Hari)
+->between('08:00', '16:00')
+->timezone('Asia/Jakarta'); // Batasan Pukul (Setiap Hari)
