@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Stations')
+@section('title', 'Daftar Stasiun Kerja')
 @section('content')
 <div class="max-w-6xl mx-auto mt-8 px-4">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

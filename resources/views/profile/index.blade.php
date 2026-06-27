@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Profil')
+@section('title', 'Pengaturan Profil Karyawan')
 @section('content')
 <div class="max-w-4xl mx-auto mt-8 px-4">
     @if(session('success'))
