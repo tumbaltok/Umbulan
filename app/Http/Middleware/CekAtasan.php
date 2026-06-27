@@ -16,17 +16,21 @@ class CekAtasan
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1. Pastikan pengguna sudah login
+        // 1. Pastikan user sudah login
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        // 2. Ambil data role user (Asumsi: role_id ? = Karyawan biasa)
-        // Jika role_id user adalah 4 (karyawan biasa), mereka dilarang masuk!
-        if (Auth::user()->role_id == 4) {
+        // 2. Ambil nama role user saat ini
+        // Catatan: Pastikan nama kolom di tabel 'users' Anda adalah 'role_name'
+        $roleName = Auth::user()->role->role_name;
+
+        // 3. Cek apakah role_name TIDAK termasuk dalam 'Manager' atau 'Supervisor'
+        if (!in_array($roleName, ['Manager', 'Supervisor', 'Admin'])) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut!');
         }
 
+        // 4. Jika termasuk Manager atau Supervisor, izinkan akses
         return $next($request);
     }
 }

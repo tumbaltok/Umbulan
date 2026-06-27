@@ -67,17 +67,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
     Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
-    // Manajemen Karyawan & Detail Karyawan
-    Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
-    Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('karyawan.detail');
-
-    // Manajemen Stasiun Kerja / Station
-    Route::get('/admin/stations', [StationController::class, 'index'])->name('stations.index');
-
-    // Report Cuti karyawan
-    Route::get('/admin/record', [RecordController::class, 'index'])->name('record.index');
-    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.cuti.export');
-
     // Riwayat Cuti
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
     Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
@@ -153,4 +142,15 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'atasan'])->group(function () {
     Route::get('/admin/persetujuan', [PengajuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan');
     Route::post('/admin/persetujuan/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('cuti.proses-persetujuan');
+
+    // Manajemen Karyawan & Detail Karyawan
+    Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
+    Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('karyawan.detail');
+
+    // Manajemen Stasiun Kerja / Station
+    Route::get('/admin/stations', [StationController::class, 'index'])->name('stations.index');
+
+    // Report Cuti karyawan
+    Route::get('/admin/record', [RecordController::class, 'index'])->name('record.index');
+    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.cuti.export');
 });

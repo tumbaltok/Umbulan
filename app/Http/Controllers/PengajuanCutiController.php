@@ -680,13 +680,14 @@ class PengajuanCutiController extends Controller
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
 
-        if ((int)$user->role_id === 3) { // Supervisor
+        if ($user->role->role_name === 'Supervisor') { // Supervisor
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
-        } elseif ((int)$user->role_id === 2) { // Manager
+            return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
+        } elseif ($user->role->role_name === 'Manager') { // Manager
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
             }
@@ -710,10 +711,10 @@ class PengajuanCutiController extends Controller
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
             }
-        }
-
-        return redirect()->back()->with('success', 'Status pengajuan cuti karyawan berhasil diperbarui!');
+            return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
+        }else {return redirect()->back()->with('error', 'Gagal! Anda tidak memiliki hak akses sebagai atasan untuk mengubah status ini.');}
     }
+
 
     public function viewSuratCuti(int $id)
     {
