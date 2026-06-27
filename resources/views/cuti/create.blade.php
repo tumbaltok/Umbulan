@@ -147,6 +147,19 @@
         const tombolSubmit = document.getElementById('btn-submit');
         const pesanErrorSaldo = document.getElementById('pesan-error-saldo');
 
+        // =======================================================
+        // 1. KUNCI TANGGAL MINIMAL SEJAK HALAMAN DI-LOAD (WAKTU LOKAL)
+        // =======================================================
+        const sekarang = new Date();
+        const yyyy = sekarang.getFullYear();
+        const mm = String(sekarang.getMonth() + 1).padStart(2, '0');
+        const dd = String(sekarang.getDate()).padStart(2, '0');
+        const hariIniLokal = `${yyyy}-${mm}-${dd}`;
+
+        // Kunci tanggal mulai & selesai minimal hari ini agar sinkron dengan showPicker()
+        tanggalMulai.min = hariIniLokal;
+        tanggalSelesai.min = hariIniLokal;
+
         function periksaSaldo() {
             const idTerpilih = parseInt(jenisCutiSelect.value);
 
@@ -220,7 +233,6 @@
                     });
 
                     checkDokumenRequirement();
-                    // Jalankan pembatasan tanggal setelah sub-cuti berhasil dimuat
                     batasiKalenderSelesai();
                     return;
                 }
@@ -230,7 +242,7 @@
             subCutiSelect.removeAttribute('required');
             subCutiSelect.value = '';
             resetStatusDokumen();
-            tanggalSelesai.removeAttribute('max');
+            batasiKalenderSelesai();
         }
 
         function checkDokumenRequirement() {
@@ -251,11 +263,19 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI UTAMA UNTUK MEMBATASI KALENDER
-        // ==========================================
+        // =======================================================
+        // 2. FUNGSI UTAMA UNTUK MEMBATASI KALENDER SELESAI
+        // =======================================================
         function batasiKalenderSelesai() {
+            // Atur batas MINIMAL tanggal selesai
+            if (tanggalMulai.value) {
+                tanggalSelesai.min = tanggalMulai.value;
+            } else {
+                tanggalSelesai.min = hariIniLokal;
+            }
+
             const selectedOption = subCutiSelect.options[subCutiSelect.selectedIndex];
+
             if (!selectedOption || selectedOption.value === "") {
                 tanggalSelesai.removeAttribute('max');
                 return;
@@ -263,12 +283,6 @@
 
             const durasi = selectedOption.getAttribute('data-durasi');
 
-            // Set batas minimal tanggal selesai agar tidak bisa kurang dari tanggal mulai
-            if (tanggalMulai.value) {
-                tanggalSelesai.min = tanggalMulai.value;
-            }
-
-            // Jika durasi kosong atau tidak terdefinisi berarti "Sakit" / Tidak terbatas
             if (!durasi || durasi === '') {
                 tanggalSelesai.removeAttribute('max');
             } else {
@@ -276,18 +290,15 @@
                     const maxDays = parseInt(durasi);
                     let dateMulai = new Date(tanggalMulai.value);
 
-                    // Rumus batas maksimal kalender: Tanggal Mulai + (Durasi - 1)
                     dateMulai.setDate(dateMulai.getDate() + (maxDays - 1));
 
-                    const yyyy = dateMulai.getFullYear();
-                    const mm = String(dateMulai.getMonth() + 1).padStart(2, '0');
-                    const dd = String(dateMulai.getDate()).padStart(2, '0');
-                    const maxDateString = `${yyyy}-${mm}-${dd}`;
+                    const yyyyMax = dateMulai.getFullYear();
+                    const mmMax = String(dateMulai.getMonth() + 1).padStart(2, '0');
+                    const ddMax = String(dateMulai.getDate()).padStart(2, '0');
+                    const maxDateString = `${yyyyMax}-${mmMax}-${ddMax}`;
 
-                    // Masukkan batasan ke attribute 'max' HTML sehingga tanggal setelahnya tidak bisa diklik
                     tanggalSelesai.max = maxDateString;
 
-                    // Jika user mengubah sub-cuti dan tanggal selesai saat ini melanggar batas max, reset nilainya
                     if (tanggalSelesai.value && tanggalSelesai.value > maxDateString) {
                         tanggalSelesai.value = '';
                     }
@@ -324,6 +335,9 @@
                 batasiKalenderSelesai();
             }
         });
+
+        // Jalankan saat load halaman pertama kali agar langsung terkunci
+        batasiKalenderSelesai();
 
         if (oldJenisCutiId) {
             handleJenisCutiChange(oldJenisCutiId, true);
