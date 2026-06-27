@@ -7,6 +7,7 @@ use App\Http\Controllers\PengajuanCutiController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
@@ -72,6 +73,10 @@ Route::middleware('auth')->group(function () {
 
     // Manajemen Stasiun Kerja / Station
     Route::get('/admin/stations', [StationController::class, 'index'])->name('stations.index');
+
+    // Report Cuti karyawan
+    Route::get('/admin/record', [RecordController::class, 'index'])->name('record.index');
+    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.cuti.export');
 
     // Riwayat Cuti
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');

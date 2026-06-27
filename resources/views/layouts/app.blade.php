@@ -87,6 +87,11 @@
                     <i class="fa fa-university text-base w-5"></i>
                     <span>Stasiun Kerja</span>
                 </a>
+
+                <a href="{{ route('record.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('record.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa fa-table text-base w-5"></i>
+                    <span>Record</span>
+                </a>
                 @endif
 
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2">Pengaturan</span>
