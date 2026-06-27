@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Verify Email')
 @section('content')
 <div class="min-h-[75vh] flex items-center justify-center px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm text-center">

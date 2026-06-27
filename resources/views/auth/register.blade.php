@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Karyawan - Portal Cuti META</title>
+    <title>Pendaftaran Akun Karyawan - PT.META</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>

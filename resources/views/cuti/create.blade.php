@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Pengajuan Cuti')
 @section('content')
 <div class="max-w-3xl mx-auto mt-8 px-4">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Daftar Karyawan')
 @section('content')
 <div class="max-w-7xl mx-auto mt-8 px-4">
     {{-- Notifikasi Sukses --}}

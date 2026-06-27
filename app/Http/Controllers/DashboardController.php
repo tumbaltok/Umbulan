@@ -39,8 +39,9 @@ class DashboardController extends Controller
         // 5. Mengambil 5 riwayat transaksi pengajuan cuti terakhir
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
+            ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
             ->where('pengajuan_cutis.user_id', $user->id)
-            ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti')
+            ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti')
             ->orderBy('pengajuan_cutis.created_at', 'desc')
             ->take(5)
             ->get();

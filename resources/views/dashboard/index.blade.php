@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Dashboard')
 @section('content')
 <div class="space-y-6">
 
@@ -114,8 +114,15 @@
                                 {{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4">{{ $cuti->total_hari }} Hari</td>
-                            <td class="px-6 py-4 text-slate-500 text-xs max-w-xs truncate" title="{{ $cuti->alasan_cuti }}">
-                                {{ $cuti->alasan_cuti }}
+                            <td class="px-6 py-4 text-slate-500 text-xs max-w-xs truncate"
+                                title="{{ $cuti->alasan_cuti ?? ($cuti->nama_sub_cuti ?? 'Tanpa Keterangan') }}">
+                                @if(!empty($cuti->alasan_cuti))
+                                    {{ $cuti->alasan_cuti }}
+                                @else
+                                    <span class="text-slate-400 italic font-medium">
+                                        {{ isset($cuti->nama_sub_cuti) ? $cuti->nama_sub_cuti : 'Tanpa Keterangan' }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if($cuti->status_manager == 'approved')
