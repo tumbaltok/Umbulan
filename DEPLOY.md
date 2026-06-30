@@ -66,7 +66,7 @@ MAIL_PASSWORD=
 
 MAIL_FROM_ADDRESS=
 
-TOKEN=
+FONNTE_TOKEN=
 
 Sesuaikan DB_DATABASE, DB_USERNAME, dan DB_PASSWORD dengan database server kamu.
 

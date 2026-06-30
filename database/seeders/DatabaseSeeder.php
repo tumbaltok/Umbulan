@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         $roleAdmin = Role::create(['role_name' => 'Admin']);
         $roleManager = Role::create(['role_name' => 'Manager']);
         $roleSpv = Role::create(['role_name' => 'Supervisor']);
-        $roleKaryawan = Role::create(['role_name' => 'Karyawan']);
+        $roleStaff = Role::create(['role_name' => 'Staff']);
 
         // DATA MASTER GENDERS
         $pria = Gender::create(['name' => 'Pria']);
@@ -181,12 +181,12 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nip' => '223',
             'name' => 'Karyawan Wanita',
-            'email' => 'karyawan@meta.com',
+            'email' => 'staff@meta.com',
             'email_verified_at' => now(),
-            'role_id' => $roleKaryawan->id,
+            'role_id' => $roleStaff->id,
             'gender_id' => $wanita->id,
             'station_id' => $stasiunBooster->id,
-            'password' => Hash::make('karyawan123'),
+            'password' => Hash::make('staff123'),
         ]);
 
 
