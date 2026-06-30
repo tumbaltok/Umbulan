@@ -125,7 +125,7 @@
                 </button>
 
                 <div>
-                    {{-- <p class="text-sm font-semibold text-slate-400 tracking-wider">Station :</p> --}}
+                    <p class="text-sm font-semibold text-slate-400 tracking-wider">Sektor Kerja,</p>
                     <h1 class="text-lg font-bold text-slate-800">{{ Auth::user()->station->name }}</h1>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                 <div class="text-right hidden sm:block">
                     {{-- Perbaikan: Menggunakan tanda ?-> untuk mengamankan data kosong --}}
                     <p class="text-lg font-bold text-slate-700">{{ Auth::user()->name}}</p>
-                    <p class="text-sm font-bold text-slate-700">{{Auth::user()->job_title}}</p>
+                    <p class="text-sm font-bold text-slate-700">{{ strtoupper(auth()->user()->role->role_name) }} {{Auth::user()->job_title}}</p>
                     {{-- <p class="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-0.5">Aktif</p> --}}
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden">
