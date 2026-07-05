@@ -176,12 +176,23 @@
                             </div>
                         </div>
 
-                        <div class="relative p-5 bg-gradient-to-r from-water-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
+                        {{-- <div class="relative p-5 bg-gradient-to-r from-water-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
 
                             <div class="relative z-10">
                                 <p class="text-xs text-water-100/90 font-semibold tracking-wide">Volume Tersalurkan Bulan Ini</p>
                                 <h3 class="text-2xl md:text-3xl font-black mt-1 tracking-tight">2.450.000 <span class="text-sm font-medium text-water-300">m³</span></h3>
+                            </div>
+                        </div> --}}
+
+                        <div class="relative p-5 bg-gradient-to-r from-cyan-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
+
+                            <div class="relative z-10">
+                                <p class="text-xs text-cyan-100/90 font-semibold tracking-wide">Volume Serapan Akumulatif Bulan Ini</p>
+                                <h3 id="volume-display" class="text-2xl md:text-3xl font-black mt-1 tracking-tight">
+                                    0 <span class="text-sm font-medium text-cyan-300">m³</span>
+                                </h3>
                             </div>
                         </div>
 
@@ -436,6 +447,37 @@
         mobileLinks.forEach(link => {
             link.addEventListener('click', closeMenu);
         });
+
+        function updateVolumeRealtime() {
+            const sekarang = new Date();
+
+            // Atur waktu ke awal bulan ini jam 00:00:00
+            const awalBulan = new Date(sekarang.getFullYear(), sekarang.getMonth(), 1, 0, 0, 0);
+
+            // Hitung selisih waktu dalam milidetik, lalu ubah ke detik
+            const selisihMilidetik = sekarang - awalBulan;
+            const totalDetik = Math.floor(selisihMilidetik / 1000);
+
+            // Hitung volume dalam m3 (2750 lps / 1000 = 2.75 m3 per detik)
+            const volumeM3 = totalDetik * 2.75;
+
+            // Format angka dengan separator ribuan (contoh: 2.450.000) sesuai lokal Indonesia
+            const formatAngka = new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(volumeM3);
+
+            // Update tampilan HTML
+            document.getElementById('volume-display').innerHTML = `
+                ${formatAngka} <span class="text-sm font-medium text-cyan-300">m³</span>
+            `;
+        }
+
+        // Jalankan fungsi setiap 1 detik (1000ms)
+        setInterval(updateVolumeRealtime, 1000);
+
+        // Jalankan pertama kali saat halaman dimuat agar tidak menunggu 1 detik pertama
+        updateVolumeRealtime();
     </script>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
