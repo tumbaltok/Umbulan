@@ -643,9 +643,12 @@ class PengajuanCutiController extends Controller
     }
 
     // Menampilkan Halaman List Pengajuan Masuk untuk Atasan (Web View)
-    public function listAtasanView()
+    public function listPengajuan()
     {
-        $user = Auth::user();
+        $atasan = Auth::user();
+
+        // Mengamankan jika relasi role kosong
+        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
 
         $query = DB::table('pengajuan_cutis')
             ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
@@ -662,22 +665,28 @@ class PengajuanCutiController extends Controller
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
         // Pengecekan berbasis role_name
-        if ($user->role->role_name === 'Supervisor') {
+        if ($roleName === 'supervisor') {
             $query->where('pengajuan_cutis.status_supervisor', 'pending')
-                ->where('users.station_id', $user->station_id);
+                ->where('users.station_id', $atasan->station_id);
 
-        } elseif ($user->role->role_name === 'Manager') {
+        } elseif ($roleName === 'manager') {
             $query->where('pengajuan_cutis.status_manager', 'pending')
                 ->where('pengajuan_cutis.status_supervisor', 'approved');
 
-        } else {
-            // Jaring pengaman jika role lain (seperti karyawan/admin) tersesat masuk ke halaman ini
-            $query->where('pengajuan_cutis.status_akhir', 'pending');
+        } elseif($roleName  === 'admin') {
+            $query->where(function($q) {
+                $q->where('pengajuan_cutis.status_supervisor', 'pending')
+                ->orWhere('pengajuan_cutis.status_manager', 'pending');
+            })
+            ->where('pengajuan_cutis.status_supervisor', '!=', 'rejected')
+            ->where('pengajuan_cutis.status_manager', '!=', 'rejected');
+        }else {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         $daftarPengajuan = $query->get();
 
-        return view('admin.persetujuan', compact('daftarPengajuan'));
+        return view('admin.persetujuan.cuti', compact('daftarPengajuan'));
     }
 
     // ATASAN: Memproses Aksi Penyetujuan Bertingkat (Web View)
@@ -688,18 +697,18 @@ class PengajuanCutiController extends Controller
             'catatan_penolakan' => 'nullable|string'
         ]);
 
-        $user = Auth::user();
+        $atasan = Auth::user();
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
 
-        if ($user->role->role_name === 'Supervisor') { // Supervisor
+        if ($atasan->role->role_name === 'Supervisor') { // Supervisor
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
-        } elseif ($user->role->role_name === 'Manager') { // Manager
+        } elseif ($atasan->role->role_name === 'Manager') { // Manager
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
             }
@@ -728,17 +737,24 @@ class PengajuanCutiController extends Controller
     }
 
 
-    public function viewSuratCuti(int $id)
+    public function cetakSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
+
         if ($pengajuan->status_manager !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');
         }
 
-        return view('cuti.pembungkus_pdf', [
+        $data = [
             'id' => $id,
-            'title' => 'Surat Cuti - ' . $pengajuan->user->name
-        ]);
+            'title' => 'Surat Cuti - ' . $pengajuan->user->name,
+            'pengajuan' => $pengajuan
+        ];
+
+        $pdf = Pdf::loadView('cuti.cetak', $data)
+                ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Surat-Cuti-' . $pengajuan->id . '.pdf');
     }
 
     public function handleSubCuti(int $id)

@@ -12,7 +12,7 @@ class CekAtasan
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response)  $next
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -21,16 +21,16 @@ class CekAtasan
             return redirect()->route('login');
         }
 
-        // 2. Ambil nama role user saat ini
-        // Catatan: Pastikan nama kolom di tabel 'users' Anda adalah 'role_name'
-        $roleName = Auth::user()->role->role_name;
+        // 2. Ambil nama role user saat ini (Akan menjadi huruf kecil semua)
+        /** @var string $roleName */
+        $roleName = strtolower(Auth::user()->role?->role_name ?? '');
 
-        // 3. Cek apakah role_name TIDAK termasuk dalam 'Manager' atau 'Supervisor'
-        if (!in_array($roleName, ['Manager', 'Supervisor', 'Admin'])) {
+        // 3. Cek menggunakan array huruf kecil semua agar cocok dengan strtolower
+        if (!in_array($roleName, ['manager', 'supervisor', 'admin'])) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut!');
         }
 
-        // 4. Jika termasuk Manager atau Supervisor, izinkan akses
+        // 4. Jika termasuk Manager, Supervisor, atau Admin, izinkan akses
         return $next($request);
     }
 }

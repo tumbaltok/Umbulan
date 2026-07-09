@@ -21,7 +21,7 @@
             {{-- Form Filter dan Tombol Export --}}
             <div class="w-full md:w-auto flex flex-wrap items-center gap-2">
                 {{-- Ditambahkan id="form-filter" agar bisa auto-submit via JS --}}
-                <form action="{{ route('record.index') }}" method="GET" id="form-filter" class="flex flex-wrap items-center gap-2 m-0">
+                <form action="{{ route('admin.record.index') }}" method="GET" id="form-filter" class="flex flex-wrap items-center gap-2 m-0">
                     {{-- Pilihan Bulan --}}
                     <div class="w-36">
                         <select name="bulan" id="filter_bulan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">

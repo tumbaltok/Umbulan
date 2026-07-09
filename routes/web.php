@@ -9,6 +9,7 @@ use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\PengajuanCarController;
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
@@ -16,68 +17,41 @@ Route::get('/', function () {
     return view('welcome1');
 });
 
-// Grup Route untuk Pengguna yang BELUM Login (Tamu / Guest)
+// ==========================================================
+// GRUP GUEST (Belum Login)
+// ==========================================================
 Route::middleware('guest')->group(function () {
-
-    // ==========================================
-    // HALAMAN & PROSES REGISTRASI WEB
-    // ==========================================
-    Route::get('/register', function () {
-        return view('auth.register');
-    })->name('register');
-
+    Route::get('/register', function () { return view('auth.register'); })->name('register');
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
 
-
-    // ==========================================
-    // HALAMAN & PROSES LOGIN WEB
-    // ==========================================
-    Route::get('/login', function () {
-        return view('auth.login');
-    })->name('login');
-
+    Route::get('/login', function () { return view('auth.login'); })->name('login');
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
-
-    // ==========================================
-    // ALUR LUPA PASSWORD (FORGOT PASSWORD)
-    // ==========================================
-    // 1. Tampilan Halaman Utama Lupa Password
-    Route::get('/forgot', function () {
-        return view('auth.forgot');
-    })->name('forgot');
-
-    // 2. Endpoint AJAX untuk Kirim OTP ke Email
+    Route::get('/forgot', function () { return view('auth.forgot'); })->name('forgot');
     Route::post('/forgot/send-otp-mail', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
-
-    // 3. Endpoint AJAX untuk Verifikasi Kode OTP (Koreksi di sini)
     Route::post('/forgot/verify-otp-mail', [AuthController::class, 'verifyOtpMailWeb'])->name('forgot.verify_otp');
-
-    // 4. Eksekusi Form Akhir untuk Simpan Password Baru Pilihan User
     Route::post('/forgot', [AuthController::class, 'forgotWeb'])->name('forgot.post');
-
 });
 
-// Grup Route untuk Pengguna yang SUDAH Login (Berbasis Session Web)
+// ==========================================================
+// GRUP AUTH (Sudah Login - Umum Karyawan & Atasan)
+// ==========================================================
 Route::middleware('auth')->group(function () {
-    // Dashboard Utama Karyawan/Atasan
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Route Pengaturan Akun / Profil Karyawan
+    // Dashboard & Profil
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
     Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
-    // Riwayat Cuti
+    // Fitur Cuti (Riwayat & Detail)
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
     Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
-    // ==========================================
-    // ALUR VERIFIKASI EMAIL
-    // ==========================================
-    Route::get('/email/verify', function () {
-        return view('auth.verify-email');
-    })->name('verification.notice');
+    // Fitur CAR (Riwayat)
+    Route::get('/car/riwayat', [PengajuanCarController::class, 'index'])->name('car.riwayat');
 
+    // Verifikasi Email & Phone
+    Route::get('/email/verify', function () { return view('auth.verify-email'); })->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
         return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
@@ -88,69 +62,55 @@ Route::middleware('auth')->group(function () {
         return back()->with('message', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
 
-    // ==========================================
-    // ALUR VERIFIKASI NOMOR TELEPON (OTP)
-    // ==========================================
-    // Endpoint AJAX untuk Kirim & Verifikasi OTP
     Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
     Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
-
-    // ==========================================
-    // FITUR YANG MEMBUTUHKAN VERIFIKASI
-    // ==========================================
+    // Fitur Internal (Wajib Verified)
     Route::middleware('verified')->group(function () {
-
-        // Menggunakan Route::group untuk membungkus inline middleware dengan benar
         Route::group(['middleware' => function ($request, $next) {
             $user = $request->user();
-
-            // Jika nomor telepon belum diverifikasi (phone_verified_at masih NULL)
             if ($user && !$user->phone_verified_at) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'Nomor telepon Anda belum diverifikasi.'], 403);
                 }
-
-                // Redirect langsung ke halaman profil bawaan route Anda
-                return redirect()->route('account.index')
-                    ->with('error', 'Silakan verifikasi nomor telepon Anda terlebih dahulu untuk mengakses fitur pengajuan cuti.');
+                return redirect()->route('account.index')->with('error', 'Silakan verifikasi nomor telepon Anda terlebih dahulu.');
             }
-
             return $next($request);
         }], function () {
-
-            // Form & Proses Pengajuan Cuti Web
+            // Form Cuti
             Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
             Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
-
-            // Fitur Cetak & Pembungkus PDF Surat Cuti
             Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
             Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
-
-            // Utalitas / AJAX pendukung Form Pengajuan Cuti
             Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
 
+            // Form CAR
+            Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
+            Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
+            Route::get('/car/print/{id}', [PengajuanCarController::class, 'print'])->name('car.print');
         });
-
     });
 
-    // Proses Logout Web
+    // Logout
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
 });
 
-// Grup Route Khusus Atasan Level Web (Supervisor & Manager)
+// ==========================================================
+// GRUP ATASAN (Khusus Supervisor & Manager)
+// ==========================================================
 Route::middleware(['auth', 'atasan'])->group(function () {
-    Route::get('/admin/persetujuan', [PengajuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan');
-    Route::post('/admin/persetujuan/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('cuti.proses-persetujuan');
+    // Jalur Utama Persetujuan Cuti
+    Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');
+    Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
 
-    // Manajemen Karyawan & Detail Karyawan
-    Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
-    Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('karyawan.detail');
+    // Jalur Utama Persetujuan CAR (Taruh Paling Atas di Grup Ini)
+    Route::get('/admin/persetujuan/car', [PengajuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
+    Route::post('/admin/persetujuan/car/proses/{id}', [PengajuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
 
-    // Manajemen Stasiun Kerja / Station
-    Route::get('/admin/stations', [StationController::class, 'index'])->name('stations.index');
-
-    // Report Cuti karyawan
-    Route::get('/admin/record', [RecordController::class, 'index'])->name('record.index');
-    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.cuti.export');
+    // Administrasi Lainnya
+    Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
+    Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
+    Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
+    Route::get('/admin/record', [RecordController::class, 'index'])->name('admin.record.index');
+    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.record.export');
 });

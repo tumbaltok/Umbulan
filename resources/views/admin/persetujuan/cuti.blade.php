@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'List Pengajuan Cuti Karyawan')
+@section('title', 'Persetujuan CUTI')
 @section('content')
 <div class="max-w-7xl mx-auto mt-8 px-4">
     @if(session('success'))
@@ -42,10 +42,13 @@
                             <td class="px-6 py-4">
                                 <div class="font-medium text-slate-800">{{ $item->nama_sub_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
+                                    {{-- MODIFIKASI: Menggunakan button onclick untuk memicu modal pratinjau --}}
                                     <div class="mt-1">
-                                        <a href="{{ asset('storage/dokumen_cuti/' . $item->dokumen_pendukung) }}" target="_blank" class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline">
-                                            <i class="fa-solid fa-paperclip mr-1"></i> Lihat Berkas Fisik
-                                        </a>
+                                        <button type="button"
+                                                onclick="bukaPratinjauLampiran('{{ asset('storage/' . $item->dokumen_pendukung) }}')"
+                                                class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+                                            <i class="fa-solid fa-paperclip mr-1"></i> Lihat Berkas
+                                        </button>
                                     </div>
                                 @else
                                     <span class="text-xs text-slate-400 font-normal italic">Tidak ada berkas</span>
@@ -75,7 +78,7 @@
 
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @if(($item->status_supervisor === 'pending' || $item->status_manager === 'pending'))
-                                    <form action="{{ route('cuti.proses-persetujuan', $item->id) }}" method="POST" class="inline-flex space-x-2 items-center align-middle" onsubmit="return confirm('Apakah Anda yakin ingin memproses tindakan ini?')">
+                                    <form action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST" class="inline-flex space-x-2 items-center align-middle" onsubmit="return confirm('Apakah Anda yakin ingin memproses tindakan ini?')">
                                         @csrf
                                         <input type="text" name="catatan_penolakan" placeholder="Alasan jika menolak..." class="px-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-sky-500">
 
@@ -104,4 +107,79 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL POPUP PRATINJAU LAMPIRAN BERKAS CUTI --}}
+<div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+        {{-- Header Modal --}}
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
+                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800">Pratinjau Lampiran Dokumen</h3>
+            </div>
+            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        {{-- Tempat Render File --}}
+        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    function bukaPratinjauLampiran(urlFile) {
+        document.getElementById('judulModalLampiran').innerText = 'Pratinjau Berkas Lampiran Cuti';
+        tampilkanModal(urlFile);
+    }
+
+    function tampilkanModal(urlFile) {
+        const modal = document.getElementById('modalPreviewLampiran');
+        const container = document.getElementById('containerKontenLampiran');
+
+        container.innerHTML = '<div class="text-xs text-slate-400 font-medium animate-pulse">Memuat dokumen...</div>';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        const linkClean = urlFile.split('?')[0];
+        const ekstensi = linkClean.split('.').pop().toLowerCase();
+
+        if (ekstensi === 'pdf') {
+            container.innerHTML = `<iframe src="${urlFile}" class="w-full h-full rounded-xl border-0 shadow-inner" allow="autoplay"></iframe>`;
+        } else if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ekstensi)) {
+            container.innerHTML = `<img src="${urlFile}" class="max-w-full max-h-full rounded-xl shadow-md object-contain" alt="Pratinjau Berkas">`;
+        } else {
+            container.innerHTML = `
+                <div class="text-center p-6 bg-white rounded-xl shadow-sm border border-slate-200 max-w-xs">
+                    <i class="fa-solid fa-file-arrow-down text-amber-500 text-3xl mb-2"></i>
+                    <p class="text-xs font-semibold text-slate-700 mb-3">Format file tidak mendukung pratinjau langsung.</p>
+                    <a href="${urlFile}" download class="inline-flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                        <i class="fa-solid fa-download"></i> Unduh File
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    function tutupPratinjauLampiran() {
+        const modal = document.getElementById('modalPreviewLampiran');
+        const container = document.getElementById('containerKontenLampiran');
+
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        container.innerHTML = '';
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('modalPreviewLampiran').addEventListener('click', function(e) {
+        if (e.target === this) {
+            tutupPratinjauLampiran();
+        }
+    });
+</script>
+@endpush

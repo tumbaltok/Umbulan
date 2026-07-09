@@ -115,7 +115,7 @@
             <div class="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
                 <div class="inline-flex items-center space-x-2.5 px-4 py-2 bg-water-100 text-water-700 text-xs font-bold rounded-full border border-water-500/20 shadow-xs">
                     <i class="fa-solid fa-building-shield text-sm"></i>
-                    <span>KEMITRAAN SWASTA-PEMERINTAH (B2G)</span>
+                    <span>KEMITRAAN SWASTA-PEMERINTAH (KONSORSIUM)</span>
                 </div>
 
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black font-heading text-slate-900 leading-tight">
@@ -222,7 +222,7 @@
                 <p class="text-xs md:text-sm font-semibold text-slate-400">Sumber Alami Pegunungan Terkelola</p>
             </div>
             <div class="space-y-1 last:border-none">
-                <span class="text-4xl md:text-5xl font-black font-heading text-water-400">100% B2G</span>
+                <span class="text-4xl md:text-5xl font-black font-heading text-water-400">100%</span>
                 <p class="text-xs md:text-sm font-semibold text-slate-400">Kemitraan PDAM & Instansi Pemerintah</p>
             </div>
         </div>
@@ -320,7 +320,7 @@
                         <img src="images/booster.jpeg" alt="Water Treatment Plant" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://placehold.co/600x192/0284c7/ffffff?text=Booster+Pump'">
                     </div>
                     <div class="p-6 space-y-3">
-                        <h4 class="font-bold text-slate-800 text-base">Booster Pompa Sentral</h4>
+                        <h4 class="font-bold text-slate-800 text-base">Booster Pompa</h4>
                         <p class="text-xs text-slate-400 leading-relaxed">Pengembangan stasiun booster penambah tekanan aliran air baku untuk membantu jangkauan daerah dataran tinggi.</p>
                         <div class="pt-4 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-400">
                             <span>Status: Pemeliharaan Berkala</span>
@@ -352,7 +352,7 @@
                 <h4 class="text-white text-xs font-bold uppercase tracking-wider">Fokus Penyaluran</h4>
                 <ul class="space-y-2 text-xs">
                     <li><a href="#about-kami" class="hover:text-white transition">Suplai Air Baku Hulu</a></li>
-                    <li><a href="#titik-distribusi" class="hover:text-white transition">Instalasi Pipa Transmisi B2G</a></li>
+                    <li><a href="#titik-distribusi" class="hover:text-white transition">Instalasi Pipa Transmisi KONSORSIUM</a></li>
                 </ul>
             </div>
 

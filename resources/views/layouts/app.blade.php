@@ -60,38 +60,57 @@
 
                 <a href="/cuti/ajukan" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('cuti/ajukan') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     <i class="fa-solid fa-paper-plane text-base w-5"></i>
-                    <span>Ajukan Cuti Baru</span>
+                    <span>Ajukan Cuti</span>
                 </a>
 
                 <a href="/cuti/riwayat" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('cuti/riwayat*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     <i class="fa-solid fa-clock-rotate-left text-base w-5"></i>
-                    <span>Riwayat Pengajuan</span>
+                    <span>Riwayat Cuti</span>
                 </a>
 
                 @if(Auth::user()->role_id != 4)
-                    <a href="/admin/persetujuan" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('admin/persetujuan*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <a href="{{ route('admin.persetujuan.cuti') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         <i class="fa-solid fa-clipboard-check text-base w-5"></i>
                         <span>Persetujuan Cuti</span>
                     </a>
                 @endif
 
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2">Fasilitas CAR</span>
+
+                <a href="/car/create" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('car/create') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-file-invoice-dollar text-base w-5"></i>
+                    <span>Ajukan CAR</span>
+                </a>
+
+                <a href="/car/riwayat" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-receipt text-base w-5"></i>
+                    <span>Riwayat CAR</span>
+                </a>
+
                 @if(Auth::user()->role_id != 4)
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2">Administrasi</span>
+                    <a href="{{ route('admin.persetujuan.car') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa-solid fa-money-bill text-base w-5"></i>
+                        <span>Persetujuan CAR</span>
+                    </a>
+                @endif
 
-                <a href="{{ route('karyawan.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('karyawan.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-users text-base w-5"></i>
-                    <span>Daftar Karyawan</span>
-                </a>
+                @if(Auth::user()->role_id != 4)
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2">Administrasi</span>
 
-                <a href="{{ route('stations.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('stations.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa fa-university text-base w-5"></i>
-                    <span>Stasiun Kerja</span>
-                </a>
+                    <a href="{{ route('admin.karyawan.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa-solid fa-users text-base w-5"></i>
+                        <span>Daftar Karyawan</span>
+                    </a>
 
-                <a href="{{ route('record.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('record.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa fa-table text-base w-5"></i>
-                    <span>Record</span>
-                </a>
+                    <a href="{{ route('admin.stations.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa fa-university text-base w-5"></i>
+                        <span>Stasiun Kerja</span>
+                    </a>
+
+                    <a href="{{ route('admin.record.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.record.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa fa-table text-base w-5"></i>
+                        <span>Record</span>
+                    </a>
                 @endif
 
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2">Pengaturan</span>
