@@ -58,7 +58,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
-Panduan Deployment Project Laravel (Production)
+## Panduan Deployment Project Laravel (Production)
 
 Dokumen ini berisi panduan langkah-demi-langkah untuk melakukan deployment aplikasi Laravel dari repositori Git ke server produksi (VPS Linux/Ubuntu).
 
@@ -66,7 +66,7 @@ Dokumen ini berisi panduan langkah-demi-langkah untuk melakukan deployment aplik
 
 Sebelum memulai, pastikan server kamu sudah terinstall:
 
-PHP (Sesuai versi Laravel kamu, misal PHP 8.2 atau 8.3)
+PHP (Sesuai versi Laravel kamu, PHP 8.5)
 
 Composer
 
