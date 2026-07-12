@@ -11,29 +11,49 @@
     @endif
 
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        {{-- Header & Fitur Cari --}}
+        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
                 <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
             </div>
+            {{-- Input Pencarian Nama --}}
+            <div class="relative w-full md:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input type="text" id="searchKaryawanInput" placeholder="Cari nama karyawan..."
+                    class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 placeholder-slate-400">
+            </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse" id="karyawanTable">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                        <th class="px-6 py-4">Nama Lengkap</th>
-                        <th class="px-6 py-4">Jabatan</th>
-                        <th class="px-6 py-4">Jobdesk</th>
-                        <th class="px-6 py-4 text-center">Penempatan Stasiun</th>
-                        <th class="px-6 py-4 text-center">Status Operasional</th>
+                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                        {{-- Ditambahkan properti data-sortable dan cursor-pointer --}}
+                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
+                            Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                        </th>
+                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="1">
+                            Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                        </th>
+                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
+                            Jobdesk <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                        </th>
+                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="3">
+                            Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                        </th>
+                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="4">
+                            Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                        </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
                     @forelse($daftarKaryawan as $karyawan)
-                        <tr class="hover:bg-slate-50/80 transition-colors">
+                        <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
                             {{-- Kolom Nama & Foto Profil --}}
-                            <td class="px-6 py-4 font-medium text-slate-900">
+                            <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
                                 <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
                                     {{-- Foto Profil --}}
                                     <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
@@ -44,13 +64,13 @@
                                         @endif
                                     </div>
                                     <div class="flex flex-col">
-                                        <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors">{{ $karyawan->name }}</span>
+                                        <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors target-search-name">{{ $karyawan->name }}</span>
                                         <span class="text-xs text-slate-400">NIP: {{ $karyawan->nip ?? '-' }}</span>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Kolom Jabatan (Role) - DISESUAIKAN KE RELASI ELOQUENT --}}
+                            {{-- Kolom Jabatan (Role) --}}
                             <td class="px-6 py-4">
                                 @php
                                     $roleName = $karyawan->role->role_name ?? 'Tidak Ada Role';
@@ -76,7 +96,7 @@
                                 @endif
                             </td>
 
-                            {{-- Kolom Penempatan Stasiun - DISESUAIKAN KE RELASI ELOQUENT --}}
+                            {{-- Kolom Penempatan Stasiun --}}
                             <td class="px-6 py-4 text-center">
                                 @if(($karyawan->station && !empty($karyawan->station->name)))
                                     <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
@@ -90,19 +110,13 @@
                                 @endif
                             </td>
 
-                            {{-- Status Operasional - YANG SUDAH DIPERBAIKI --}}
+                            {{-- Status Operasional --}}
                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                {{-- Menggunakan count() untuk memastikan data cutinya benar-benar ada --}}
                                 @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
                                     <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold">
                                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
                                         On Leave (Cuti)
                                     </span>
-                                {{-- @elseif(now()->isSunday())
-                                    <span class="inline-flex items-center text-xs text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full font-bold">
-                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5"></span>
-                                        OFF (Libur)
-                                    </span> --}}
                                 @else
                                     <span class="inline-flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold">
                                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
@@ -112,13 +126,20 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="emptyRow">
                             <td colspan="5" class="px-6 py-10 text-center text-slate-400">
                                 <i class="fa-solid fa-users text-3xl mb-2 block text-slate-200"></i>
                                 Belum ada data karyawan terdaftar di database.
                             </td>
                         </tr>
                     @endforelse
+                    {{-- Row cadangan jika pencarian tidak membuahkan hasil --}}
+                    <tr id="noResultRow" class="hidden">
+                        <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
+                            Karyawan dengan nama tersebut tidak ditemukan.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -186,6 +207,100 @@
 @push('scripts')
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // --- SEKTOR REAL-TIME FILTER SEARCH ---
+        const searchInput = document.getElementById("searchKaryawanInput");
+        const noResultRow = document.getElementById("noResultRow");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const filter = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll("#karyawanTableBody .table-row-item");
+                let hasVisibleRow = false;
+
+                rows.forEach(row => {
+                    // Mengambil text name dari element class target-search-name di dalam row
+                    const nameCell = row.querySelector(".target-search-name");
+                    if (nameCell) {
+                        const nameText = nameCell.textContent.toLowerCase();
+                        if (nameText.includes(filter)) {
+                            row.style.setProperty('display', '', 'important');
+                            hasVisibleRow = true;
+                        } else {
+                            row.style.setProperty('display', 'none', 'important');
+                        }
+                    }
+                });
+
+                // Menampilkan info jika hasil pencarian kosong
+                if (rows.length > 0) {
+                    if (!hasVisibleRow) {
+                        noResultRow.classList.remove("hidden");
+                    } else {
+                        noResultRow.classList.add("hidden");
+                    }
+                }
+            });
+        }
+
+        // --- SEKTOR SORTING UTK SEMUA HEADER ---
+        const headers = document.querySelectorAll("#karyawanTable th[data-sort]");
+        const tableBody = document.getElementById("karyawanTableBody");
+        let currentSortColumn = -1;
+        let isAscending = true;
+
+        headers.forEach(header => {
+            header.addEventListener("click", function () {
+                const columnIndex = parseInt(this.getAttribute("data-sort"));
+                const rowsArray = Array.from(tableBody.querySelectorAll(".table-row-item"));
+
+                // Jika kolom sama di-klik kembali, balikkan arah urutan (Asc / Desc)
+                if (currentSortColumn === columnIndex) {
+                    isAscending = !isAscending;
+                } else {
+                    isAscending = true;
+                    currentSortColumn = columnIndex;
+                }
+
+                // Reset semua icon ke default icon-sort
+                headers.forEach(h => {
+                    const icon = h.querySelector("i");
+                    if (icon) {
+                        icon.className = "fa-solid fa-sort ml-1.5 text-slate-300";
+                    }
+                });
+
+                // Set icon kolom yang sedang aktif di-sort
+                const currentIcon = this.querySelector("i");
+                if (currentIcon) {
+                    currentIcon.className = isAscending
+                        ? "fa-solid fa-sort-up ml-1.5 text-sky-600"
+                        : "fa-solid fa-sort-down ml-1.5 text-sky-600";
+                }
+
+                // Jalankan fungsi sorting algoritma penataan baris
+                rowsArray.sort((rowA, rowB) => {
+                    let cellA = rowA.children[columnIndex].textContent.trim();
+                    let cellB = rowB.children[columnIndex].textContent.trim();
+
+                    // Bersihkan karakter emoji/warning khusus untuk kolom Stasiun & Status jika ada
+                    cellA = cellA.replace(/[^\x20-\x7E]/g, '').trim();
+                    cellB = cellB.replace(/[^\x20-\x7E]/g, '').trim();
+
+                    return isAscending
+                        ? cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' })
+                        : cellB.localeCompare(cellA, undefined, { numeric: true, sensitivity: 'base' });
+                });
+
+                // Tata ulang susunan tr di dalam tbody html
+                rowsArray.forEach(row => tableBody.appendChild(row));
+
+                // Pastikan baris "tidak ditemukan" tetap ditaruh di paling bawah kontainer
+                if (noResultRow) tableBody.appendChild(noResultRow);
+            });
+        });
+
+
+        // --- LOGIKA MODAL POPUP & FETCH DETAIL KARYAWAN (BAWAAN) ---
         const modal = document.getElementById("detailKaryawanModal");
         const backdrop = document.getElementById("detailModalBackdrop");
         const closeBtn = document.getElementById("closeDetailModalBtn");
@@ -210,9 +325,11 @@
         if (closeBtn2) closeBtn2.addEventListener("click", hideModal);
         if (backdrop) backdrop.addEventListener("click", hideModal);
 
-        document.querySelectorAll(".btn-detail-karyawan").forEach(button => {
-            button.addEventListener("click", function () {
-                const karyawanId = this.getAttribute("data-id");
+        // Menggunakan Event Delegation agar click tetap berjalan stabil walaupun posisi row di-sorting ulang
+        document.addEventListener("click", function(e) {
+            const button = e.target.closest(".btn-detail-karyawan");
+            if (button) {
+                const karyawanId = button.getAttribute("data-id");
 
                 showModal();
                 loadingSection.classList.remove("hidden");
@@ -240,29 +357,20 @@
                         const phoneSpan = document.getElementById("detail_phone");
 
                         if (data.phone_number) {
-                            // 1. Bersihkan nomor dari spasi, strip, dll.
                             let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
-
-                            // 2. Ubah awalan '08' menjadi '628'
                             if (cleanNumber.startsWith('0')) {
                                 cleanNumber = '62' + cleanNumber.substring(1);
                             }
-
-                            // 3. Masukkan text ke link dan pasang URL WhatsApp
                             phoneLink.textContent = data.phone_number;
                             phoneLink.href = `https://wa.me/${cleanNumber}`;
-
-                            // 4. Tampilkan link WhatsApp, sembunyikan span kosong
                             phoneLink.classList.remove("hidden");
                             phoneSpan.classList.add("hidden");
                         } else {
-                            // Jika nomor tidak ada di database
                             phoneLink.classList.add("hidden");
                             phoneSpan.classList.remove("hidden");
                             phoneSpan.textContent = '-';
                         }
 
-                        // Memasukkan Kode Pemetaan Job Title yang Aman
                         let jobTitleText = 'Belum Memilih';
                         if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
                         else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
@@ -272,12 +380,10 @@
                         document.getElementById("detail_job").textContent = jobTitleText;
 
                         const photoContainer = document.getElementById("detail_photo_container");
-
                         if (data.profile_photo) {
                             const img = document.createElement("img");
                             img.src = `/storage/${data.profile_photo}`;
                             img.className = "w-full h-full object-cover";
-
                             photoContainer.textContent = "";
                             photoContainer.appendChild(img);
                         } else {
@@ -291,7 +397,7 @@
                         alert(`Terjadi kesalahan saat memuat data karyawan: ${error.message}`);
                         hideModal();
                     });
-            });
+            }
         });
     });
 </script>

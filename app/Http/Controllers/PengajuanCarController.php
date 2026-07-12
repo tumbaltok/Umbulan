@@ -7,6 +7,7 @@ use App\Models\PengajuanCar;
 use App\Models\DetailCar;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class PengajuanCarController extends Controller
 {
@@ -86,26 +87,31 @@ class PengajuanCarController extends Controller
         $atasan = Auth::user();
         $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
 
-        // Memuat relasi 'user' dan 'details' (item barang) untuk ditampilkan di tabel persetujuan
-        $query = PengajuanCar::with(['user', 'details'])
-            ->whereHas('user', function($q) use ($atasan) {
-                $q->where('station_id', $atasan->station_id)
-                  ->where('id', '!=', $atasan->id);
-            });
+        // 1. Inisialisasi query dasar beserta relasinya
+        $query = PengajuanCar::with(['user.role', 'details']);
 
-        // Filter berdasarkan role siapa yang berhak memproses saat ini
+        // 2. Filter berdasarkan role siapa yang berhak memproses saat ini
         if ($roleName === 'supervisor') {
-            $query->where('status_supervisor', 'pending');
+            $query->where('status_supervisor', 'pending')
+                ->whereHas('user', function($q) use ($atasan) {
+                    // Memperbaiki error station_id dengan mencari lewat relasi user
+                    $q->where('station_id', $atasan->station_id);
+                });
         } elseif ($roleName === 'manager') {
             $query->where('status_supervisor', 'approved')
-                  ->where('status_manager', 'pending');
+                ->where('status_manager', 'pending');
         } elseif ($roleName === 'admin') {
-            // Admin bisa melihat seluruh antrean yang status akhirnya masih pending
-            $query->where('status_akhir', 'pending');
+            $query->where(function($q) {
+                $q->where('status_supervisor', 'pending')
+                ->orWhere('status_manager', 'pending');
+            })
+            ->where('status_supervisor', '!=', 'rejected')
+            ->where('status_manager', '!=', 'rejected');
         } else {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
+        // 3. Eksekusi query yang sudah disaring oleh filter role di atas
         $daftarPengajuan = $query->get();
 
         return response()
@@ -117,94 +123,80 @@ class PengajuanCarController extends Controller
     // ATASAN & ADMIN: Menyetujui atau Menolak Pengajuan CAR
     public function prosesPersetujuan(Request $request, int $id)
     {
+        // 1. Validasi input aksi dan catatan penolakan
         $request->validate([
             'aksi' => 'required|in:approved,rejected',
             'catatan_penolakan' => 'required_if:aksi,rejected|string|nullable'
         ]);
 
         $atasan = Auth::user();
+        $aksi = $request->aksi;
+
+        // Pastikan model yang dipanggil adalah PengajuanCar
         $pengajuan = PengajuanCar::findOrFail($id);
 
-        // PERBAIKAN AMAN: Antisipasi jika kolom di tabel roles bernama 'name' atau 'role_name'
-        $roleName = '';
-        if ($atasan->role) {
-            $roleName = strtolower($atasan->role->role_name ?? $atasan->role->name ?? '');
-        }
+        // Ambil nama role dan paksa ke huruf kecil agar pencocokan string 100% akurat
+        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
 
-        // Kasus: PENOLAKAN (Rejected)
-        if ($request->aksi === 'rejected') {
-            if ($roleName === 'supervisor') {
-                $pengajuan->update([
-                    'status_supervisor' => 'rejected',
-                    'status_manager' => 'rejected',
-                    'status_akhir' => 'rejected',
-                    'catatan_penolakan' => $request->catatan_penolakan
-                ]);
-            } elseif ($roleName === 'manager') {
-                $pengajuan->update([
-                    'status_supervisor' => $pengajuan->status_supervisor ?? 'approved',
-                    'status_manager' => 'rejected',
-                    'status_akhir' => 'rejected',
-                    'catatan_penolakan' => $request->catatan_penolakan
-                ]);
-            } else {
-                $pengajuan->update([
-                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? 'rejected' : $pengajuan->status_supervisor,
-                    'status_manager' => 'rejected',
-                    'status_akhir' => 'rejected',
-                    'catatan_penolakan' => $request->catatan_penolakan
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Pengajuan CAR berhasil ditolak.');
-        }
-
-        // Kasus: PERSETUJUAN (Approved)
+        // 2. Logika untuk Supervisor
         if ($roleName === 'supervisor') {
             $pengajuan->update([
-                'status_supervisor' => 'approved',
-                'status_manager' => 'pending',
-                'status_akhir' => 'pending'
+                'status_supervisor' => $aksi,
+                'status_akhir' => $aksi === 'rejected' ? 'rejected' : 'pending',
+                'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null
             ]);
-        } elseif ($roleName === 'manager') {
-            $pengajuan->update([
-                'status_supervisor' => 'approved',
-                'status_manager' => 'approved',
-                'status_akhir' => 'approved'
-            ]);
-        } elseif ($roleName === 'admin') {
-            $pengajuan->update([
-                'status_supervisor' => 'approved',
-                'status_manager' => 'approved',
-                'status_akhir' => 'approved'
-            ]);
-        } else {
-            if ($pengajuan->status_supervisor === 'pending') {
-                $pengajuan->update([
-                    'status_supervisor' => 'approved'
-                ]);
-            } else {
-                $pengajuan->update([
-                    'status_supervisor' => 'approved',
-                    'status_manager' => 'approved',
-                    'status_akhir' => 'approved'
-                ]);
-            }
-        }
+            return redirect()->back()->with('success', 'Status pengajuan CAR berhasil diperbarui');
 
-        return redirect()->back()->with('success', 'Status pengajuan CAR berhasil diperbarui.');
+        // 3. Logika untuk Manager
+        } elseif ($roleName === 'manager') {
+            if ($pengajuan->status_supervisor === 'rejected') {
+                return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
+            }
+            if ($pengajuan->status_manager === 'approved') {
+                return redirect()->back()->with('error', 'Pengajuan ini sudah disetujui sebelumnya.');
+            }
+
+            DB::beginTransaction();
+            try {
+                $pengajuan->update([
+                    'status_manager' => $aksi,
+                    'status_akhir' => $aksi,
+                    'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null
+                ]);
+
+                // Catatan: Sinkronisasi cuti & absen dihapus karena ini konteksnya CAR (barang/perbaikan)
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+            }
+            return redirect()->back()->with('success', 'Status pengajuan CAR berhasil diperbarui');
+
+        // 4. Blok Pencegat Utama (Jika akun adalah Admin atau role lainnya)
+        } else {
+            // Ini akan mengembalikan pesan error merah ke halaman CAR Anda
+            return redirect()->back()->with('error', 'Gagal! Anda tidak memiliki hak akses sebagai atasan untuk mengubah status ini.');
+        }
     }
 
     public function print(int $id)
     {
-        // Ambil data pengajuan beserta relasi detail barangnya
         $car = PengajuanCar::with('user.role', 'details')->findOrFail($id);
 
-        // Load view khusus cetak dan set ukuran kertas A4 potrait
-        $pdf = Pdf::loadView('car.cetak', compact('car'))
-                  ->setPaper('a4', 'portrait');
+        if ($car->status_manager !== 'approved') {
+            return redirect()->back()->with('error', 'Dokumen CAR belum dapat dicetak karena belum disetujui sepenuhnya.');
+        }
 
-        // Streaming langsung ke browser agar bisa diunduh atau dicetak
+        $data = [
+            'id' => $id,
+            'title' => 'Formulir CAR - ' . $car->user->name,
+            'car' => $car
+        ];
+
+        $pdf = Pdf::loadView('car.cetak', $data)
+                    ->setPaper('a4', 'portrait');
+
         return $pdf->stream('CAR-' . $car->id . '.pdf');
     }
 }

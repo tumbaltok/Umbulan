@@ -68,12 +68,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
     public function gender(): BelongsTo
     {
-        return $this->belongsTo(Gender::class, 'gender_id');
+        return $this->belongsTo(Gender::class, 'gender_id', 'id');
     }
 
     public function stations(): BelongsToMany

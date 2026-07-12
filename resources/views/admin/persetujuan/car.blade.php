@@ -14,22 +14,28 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
+            {{ session('error') }}
+        </div>
+    @endif
 
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-sm">
             <thead>
                 <tr class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
-                    <th class="p-4">Nama Pemohon</th>
-                    <th class="p-4">Rincian Barang & Nota</th>
-                    <th class="p-4">Total Biaya</th>
-                    <th class="p-4">Alasan Keperluan</th>
+                    <th class="p-4 text-center">Nama Pemohon</th>
+                    <th class="p-4 text-center">Rincian Barang & Nota</th>
+                    <th class="p-4 text-center">Total Biaya</th>
+                    <th class="p-4 text-center">Alasan Keperluan</th>
                     <th class="p-4 text-center">Aksi Tindakan</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700">
                 @forelse($daftarPengajuan as $car)
                 <tr>
-                    <td class="p-4 whitespace-nowrap font-medium text-slate-900 align-center">
+                    <td class="p-4 whitespace-nowrap font-medium text-slate-900 align-center text-center">
                         {{ $car->user->name }}
                     </td>
 
@@ -64,11 +70,11 @@
                     </td>
 
                     {{-- TOTAL BIAYA DIHITUNG OTOMATIS DARI SUM TABLE DETAIL --}}
-                    <td class="p-4 font-bold text-emerald-600 whitespace-nowrap align-center text-base">
+                    <td class="p-4 font-bold text-emerald-600 whitespace-nowrap align-center text-center">
                         Rp {{ number_format($car->details->sum('total_harga'), 0, ',', '.') }}
                     </td>
 
-                    <td class="p-4 align-center max-w-xs leading-relaxed">
+                    <td class="p-4 align-center max-w-xs leading-relaxed text-center">
                         {{ $car->alasan_pembelian ?? '-' }}
                     </td>
 

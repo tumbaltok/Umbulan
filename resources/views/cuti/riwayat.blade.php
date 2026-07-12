@@ -52,7 +52,7 @@
 
                             {{-- STATUS MANAGEMENT --}}
                             <td class="px-6 py-4">
-                                @if($cuti->status_manager == 'approved')
+                                @if($cuti->status_supervisor == 'approved' && $cuti->status_manager == 'approved' && $cuti->status_akhir == 'approved')
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

@@ -69,12 +69,22 @@
                                 {{ $car->status_akhir }}
                             </span>
 
-                            @if(trim(strtolower($car->status_akhir)) === 'approved')
-                                <button type="button"
-                                        onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
-                                        class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
-                                    <i class="fa-solid fa-print"></i> Cetak CAR
-                                </button>
+                            @if(trim(strtolower($car->status_akhir)) === 'rejected' && !empty($car->catatan_penolakan))
+                                <span class="text-[11px] text-rose-600 font-medium italic max-w-[200px] whitespace-normal text-center bg-rose-5 px-2 py-0.5 rounded border border-rose-100">
+                                    Keterangan : {{ $car->catatan_penolakan }}
+                                </span>
+                            @endif
+
+                            @if(trim(strtolower($car->status_supervisor)) === 'approved')
+                                @if(trim(strtolower($car->status_manager)) === 'approved')
+                                    @if(trim(strtolower($car->status_akhir)) === 'approved')
+                                        <button type="button"
+                                                onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
+                                                class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-print"></i> Cetak CAR
+                                        </button>
+                                    @endif
+                                @endif
                             @endif
                         </div>
                     </td>

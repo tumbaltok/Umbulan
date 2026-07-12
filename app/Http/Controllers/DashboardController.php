@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\PengajuanCar;
 
 class DashboardController extends Controller
 {
@@ -17,6 +18,10 @@ class DashboardController extends Controller
         $saldoTahunan = $user->saldo_cuti;
 
         $kuotaTahunan = $saldoTahunan ? $saldoTahunan->kuota_awal : 12;
+
+        $riwayatCar = PengajuanCar::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // 2. Hanya hitung Cuti Tahunan yang benar-benar SUDAH DIAMBEL
         $totalCutiDiambil = DB::table('pengajuan_cutis')
@@ -52,7 +57,8 @@ class DashboardController extends Controller
             'totalCutiDiambil',
             'totalPending',
             'sisaKuota',
-            'riwayatCuti'
+            'riwayatCuti',
+            'riwayatCar'
         ));
     }
 }

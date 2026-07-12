@@ -25,29 +25,28 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                        <th class="px-6 py-4">Karyawan</th>
-                        <th class="px-6 py-4">Jenis Cuti</th>
-                        <th class="px-6 py-4">Tanggal Pelaksanaan</th>
-                        <th class="px-6 py-4">Total Hari</th>
-                        <th class="px-6 py-4">Status SPV</th>
-                        <th class="px-6 py-4">Status Manager</th>
+                        <th class="px-6 py-4 text-center">Karyawan</th>
+                        <th class="px-6 py-4 text-center">Jenis Cuti</th>
+                        <th class="px-6 py-4 text-center">Tanggal Pelaksanaan</th>
+                        <th class="px-6 py-4 text-center">Total Hari</th>
+                        <th class="px-6 py-4 text-center">Status SPV</th>
+                        <th class="px-6 py-4 text-center">Status Manager</th>
                         <th class="px-6 py-4 text-center">Aksi Tindakan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                     @forelse($daftarPengajuan as $item)
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-6 py-4 font-medium text-slate-900">{{ $item->user_name }}</td>
+                            <td class="px-6 py-4 font-medium text-slate-900 text-center" >{{ $item->user_name }}</td>
 
                             <td class="px-6 py-4">
-                                <div class="font-medium text-slate-800">{{ $item->nama_sub_cuti }}</div>
+                                <div class="font-medium text-slate-800 text-center">{{ $item->nama_sub_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
-                                    {{-- MODIFIKASI: Menggunakan button onclick untuk memicu modal pratinjau --}}
                                     <div class="mt-1">
                                         <button type="button"
                                                 onclick="bukaPratinjauLampiran('{{ asset('storage/' . $item->dokumen_pendukung) }}')"
-                                                class="inline-flex items-center text-xs font-semibold text-sky-600 hover:text-sky-700 underline cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
-                                            <i class="fa-solid fa-paperclip mr-1"></i> Lihat Berkas
+                                                class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 w-fit cursor-pointer self-start sm:self-center shrink-0">
+                                            <i class="fa-solid fa-file-invoice"></i> Berkas Cuti
                                         </button>
                                     </div>
                                 @else
@@ -60,16 +59,16 @@
                                 {{ \Carbon\Carbon::parse($item->tanggal_selesai)->isoFormat('D MMMM Y') }}
                             </td>
 
-                            <td class="px-6 py-4 font-mono font-bold">{{ $item->total_hari }} Hari</td>
+                            <td class="px-6 py-4 font-mono font-bold text-center">{{ $item->total_hari }} Hari</td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
                                     {{ $item->status_supervisor === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_supervisor === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
                                     {{ $item->status_supervisor === 'pending' ? 'Pending' : ucfirst($item->status_supervisor) }}
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
                                     {{ $item->status_manager === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_manager === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
                                     {{ $item->status_manager === 'pending' ? 'Pending' : ucfirst($item->status_manager) }}
@@ -78,17 +77,21 @@
 
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @if(($item->status_supervisor === 'pending' || $item->status_manager === 'pending'))
-                                    <form action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST" class="inline-flex space-x-2 items-center align-middle" onsubmit="return confirm('Apakah Anda yakin ingin memproses tindakan ini?')">
-                                        @csrf
-                                        <input type="text" name="catatan_penolakan" placeholder="Alasan jika menolak..." class="px-2 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-sky-500">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        {{-- FORM KHUSUS APPROVE --}}
+                                        <form action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pengajuan cuti ini?')">
+                                            @csrf
+                                            <input type="hidden" name="tindakan" value="approved">
+                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
+                                                Approve
+                                            </button>
+                                        </form>
 
-                                        <button type="submit" name="tindakan" value="approved" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
-                                            Approve
-                                        </button>
-                                        <button type="submit" name="tindakan" value="rejected" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
+                                        {{-- BUTTON KHUSUS MEMICU MODAL REJECT --}}
+                                        <button type="button" onclick="bukaModalTolak({{ $item->id }})" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
                                             Reject
                                         </button>
-                                    </form>
+                                    </div>
                                 @else
                                     <span class="text-xs text-slate-400 italic">Selesai Diproses</span>
                                 @endif
@@ -108,10 +111,29 @@
     </div>
 </div>
 
+{{-- MODAL POPUP INPUT ALASAN PENOLAKAN CUTI --}}
+<div id="modalTolakCuti" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 mb-2">Alasan Penolakan Cuti</h3>
+        <p class="text-xs text-slate-400 mb-4">Berikan catatan alasan mengapa permohonan pengajuan cuti karyawan ini ditolak.</p>
+
+        <form id="formTolakCuti" action="" method="POST" class="space-y-4">
+            @csrf
+            <input type="hidden" name="tindakan" value="rejected">
+            <div>
+                <textarea name="catatan_penolakan" required rows="3" class="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Tulis alasan penolakan di sini..."></textarea>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="tutupModalTolak()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-4 py-2 rounded-xl">Batal</button>
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl">Kirim & Tolak</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {{-- MODAL POPUP PRATINJAU LAMPIRAN BERKAS CUTI --}}
 <div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
-        {{-- Header Modal --}}
         <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
@@ -121,8 +143,6 @@
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
-
-        {{-- Tempat Render File --}}
         <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
         </div>
     </div>
@@ -131,6 +151,20 @@
 
 @push('scripts')
 <script>
+    // FUNGSI MODAL TOLAK CUTI
+    function bukaModalTolak(id) {
+        const modal = document.getElementById('modalTolakCuti');
+        const form = document.getElementById('formTolakCuti');
+        form.action = `/admin/persetujuan/cuti/proses/${id}`;
+        modal.classList.remove('hidden');
+    }
+
+    function tutupModalTolak() {
+        const modal = document.getElementById('modalTolakCuti');
+        modal.classList.add('hidden');
+    }
+
+    // FUNGSI PREVIEW BERKAS
     function bukaPratinjauLampiran(urlFile) {
         document.getElementById('judulModalLampiran').innerText = 'Pratinjau Berkas Lampiran Cuti';
         tampilkanModal(urlFile);

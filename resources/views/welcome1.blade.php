@@ -458,8 +458,8 @@
             const selisihMilidetik = sekarang - awalBulan;
             const totalDetik = Math.floor(selisihMilidetik / 1000);
 
-            // Hitung volume dalam m3 (2750 lps / 1000 = 2.75 m3 per detik)
-            const volumeM3 = totalDetik * 2.75;
+            // Hitung volume dalam m3 (2700 lps / 1000 = 2.7 m3 per detik)
+            const volumeM3 = totalDetik * 2.7;
 
             // Format angka dengan separator ribuan (contoh: 2.450.000) sesuai lokal Indonesia
             const formatAngka = new Intl.NumberFormat('id-ID', {

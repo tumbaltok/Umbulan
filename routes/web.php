@@ -102,15 +102,19 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Jalur Utama Persetujuan Cuti
     Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');
     Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
-
-    // Jalur Utama Persetujuan CAR (Taruh Paling Atas di Grup Ini)
+    // Jalur Utama Persetujuan CAR
     Route::get('/admin/persetujuan/car', [PengajuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
     Route::post('/admin/persetujuan/car/proses/{id}', [PengajuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
-
-    // Administrasi Lainnya
+    // Karyawan
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
     Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
+    // Stasiun
     Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
-    Route::get('/admin/record', [RecordController::class, 'index'])->name('admin.record.index');
-    Route::get('/admin/record/export', [RecordController::class, 'export'])->name('admin.record.export');
+    Route::get('/admin/stations/{id}/karyawan', [StationController::class, 'getKaryawan'])->name('admin.stations.karyawan');
+    // Record Cuti
+    Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
+    Route::get('/admin/record/cuti/export', [RecordController::class, 'exportCuti'])->name('admin.record.cuti.export');
+    // Record CAR
+    Route::get('/admin/record/car', [RecordController::class, 'car'])->name('admin.record.car');
+    Route::get('/admin/record/car/export', [RecordController::class, 'exportCar'])->name('admin.record.car.export');
 });
