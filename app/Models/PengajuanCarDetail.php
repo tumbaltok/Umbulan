@@ -25,6 +25,7 @@ class PengajuanCarDetail extends Model
      */
     public function pengajuanCar()
     {
+        // PEMBETULAN: Hubungkan relasi murni menggunakan foreign key pengajuan_car_id
         return $this->belongsTo(PengajuanCar::class, 'pengajuan_car_id');
     }
 }

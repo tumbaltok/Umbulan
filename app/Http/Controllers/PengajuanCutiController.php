@@ -437,7 +437,8 @@ class PengajuanCutiController extends Controller
                     ->whereNotNull('phone_verified_at')
                     ->get();
 
-                $namaStation = $user->station->nama_stasiun ?? 'Pusat / Utama';
+                // $namaStation = $user->station->nama_stasiun ?? 'Pusat / Utama';
+                $namaStation = $user->station->name ?? 'Pusat / Utama';
                 $perihal = $subCutiId && isset($subDb) ? $subDb->nama_sub_cuti : ($jenisCuti->name_cuti ?? 'Cuti/Izin');
 
                 $templatePesan = "📢 *NOTIFIKASI PENGAJUAN " . strtoupper($perihal) . "*\n\n"
@@ -701,14 +702,18 @@ class PengajuanCutiController extends Controller
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
 
-        if ($atasan->role->role_name === 'Supervisor') { // Supervisor
+        // Pembenaran 1 & 2: Amankan tipe data role dan ubah ke huruf kecil semua
+        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
+
+        if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
-        } elseif ($atasan->role->role_name === 'Manager') { // Manager
+
+        } elseif ($roleName === 'manager') {
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
             }
@@ -724,16 +729,21 @@ class PengajuanCutiController extends Controller
                     'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
                 ]);
 
+                // Pembenaran 3: Sinkronisasi absen & saldo hanya jika disetujui oleh Manager
                 if ($tindakan === 'approved') {
                     $this->sinkronisasiCutiDanAbsen($pengajuan);
                 }
+
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
             }
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
-        }else {return redirect()->back()->with('error', 'Gagal! Anda tidak memiliki hak akses sebagai atasan untuk mengubah status ini.');}
+
+        } else {
+            return redirect()->back()->with('error', 'Gagal! Anda tidak memiliki hak akses sebagai atasan untuk mengubah status ini.');
+        }
     }
 
 

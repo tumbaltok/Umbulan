@@ -140,9 +140,9 @@
                         </button>
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
                             <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Daftar Karyawan</a>
-                            <a href="{{ route('admin.stations.index') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Stasiun Kerja</a>
-                            <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.cuti') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record CUTI</a>
-                            <a href="{{ route('admin.record.car') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.car') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record CAR</a>
+                            <a href="{{ route('admin.stations.index') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">DaftarStasiun Kerja</a>
+                            <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.cuti') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Cuti Karyawan</a>
+                            <a href="{{ route('admin.record.car') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.car') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Car Karyawan</a>
                         </div>
                     </div>
                 @endif

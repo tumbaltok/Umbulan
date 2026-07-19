@@ -29,22 +29,30 @@ class AppServiceProvider extends ServiceProvider
 
             if (Auth::check()) {
                 $user = Auth::user();
+                $roleName = $user->role ? strtolower($user->role->role_name) : '';
 
-                if ($user->role->role_name === 'Manager') {
+                if ($roleName === 'manager') {
                     $jumlahCuti = PengajuanCuti::where('status_manager', 'pending')->count();
                     $jumlahCar = PengajuanCar::where('status_manager', 'pending')->count();
 
-                } elseif ($user->role->role_name === 'Supervisor') {
+                } elseif ($roleName === 'supervisor') {
                     $jumlahCuti = PengajuanCuti::where('status_supervisor', 'pending')->count();
                     $jumlahCar = PengajuanCar::where('status_supervisor', 'pending')->count();
 
-                } elseif ($user->role->role_name === 'Admin') {
-                    $jumlahCuti = PengajuanCuti::where('status_supervisor', 'pending')->count();
-                    $jumlahCar = PengajuanCar::where('status_supervisor', 'pending')->count();
-                    $jumlahCuti = PengajuanCuti::where('status_manager', 'pending')->count();
-                    $jumlahCar = PengajuanCar::where('status_manager', 'pending')->count();
-                    $jumlahCuti = PengajuanCuti::where('status_akhir', 'pending')->count();
-                    $jumlahCar = PengajuanCar::where('status_akhir', 'pending')->count();
+                } elseif ($roleName === 'admin') {
+                    // Cuti untuk Admin (Sudah Benar)
+                    $jumlahCuti = PengajuanCuti::where(function($q) {
+                        $q->where('status_supervisor', 'pending')
+                          ->orWhere('status_manager', 'pending')
+                          ->orWhere('status_akhir', 'pending');
+                    })->count();
+
+                    // PEMBETULAN: CAR untuk Admin juga harus digabung menggunakan orWhere
+                    $jumlahCar = PengajuanCar::where(function($q) {
+                        $q->where('status_supervisor', 'pending')
+                          ->orWhere('status_manager', 'pending')
+                          ->orWhere('status_akhir', 'pending');
+                    })->count();
                 }
             }
 

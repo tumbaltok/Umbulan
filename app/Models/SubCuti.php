@@ -31,6 +31,6 @@ class SubCuti extends Model
 
     public function pengajuanCuti()
     {
-        return $this->belongsTo(JenisCuti::class, 'sub_cuti_id');
+        return $this->belongsTo(PengajuanCuti::class, 'sub_cuti_id');
     }
 }
