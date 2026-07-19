@@ -24,8 +24,18 @@
             transform: rotate(180deg);
         }
     </style>
+    <!-- PWA Head -->
+    @pwaHead
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 flex overflow-hidden">
+
+    @php
+        // Ambil nama role user dalam format lowercase
+        $userRole = strtolower(Auth::user()->role->role_name ?? '');
+
+        // MODIFIKASI: Karyawan DAN Staff dilarang melihat menu manajemen/administrasi
+        $hasAccess = ($userRole !== 'karyawan' && $userRole !== 'staff');
+    @endphp
 
     <aside id="sidebarApp" class="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen justify-between border-r border-slate-800 shrink-0 transition-all duration-300 z-30 fixed md:relative -translate-x-full md:translate-x-0">
         <div>
@@ -60,7 +70,6 @@
                         </div>
 
                         <div class="flex items-center space-x-2">
-                            {{-- 1. NOTIFIKASI DOT MERAH: Muncul di tombol utama jika dropdown sedang tertutup --}}
                             @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
                                 <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
                             @endif
@@ -70,14 +79,12 @@
 
                     <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
                         <a href="/cuti/ajukan" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('cuti/ajukan') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Ajukan Cuti</a>
-
                         <a href="/cuti/riwayat" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('cuti/riwayat*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Riwayat Cuti</a>
 
-                        @if(Auth::user()->role_id != 4)
+                        {{-- Menggunakan variabel akses baru --}}
+                        @if($hasAccess)
                             <a href="{{ route('admin.persetujuan.cuti') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <span>Persetujuan Cuti</span>
-
-                                {{-- 2. BADGE ANGKA MERAH: Muncul di dalam sub-menu dengan jumlah pengajuan pending --}}
                                 @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
                                     <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse shadow-sm">
                                         {{ $jumlahSaranCuti }}
@@ -97,7 +104,6 @@
                         </div>
 
                         <div class="flex items-center space-x-2">
-                            {{-- Dot merah kecil di menu utama CAR --}}
                             @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
                                 <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
                             @endif
@@ -109,7 +115,8 @@
                         <a href="/car/create" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Ajukan CAR</a>
                         <a href="/car/riwayat" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Riwayat CAR</a>
 
-                        @if(Auth::user()->role_id != 4)
+                        {{-- Menggunakan variabel akses baru --}}
+                        @if($hasAccess)
                             <a href="{{ route('admin.persetujuan.car') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <span>Persetujuan CAR</span>
                                 @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
@@ -122,13 +129,10 @@
                     </div>
                 </div>
 
-                @if(Auth::user()->role_id != 4)
+                {{-- Menggunakan variabel akses baru --}}
+                @if($hasAccess)
                     @php
-                        $isAdminActive = request()->routeIs('admin.karyawan.*') ||
-                                         request()->routeIs('admin.stations.*') ||
-                                         request()->is('admin/record/cuti*') ||
-                                         request()->is('admin/record/car*') ||
-                                         request()->routeIs('admin.record.*');
+                        $isAdminActive = request()->is('admin/*') || request()->routeIs('admin.*');
                     @endphp
                     <div class="dropdown-container {{ $isAdminActive ? 'dropdown-open' : '' }}">
                         <button class="dropdown-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
@@ -141,8 +145,8 @@
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
                             <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Daftar Karyawan</a>
                             <a href="{{ route('admin.stations.index') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Daftar Stasiun Kerja</a>
-                            <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.cuti') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Cuti Karyawan</a>
-                            <a href="{{ route('admin.record.car') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->routeIs('admin.record.car') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Car Karyawan</a>
+                            <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('admin/record/cuti*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Cuti Karyawan</a>
+                            <a href="{{ route('admin.record.car') }}" class="block px-3 py-2.5 rounded-xl text-sm transition-all {{ request()->is('admin/record/car*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">Record Car Karyawan</a>
                         </div>
                     </div>
                 @endif
@@ -209,7 +213,6 @@
             const toggleBtn = document.getElementById("toggleSidebarBtn");
             const closeBtn = document.getElementById("closeSidebarBtn");
 
-            // --- Logika Dropdown Sidebar ---
             const dropdownContainers = document.querySelectorAll('.dropdown-container');
 
             dropdownContainers.forEach(container => {
@@ -235,7 +238,6 @@
                 });
             });
 
-            // --- Logika Mobile Sidebar ---
             function openSidebar() {
                 if(sidebar && backdrop) {
                     sidebar.classList.remove("-translate-x-full");
@@ -268,5 +270,10 @@
             });
         });
     </script>
+
+    <!-- PWA Script Registrations & Tools -->
+    @laravelPwa
+    @pwaUpdateNotifier
+    @pwaInstallButton
 </body>
 </html>

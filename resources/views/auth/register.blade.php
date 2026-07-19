@@ -26,6 +26,8 @@
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
         }
     </style>
+    <!-- PWA Head -->
+    @pwaHead
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
 
@@ -408,5 +410,9 @@
             event.target.submit();
         }
     </script>
+    <!-- PWA Script Registrations & Tools -->
+    @laravelPwa
+    @pwaUpdateNotifier
+    @pwaInstallButton
 </body>
 </html>

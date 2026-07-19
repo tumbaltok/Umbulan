@@ -51,6 +51,8 @@
             background: #94a3b8;
         }
     </style>
+    <!-- PWA Head -->
+    @pwaHead
 </head>
 <body class="font-sans text-slate-800 antialiased bg-slate-50/50 flex flex-col min-h-screen">
 
@@ -507,5 +509,9 @@
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
+    <!-- PWA Script Registrations & Tools -->
+    @laravelPwa
+    @pwaUpdateNotifier
+    @pwaInstallButton
 </body>
 </html>

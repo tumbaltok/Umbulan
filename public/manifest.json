@@ -1,0 +1,60 @@
+{
+    "name": "META",
+    "short_name": "META",
+    "description": "Sistem Manajemen Pengajuan Cuti & Pengajuan Car Karyawan PT Meta Adhya Tirta Umbulan",
+    "start_url": "/index.php",
+    "background_color": "#ffffff",
+    "theme_color": "#001cf0",
+    "display": "standalone",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "icon-72x72.png?v=1784499848",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-96x96.png?v=1784499848",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-128x128.png?v=1784499848",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-144x144.png?v=1784499848",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-152x152.png?v=1784499848",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-192x192.png?v=1784499848",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-384x384.png?v=1784499848",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-512x512.png?v=1784499848",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

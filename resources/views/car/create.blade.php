@@ -1,7 +1,5 @@
 @extends('layouts.app')
-
 @section('title', 'Ajukan CAR Baru')
-
 @section('content')
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 max-w-5xl mx-auto m-2 sm:m-6">
     <div class="flex items-center space-x-3 mb-6">

@@ -57,6 +57,8 @@
             }
         }
     </style>
+    <!-- PWA Head -->
+    @pwaHead
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased wave-bg min-h-screen flex flex-col">
 
@@ -823,5 +825,9 @@
             modal.classList.remove('flex');
         }
     </script>
+    <!-- PWA Script Registrations & Tools -->
+    @laravelPwa
+    @pwaUpdateNotifier
+    @pwaInstallButton
 </body>
 </html>
