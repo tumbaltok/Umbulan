@@ -222,12 +222,8 @@ class AuthController extends Controller
         $sessionOtp = session('reset_otp');
         $sessionExpires = session('reset_otp_expires');
 
-        // PERBAIKAN CRITICAL: Cek ulang kecocokan OTP, Email, dan masa kedaluwarsa saat form disubmit akhir
-        if (!session('otp_verified') ||
-            session('reset_email') !== $request->email ||
-            (string)$sessionOtp !== (string)$request->otp ||
-            now()->greaterThan($sessionExpires)) {
-            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid atau kode OTP telah kedaluwarsa.']);
+        if (!session('otp_verified') || session('reset_email') !== $request->email) {
+            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid atau verifikasi OTP gagal.']);
         }
 
         DB::table('users')->where('email', $request->email)->update([
