@@ -94,11 +94,19 @@ class CutiKaryawanController extends Controller
         $totalHari = $mulai->diffInDays($selesai) + 1;
 
         if ($this->alurPotongSaldo($namaCutiUtama, $request->sub_cuti_id)) {
-            $saldo = SaldoCuti::where('user_id', $user->id)->where('jenis_cuti_id', $request->jenis_cuti_id)->where('tahun', Carbon::now()->year)->first();
-            $sisa = $saldo ? (int)$saldo->sisa_saldo : 0;
-
-            if ($sisa <= 0) return back()->withErrors(['error' => 'Sisa kuota cuti anda sudah habis (0 hari).'])->withInput();
-            if ($sisa < $totalHari) return back()->withErrors(['error' => "Sisa kuota cuti anda hanya tinggal {$sisa} hari, sedangkan Anda mengajukan {$totalHari} hari."])->withInput();
+            try {
+                // Menggunakan fungsi Trait yang otomatis memotong total jatah antrean pending
+                $this->validasiDanCekSaldo(
+                    $user->id,
+                    $request->jenis_cuti_id,
+                    $request->sub_cuti_id,
+                    Carbon::now()->year,
+                    $totalHari
+                );
+            } catch (\Exception $e) {
+                // Menangkap error exception dari trait dan mengembalikannya sebagai pesan error di web view
+                return back()->withErrors(['error' => $e->getMessage()])->withInput();
+            }
         }
 
         $namaDokumen = $request->hasFile('dokumen_pendukung') ? $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public') : null;

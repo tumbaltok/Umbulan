@@ -72,7 +72,7 @@ class RecordController extends Controller
                 fputcsv($file, [
                     $cuti->user->name ?? '-',
                     $cuti->user->nip ?? '-',
-                    $cuti->user->station->nama_stasiun ?? 'Pusat',
+                    $cuti->user->station->name ?? 'Pusat',
                     $perihal,
                     ($cuti->total_hari ?? $cuti->durasi_hari) . ' Hari',
                     $cuti->tanggal_mulai,
@@ -151,7 +151,7 @@ class RecordController extends Controller
                 fputcsv($file, [
                     $car->user->name ?? '-',
                     $car->user->nip ?? '-',
-                    $car->user->station->nama_stasiun ?? 'Pusat',
+                    $car->user->station->name ?? 'Pusat',
                     'Rp ' . number_format($car->nominal ?? 0, 0, ',', '.'), // Format mata uang rupiah
                     $car->keperluan ?? $car->deskripsi ?? '-',
                     $car->created_at ? $car->created_at->format('Y-m-d') : '-',
