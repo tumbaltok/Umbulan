@@ -168,7 +168,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="p-4 bg-slate-50 border border-slate-100/80 rounded-2xl transition-all duration-200 hover:bg-slate-100/50">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kapasitas Maksimal</span>
-                                <h4 class="text-xl font-extrabold text-water-600 mt-1">4.000 <span class="text-xs font-semibold text-slate-500">lps</span></h4>
+                                <h4 class="text-xl font-extrabold text-slate-800 mt-1">4.000 <span class="text-xs font-semibold text-slate-500">lps</span></h4>
                             </div>
                             <div class="p-4 bg-slate-50 border border-slate-100/80 rounded-2xl transition-all duration-200 hover:bg-slate-100/50">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Koneksi Intake</span>
@@ -176,15 +176,13 @@
                             </div>
                         </div>
 
-                        {{-- <div class="relative p-5 bg-gradient-to-r from-water-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
-                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
+                        <!-- Bagian Debit Real-Time -->
+                        <div class="p-4 bg-blue-50/50 border border-blue-100/80 rounded-2xl">
+                            <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider block">Debit Aliran Transmisi (Real-time)</span>
+                            <h4 class="text-2xl font-black text-water-600 mt-1"><span id="current-flow-display">2.700</span> <span class="text-xs font-semibold text-slate-500">lps</span></h4>
+                        </div>
 
-                            <div class="relative z-10">
-                                <p class="text-xs text-water-100/90 font-semibold tracking-wide">Volume Tersalurkan Bulan Ini</p>
-                                <h3 class="text-2xl md:text-3xl font-black mt-1 tracking-tight">2.450.000 <span class="text-sm font-medium text-water-300">m³</span></h3>
-                            </div>
-                        </div> --}}
-
+                        <!-- Bagian Volume Serapan Bulanan Bawah -->
                         <div class="relative p-5 bg-gradient-to-r from-cyan-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
 
@@ -373,7 +371,7 @@
         </div>
 
         <div class="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500">
-            <p>&copy; <span id="copyright-year"><?= date('Y') ?></span> <span class="font-bold">PT. Meta Adhya Tirta Umbulan</span>. Seluruh hak cipta dilindungi undang-undang.</p>
+            <p>&copy; <span id="copyright-year">2026</span> <span class="font-bold">PT. Meta Adhya Tirta Umbulan</span>. Seluruh hak cipta dilindungi undang-undang.</p>
             <div class="flex items-center space-x-3 mt-4 sm:mt-0">
                 <a href="#" class="hover:text-white transition">Ketentuan Kerja Sama</a>
                 <span>&middot;</span>
@@ -448,36 +446,63 @@
             link.addEventListener('click', closeMenu);
         });
 
-        function updateVolumeRealtime() {
+        // ========================================================
+        // KODE PERBAIKAN: REAL-TIME FLOW GENERATOR & ACCUMULATOR
+        // ========================================================
+        let totalAccumulatedVolumeM3 = 0;
+
+        function initAndUpdateFlow() {
             const sekarang = new Date();
 
-            // Atur waktu ke awal bulan ini jam 00:00:00
+            // Menggunakan waktu lokal awal bulan tanggal 1 jam 00:00:00 (WIB/Wita/Wit sesuai lokal)
             const awalBulan = new Date(sekarang.getFullYear(), sekarang.getMonth(), 1, 0, 0, 0);
 
-            // Hitung selisih waktu dalam milidetik, lalu ubah ke detik
+            // Menghitung berapa detik yang telah terlewati sejak awal bulan
             const selisihMilidetik = sekarang - awalBulan;
-            const totalDetik = Math.floor(selisihMilidetik / 1000);
+            const totalDetikLalu = Math.floor(selisihMilidetik / 1000);
 
-            // Hitung volume dalam m3 (2700 lps / 1000 = 2.7 m3 per detik)
-            const volumeM3 = totalDetik * 2.7;
+            // Menggunakan nilai rata-rata tengah (2.725 m3 per detik) sebagai acuan historis awal bulan
+            const rataRataM3 = 2.725;
+            totalAccumulatedVolumeM3 = totalDetikLalu * rataRataM3;
 
-            // Format angka dengan separator ribuan (contoh: 2.450.000) sesuai lokal Indonesia
-            const formatAngka = new Intl.NumberFormat('id-ID', {
+            // Jalankan fungsi update agar nilai langsung berubah seketika halaman dibuka
+            updateVolumeRealtime();
+        }
+
+        function updateVolumeRealtime() {
+            // 1. BUAT DEBIT PER DETIK DINAMIS (Range 2700 - 2750 lps)
+            const randomLps = Math.floor(Math.random() * (2750 - 2700 + 1)) + 2700;
+
+            // Format angka dengan pemisah ribuan lokal Indonesia (id-ID)
+            const formatLps = new Intl.NumberFormat('id-ID').format(randomLps);
+
+            // Memperbaiki masalah Anda: memperbarui tampilan Debit Aliran secara live
+            document.getElementById('current-flow-display').textContent = formatLps;
+
+            // 2. HITUNG VOLUME AKUMULATIF BULANAN (Sum real-time per detik)
+            // Ubah lps ke meter kubik per detik (dibagi 1000)
+            const flowM3PerDetik = randomLps / 1000;
+
+            // Jumlahkan penambahan air detik ini ke total akumulasi
+            totalAccumulatedVolumeM3 += flowM3PerDetik;
+
+            // Format angka sum tanpa desimal
+            const formatTotalVolume = new Intl.NumberFormat('id-ID', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
-            }).format(volumeM3);
+            }).format(totalAccumulatedVolumeM3);
 
-            // Update tampilan HTML
+            // Perbarui tampilan Volume Serapan Akumulatif
             document.getElementById('volume-display').innerHTML = `
-                ${formatAngka} <span class="text-sm font-medium text-cyan-300">m³</span>
+                ${formatTotalVolume} <span class="text-sm font-medium text-cyan-300">m³</span>
             `;
         }
 
-        // Jalankan fungsi setiap 1 detik (1000ms)
-        setInterval(updateVolumeRealtime, 1000);
+        // Inisialisasi total volume awal bulan saat halaman dimuat
+        initAndUpdateFlow();
 
-        // Jalankan pertama kali saat halaman dimuat agar tidak menunggu 1 detik pertama
-        updateVolumeRealtime();
+        // Set interval untuk terus memperbarui data acak & sum setiap 1 detik berkelanjutan
+        setInterval(updateVolumeRealtime, 1000);
     </script>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
