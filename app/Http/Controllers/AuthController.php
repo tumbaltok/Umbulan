@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 class AuthController extends Controller
 {
@@ -194,8 +195,8 @@ class AuthController extends Controller
         $sessionOtp = session('reset_otp');
         $sessionExpires = session('reset_otp_expires');
 
-        if (!$sessionOtp || $sessionEmail !== $request->email || now()->greaterThan($sessionExpires)) {
-            return response()->json(['status' => 'error', 'message' => 'Sesi habis atau OTP kadaluarsa.'], 400);
+        if (!$sessionOtp || $sessionEmail !== $request->email || now()->greaterThan(Carbon::parse($sessionExpires))) {
+            return response()->json(['status' => 'error', 'message' => 'Kode OTP sudah kedaluwarsa atau tidak valid.'], 400);
         }
 
         // PERBAIKAN: Ditambahkan trim() menghindari spasi tidak sengaja
@@ -229,7 +230,11 @@ class AuthController extends Controller
 
         session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified_for']);
 
-        return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui! Silakan login.');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kata sandi Anda berhasil diperbarui! Silakan login.',
+            'redirect_url' => route('login') // Kirim URL tujuan agar JavaScript bisa melakukan redirect
+        ]);
     }
 
     // 1. Fungsi untuk mengirim OTP via Fonnte
