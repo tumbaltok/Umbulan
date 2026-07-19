@@ -204,7 +204,7 @@ class CutiKaryawanController extends Controller
         }
 
         $genderUser = strtolower($user->gender_id ?? $user->gender->name ?? $user->gender ?? '');
-        $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'lki-laki' || $genderUser === 'male');
+        $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'laki-laki' || $genderUser === 'male');
 
         if ($isPria) {
             if (str_contains($namaCutiUtama, 'melahirkan') || str_contains($namaSubCuti, 'melahirkan') || str_contains($namaSubCuti, 'gugur') || str_contains($namaSubCuti, 'haid')) {

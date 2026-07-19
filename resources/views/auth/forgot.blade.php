@@ -79,7 +79,7 @@
             </button>
         </form>
 
-        <form id="passwordForm" method="POST" action="{{ route('forgot.post') }}" class="space-y-5 hidden">
+        <form id="passwordForm" method="POST" action="{{ route('forgot.update') }}" class="space-y-5 hidden">
             @csrf
             <input type="hidden" id="hidden-email" name="email">
             <input type="hidden" id="hidden-otp" name="otp">

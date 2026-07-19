@@ -148,14 +148,18 @@ class RecordController extends Controller
             fputcsv($file, $columns, ';');
 
             foreach ($dataCar as $car) {
+                $totalNominal = $car->details->sum('total_harga');
+
+                $keperluanBarang = $car->details->pluck('nama_barang')->implode(', ');
+
                 fputcsv($file, [
                     $car->user->name ?? '-',
                     $car->user->nip ?? '-',
                     $car->user->station->name ?? 'Pusat',
-                    'Rp ' . number_format($car->nominal ?? 0, 0, ',', '.'), // Format mata uang rupiah
-                    $car->keperluan ?? $car->deskripsi ?? '-',
+                    'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                    $keperluanBarang ?: '-',
                     $car->created_at ? $car->created_at->format('Y-m-d') : '-',
-                    strtoupper($car->status_akhir ?? $car->status ?? 'PENDING')
+                    strtoupper($car->status_akhir ?? 'PENDING')
                 ], ';');
             }
             fclose($file);

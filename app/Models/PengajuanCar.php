@@ -35,12 +35,4 @@ class PengajuanCar extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
-    /**
-     * Relasi ke pengguna (User yang mengajukan CAR)
-     */
-    public function role()
-    {
-        return $this->belongsTo(Role::class, 'role_id');
-    }
 }

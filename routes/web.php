@@ -27,10 +27,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', function () { return view('auth.login'); })->name('login');
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
-    Route::get('/forgot', function () { return view('auth.forgot'); })->name('forgot');
+    Route::get('/forgot', [AuthController::class, 'showForgotForm'])->name('forgot');
     Route::post('/forgot/send-otp-mail', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
     Route::post('/forgot/verify-otp-mail', [AuthController::class, 'verifyOtpMailWeb'])->name('forgot.verify_otp');
-    Route::post('/forgot', [AuthController::class, 'forgotWeb'])->name('forgot.post');
+    Route::post('/forgot/update', [AuthController::class, 'forgotWeb'])->name('forgot.update');
 });
 
 // ==========================================================

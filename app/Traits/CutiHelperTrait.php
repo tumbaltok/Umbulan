@@ -82,18 +82,31 @@ trait CutiHelperTrait
     /**
      * Menyinkronkan pemotongan saldo dan absensi jika cuti langsung disetujui.
      */
-    private function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
+    public function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
     {
+        // 2. Proteksi Idempotensi: Jika status cuti bukan approved, jangan jalankan sinkronisasi
+        if ($pengajuan->status_akhir !== 'approved') {
+            return;
+        }
+
         $namaCutiUtama = strtolower($pengajuan->jenisCuti->name_cuti ?? '');
         $apakahMemotongSaldo = $this->alurPotongSaldo($namaCutiUtama, $pengajuan->sub_cuti_id);
 
         if ($apakahMemotongSaldo) {
-            $this->potongSaldoDatabase($pengajuan);
+            // 3. Tambahkan flag pengecekan di database Anda (misal kolom 'is_cut_saldo')
+            // agar tidak terjadi pemotongan ganda saat method dipanggil ulang.
+            if (!$pengajuan->is_cut_saldo) {
+                $this->potongSaldoDatabase($pengajuan);
+
+                // Tandai bahwa pengajuan ini sudah memotong saldo
+                $pengajuan->update(['is_cut_saldo' => true]);
+            }
         }
 
         $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
         $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
 
+        // 4. Pastikan loop hanya memproses hari kerja jika aturan kantor Anda hari libur tidak dihitung cuti
         for ($date = $tanggalMulai->copy(); $date->lte($tanggalSelesai); $date->addDay()) {
             Absensi::updateOrCreate(
                 [
@@ -102,7 +115,7 @@ trait CutiHelperTrait
                 ],
                 [
                     'status_kehadiran' => 'Cuti',
-                    'keterangan' => 'Cuti disetujui: ' . $pengajuan->alasan_cuti,
+                    'keterangan' => 'Cuti disetujui: ' . ($pengajuan->alasan_cuti ?? $namaCutiUtama),
                     'jam_masuk' => null,
                     'jam_pulang' => null
                 ]
