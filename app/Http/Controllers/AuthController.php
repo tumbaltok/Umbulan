@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator; // Tambahan untuk validasi API
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -46,7 +46,6 @@ class AuthController extends Controller
      */
     public function registerApi(Request $request)
     {
-        // PERBAIKAN: Validasi manual agar mengembalikan JSON jika gagal di Mobile/API
         $validator = Validator::make($request->all(), [
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
@@ -121,7 +120,6 @@ class AuthController extends Controller
      */
     public function loginApi(Request $request)
     {
-        // PERBAIKAN: Validasi API JSON
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
@@ -200,30 +198,28 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi habis atau OTP kadaluarsa.'], 400);
         }
 
-        // PERBAIKAN: Casting ke string/int untuk menghindari type juggling bug
-        if ((string)$sessionOtp !== (string)$request->otp) {
+        // PERBAIKAN: Ditambahkan trim() menghindari spasi tidak sengaja
+        if (trim((string)$sessionOtp) !== trim((string)$request->otp)) {
             return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
         }
 
-        session(['otp_verified' => true]);
+        // PERBAIKAN: Kunci status verifikasi ke email spesifik agar lebih aman
+        session(['otp_verified_for' => $request->email]);
 
         return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
     }
 
-    // 3. SIMPAN PASSWORD BARU PILIHAN USER (POST FORM COLD SUBMIT)
+    // 3. SIMPAN PASSWORD BARU PILIHAN USER
     public function forgotWeb(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required',
-            'password' => 'required|min:8|confirmed', // Disamakan standar min 8 karakter
+            'password' => 'required|min:8|confirmed',
         ]);
 
-        $sessionOtp = session('reset_otp');
-        $sessionExpires = session('reset_otp_expires');
-
-        if (!session('otp_verified') || session('reset_email') !== $request->email) {
-            return redirect()->back()->withErrors(['error' => 'Aksi tidak valid atau verifikasi OTP gagal.']);
+        // PERBAIKAN: Validasi kecocokan email yang diverifikasi dengan input form
+        if (session('otp_verified_for') !== $request->email) {
+            return redirect()->back()->withErrors(['email' => 'Aksi tidak valid atau verifikasi OTP gagal.']);
         }
 
         DB::table('users')->where('email', $request->email)->update([
@@ -231,7 +227,7 @@ class AuthController extends Controller
             'updated_at' => now()
         ]);
 
-        session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified']);
+        session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified_for']);
 
         return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui! Silakan login.');
     }
@@ -254,12 +250,15 @@ class AuthController extends Controller
 
         $message = "Kode verifikasi (OTP) Anda adalah: *{$otp}*.\nJangan bagikan kode ini kepada siapapun. Kode berlaku selama 5 menit.";
 
+        // PERBAIKAN: Menggunakan config() alih-alih env() langsung
+        $fonnteToken = config('services.fonnte.token') ?? env('FONNTE_TOKEN');
+
         $response = Http::withHeaders([
-            'Authorization' => env('FONNTE_TOKEN'),
+            'Authorization' => $fonnteToken,
         ])->post('https://api.fonnte.com/send', [
             'target' => $phone,
             'message' => $message,
-            'all' => 'true' // Rekomendasi Fonnte untuk parameter kestabilan kirim
+            'all' => 'true'
         ]);
 
         if ($response->successful()) {
@@ -276,12 +275,10 @@ class AuthController extends Controller
     // 2. Fungsi untuk mencocokkan OTP yang diinput user via HP
     public function verifyOtpPhone(Request $request)
     {
-        // 1. Validasi input dari Ajax
         $request->validate([
             'otp_input' => 'required|numeric|digits:6',
         ]);
 
-        // 2. Cek apakah session OTP ada dan belum kedaluwarsa
         if (!session()->has('otp_code') || now()->isAfter(session('otp_expires_at'))) {
             return response()->json([
                 'success' => false,
@@ -289,19 +286,16 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // 3. Bandingkan OTP yang diinput dengan yang ada di session
-        if ((string)$request->otp_input === (string)session('otp_code')) {
+        // PERBAIKAN: Ditambahkan trim() menghindari celah spasi kosong saat copy-paste
+        if (trim((string)$request->otp_input) === trim((string)session('otp_code'))) {
 
-            // Perbaikan: Langsung ambil objek user yang sedang login tanpa query manual User::find()
             if (Auth::check()) {
-                // Menghindari ambigitas tipe data dengan mencari berdasarkan ID
                 User::where('id', Auth::id())->update([
                     'phone_number'      => session('otp_phone'),
                     'phone_verified_at' => now(),
                 ]);
             }
 
-            // Hapus session OTP agar tidak bisa digunakan ulang (Replay Attack)
             session()->forget(['otp_code', 'otp_phone', 'otp_expires_at']);
 
             return response()->json([
@@ -310,7 +304,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // 4. Jika OTP salah
         return response()->json([
             'success' => false,
             'message' => 'Kode OTP yang Anda masukkan salah.'

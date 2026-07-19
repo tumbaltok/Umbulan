@@ -6,7 +6,7 @@ Dokumen ini berisi panduan langkah-demi-langkah untuk melakukan deployment aplik
 
 Sebelum memulai, pastikan server kamu sudah terinstall:
 
-PHP (Sesuai versi Laravel kamu, misal PHP 8.2 atau 8.3)
+PHP (Sesuai versi Laravel kamu, PHP 8.5)
 
 Composer
 

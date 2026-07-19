@@ -21,7 +21,7 @@ return new class extends Migration
             $table->year('tahun'); // Tahun saat ini
             $table->timestamps();
 
-            $table->unique(['user_id', 'jenis_cuti_id', 'bulan', 'tahun']);
+            $table->unique(['user_id', 'jenis_cuti_id', 'bulan', 'tahun'], 'user_jenis_tahun_unique');
         });
     }
 
