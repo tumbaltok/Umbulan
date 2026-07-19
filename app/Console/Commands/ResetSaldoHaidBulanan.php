@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\SaldoCuti;
+use App\Models\User; // 1. Impor Model User
 use Carbon\Carbon;
 
 class ResetSaldoHaidBulanan extends Command
@@ -15,7 +16,8 @@ class ResetSaldoHaidBulanan extends Command
     {
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
-        $jenisCutiIdHaid = 5; // Pastikan ID ini merujuk ke jenis cuti yang tepat
+
+        $jenisCutiIdHaid = User::CUTI_HAID_ID;
 
         // Update saldo untuk bulan & tahun berjalan
         SaldoCuti::where('jenis_cuti_id', $jenisCutiIdHaid)

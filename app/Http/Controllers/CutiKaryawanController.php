@@ -83,7 +83,7 @@ class CutiKaryawanController extends Controller
 
         $namaSubCuti = $request->sub_cuti_id ? strtolower(SubCuti::find($request->sub_cuti_id)->nama_sub_cuti ?? '') : '';
         $genderUser = strtolower($user->gender_id ?? $user->gender->name ?? $user->gender ?? '');
-        $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'lki-laki' || $genderUser === 'male');
+        $isPria = ($genderUser === 'pria' || $genderUser === '1' || $genderUser === 'laki-laki' || $genderUser === 'male');
 
         if ($isPria && (str_contains($namaCutiUtama, 'melahirkan') || str_contains($namaSubCuti, 'melahirkan') || str_contains($namaSubCuti, 'gugur') || str_contains($namaSubCuti, 'haid'))) {
             return back()->withErrors(['error' => 'Ditolak! Jenis perizinan/cuti ini hanya boleh diambil oleh karyawan wanita.'])->withInput();
@@ -93,7 +93,7 @@ class CutiKaryawanController extends Controller
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
 
-        if ($this->cekApakahMemotongSaldo($namaCutiUtama, $request->sub_cuti_id)) {
+        if ($this->alurPotongSaldo($namaCutiUtama, $request->sub_cuti_id)) {
             $saldo = SaldoCuti::where('user_id', $user->id)->where('jenis_cuti_id', $request->jenis_cuti_id)->where('tahun', Carbon::now()->year)->first();
             $sisa = $saldo ? (int)$saldo->sisa_saldo : 0;
 
@@ -210,7 +210,7 @@ class CutiKaryawanController extends Controller
         $selesai = Carbon::parse($request->tanggal_selesai);
         $totalHari = $mulai->diffInDays($selesai) + 1;
 
-        $apakahMemotongSaldo = $this->cekApakahMemotongSaldo($namaCutiUtama, $request->sub_cuti_id);
+        $apakahMemotongSaldo = $this->alurPotongSaldo($namaCutiUtama, $request->sub_cuti_id);
 
         if ($apakahMemotongSaldo) {
             $saldo = SaldoCuti::where('user_id', $user->id)

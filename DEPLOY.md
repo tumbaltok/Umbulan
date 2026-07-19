@@ -81,8 +81,10 @@ php artisan key:generate
 
 5. Migrasi Database (Database Migration)
 
-Jalankan migrasi database untuk membuat tabel-tabel yang diperlukan aplikasi di server produksi:
+Sebelum menjalankan migrasi, pastikan file tabel penampung session dan cache hasil dari perintah `php artisan session:table` dan `php artisan cache:table` sudah ikut ter-upload/ter-commit ke dalam repositori Git.
 
+Jalankan migrasi database untuk membuat seluruh tabel sistem aplikasi di server produksi:
+```bash
 php artisan migrate --force
 
 

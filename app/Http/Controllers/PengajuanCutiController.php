@@ -15,9 +15,13 @@ use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Traits\CutiHelperTrait;
 
 class PengajuanCutiController extends Controller
 {
+
+    use CutiHelperTrait;
+
     // KARYAWAN: Melihat riwayat cuti milik diri sendiri (API)
     public function index(Request $request)
     {
@@ -119,10 +123,22 @@ class PengajuanCutiController extends Controller
 
         $jenisCutiId = $request->jenis_cuti_id;
         $subCutiId = $request->sub_cuti_id;
-        $tahunSekarang = Carbon::parse($request->tanggal_mulai)->year;
-        $bulanSekarang = Carbon::parse($request->tanggal_mulai)->month;
+        $tahunSekarang = $mulai->year;
+        $bulanSekarang = $mulai->month;
 
-        // VALIDASI PROTEKSI: Batasi total pengajuan Cuti Haid maks 2 hari dalam sebulan
+        $jenisCuti = JenisCuti::findOrFail($jenisCutiId);
+        $namaCutiUtama = strtolower($jenisCuti->name_cuti ?? '');
+
+        // 1. VALIDASI: Cek kuota sisa jatah efektif antrean menggunakan Trait
+        if ($this->alurPotongSaldo($namaCutiUtama, $subCutiId)) {
+            try {
+                $this->validasiDanCekSaldo($user->id, $jenisCutiId, $subCutiId, $tahunSekarang, $totalHari);
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 400);
+            }
+        }
+
+        // 2. VALIDASI PROTEKSI: Batasi total pengajuan Cuti Haid maks 2 hari dalam sebulan
         if ($subCutiId) {
             $subDb = SubCuti::find($subCutiId);
             if ($subDb && strtolower($subDb->nama_sub_cuti) === 'haid') {
@@ -141,35 +157,7 @@ class PengajuanCutiController extends Controller
             }
         }
 
-        // Ambil data Master Saldo
-        $saldo = SaldoCuti::where('user_id', $user->id)
-            ->where('jenis_cuti_id', $jenisCutiId)
-            ->where('tahun', $tahunSekarang)
-            ->first();
-
-        // Pengecekan saldo efektif antrean
-        if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
-            $sisaSaldoDatabase = $saldo ? (int)$saldo->sisa_saldo : 0;
-
-            $totalCutiPending = DB::table('pengajuan_cutis')
-                ->where('user_id', $user->id)
-                ->where('jenis_cuti_id', $jenisCutiId)
-                ->where('sub_cuti_id', $subCutiId)
-                ->where('status_akhir', 'pending')
-                ->sum('total_hari');
-
-            $saldoEfektif = $sisaSaldoDatabase - $totalCutiPending;
-
-            if ($saldoEfektif <= 0 || $saldoEfektif < $totalHari) {
-                return response()->json([
-                    'message' => $saldoEfektif <= 0
-                        ? "Sisa kuota jatah anda sudah habis atau sedang masuk antrean persetujuan."
-                        : "Sisa kuota jatah anda tidak mencukupi. Sisa efektif saat ini: {$saldoEfektif} hari, Anda mengajukan {$totalHari} hari.",
-                ], 400);
-            }
-        }
-
-        // Cek bentrok tanggal
+        // 3. VALIDASI: Cek bentrok tanggal
         $cutiBentrok = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->whereIn('status_akhir', ['pending', 'approved'])
@@ -195,9 +183,7 @@ class PengajuanCutiController extends Controller
             ], 400);
         }
 
-        $jenisCuti = JenisCuti::findOrFail($jenisCutiId);
-        $namaCutiUtama = strtolower($jenisCuti->name_cuti ?? '');
-
+        // 4. VALIDASI: Pembatasan Gender Karyawan Pria
         $namaSubCuti = '';
         if ($subCutiId) {
             $subDb = SubCuti::find($subCutiId);
@@ -214,15 +200,18 @@ class PengajuanCutiController extends Controller
             }
         }
 
+        // 5. PROSES UPLOAD DOKUMEN
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public');
         }
 
+        // 6. PENENTUAN STATUS PERSETUJUAN BERDASARKAN ROLE
         $roleName = strtolower($user->role->role_name ?? '');
         $statusSupervisor = 'pending';
         $statusManager    = 'pending';
         $statusAkhir      = 'pending';
+
         if ($roleName === 'manager') {
             $statusSupervisor = 'approved';
             $statusManager    = 'approved';
@@ -233,6 +222,7 @@ class PengajuanCutiController extends Controller
             $statusAkhir      = 'pending';
         }
 
+        // 7. EKSEKUSI DATABASE TRANSACTION
         DB::beginTransaction();
         try {
             $pengajuan = PengajuanCuti::create([
@@ -249,6 +239,7 @@ class PengajuanCutiController extends Controller
                 'status_akhir' => $statusAkhir,
             ]);
 
+            // Jika role pengaju adalah Manager, otomatis memotong jatah saldo & input tabel absensi
             if ($statusAkhir === 'approved') {
                 $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
