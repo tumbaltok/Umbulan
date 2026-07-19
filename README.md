@@ -108,23 +108,15 @@ nano .env
 ⚠️ Penting: Ubah beberapa konfigurasi wajib berikut di dalam file .env:
 
 APP_ENV=production
-
 APP_DEBUG=false
-
 APP_URL=https://domain-kamu.com
 
 MAIL_MAILER=smtp
-
-MAIL_SCHEME=null
-
 MAIL_HOST=
-
 MAIL_PORT=
-
 MAIL_USERNAME=
-
 MAIL_PASSWORD=
-
+MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=
 
 FONNTE_TOKEN=
