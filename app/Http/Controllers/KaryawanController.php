@@ -35,7 +35,6 @@ class KaryawanController extends Controller
             'email'         => $karyawan->email,
             'phone_number'  => $karyawan->phone_number,
             'profile_photo' => $karyawan->profile_photo,
-            // Menggunakan optional() atau null-coalescing yang aman jika relasi null
             'role_name'     => optional($karyawan->role)->role_name ?? 'Tidak Ada Role',
             'nama_stasiun'  => optional($karyawan->station)->name ?? '-',
             'job_title'     => $karyawan->job_title,

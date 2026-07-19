@@ -15,8 +15,10 @@ class SaldoCuti extends Model
     protected $fillable = [
         'user_id',
         'jenis_cuti_id',
-        'tahun',
-        'sisa_saldo'
+        'kuota_awal',
+        'bulan',
+        'sisa_saldo',
+        'tahun'
     ];
 
     // Relasi dipindahkan ke sini

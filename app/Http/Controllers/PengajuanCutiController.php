@@ -428,7 +428,6 @@ class PengajuanCutiController extends Controller
                     ->whereNotNull('phone_verified_at')
                     ->get();
 
-                // $namaStation = $user->station->nama_stasiun ?? 'Pusat / Utama';
                 $namaStation = $user->station->name ?? 'Pusat / Utama';
                 $perihal = $subCutiId && isset($subDb) ? $subDb->nama_sub_cuti : ($jenisCuti->name_cuti ?? 'Cuti/Izin');
 

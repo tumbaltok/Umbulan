@@ -56,13 +56,17 @@
                                     </div>
 
                                     @if($item->dokumen_nota_or_proposal)
-                                        <button type="button"
-                                                onclick="openImageModal('{{ asset('storage/' . $item->dokumen_nota_or_proposal) }}')"
-                                                class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 w-fit cursor-pointer self-start sm:self-center shrink-0">
-                                            <i class="fa-solid fa-file-invoice"></i> Lampiran Car
-                                        </button>
-                                    @else
-                                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg w-fit self-start sm:self-center shrink-0">Tanpa Nota</span>
+                                        @if(Str::endsWith($item->dokumen_nota_or_proposal, '.pdf'))
+                                            <a href="{{ asset('storage/' . $item->dokumen_nota_or_proposal) }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
+                                                <i class="fa-solid fa-file-pdf"></i> Lihat PDF
+                                            </a>
+                                        @else
+                                            <button type="button" onclick="openImageModal('{{ asset('storage/' . $item->dokumen_nota_or_proposal) }}')"
+                                                    class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
+                                                <i class="fa-solid fa-file-invoice"></i> Lampiran Gambar
+                                            </button>
+                                        @endif
                                     @endif
                                 </li>
                             @endforeach
@@ -157,11 +161,15 @@
     function openImageModal(imageUrl) {
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImage');
-
         modalImg.src = imageUrl;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 
     function closeImageModal() {
