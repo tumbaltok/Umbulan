@@ -275,7 +275,7 @@
     @laravelPwa
     @pwaInstallButton
 
-    <<!-- Custom PWA Update Notifier -->
+    <!-- Custom PWA Update Notifier -->
     {{-- <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
