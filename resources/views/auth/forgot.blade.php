@@ -203,9 +203,29 @@
             }).catch(() => { showAlert('error', 'Terjadi kesalahan sistem.'); btn.disabled = false; });
         }
     </script>
+
     <!-- PWA Script Registrations & Tools -->
     @laravelPwa
-    @pwaUpdateNotifier
     @pwaInstallButton
+
+    <!-- Custom PWA Update Notifier -->
+    {{-- <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                if (confirm("[META System] Versi baru telah tersedia. Perbarui halaman sekarang?")) {
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    </script> --}}
 </body>
 </html>
