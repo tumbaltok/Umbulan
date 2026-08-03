@@ -1,4 +1,4 @@
-const CACHE_NAME = "meta-pwa-v1";
+const CACHE_NAME = "laravel-pwa-1785726155";
 const OFFLINE_URL = "/offline.html";
 
 const FILES_TO_CACHE = [
@@ -8,7 +8,7 @@ const FILES_TO_CACHE = [
 
 // Pre-cache critical resources
 self.addEventListener("install", (event) => {
-    console.log('[META PWA] Service Worker installing...');
+    console.log('[Laravel PWA] Service Worker installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(FILES_TO_CACHE))
@@ -17,7 +17,7 @@ self.addEventListener("install", (event) => {
 
 // Remove old caches
 self.addEventListener("activate", (event) => {
-    console.log('[META PWA] Service Worker activated.');
+    console.log('[Laravel PWA] Service Worker activated.');
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(
@@ -41,33 +41,25 @@ self.addEventListener('message', (event) => {
 
 // Fetch strategy
 self.addEventListener("fetch", (event) => {
+
     const request = event.request;
 
-    // 1. Abaikan method non-GET (POST, PUT, DELETE)
+    // ✅ Never cache non-GET requests (fix Cache.put POST error)
     if (request.method !== 'GET') {
+        event.respondWith(fetch(request));
         return;
     }
 
-    // 2. Handling Navigasi Halaman (Blade views)
+    // ✅ Handle page navigation (offline fallback)
     if (request.mode === "navigate") {
         event.respondWith(
             fetch(request)
-                .then(response => {
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(request, responseToCache);
-                    });
-                    return response;
-                })
-                .catch(() => caches.match(request).then(cached => cached || caches.match(OFFLINE_URL)))
+                .catch(() => caches.match(OFFLINE_URL))
         );
         return;
     }
 
-    // 3. Cache-first untuk aset statis (CSS, JS, Gambar, Font)
+    // ✅ Cache-first for static assets
     if (
         request.destination === "style" ||
         request.destination === "script" ||
@@ -75,38 +67,36 @@ self.addEventListener("fetch", (event) => {
         request.destination === "font"
     ) {
         event.respondWith(
-            caches.match(request).then(cached => {
-                if (cached) return cached;
-
-                return fetch(request).then(response => {
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(request, responseToCache);
+            caches.match(request)
+                .then(cached => {
+                    return cached || fetch(request).then(response => {
+                        return caches.open(CACHE_NAME).then(cache => {
+                            cache.put(request, response.clone());
+                            return response;
+                        });
                     });
-                    return response;
-                });
-            })
+                })
         );
         return;
     }
 
-    // 4. Default Network-First untuk request lainnya
+    // ✅ Default: network-first with cache fallback
     event.respondWith(
         fetch(request)
             .then(response => {
-                if (!response || response.status !== 200 || response.type !== 'basic') {
+                return caches.open(CACHE_NAME).then(cache => {
+                    cache.put(request, response.clone());
                     return response;
-                }
-                const responseToCache = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(request, responseToCache);
                 });
-                return response;
             })
-            .catch(() => caches.match(request))
+            .catch(async (error) => {
+                // Retry failed API requests if Background Sync is supported
+                if (request.method === 'POST' && 'SyncManager' in self) {
+                    // We can't easily queue it here because we can't access IndexedDB easily without a library or boilerplate
+                    // But we've already handled form submissions in background-sync.js
+                }
+                return caches.match(request);
+            })
     );
 });
 
@@ -118,44 +108,32 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncRequests() {
-    try {
-        const db = await openDB();
-        if (!db.objectStoreNames.contains('offline-requests')) return;
+    const db = await openDB();
+    const tx = db.transaction('offline-requests', 'readonly');
+    const store = tx.objectStore('offline-requests');
+    const requests = await getAllRequests(store);
 
-        const tx = db.transaction('offline-requests', 'readonly');
-        const store = tx.objectStore('offline-requests');
-        const requests = await getAllRequests(store);
+    for (const req of requests) {
+        try {
+            const response = await fetch(req.url, {
+                method: req.method,
+                headers: req.headers,
+                body: req.body
+            });
 
-        for (const req of requests) {
-            try {
-                const response = await fetch(req.url, {
-                    method: req.method,
-                    headers: req.headers,
-                    body: req.body
-                });
-
-                if (response.ok) {
-                    const deleteTx = db.transaction('offline-requests', 'readwrite');
-                    deleteTx.objectStore('offline-requests').delete(req.id);
-                }
-            } catch (err) {
-                console.error('[META System] Sync offline gagal pada URL:', req.url, err);
+            if (response.ok) {
+                const deleteTx = db.transaction('offline-requests', 'readwrite');
+                deleteTx.objectStore('offline-requests').delete(req.id);
             }
+        } catch (err) {
+            console.error('[Laravel PWA] Sync failed for:', req.url, err);
         }
-    } catch (err) {
-        console.error('[META System] Sync DB error:', err);
     }
 }
 
 function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open('laravel-pwa-sync', 1);
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('offline-requests')) {
-                db.createObjectStore('offline-requests', { keyPath: 'id', autoIncrement: true });
-            }
-        };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });

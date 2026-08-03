@@ -49,7 +49,7 @@ class AccountController extends Controller
             'nip'              => 'nullable|string|max:50',
             'name'             => 'required|string|max:255',
             'email'            => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'job_title'        => 'nullable|string|in:Operator,Maintenance,HSE,Dokumentasi',
+            'job_title'        => 'nullable|string|in:Operator,Maintenance,Pipeline,HSE,Dokumentasi',
             'phone_number'     => 'nullable|string|max:20',
             'profile_photo'    => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'current_password' => 'nullable|required_with:new_password',

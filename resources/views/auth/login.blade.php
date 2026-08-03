@@ -117,7 +117,7 @@
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Kata Sandi</label>
-                            <a href="{{ route('forgot') }}" class="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">
+                            <a href="{{ route('forgot') }}" tabindex="-1" class="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">
                                 Lupa kata sandi?
                             </a>
                         </div>

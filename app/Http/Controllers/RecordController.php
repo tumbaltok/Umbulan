@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PengajuanCuti;
-use App\Models\PengajuanCar; // Pastikan Mengimport Model CAR Anda di sini
+use App\Models\PengajuanCar;
+use App\Models\PengajuanMpr;
 use Carbon\Carbon;
 
 class RecordController extends Controller
@@ -160,6 +161,87 @@ class RecordController extends Controller
                     $keperluanBarang ?: '-',
                     $car->created_at ? $car->created_at->format('Y-m-d') : '-',
                     strtoupper($car->status_akhir ?? 'PENDING')
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    // ==========================================
+    //            MANAGEMENT RECORD MPR
+    // ==========================================
+    public function mpr(Request $request)
+    {
+        $query = PengajuanMpr::with(['user.role', 'user.station', 'items']);
+
+        // 1. Filter Bulan
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_pengajuan', $request->bulan);
+        }
+
+        // 2. Filter Tahun (Default ke tahun sekarang)
+        $tahun = $request->get('tahun', date('Y'));
+        $query->whereYear('tanggal_pengajuan', $tahun);
+
+        $daftarMpr = $query->orderBy('tanggal_pengajuan', 'desc')->get();
+
+        return view('admin.record.mpr', compact('daftarMpr'));
+    }
+
+    /**
+     * Export data MPR ke Excel / CSV
+     */
+    public function exportMpr(Request $request)
+    {
+        $query = PengajuanMpr::with(['user.role', 'user.station', 'items']);
+
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_pengajuan', $request->bulan);
+        }
+        $tahun = $request->get('tahun', date('Y'));
+        $query->whereYear('tanggal_pengajuan', $tahun);
+
+        $dataMpr = $query->orderBy('tanggal_pengajuan', 'desc')->get();
+
+        $namaBulan = $request->filled('bulan') ? Carbon::create()->month((int) $request->bulan)->isoFormat('MMMM') : 'Semua_Bulan';
+        $fileName = "Record_MPR_Karyawan_META_{$namaBulan}_{$tahun}.csv";
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename={$fileName}",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['No. MPR', 'Nama Karyawan', 'NIP', 'Station', 'Urgensi Keperluan', 'Rincian Material', 'Estimasi Total', 'Tanggal Pengajuan', 'Status'];
+
+        $callback = function() use($dataMpr, $columns) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $columns, ';');
+
+            foreach ($dataMpr as $mpr) {
+                $totalNominal = $mpr->items->sum(function($item) {
+                    return $item->jumlah * $item->estimasi_harga;
+                });
+
+                $rincianBarang = $mpr->items->map(function($item) {
+                    return $item->nama_barang . ' (' . $item->jumlah . ' ' . $item->satuan . ')';
+                })->implode(', ');
+
+                fputcsv($file, [
+                    $mpr->nomor_mpr,
+                    $mpr->user->name ?? '-',
+                    $mpr->user->nip ?? '-',
+                    $mpr->user->station->name ?? 'Pusat',
+                    $mpr->keperluan_urgensi ?? '-',
+                    $rincianBarang ?: '-',
+                    'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                    $mpr->tanggal_pengajuan ?? '-',
+                    strtoupper($mpr->status_akhir ?? 'PENDING')
                 ], ';');
             }
             fclose($file);

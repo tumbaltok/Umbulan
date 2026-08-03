@@ -266,8 +266,9 @@
                                         <option value="" disabled selected>Pilih Tipe Jobs</option>
                                         <option value="1">Operator</option>
                                         <option value="2">Maintenance</option>
-                                        <option value="3">Safety (HSE)</option>
-                                        <option value="4">Documenter</option>
+                                        <option value="3">Pipeline</option>
+                                        <option value="4">Safety (HSE)</option>
+                                        <option value="5">Documenter</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>

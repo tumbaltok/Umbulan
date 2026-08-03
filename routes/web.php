@@ -10,6 +10,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\PengajuanCarController;
+use App\Http\Controllers\PengajuanMprController;
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
@@ -50,6 +51,9 @@ Route::middleware('auth')->group(function () {
     // Fitur CAR (Riwayat)
     Route::get('/car/riwayat', [PengajuanCarController::class, 'index'])->name('car.riwayat');
 
+    // Fitur MPR (Riwayat)
+    Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
+
     // Verifikasi Email & Phone
     Route::get('/email/verify', function () { return view('auth.verify-email'); })->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
@@ -88,6 +92,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
             Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
             Route::get('/car/print/{id}', [PengajuanCarController::class, 'print'])->name('car.print');
+
+            // Form MPR
+            Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
+            Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
+            Route::get('/mpr/cetak/{id}', [PengajuanMprController::class, 'cetakPdf'])->name('mpr.cetak');
         });
     });
 
@@ -105,6 +114,9 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Jalur Utama Persetujuan CAR
     Route::get('/admin/persetujuan/car', [PengajuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
     Route::post('/admin/persetujuan/car/proses/{id}', [PengajuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
+    // Jalur Utama Persetujuan MPR
+    Route::get('/admin/persetujuan/mpr', [PengajuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
+    Route::post('/admin/persetujuan/mpr/proses/{id}', [PengajuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
     // Karyawan
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
     Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
@@ -117,4 +129,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Record CAR
     Route::get('/admin/record/car', [RecordController::class, 'car'])->name('admin.record.car');
     Route::get('/admin/record/car/export', [RecordController::class, 'exportCar'])->name('admin.record.car.export');
+    // Record MPR
+    Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
+    Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
 });

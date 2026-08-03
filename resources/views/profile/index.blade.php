@@ -93,6 +93,7 @@
                             <option value="" disabled {{ old('job_title', $user->job_title) == '' ? 'selected' : '' }}>Pilih Tipe Jobs</option>
                             <option value="Operator" {{ old('job_title', $user->job_title) == 'Operator' ? 'selected' : '' }}>Operator</option>
                             <option value="Maintenance" {{ old('job_title', $user->job_title) == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                            <option value="Pipeline" {{ old('job_title', $user->job_title) == 'Pipeline' ? 'selected' : '' }}>Pipeline</option>
                             <option value="HSE" {{ old('job_title', $user->job_title) == 'HSE' ? 'selected' : '' }}>Safety (HSE)</option>
                             <option value="Dokumentasi" {{ old('job_title', $user->job_title) == 'Dokumentasi' ? 'selected' : '' }}>Documenter</option>
                         </select>
@@ -197,7 +198,9 @@
 </div>
 
 {{-- MODAL FOTO PROFIL --}}
-<div id="photoModal" class="fixed inset-0 z-50 items-center justify-center hidden">
+<div id="photoModal" 
+     data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}" 
+     class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
@@ -406,9 +409,9 @@
         if (cancelBtn) cancelBtn.addEventListener("click", hideModal);
         if (backdrop) backdrop.addEventListener("click", hideModal);
 
-        @if($errors->has('profile_photo'))
+        if (modal && modal.dataset.hasError === 'true') {
             showModal();
-        @endif
+        }
     });
 </script>
 @endpush
