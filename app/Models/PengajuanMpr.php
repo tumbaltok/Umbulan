@@ -18,6 +18,6 @@ class PengajuanMpr extends Model
 
     public function items()
     {
-        return $this->hasMany(PengajuanMprItem::class, 'pengajuan_mpr_id');
+        return $this->hasMany(PengajuanMprDetail::class, 'pengajuan_mpr_id');
     }
 }
