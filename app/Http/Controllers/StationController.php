@@ -45,6 +45,7 @@ class StationController extends Controller
                 }
 
                 return [
+                    'id'            => $user->id,
                     'name'          => $user->name,
                     'nip'           => $user->nip ?? '-',
                     'profile_photo' => $user->profile_photo,
@@ -60,5 +61,21 @@ class StationController extends Controller
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'latitude'  => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $station = Station::findOrFail($id);
+        $station->update([
+            'latitude'  => $request->latitude,
+            'longitude' => $request->longitude,
+        ]);
+
+        return redirect()->back()->with('success', 'Koordinat GPS Stasiun berhasil diperbarui!');
     }
 }

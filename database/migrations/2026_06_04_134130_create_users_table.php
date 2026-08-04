@@ -21,6 +21,12 @@ return new class extends Migration
             $table->foreignId('gender_id')->nullable()->constrained('genders');
             $table->foreignId('station_id')->constrained('stations');
             $table->string('job_title')->nullable();
+            $table->enum('schedule_type', ['normal', 'roster'])->default('normal')->nullable();
+            $table->json('normal_work_days')->nullable();
+            $table->time('normal_check_in')->default('08:00:00');
+            $table->time('normal_check_out')->default('17:00:00');
+            $table->date('roster_start_date')->nullable();
+            $table->json('face_descriptor')->nullable();
             $table->string('profile_photo')->nullable();
             $table->string('phone_number')->nullable();
             $table->timestamp('phone_verified_at')->nullable();

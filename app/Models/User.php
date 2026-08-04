@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\JenisCuti;
+use App\Models\SaldoCuti;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -28,7 +30,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'job_title',
         'phone_number',
         'profile_photo',
-        'phone_verified_at'
+        'phone_verified_at',
+        'schedule_type',
+        'normal_work_days',
+        'normal_check_in',
+        'normal_check_out',
+        'roster_start_date',
+        'face_descriptor',
     ];
 
     protected $hidden = [
@@ -42,8 +50,34 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'password' => 'hashed',
+            'normal_work_days' => 'array',
+            'face_descriptor' => 'array',
+            'roster_start_date' => 'date',
         ];
     }
+
+    protected static function booted(): void
+    {
+        static::created(function ($user) {
+            $jenisCuti = JenisCuti::where('name_cuti', 'LIKE', '%Cuti%')
+                                ->where('kuota_default', 12)
+                                ->first();
+                                
+            $jenisCutiId = $jenisCuti ? $jenisCuti->id : self::CUTI_TAHUNAN_ID;
+
+            SaldoCuti::create([
+                'user_id'       => $user->id,
+                'jenis_cuti_id' => $jenisCutiId,
+                'tahun'         => now()->year,
+                'kuota_awal'    => 12, 
+                'sisa_saldo'    => 12, // Disesuaikan dengan $fillable SaldoCuti
+            ]);
+        });
+    }
+
+    protected $attributes = [
+        'schedule_type' => null, 
+    ];
 
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
@@ -81,9 +115,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Station::class, 'station_supervisor', 'supervisor_id', 'station_id');
     }
 
-    /**
-     * PERBAIKAN: Melengkapi relasi saldo cuti tahunan yang terpotong
-     */
     public function saldo_cuti_tahunan(int $jenisCutiId): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
@@ -92,14 +123,16 @@ class User extends Authenticatable implements MustVerifyEmail
                     ->where('tahun', date('Y'));
     }
 
-    /**
-     * TAMBAHAN: Relasi Khusus Saldo Cuti Haid Bulanan
-     */
     public function saldo_cuti_haid(): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
                     ->where('jenis_cuti_id', self::CUTI_HAID_ID)
                     ->where('bulan', date('n'))
                     ->where('tahun', date('Y'));
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Kehadiran::class, 'user_id');
     }
 }

@@ -15,7 +15,7 @@
             <p class="text-sm text-slate-500 mt-0.5">Perbarui informasi profil Anda dan amankan akun dengan kombinasi password baru.</p>
         </div>
 
-        {{-- Form data umum & keamanan --}}
+        {{-- Form data umum, jadwal kerja, & keamanan --}}
         <form action="{{ route('account.update') }}" method="POST" class="p-6 space-y-6">
             @csrf
             @method('PUT')
@@ -25,7 +25,6 @@
 
                 {{-- Container Foto Profil Utama --}}
                 <div class="flex flex-col items-center justify-center text-center mb-8">
-                    {{-- Lingkaran/Kotak Foto Profil --}}
                     <div class="w-24 h-24 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden border-4 border-white ring-4 ring-sky-100">
                         @if($user->profile_photo)
                             <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
@@ -34,7 +33,6 @@
                         @endif
                     </div>
 
-                    {{-- Teks Tombol di Bawah Foto --}}
                     <button type="button" id="openModalPhotoBtn" class="mt-3 text-sm font-semibold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
                         <i class="fa-solid fa-camera"></i>
                         <span>Ubah Foto Profil</span>
@@ -157,6 +155,107 @@
                 </div>
             </div>
 
+            {{-- PENGATURAN JADWAL KERJA --}}
+            <div>
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Pengaturan Jadwal Kerja</h3>
+                <p class="text-xs text-slate-400 mb-4">Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster).</p>
+
+                <div class="space-y-4">
+                    {{-- Pilihan Jenis Jadwal --}}
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
+                        <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500">
+                            <option value="normal" {{ old('schedule_type', $user->schedule_type ?? 'normal') === 'normal' ? 'selected' : '' }}>Normal</option>
+                            <option value="roster" {{ old('schedule_type', $user->schedule_type) === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
+                        </select>
+                    </div>
+
+                    {{-- Form Opsi Jadwal Normal --}}
+                    <div id="section_normal_schedule" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Hari Kerja</label>
+                        @php
+                            $workDays = $user->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                        @endphp
+                        <div class="flex flex-wrap gap-3">
+                            @foreach(['Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu', 'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu', 'Sun' => 'Minggu'] as $key => $dayLabel)
+                                <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+                                    <input type="checkbox" name="normal_work_days[]" value="{{ $key }}" {{ in_array($key, $workDays) ? 'checked' : '' }} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                                    <span>{{ $dayLabel }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Masuk</label>
+                                <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '07:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
+                                <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '16:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Opsi Jadwal Roster --}}
+                    <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Hari Ini</label>
+                            <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa.</p>
+                            
+                            {{-- Input Tersembunyi untuk Menyimpan Tanggal Patokan Roster --}}
+                            <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
+
+                            {{-- Pilihan Radio Shift --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                                    <input type="radio" name="current_shift_choice" value="pagi" onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
+                                    <div>
+                                        <span class="block text-xs font-bold text-slate-800">Shift Pagi</span>
+                                        <span class="text-[10px] text-slate-500">07:00 - 19:00 WIB</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
+                                    <input type="radio" name="current_shift_choice" value="malam" onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
+                                    <div>
+                                        <span class="block text-xs font-bold text-slate-800">Shift Malam</span>
+                                        <span class="text-[10px] text-slate-500">19:00 - 07:00 WIB</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-red-500 transition-all">
+                                    <input type="radio" name="current_shift_choice" value="libur" onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
+                                    <div>
+                                        <span class="block text-xs font-bold text-slate-800">OFF</span>
+                                        <span class="text-[10px] text-slate-500">OFF / Libur</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- BOX PRATINJAU HASIL ROTASI --}}
+                        <div id="roster_preview_box" class="hidden p-3 bg-white border border-amber-300 rounded-xl shadow-sm text-xs space-y-2">
+                            <div class="font-bold text-amber-900 border-b border-slate-100 pb-1.5 flex items-center">
+                                <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                                <div class="bg-slate-50 p-2 rounded-lg">
+                                    <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
+                                    <span id="preview_week_1" class="font-bold text-sky-600">Shift Pagi</span>
+                                </div>
+                                <div class="bg-slate-50 p-2 rounded-lg">
+                                    <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN:</span>
+                                    <span id="preview_week_2" class="font-bold text-indigo-600">Shift Malam</span>
+                                </div>
+                                <div class="bg-slate-50 p-2 rounded-lg">
+                                    <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
+                                    <span id="preview_week_3" class="font-bold text-emerald-600">Minggu Libur</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <hr class="border-slate-100">
 
             <div>
@@ -248,7 +347,79 @@
 
 @push('scripts')
 <script>
+    // 1. Fungsi Menyembunyikan / Menampilkan Form Sesuai Opsi Schedule
+    function toggleScheduleOptions() {
+        const scheduleType = document.getElementById('schedule_type')?.value;
+        const sectionNormal = document.getElementById('section_normal_schedule');
+        const sectionRoster = document.getElementById('section_roster_schedule');
+
+        if (!scheduleType || !sectionNormal || !sectionRoster) return;
+
+        if (scheduleType === 'normal') {
+            sectionNormal.classList.remove('hidden');
+            sectionRoster.classList.add('hidden');
+        } else {
+            sectionNormal.classList.add('hidden');
+            sectionRoster.classList.remove('hidden');
+        }
+    }
+
+    // 2. Fungsi Menghitung Tanggal Patokan Roster & Menampilkan Pratinjau
+    function calculateRosterAnchor(selectedShift) {
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0: Sun, 1: Mon, 2: Tue, ...
+        
+        // Cari hari Selasa pada minggu berjalan
+        let diffToTuesday = 2 - dayOfWeek;
+        if (dayOfWeek < 2) {
+            diffToTuesday -= 7;
+        }
+        
+        const currentTuesday = new Date(now);
+        currentTuesday.setDate(now.getDate() + diffToTuesday);
+
+        let anchorDate = new Date(currentTuesday);
+
+        if (selectedShift === 'malam') {
+            anchorDate.setDate(anchorDate.getDate() - 7);
+        } else if (selectedShift === 'libur') {
+            anchorDate.setDate(anchorDate.getDate() - 14);
+        }
+
+        // Simpan dalam format YYYY-MM-DD ke input hidden
+        const year = anchorDate.getFullYear();
+        const month = String(anchorDate.getMonth() + 1).padStart(2, '0');
+        const day = String(anchorDate.getDate()).padStart(2, '0');
+        
+        document.getElementById('roster_start_date_input').value = `${year}-${month}-${day}`;
+
+        // Update Tampilan Box Pratinjau
+        const previewBox = document.getElementById('roster_preview_box');
+        const w1 = document.getElementById('preview_week_1');
+        const w2 = document.getElementById('preview_week_2');
+        const w3 = document.getElementById('preview_week_3');
+
+        previewBox.classList.remove('hidden');
+
+        if (selectedShift === 'pagi') {
+            w1.innerText = "Shift Pagi"; w1.className = "font-bold text-emerald-600";
+            w2.innerText = "Shift Malam"; w2.className = "font-bold text-indigo-600";
+            w3.innerText = "Minggu Libur"; w3.className = "font-bold text-red-600";
+        } else if (selectedShift === 'malam') {
+            w1.innerText = "Shift Malam"; w1.className = "font-bold text-indigo-600";
+            w2.innerText = "Minggu Libur"; w2.className = "font-bold text-red-600";
+            w3.innerText = "Shift Pagi"; w3.className = "font-bold text-emerald-600";
+        } else {
+            w1.innerText = "Minggu Libur"; w1.className = "font-bold text-red-600";
+            w2.innerText = "Shift Pagi"; w2.className = "font-bold text-emerald-600";
+            w3.innerText = "Shift Malam"; w3.className = "font-bold text-indigo-600";
+        }
+    }
+
+    // 3. Event Listener Utama
     document.addEventListener("DOMContentLoaded", function () {
+        toggleScheduleOptions();
+
         const modal = document.getElementById("photoModal");
         const openBtn = document.getElementById("openModalPhotoBtn");
         const closeBtn = document.getElementById("closeModalPhotoBtn");
@@ -264,9 +435,9 @@
         const otpMessage = document.getElementById("otp-message");
         const phoneBadge = document.getElementById("phone-badge");
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        // 1. KIRIM OTP
+        // KIRIM OTP
         if (btnSendOtp) {
             btnSendOtp.addEventListener("click", function () {
                 phoneError.classList.add("hidden");
@@ -289,7 +460,6 @@
                         otpMessage.innerText = data.message;
                         inputPhone.readOnly = true;
 
-                        // Jalankan cooldown tombol kirim agar tidak spam request API ke Fonnte
                         startSendOtpCooldown(60);
                     } else {
                         phoneError.classList.remove("hidden");
@@ -307,7 +477,7 @@
             });
         }
 
-        // 2. VERIFIKASI OTP
+        // VERIFIKASI OTP
         if (btnVerifyOtp) {
             btnVerifyOtp.addEventListener("click", function () {
                 otpMessage.innerText = "";
@@ -332,7 +502,6 @@
                         btnVerifyOtp.classList.add("hidden");
                         btnSendOtp.classList.add("hidden");
 
-                        // Kunci total nomor telepon agar tidak bisa diklik & diseleksi
                         inputPhone.readOnly = true;
                         inputPhone.classList.remove("border-emerald-500", "bg-emerald-50/30");
                         inputPhone.classList.add("border-slate-200", "bg-slate-50", "text-slate-500", "cursor-not-allowed", "select-none");
@@ -344,7 +513,6 @@
                     } else {
                         otpMessage.className = "text-xs text-rose-500 mt-1 block";
                         otpMessage.innerText = data.message;
-                        // Gagal verifikasi -> Aktifkan cooldown anti-spam klik konfirmasi
                         startVerifyOtpCooldown(60);
                     }
                 })
@@ -356,7 +524,6 @@
             });
         }
 
-        // Fungsi Cooldown Tombol Kirim OTP
         function startSendOtpCooldown(duration) {
             let timeLeft = duration;
             btnSendOtp.disabled = true;
@@ -372,7 +539,6 @@
             }, 1000);
         }
 
-        // Fungsi Cooldown Tombol Konfirmasi OTP
         function startVerifyOtpCooldown(duration) {
             let timeLeft = duration;
             btnVerifyOtp.disabled = true;
@@ -388,7 +554,6 @@
             }, 1000);
         }
 
-        // Fungsi Modal Foto
         function showModal() {
             if (modal) {
                 modal.classList.remove("hidden");

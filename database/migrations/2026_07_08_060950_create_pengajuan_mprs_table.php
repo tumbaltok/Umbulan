@@ -26,7 +26,7 @@ return new class extends Migration
         });
 
         // Tabel Detail Material/Barang yang Diminta
-        Schema::create('pengajuan_mpr_items', function (Blueprint $table) {
+        Schema::create('pengajuan_mpr_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pengajuan_mpr_id')->constrained('pengajuan_mprs')->onDelete('cascade');
             $table->string('nama_barang');

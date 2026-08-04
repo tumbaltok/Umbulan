@@ -31,7 +31,6 @@
             <table class="w-full text-left border-collapse" id="karyawanTable">
                 <thead>
                     <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                        {{-- Ditambahkan properti data-sortable dan cursor-pointer --}}
                         <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
                             Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                         </th>
@@ -55,7 +54,6 @@
                             {{-- Kolom Nama & Foto Profil --}}
                             <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
                                 <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
-                                    {{-- Foto Profil --}}
                                     <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
                                         @if($karyawan->profile_photo)
                                             <img src="{{ asset('storage/' . $karyawan->profile_photo) }}" alt="Foto" class="w-full h-full object-cover">
@@ -117,10 +115,15 @@
                                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
                                         On Leave (Cuti)
                                     </span>
-                                @else
+                                @elseif($karyawan->status_is_on_now)
                                     <span class="inline-flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold">
-                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
-                                        On Call (Kerja)
+                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                                        ON (Sedang Bekerja)
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center text-xs text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full font-semibold">
+                                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full mr-1.5"></span>
+                                        OFF (Tidak Bekerja)
                                     </span>
                                 @endif
                             </td>
@@ -133,7 +136,6 @@
                             </td>
                         </tr>
                     @endforelse
-                    {{-- Row cadangan jika pencarian tidak membuahkan hasil --}}
                     <tr id="noResultRow" class="hidden">
                         <td colspan="5" class="px-6 py-10 text-center text-slate-400">
                             <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
@@ -175,15 +177,31 @@
                     <span class="text-slate-400 font-medium">NIP</span>
                     <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                
+                {{-- EMAIL DENGAN TOMBOL KIRIM EMAIL --}}
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Email</span>
-                    <span id="detail_email" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <div class="col-span-2 flex items-center space-x-2">
+                        <span id="detail_email" class="text-slate-800 font-semibold truncate">-</span>
+                        <a id="detail_email_link" href="#" class="hidden inline-flex items-center space-x-1 px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-envelope text-xs"></i>
+                            <span>Email</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+
+                {{-- NO. TELEPON DENGAN TOMBOL CHAT WA --}}
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">No. Telepon</span>
-                    <a id="detail_phone_link" href="#" target="_blank" class="col-span-2 text-slate-800 font-semibold hover:text-emerald-600 transition-colors hidden">-</a>
-                    <span id="detail_phone" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <div class="col-span-2 flex items-center space-x-2">
+                        <span id="detail_phone" class="text-slate-800 font-semibold">-</span>
+                        <a id="detail_phone_link" href="#" target="_blank" class="hidden inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>Chat WA</span>
+                        </a>
+                    </div>
                 </div>
+
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
                     <span class="text-slate-400 font-medium">Jobdesk</span>
                     <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
@@ -218,7 +236,6 @@
                 let hasVisibleRow = false;
 
                 rows.forEach(row => {
-                    // Mengambil text name dari element class target-search-name di dalam row
                     const nameCell = row.querySelector(".target-search-name");
                     if (nameCell) {
                         const nameText = nameCell.textContent.toLowerCase();
@@ -231,7 +248,6 @@
                     }
                 });
 
-                // Menampilkan info jika hasil pencarian kosong
                 if (rows.length > 0) {
                     if (!hasVisibleRow) {
                         noResultRow.classList.remove("hidden");
@@ -253,7 +269,6 @@
                 const columnIndex = parseInt(this.getAttribute("data-sort"));
                 const rowsArray = Array.from(tableBody.querySelectorAll(".table-row-item"));
 
-                // Jika kolom sama di-klik kembali, balikkan arah urutan (Asc / Desc)
                 if (currentSortColumn === columnIndex) {
                     isAscending = !isAscending;
                 } else {
@@ -261,7 +276,6 @@
                     currentSortColumn = columnIndex;
                 }
 
-                // Reset semua icon ke default icon-sort
                 headers.forEach(h => {
                     const icon = h.querySelector("i");
                     if (icon) {
@@ -269,7 +283,6 @@
                     }
                 });
 
-                // Set icon kolom yang sedang aktif di-sort
                 const currentIcon = this.querySelector("i");
                 if (currentIcon) {
                     currentIcon.className = isAscending
@@ -277,12 +290,10 @@
                         : "fa-solid fa-sort-down ml-1.5 text-sky-600";
                 }
 
-                // Jalankan fungsi sorting algoritma penataan baris
                 rowsArray.sort((rowA, rowB) => {
                     let cellA = rowA.children[columnIndex].textContent.trim();
                     let cellB = rowB.children[columnIndex].textContent.trim();
 
-                    // Bersihkan karakter emoji/warning khusus untuk kolom Stasiun & Status jika ada
                     cellA = cellA.replace(/[^\x20-\x7E]/g, '').trim();
                     cellB = cellB.replace(/[^\x20-\x7E]/g, '').trim();
 
@@ -291,16 +302,12 @@
                         : cellB.localeCompare(cellA, undefined, { numeric: true, sensitivity: 'base' });
                 });
 
-                // Tata ulang susunan tr di dalam tbody html
                 rowsArray.forEach(row => tableBody.appendChild(row));
-
-                // Pastikan baris "tidak ditemukan" tetap ditaruh di paling bawah kontainer
                 if (noResultRow) tableBody.appendChild(noResultRow);
             });
         });
 
-
-        // --- LOGIKA MODAL POPUP & FETCH DETAIL KARYAWAN (BAWAAN) ---
+        // --- LOGIKA MODAL POPUP & FETCH DETAIL KARYAWAN ---
         const modal = document.getElementById("detailKaryawanModal");
         const backdrop = document.getElementById("detailModalBackdrop");
         const closeBtn = document.getElementById("closeDetailModalBtn");
@@ -325,7 +332,6 @@
         if (closeBtn2) closeBtn2.addEventListener("click", hideModal);
         if (backdrop) backdrop.addEventListener("click", hideModal);
 
-        // Menggunakan Event Delegation agar click tetap berjalan stabil walaupun posisi row di-sorting ulang
         document.addEventListener("click", function(e) {
             const button = e.target.closest(".btn-detail-karyawan");
             if (button) {
@@ -348,27 +354,39 @@
 
                         document.getElementById("detail_name").textContent = data.name || '-';
                         document.getElementById("detail_nip").textContent = data.nip ? data.nip : '-';
-                        document.getElementById("detail_email").textContent = data.email || '-';
-                        document.getElementById("detail_phone").textContent = data.phone_number ? data.phone_number : '-';
                         document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
                         document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
 
-                        const phoneLink = document.getElementById("detail_phone_link");
+                        // LOGIKA ELEMEN EMAIL
+                        const emailSpan = document.getElementById("detail_email");
+                        const emailLink = document.getElementById("detail_email_link");
+
+                        if (data.email) {
+                            emailSpan.textContent = data.email;
+                            emailLink.href = `mailto:${data.email}`;
+                            emailLink.classList.remove("hidden");
+                        } else {
+                            emailSpan.textContent = '-';
+                            emailLink.classList.add("hidden");
+                        }
+
+                        // LOGIKA ELEMEN TELEPON (WHATSAPP)
                         const phoneSpan = document.getElementById("detail_phone");
+                        const phoneLink = document.getElementById("detail_phone_link");
 
                         if (data.phone_number) {
+                            phoneSpan.textContent = data.phone_number;
+
                             let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
                             if (cleanNumber.startsWith('0')) {
                                 cleanNumber = '62' + cleanNumber.substring(1);
                             }
-                            phoneLink.textContent = data.phone_number;
+
                             phoneLink.href = `https://wa.me/${cleanNumber}`;
                             phoneLink.classList.remove("hidden");
-                            phoneSpan.classList.add("hidden");
                         } else {
-                            phoneLink.classList.add("hidden");
-                            phoneSpan.classList.remove("hidden");
                             phoneSpan.textContent = '-';
+                            phoneLink.classList.add("hidden");
                         }
 
                         let jobTitleText = 'Belum Memilih';

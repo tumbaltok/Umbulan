@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PengajuanMpr;
-use App\Models\PengajuanMprItem;
+use App\Models\PengajuanMprDetail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -110,7 +110,7 @@ class PengajuanMprController extends Controller
             ]);
 
             foreach ($request->items as $item) {
-                PengajuanMprItem::create([
+                PengajuanMprDetail::create([
                     'pengajuan_mpr_id' => $mpr->id,
                     'nama_barang' => $item['nama_barang'],
                     'jumlah' => $item['jumlah'],

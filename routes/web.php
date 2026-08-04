@@ -11,6 +11,9 @@ use App\Http\Controllers\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\PengajuanCarController;
 use App\Http\Controllers\PengajuanMprController;
+use App\Http\Controllers\KehadiranController;
+use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\UserScheduleController; // <-- DITAMBAHKAN DI SINI
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
@@ -44,6 +47,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
     Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
+    // Route Absensi & Pengecekan Lokasi/Wajah
+    Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
+    Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
+
+    // Route Pengaturan Jadwal Kerja & Registrasi Wajah User
+    Route::post('/user/schedule/update', [JadwalController::class, 'updateSchedule'])->name('user.schedule.update');
+    Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('user.face.register');
+
     // Fitur Cuti (Riwayat & Detail)
     Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
     Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
@@ -60,12 +71,10 @@ Route::middleware('auth')->group(function () {
         $request->fulfill();
         return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
     })->middleware('signed')->name('verification.verify');
-
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
-
     Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
     Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
@@ -100,6 +109,10 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    // Fitur Jadwal Kerja (Set Initial Shift)
+    Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
+    Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
+
     // Logout
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
 });
@@ -123,6 +136,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Stasiun
     Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
     Route::get('/admin/stations/{id}/karyawan', [StationController::class, 'getKaryawan'])->name('admin.stations.karyawan');
+    Route::put('/admin/stations/{id}', [StationController::class, 'update'])->name('admin.stations.update');
     // Record Cuti
     Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
     Route::get('/admin/record/cuti/export', [RecordController::class, 'exportCuti'])->name('admin.record.cuti.export');

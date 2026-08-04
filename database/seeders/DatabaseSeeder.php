@@ -53,6 +53,25 @@ class DatabaseSeeder extends Seeder
             'name' => 'Stasiun Booster-M'
         ]);
 
+        Station::updateOrCreate(
+            ['kode_stasiun' => 'umbulan'],
+            [
+                'latitude' => -7.7572565,
+                'longitude' => 112.9314949,
+                'radius_meters' => 1000, // Area besar: Radius 300 meter
+            ]
+        );
+
+        Station::updateOrCreate(
+            ['kode_stasiun' => 'booster'],
+            [
+                'latitude' => -7.1932227,
+                'longitude' => 112.6371782,
+                'radius_meters' => 500, // Area kecil: Radius 50 meter
+            ]
+
+        );
+
         // ==========================================
         // DATA MASTER JENIS CUTI & SUB-CUTI
         // ==========================================
@@ -168,6 +187,17 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('supervisor123'),
         ]);
 
+        // Karyawan Wanita
+        User::create([
+            'nip' => '213',
+            'name' => 'Karyawan Wanita Umbulan',
+            'email' => 'staff.umbulan@meta.com',
+            'role_id' => $roleStaff->id,
+            'gender_id' => $wanita->id,
+            'station_id' => $stasiunUmbulan->id,
+            'password' => Hash::make('staff123'),
+        ]);
+
         // SPV Booster
         User::create([
             'nip' => '210',
@@ -182,14 +212,13 @@ class DatabaseSeeder extends Seeder
         // Karyawan Wanita
         User::create([
             'nip' => '223',
-            'name' => 'Karyawan Wanita',
-            'email' => 'staff@meta.com',
+            'name' => 'Karyawan Wanita Booster',
+            'email' => 'staff.booster@meta.com',
             'role_id' => $roleStaff->id,
             'gender_id' => $wanita->id,
             'station_id' => $stasiunBooster->id,
             'password' => Hash::make('staff123'),
         ]);
-
 
         // ==========================================
         // ISI DATA SALDO CUTI OTOMATIS (TAHUN 2026)

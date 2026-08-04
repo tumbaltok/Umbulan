@@ -2,28 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\PengajuanCar;
+use App\Models\Kehadiran;
+use App\Models\SaldoCuti;
+use App\Services\ScheduleService;
+use App\Services\CalendarScheduleService;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    protected ScheduleService $scheduleService;
+    protected CalendarScheduleService $calendarService;
+
+    public function __construct(ScheduleService $scheduleService, CalendarScheduleService $calendarService)
+    {
+        $this->scheduleService = $scheduleService;
+        $this->calendarService = $calendarService;
+    }
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         $tahunSekarang = now()->year;
+        $today = Carbon::today()->format('Y-m-d');
 
-        // 1. Ambil data saldo cuti tahunan milik user
-        $saldoTahunan = $user->saldo_cuti;
+        // 1. Parameter Navigasi Bulan & Tahun Kalender Activity
+        $selectedMonth = $request->get('month', Carbon::now()->month);
+        $selectedYear = $request->get('year', Carbon::now()->year);
 
-        $kuotaTahunan = $saldoTahunan ? $saldoTahunan->kuota_awal : 12;
+        // 2. Ambil Matriks Kalender Bulanan & Deteksi Jadwal Hari Ini
+        $calendarDays = $this->calendarService->getMonthlyCalendar($user, $selectedMonth, $selectedYear);
+        $todaySchedule = $this->scheduleService->getTodaySchedule($user, $today);
+
+        // 3. Ambil Transaksi Absensi Hari Ini
+        $todayAttendance = Kehadiran::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        // 4. Data Saldo Cuti & CAR Existing
+        $saldoTahunan = SaldoCuti::firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'tahun'   => $tahunSekarang,
+            ],
+            [
+                'kuota_awal' => 12,
+                'sisa_cuti'  => 12,
+            ]
+        );
+
+        $kuotaTahunan = $saldoTahunan->kuota_awal;
 
         $riwayatCar = PengajuanCar::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 2. Hanya hitung Cuti Tahunan yang benar-benar SUDAH DIAMBEL
         $totalCutiDiambil = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
@@ -31,17 +68,14 @@ class DashboardController extends Controller
             ->whereYear('tanggal_mulai', $tahunSekarang)
             ->sum('total_hari');
 
-        // 3. Hitung jumlah pengajuan yang statusnya MASIH PENDING
         $totalPending = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('status_manager', 'pending')
             ->where('status_supervisor', '!=', 'rejected')
             ->count();
 
-        // 4. Hitung sisa kuota cuti
         $sisaKuota = $kuotaTahunan - $totalCutiDiambil;
 
-        // 5. Mengambil 5 riwayat transaksi pengajuan cuti terakhir
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
@@ -51,14 +85,22 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard/index', compact(
+        $currentCarbonDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+
+        return view('dashboard.index', compact(
             'user',
             'kuotaTahunan',
             'totalCutiDiambil',
             'totalPending',
             'sisaKuota',
             'riwayatCuti',
-            'riwayatCar'
+            'riwayatCar',
+            'todaySchedule',
+            'todayAttendance',
+            'calendarDays',
+            'selectedMonth',
+            'selectedYear',
+            'currentCarbonDate'
         ));
     }
 }

@@ -60,7 +60,7 @@
                 white-space: nowrap;
                 pointer-events: none;
                 transition: opacity 0.25s ease-out, transform 0.25s ease-out;
-                transition-delay: 0s; /* Tanpa delay saat kuncup */
+                transition-delay: 0s;
             }
 
             /* Teks Muncul Perlahan Hanya Saat Sidebar Sudah Melebar */
@@ -68,7 +68,7 @@
                 opacity: 1;
                 transform: translateX(0);
                 pointer-events: auto;
-                transition-delay: 0.15s; /* Delay halus agar sidebar mekar dulu baru teks muncul */
+                transition-delay: 0.15s;
             }
 
             /* Paksa Tutup Dropdown saat Mouse Keluar dari Sidebar */
@@ -306,23 +306,35 @@
 
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center sticky top-0 z-20">
+        <!-- HEADER UTAMA DENGAN JAM DIGITAL DI TENGAH -->
+        <header class="bg-white border-b border-slate-100 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            {{-- Sisi Kiri: Tombol Drawer Mobile & Nama Stasiun --}}
             <div class="flex items-center space-x-3">
                 <button id="toggleSidebarBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 border border-slate-100">
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
-                    <p class="text-sm font-semibold text-slate-400 tracking-wider">Sektor Kerja,</p>
-                    <h1 class="text-lg font-bold text-slate-800">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
+                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Sektor Kerja,</p>
+                    <h1 class="text-base font-bold text-slate-800 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
-                <div class="text-right hidden sm:block">
-                    <p class="text-lg font-bold text-slate-700">{{ Auth::user()->name }}</p>
-                    <p class="text-sm font-bold text-slate-700">{{ strtoupper(auth()->user()->role->role_name ?? 'USER') }} {{ Auth::user()->job_title }}</p>
+            {{-- Sisi Tengah: Jam Digital & Tanggal Real-Time --}}
+            <div class="hidden sm:flex flex-col items-center justify-center text-center px-5 py-1.5 bg-slate-50 border border-slate-200/60 rounded-2xl shadow-inner">
+                <div class="flex items-center space-x-2 text-sky-600 font-mono font-black text-base md:text-lg tracking-wider">
+                    <i class="fa-solid fa-clock text-xs text-sky-500"></i>
+                    <span id="headerDigitalClock">00:00:00 WIB</span>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden">
+                <span id="headerDateDisplay" class="text-[10px] text-slate-500 font-medium tracking-tight">--</span>
+            </div>
+
+            {{-- Sisi Kanan: Profil User --}}
+            <div class="flex items-center space-x-3">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ auth()->user()->role->role_name ?? 'USER' }} {{ Auth::user()->job_title }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0">
                     @if(Auth::user()->profile_photo)
                         <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
                     @else
@@ -341,14 +353,39 @@
 
     <!-- JAVASCRIPT HANDLER -->
     <script>
+        // --- 1. SCRIPT REAL-TIME JAM DIGITAL HEADER ---
+        function updateHeaderClock() {
+            const now = new Date();
+            const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            
+            const dateString = now.toLocaleDateString('id-ID', optionsDate);
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const clockElement = document.getElementById('headerDigitalClock');
+            const dateElement = document.getElementById('headerDateDisplay');
+
+            if (clockElement) {
+                clockElement.innerText = `${hours}:${minutes}:${seconds} WIB`;
+            }
+            if (dateElement) {
+                dateElement.innerText = dateString;
+            }
+        }
+
+        setInterval(updateHeaderClock, 1000);
+
         document.addEventListener("DOMContentLoaded", function () {
+            updateHeaderClock();
+
+            // --- 2. SIDEBAR & DROPDOWN HANDLER ---
             const sidebar = document.getElementById("sidebarApp");
             const backdrop = document.getElementById("sidebarBackdrop");
             const toggleBtn = document.getElementById("toggleSidebarBtn");
             const closeBtn = document.getElementById("closeSidebarBtn");
             const dropdownContainers = document.querySelectorAll('.dropdown-container');
 
-            // 1. Fungsi untuk Menghitung dan Buka/Tutup Sub-menu
             function openDropdown(container) {
                 const content = container.querySelector('.dropdown-content');
                 container.classList.add('dropdown-open');
@@ -361,28 +398,24 @@
                 content.style.maxHeight = "0px";
             }
 
-            // 2. Inisialisasi Event Sub-menu
             dropdownContainers.forEach(container => {
                 const btn = container.querySelector('.dropdown-btn');
 
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    // Di desktop, klik tidak merespon jika sidebar sedang kuncup
                     if (window.innerWidth >= 768 && sidebar.matches(':not(:hover)')) {
                         return; 
                     }
 
                     const isOpen = container.classList.contains('dropdown-open');
 
-                    // Tutup dropdown lain
                     dropdownContainers.forEach(otherContainer => {
                         if (otherContainer !== container) {
                             closeDropdown(otherContainer);
                         }
                     });
 
-                    // Toggle status saat ini
                     if (isOpen) {
                         closeDropdown(container);
                     } else {
@@ -391,18 +424,16 @@
                 });
             });
 
-            // 3. Animasi Buka Otomatis Sub-Menu Aktif Hanya Saat Sidebar Di-Hover (Desktop)
             if (sidebar) {
                 sidebar.addEventListener('mouseenter', function() {
                     if (window.innerWidth >= 768) {
-                        // Berikan sedikit jeda agar sidebar selesai mekar dulu, baru sub-menu aktif meluncur terbuka
                         setTimeout(() => {
                             dropdownContainers.forEach(container => {
                                 if (container.getAttribute('data-active') === 'true') {
                                     openDropdown(container);
                                 }
                             });
-                        }, 180); // 180ms memastikannya terasa smooth dan sinkron dengan animasi fade-in teks
+                        }, 180);
                     }
                 });
 
@@ -415,7 +446,6 @@
                 });
             }
 
-            // 4. Inisialisasi Awal untuk Mobile (Langsung Buka jika Layar Kecil)
             if (window.innerWidth < 768) {
                 dropdownContainers.forEach(container => {
                     if (container.getAttribute('data-active') === 'true') {
@@ -424,7 +454,6 @@
                 });
             }
 
-            // 5. Mobile Drawer (Buka/Tutup Sidebar di HP)
             function openSidebarMobile() {
                 if (sidebar && backdrop) {
                     sidebar.classList.remove("-translate-x-full");

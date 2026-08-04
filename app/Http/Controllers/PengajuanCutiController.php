@@ -16,11 +16,61 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Traits\CutiHelperTrait;
+use App\Services\ScheduleService;
+use App\Services\CalendarScheduleService;
 
 class PengajuanCutiController extends Controller
 {
-
     use CutiHelperTrait;
+
+    protected ScheduleService $scheduleService;
+    protected CalendarScheduleService $calendarScheduleService;
+
+    public function __construct(ScheduleService $scheduleService, CalendarScheduleService $calendarScheduleService)
+    {
+        $this->scheduleService = $scheduleService;
+        $this->calendarScheduleService = $calendarScheduleService;
+    }
+
+    /**
+     * FUNGSI UTAMA: Menhitung total hari kerja efektif yang memotong saldo cuti.
+     * - Normal: Sabtu/Minggu & Libur Nasional TIDAK memotong saldo.
+     * - Roster: Cuti saat Shift Pagi/Malam TETAP memotong saldo (meski Libur Nasional). Libur Roster (Off) TIDAK memotong.
+     */
+    private function hitungHariKerjaEfektif(User $user, Carbon $tanggalMulai, Carbon $tanggalSelesai): int
+    {
+        $totalHariKerja = 0;
+        $currentDate = $tanggalMulai->copy();
+        
+        // Ambil data libur nasional untuk tahun yang bersangkutan
+        $holidays = $this->calendarScheduleService->getNationalHolidays($tanggalMulai->year);
+
+        while ($currentDate->lte($tanggalSelesai)) {
+            $dateString = $currentDate->format('Y-m-d');
+            
+            // Cek jadwal kerja user pada tanggal tersebut via ScheduleService
+            $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
+
+            if ($user->schedule_type === 'normal') {
+                $isNationalHoliday = isset($holidays[$dateString]);
+                
+                // JADWAL NORMAL: Potong saldo HANYA JIKA bukan libur akhir pekan DAN bukan libur nasional
+                if (!$daySchedule['is_day_off'] && !$isNationalHoliday) {
+                    $totalHariKerja++;
+                }
+            } else {
+                // JADWAL ROSTER: Potong saldo HANYA JIKA pada tanggal tersebut user dijadwalkan MASUK (Pagi/Malam)
+                // (Abaikan libur nasional, tetap potong saldo karena karyawan shift seharusnya masuk kerja)
+                if (!$daySchedule['is_day_off']) {
+                    $totalHariKerja++;
+                }
+            }
+
+            $currentDate->addDay();
+        }
+
+        return $totalHariKerja;
+    }
 
     // KARYAWAN: Melihat riwayat cuti milik diri sendiri (API)
     public function index(Request $request)
@@ -39,8 +89,7 @@ class PengajuanCutiController extends Controller
     }
 
     /**
-     * FUNGSI UTALITAS: Cek apakah pengajuan ini masuk kategori potong kuota.
-     * Memotong saldo jika Jenis Cuti Utama adalah Cuti Tahunan (ID: 4) ATAU Sub-Cutinya adalah 'Haid'.
+     * FUNGSI UTILITAS: Cek apakah pengajuan ini masuk kategori potong kuota.
      */
     private function alurPotongSaldo(int $jenisCutiId, ?int $subCutiId): bool
     {
@@ -119,7 +168,15 @@ class PengajuanCutiController extends Controller
 
         $mulai = Carbon::parse($request->tanggal_mulai);
         $selesai = Carbon::parse($request->tanggal_selesai);
-        $totalHari = $mulai->diffInDays($selesai) + 1;
+
+        // HITUNG HARI KERJA EFEKTIF
+        $totalHari = $this->hitungHariKerjaEfektif($user, $mulai, $selesai);
+
+        if ($totalHari === 0) {
+            return response()->json([
+                'message' => 'Ditolak! Rentang tanggal yang Anda pilih seluruhnya adalah hari libur (tidak memotong kuota cuti).'
+            ], 400);
+        }
 
         $jenisCutiId = $request->jenis_cuti_id;
         $subCutiId = $request->sub_cuti_id;
@@ -239,7 +296,6 @@ class PengajuanCutiController extends Controller
                 'status_akhir' => $statusAkhir,
             ]);
 
-            // Jika role pengaju adalah Manager, otomatis memotong jatah saldo & input tabel absensi
             if ($statusAkhir === 'approved') {
                 $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
@@ -283,7 +339,13 @@ class PengajuanCutiController extends Controller
 
         $mulai = Carbon::parse($request->tanggal_mulai);
         $selesai = Carbon::parse($request->tanggal_selesai);
-        $totalHari = $mulai->diffInDays($selesai) + 1;
+
+        // HITUNG HARI KERJA EFEKTIF
+        $totalHari = $this->hitungHariKerjaEfektif($user, $mulai, $selesai);
+
+        if ($totalHari === 0) {
+            return back()->withErrors(['error' => 'Tanggal yang Anda pilih seluruhnya adalah hari libur (tidak memotong kuota cuti).'])->withInput();
+        }
 
         $jenisCutiId = $request->jenis_cuti_id;
         $subCutiId = $request->sub_cuti_id;
@@ -332,7 +394,7 @@ class PengajuanCutiController extends Controller
             if ($saldoEfektif <= 0 || $saldoEfektif < $totalHari) {
                 $pesanError = $saldoEfektif <= 0
                     ? "Maaf, kuota cuti Anda sudah habis atau seluruhnya sedang dalam antrean persetujuan."
-                    : "Maaf, sisa kuota cuti efektif Anda hanya tinggal {$saldoEfektif} hari (terpotong antrean), sedangkan Anda mengajukan {$totalHari} hari.";
+                    : "Maaf, sisa kuota cuti efektif Anda hanya tinggal {$saldoEfektif} hari (terpotong antrean), sedangkan Anda mengajukan {$totalHari} hari kerja.";
                 return back()->withErrors(['error' => $pesanError])->withInput();
             }
         }
@@ -420,7 +482,6 @@ class PengajuanCutiController extends Controller
             DB::commit();
 
             if ($statusAkhir === 'pending') {
-                // PERBAIKAN: Cari target atasan di station yang sama berdasarkan nama Role-nya (Supervisor & Manager)
                 $targetAtasan = User::where('station_id', $user->station_id)
                     ->whereHas('role', function($query) {
                         $query->whereIn(DB::raw('LOWER(role_name)'), ['supervisor', 'manager']);
@@ -437,7 +498,7 @@ class PengajuanCutiController extends Controller
                     . "▪ *Nama Karyawan:* {$user->name}\n"
                     . "▪ *NIP:* " . ($user->nip ?? '-') . "\n"
                     . "▪ *Station:* {$namaStation}\n"
-                    . "▪ *Tanggal:* {$request->tanggal_mulai} s/d {$request->tanggal_selesai} ({$totalHari} Hari)\n"
+                    . "▪ *Tanggal:* {$request->tanggal_mulai} s/d {$request->tanggal_selesai} ({$totalHari} Hari Kerja)\n"
                     . "▪ *Alasan:* " . ($request->alasan_cuti ?? '-') . "\n\n"
                     . "Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
                     . "Link: " . url('/admin/persetujuan') . "\n\n"
@@ -637,8 +698,6 @@ class PengajuanCutiController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-
-        // Mengamankan jika relasi role kosong
         $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
 
         $query = DB::table('pengajuan_cutis')
@@ -647,7 +706,7 @@ class PengajuanCutiController extends Controller
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
             ->select(
                 'pengajuan_cutis.*',
-                'pengajuan_cutis.id as id', // Mengunci agar 'id' yang terbaca tetap ID Pengajuan Cuti
+                'pengajuan_cutis.id as id',
                 'users.name as user_name',
                 'jenis_cutis.name_cuti',
                 'sub_cutis.nama_sub_cuti',
@@ -655,7 +714,6 @@ class PengajuanCutiController extends Controller
             )
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
-        // Pengecekan berbasis role_name
         if ($roleName === 'supervisor') {
             $query->where('pengajuan_cutis.status_supervisor', 'pending')
                 ->where('users.station_id', $atasan->station_id);
@@ -671,7 +729,7 @@ class PengajuanCutiController extends Controller
             })
             ->where('pengajuan_cutis.status_supervisor', '!=', 'rejected')
             ->where('pengajuan_cutis.status_manager', '!=', 'rejected');
-        }else {
+        } else {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
@@ -692,7 +750,6 @@ class PengajuanCutiController extends Controller
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
 
-        // Pembenaran 1 & 2: Amankan tipe data role dan ubah ke huruf kecil semua
         $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
 
         if ($roleName === 'supervisor') {
@@ -719,7 +776,6 @@ class PengajuanCutiController extends Controller
                     'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
                 ]);
 
-                // Pembenaran 3: Sinkronisasi absen & saldo hanya jika disetujui oleh Manager
                 if ($tindakan === 'approved') {
                     $this->sinkronisasiCutiDanAbsen($pengajuan);
                 }
@@ -735,7 +791,6 @@ class PengajuanCutiController extends Controller
             return redirect()->back()->with('error', 'Gagal! Anda tidak memiliki hak akses sebagai atasan untuk mengubah status ini.');
         }
     }
-
 
     public function cetakSuratCuti(int $id)
     {
