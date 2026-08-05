@@ -217,26 +217,27 @@ class PengajuanCutiController extends Controller
         // 3. VALIDASI: Cek bentrok tanggal
         $cutiBentrok = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
-            ->whereIn('status_akhir', ['pending', 'approved'])
+            ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
             ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
                 $query->where(function ($q) use ($tanggalMulaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)
-                      ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
+                    ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
                 })
                 ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)
-                      ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
+                    ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
                 })
                 ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)
-                      ->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
+                    ->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
                 });
             })
             ->first();
 
         if ($cutiBentrok) {
+            $statusTeks = (strtolower($cutiBentrok->status_akhir) === 'approved') ? 'Approved' : 'Pending';
             return response()->json([
-                'message' => 'Ditolak! Anda sudah memiliki pengajuan cuti yang masih berstatus Pending/Approved pada tanggal tersebut.'
+                'message' => "Ditolak! Anda sudah memiliki pengajuan cuti yang berstatus {$statusTeks} pada tanggal tersebut."
             ], 400);
         }
 
@@ -380,47 +381,45 @@ class PengajuanCutiController extends Controller
 
         // Hitung sisa saldo efektif (Antrean Pending)
         if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
-            $sisaSaldoDatabase = (int)$saldo->sisa_saldo;
-
-            $totalCutiPending = DB::table('pengajuan_cutis')
-                ->where('user_id', $user->id)
-                ->where('jenis_cuti_id', $jenisCutiId)
-                ->where('sub_cuti_id', $subCutiId)
-                ->where('status_akhir', 'pending')
-                ->sum('total_hari');
-
-            $saldoEfektif = $sisaSaldoDatabase - $totalCutiPending;
-
-            if ($saldoEfektif <= 0 || $saldoEfektif < $totalHari) {
-                $pesanError = $saldoEfektif <= 0
-                    ? "Maaf, kuota cuti Anda sudah habis atau seluruhnya sedang dalam antrean persetujuan."
-                    : "Maaf, sisa kuota cuti efektif Anda hanya tinggal {$saldoEfektif} hari (terpotong antrean), sedangkan Anda mengajukan {$totalHari} hari kerja.";
-                return back()->withErrors(['error' => $pesanError])->withInput();
+            try {
+                $this->validasiDanCekSaldo(
+                    $user->id,
+                    $jenisCutiId,
+                    $subCutiId,
+                    $tahunSekarang,
+                    $totalHari 
+                );
+            } catch (\Exception $e) {
+                return back()->withErrors(['error' => $e->getMessage()])->withInput();
             }
         }
 
         // Cek bentrok tanggal
+        // --- KODE BARU (SPESIFIK STATUS) ---
         $cutiBentrok = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
-            ->whereIn('status_akhir', ['pending', 'approved'])
+            ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
             ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
                 $query->where(function ($q) use ($tanggalMulaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)
-                      ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
+                    ->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
                 })
                 ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)
-                      ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
+                    ->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
                 })
                 ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
                     $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)
-                      ->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
+                    ->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
                 });
             })
             ->first();
 
         if ($cutiBentrok) {
-            return back()->withErrors(['error' => 'Ditolak! Anda sudah memiliki pengajuan cuti yang masih berstatus Pending/Approved pada tanggal tersebut.'])->withInput();
+            $statusTeks = (strtolower($cutiBentrok->status_akhir) === 'approved') ? 'Approved' : 'Pending';
+            return back()->withErrors([
+                'error' => "Ditolak! Anda sudah memiliki pengajuan cuti yang berstatus {$statusTeks} pada tanggal tersebut."
+            ])->withInput();
         }
 
         $jenisCuti = JenisCuti::findOrFail($jenisCutiId);

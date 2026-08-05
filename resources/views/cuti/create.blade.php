@@ -126,7 +126,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const dataJenisCuti = @json($jenisCuti);
+        const dataJenisCuti = JSON.parse('{!! addslashes(json_encode($jenisCuti)) !!}');
 
         const oldJenisCutiId = "{{ old('jenis_cuti_id') }}";
         const oldSubCutiId = "{{ old('sub_cuti_id') }}";
@@ -142,7 +142,7 @@
         const labelAlasan = document.getElementById('label-alasan');
         const alasanCuti = document.getElementById('alasan_cuti');
 
-        const sisaSaldoCutiTahunan = {{ $sisaSaldo ?? 0 }};
+        const sisaSaldoCutiTahunan = parseInt('{{ $sisaSaldo ?? 0 }}', 10);
 
         const tombolSubmit = document.getElementById('btn-submit');
         const pesanErrorSaldo = document.getElementById('pesan-error-saldo');
@@ -156,7 +156,6 @@
         const dd = String(sekarang.getDate()).padStart(2, '0');
         const hariIniLokal = `${yyyy}-${mm}-${dd}`;
 
-        // Kunci tanggal mulai & selesai minimal hari ini agar sinkron dengan showPicker()
         tanggalMulai.min = hariIniLokal;
         tanggalSelesai.min = hariIniLokal;
 
@@ -267,7 +266,6 @@
         // 2. FUNGSI UTAMA UNTUK MEMBATASI KALENDER SELESAI
         // =======================================================
         function batasiKalenderSelesai() {
-            // Atur batas MINIMAL tanggal selesai
             if (tanggalMulai.value) {
                 tanggalSelesai.min = tanggalMulai.value;
             } else {
@@ -336,7 +334,6 @@
             }
         });
 
-        // Jalankan saat load halaman pertama kali agar langsung terkunci
         batasiKalenderSelesai();
 
         if (oldJenisCutiId) {

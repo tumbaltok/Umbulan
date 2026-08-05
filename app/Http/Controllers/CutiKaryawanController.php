@@ -189,8 +189,9 @@ class CutiKaryawanController extends Controller
             ->first();
 
         if ($cutiBentrok) {
+            $statusTeks = (strtolower($cutiBentrok->status_akhir) === 'approved') ? 'Approved' : 'Pending';
             return response()->json([
-                'message' => 'Ditolak! Anda sudah memiliki pengajuan cuti yang masih berstatus Pending/Approved pada tanggal tersebut.'
+                'message' => "Ditolak! Anda sudah memiliki pengajuan cuti yang berstatus {$statusTeks} pada tanggal tersebut."
             ], 400);
         }
 
