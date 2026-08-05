@@ -44,14 +44,16 @@ class DashboardController extends Controller
             ->first();
 
         // 4. Data Saldo Cuti & CAR Existing
+        // Pastikan nama kolom konsisten 'sisa_saldo'
         $saldoTahunan = SaldoCuti::firstOrCreate(
             [
-                'user_id' => $user->id,
-                'tahun'   => $tahunSekarang,
+                'user_id'       => $user->id,
+                'jenis_cuti_id' => User::CUTI_TAHUNAN_ID,
+                'tahun'         => $tahunSekarang,
             ],
             [
                 'kuota_awal' => 12,
-                'sisa_cuti'  => 12,
+                'sisa_saldo' => 12,
             ]
         );
 
@@ -61,20 +63,30 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Total hari cuti tahunan yang telah disetujui (Approved)
         $totalCutiDiambil = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
-            ->where('status_manager', 'approved')
+            ->where('status_akhir', 'approved')
             ->whereYear('tanggal_mulai', $tahunSekarang)
             ->sum('total_hari');
 
+        // Total pengajuan yang masih dalam antrean (Pending)
         $totalPending = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
-            ->where('status_manager', 'pending')
-            ->where('status_supervisor', '!=', 'rejected')
+            ->where('status_akhir', 'pending')
             ->count();
 
-        $sisaKuota = $kuotaTahunan - $totalCutiDiambil;
+        // 1. Total hari cuti tahunan yang telah disetujui (Approved)
+        $totalCutiDiambil = (int) DB::table('pengajuan_cutis')
+            ->where('user_id', $user->id)
+            ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
+            ->where('status_akhir', 'approved')
+            ->whereYear('tanggal_mulai', $tahunSekarang)
+            ->sum('total_hari');
+
+        // 2. Hitung Sisa Kuota Real-Time (Kuota Awal - Total Cuti Diambil)
+        $sisaKuota = max(0, $kuotaTahunan - $totalCutiDiambil);
 
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')

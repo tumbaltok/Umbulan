@@ -33,10 +33,11 @@ class DatabaseSeeder extends Seeder
         Storage::disk('public')->makeDirectory('dokumen_cuti');
 
         // DATA MASTER ROLES
-        $roleAdmin = Role::create(['role_name' => 'Admin']);
+        $roleHRD = Role::create(['role_name' => 'HRD']);
         $roleManager = Role::create(['role_name' => 'Manager']);
         $roleSpv = Role::create(['role_name' => 'Supervisor']);
         $roleStaff = Role::create(['role_name' => 'Staff']);
+        $roleAdmin = Role::create(['role_name' => 'Admin']);
 
         // DATA MASTER GENDERS
         $pria = Gender::create(['name' => 'Pria']);
@@ -174,6 +175,17 @@ class DatabaseSeeder extends Seeder
             'gender_id' => $pria->id,
             'station_id' => $stasiunUmbulan->id,
             'password' => Hash::make('manager123'),
+        ]);
+
+        // Akun HRD
+        User::create([
+            'nip' => '101',
+            'name' => 'HRD',
+            'email' => 'hrd@meta.com',
+            'role_id' => $roleHRD->id,
+            'gender_id' => $pria->id,
+            'station_id' => $stasiunUmbulan->id,
+            'password' => Hash::make('hrd123'),
         ]);
 
         // SPV Umbulan

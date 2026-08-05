@@ -270,7 +270,7 @@ class PengajuanCutiController extends Controller
         $statusManager    = 'pending';
         $statusAkhir      = 'pending';
 
-        if ($roleName === 'manager') {
+        if (in_array($roleName, ['manager', 'hrd'])) {
             $statusSupervisor = 'approved';
             $statusManager    = 'approved';
             $statusAkhir      = 'approved';
@@ -448,7 +448,7 @@ class PengajuanCutiController extends Controller
         $statusSupervisor = 'pending';
         $statusManager    = 'pending';
         $statusAkhir      = 'pending';
-        if ($roleName === 'manager') {
+        if (in_array($roleName, ['manager', 'hrd'])) {
             $statusSupervisor = 'approved';
             $statusManager    = 'approved';
             $statusAkhir      = 'approved';
@@ -571,7 +571,7 @@ class PengajuanCutiController extends Controller
             ]);
         }
 
-        if ($roleName === 'manager') {
+        if (in_array($roleName, ['manager', 'hrd'])) {
             if ($pengajuan->status_supervisor === 'rejected') {
                 return response()->json(['message' => 'Ditolak! Sudah ditolak oleh Supervisor.'], 400);
             }
@@ -721,7 +721,7 @@ class PengajuanCutiController extends Controller
             $query->where('pengajuan_cutis.status_manager', 'pending')
                 ->where('pengajuan_cutis.status_supervisor', 'approved');
 
-        } elseif($roleName  === 'admin') {
+        } elseif(in_array($roleName, ['admin', 'hrd'])) {
             $query->where(function($q) {
                 $q->where('pengajuan_cutis.status_supervisor', 'pending')
                 ->orWhere('pengajuan_cutis.status_manager', 'pending');
@@ -759,7 +759,7 @@ class PengajuanCutiController extends Controller
             ]);
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
 
-        } elseif ($roleName === 'manager') {
+        } elseif (in_array($roleName, ['manager', 'hrd'])) {
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
             }
