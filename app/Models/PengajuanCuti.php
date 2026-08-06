@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'alasan_cuti', 
     'dokumen_pendukung', 
     'status_supervisor', 
-    'supervisor_id', // Tambahkan kolom ID Supervisor
+    'supervisor_id', 
     'status_manager', 
-    'manager_id',    // Tambahkan kolom ID Manager
+    'manager_id',   
     'status_akhir', 
     'catatan_penolakan'
 ])]

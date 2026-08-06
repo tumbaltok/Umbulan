@@ -13,7 +13,6 @@ use App\Http\Controllers\PengajuanCarController;
 use App\Http\Controllers\PengajuanMprController;
 use App\Http\Controllers\KehadiranController;
 use App\Http\Controllers\JadwalController;
-use App\Http\Controllers\UserScheduleController; // <-- DITAMBAHKAN DI SINI
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
