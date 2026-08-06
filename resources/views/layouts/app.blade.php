@@ -318,7 +318,7 @@
 
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- HEADER UTAMA DENGAN JAM DIGITAL DI TENGAH -->
+        <!-- HEADER UTAMA DENGAN JAM DIGITAL (DESKTOP) DAN FLOATING (MOBILE) -->
         <header class="bg-white border-b border-slate-100 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
             {{-- Sisi Kiri: Tombol Drawer Mobile & Nama Stasiun --}}
             <div class="flex items-center space-x-3">
@@ -332,12 +332,13 @@
             </div>
 
             {{-- Sisi Tengah: Jam Digital & Tanggal Real-Time --}}
-            <div class="hidden sm:flex flex-col items-center justify-center text-center px-5 py-1.5 bg-slate-50 border border-slate-200/60 rounded-2xl shadow-inner">
-                <div class="flex items-center space-x-2 text-sky-600 font-mono font-black text-base md:text-lg tracking-wider">
-                    <i class="fa-solid fa-clock text-xs text-sky-500"></i>
+            {{-- Menggunakan class fixed bottom-4 left-1/2 -translate-x-1/2 pada mobile & inline pada desktop --}}
+            <div class="fixed bottom-4 right-4 z-40 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 text-white sm:text-slate-800 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
+                <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
+                    <i class="fa-solid fa-clock text-[10px] sm:text-xs text-sky-400 sm:text-sky-500"></i>
                     <span id="headerDigitalClock">00:00:00 WIB</span>
                 </div>
-                <span id="headerDateDisplay" class="text-[10px] text-slate-500 font-medium tracking-tight">--</span>
+                <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 font-medium tracking-tight">--</span>
             </div>
 
             {{-- Sisi Kanan: Profil User --}}
@@ -356,7 +357,7 @@
             </div>
         </header>
 
-        <main class="p-6 max-w-7xl w-full mx-auto">
+        <main class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6">
             @yield('content')
         </main>
     </div>
