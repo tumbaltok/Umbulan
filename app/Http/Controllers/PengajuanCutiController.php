@@ -754,7 +754,8 @@ class PengajuanCutiController extends Controller
         if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
-                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
+                'supervisor_id'     => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir'      => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
@@ -770,8 +771,9 @@ class PengajuanCutiController extends Controller
             DB::beginTransaction();
             try {
                 $pengajuan->update([
-                    'status_manager' => $tindakan,
-                    'status_akhir' => $tindakan,
+                    'status_manager'    => $tindakan,
+                    'manager_id'        => $tindakan === 'approved' ? $atasan->id : null,
+                    'status_akhir'      => $tindakan,
                     'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
                 ]);
 
@@ -793,7 +795,8 @@ class PengajuanCutiController extends Controller
 
     public function cetakSuratCuti(int $id)
     {
-        $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
+        // Load relasi pemohon, supervisor, dan manager
+        $pengajuan = PengajuanCuti::with(['user', 'supervisor', 'manager'])->findOrFail($id);
 
         if ($pengajuan->status_manager !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');

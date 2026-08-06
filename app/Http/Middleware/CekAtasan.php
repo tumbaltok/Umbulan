@@ -26,11 +26,11 @@ class CekAtasan
         $roleName = strtolower(Auth::user()->role?->role_name ?? '');
 
         // 3. Cek menggunakan array huruf kecil semua agar cocok dengan strtolower
-        if (!in_array($roleName, ['manager', 'supervisor', 'admin'])) {
+        if (!in_array($roleName, ['manager', 'supervisor', 'hrd', 'admin'])) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut!');
         }
 
-        // 4. Jika termasuk Manager, Supervisor, atau Admin, izinkan akses
+        // 4. Jika termasuk Manager, Supervisor, HRD, atau Admin, izinkan akses
         return $next($request);
     }
 }

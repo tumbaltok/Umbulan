@@ -368,21 +368,36 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="ttd-border-right" style="padding-top: 10px;">
-                                <div style="height: 60px; text-align: center; vertical-align: middle;">
+                            {{-- 1. TTD Karyawan Pemohon --}}
+                            <td class="ttd-border-right" style="padding-top: 5px; padding-bottom: 5px;">
+                                <div style="height: 55px; text-align: center; vertical-align: middle;">
                                     @if(optional($pengajuan->user)->signature && file_exists(public_path('storage/' . $pengajuan->user->signature)))
-                                        <img src="{{ public_path('storage/' . $pengajuan->user->signature) }}" style="max-height: 55px; max-width: 110px; object-fit: contain;">
+                                        <img src="{{ public_path('storage/' . $pengajuan->user->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
                                     @endif
                                 </div>
                                 <span class="ttd-line">{{ $pengajuan->user->name }}</span>
                                 <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Karyawan</div>
                             </td>
-                            <td class="ttd-border-right">
-                                <span class="ttd-line">&nbsp;</span>
+
+                            {{-- 2. TTD Supervisor / Atasan Langsung --}}
+                            <td class="ttd-border-right" style="padding-top: 5px; padding-bottom: 5px;">
+                                <div style="height: 55px; text-align: center; vertical-align: middle;">
+                                    @if(optional($pengajuan->supervisor)->signature && file_exists(public_path('storage/' . $pengajuan->supervisor->signature)))
+                                        <img src="{{ public_path('storage/' . $pengajuan->supervisor->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                                    @endif
+                                </div>
+                                <span class="ttd-line">{{ $pengajuan->supervisor->name ?? 'Atasan Langsung' }}</span>
                                 <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Atasan langsung</div>
                             </td>
-                            <td>
-                                <span class="ttd-line">&nbsp;</span>
+
+                            {{-- 3. TTD Manager --}}
+                            <td style="padding-top: 5px; padding-bottom: 5px;">
+                                <div style="height: 55px; text-align: center; vertical-align: middle;">
+                                    @if(optional($pengajuan->manager)->signature && file_exists(public_path('storage/' . $pengajuan->manager->signature)))
+                                        <img src="{{ public_path('storage/' . $pengajuan->manager->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                                    @endif
+                                </div>
+                                <span class="ttd-line">{{ $pengajuan->manager->name ?? 'Manager' }}</span>
                                 <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Manager</div>
                             </td>
                         </tr>

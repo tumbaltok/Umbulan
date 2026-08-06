@@ -23,7 +23,9 @@ return new class extends Migration
             $table->string('dokumen_pendukung')->nullable();
             // Alur Persetujuan Bertingkat
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status_manager', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             // Alasan jika cuti ditolak atasan
             $table->text('catatan_penolakan')->nullable();

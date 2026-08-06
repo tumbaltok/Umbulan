@@ -208,6 +208,7 @@
 
     <table class="approval-table">
         <tr>
+            {{-- 1. PEMOHON / REQUESTER --}}
             <td>
                 <div class="approval-title">Requested By</div>
                 <div style="font-size: 9px; margin-top: 2px;">Requester</div>
@@ -216,23 +217,37 @@
                         <img src="{{ public_path('storage/' . $car->user->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
                     @endif
                 </div>
-                <div class="signer-name">{{ $car->user->name }}</div>
-                <div>Staff</div>
+                <div class="signer-name">{{ $car->user->name ?? '-' }}</div>
+                <div>Staff / Karyawan</div>
             </td>
+
+            {{-- 2. SUPERVISOR --}}
             <td>
                 <div class="approval-title">Checked By</div>
                 <div style="font-size: 9px; margin-top: 2px;">Supervisor</div>
-                <div class="signature-space"></div>
-                <div class="signer-name">{{ 'Nama SPV' }}</div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($car->supervisor)->signature && file_exists(public_path('storage/' . $car->supervisor->signature)))
+                        <img src="{{ public_path('storage/' . $car->supervisor->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
+                <div class="signer-name">{{ $car->supervisor->name ?? '...........................' }}</div>
                 <div>Supervisor Operasional</div>
             </td>
+
+            {{-- 3. MANAGER --}}
             <td>
                 <div class="approval-title">Checked & Proceed By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Finance</div>
-                <div class="signature-space"></div>
-                <div class="signer-name">{{'Nama Manager'}}</div>
+                <div style="font-size: 9px; margin-top: 2px;">Finance / Manager</div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($car->manager)->signature && file_exists(public_path('storage/' . $car->manager->signature)))
+                        <img src="{{ public_path('storage/' . $car->manager->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
+                <div class="signer-name">{{ $car->manager->name ?? '...........................' }}</div>
                 <div>General Manager</div>
             </td>
+
+            {{-- 4. DIRECTOR --}}
             <td>
                 <div class="approval-title">Approved By</div>
                 <div style="font-size: 9px; margin-top: 2px;">Director</div>

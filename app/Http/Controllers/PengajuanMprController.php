@@ -71,29 +71,30 @@ class PengajuanMprController extends Controller
 
         $user = Auth::user();
         
-        // Upload Dokumen
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
         }
 
-        // Penentuan Status Berdasarkan Role Pengaju
         $roleName = strtolower($user->role->role_name ?? '');
         $statusSupervisor = 'pending';
         $statusManager    = 'pending';
         $statusAkhir      = 'pending';
+        $supervisorId     = null;
+        $managerId        = null;
 
         if ($roleName === 'manager') {
             $statusSupervisor = 'approved';
             $statusManager    = 'approved';
             $statusAkhir      = 'approved';
+            $managerId        = $user->id;
         } elseif ($roleName === 'supervisor') {
             $statusSupervisor = 'approved';
             $statusManager    = 'pending';
             $statusAkhir      = 'pending';
+            $supervisorId     = $user->id;
         }
 
-        // Generate Nomor Surat MPR
         $nomorMpr = 'MPR/' . date('Y/m/') . sprintf("%03d", PengajuanMpr::whereMonth('created_at', date('m'))->count() + 1);
 
         DB::beginTransaction();
@@ -105,8 +106,10 @@ class PengajuanMprController extends Controller
                 'keperluan_urgensi' => $request->keperluan_urgensi,
                 'dokumen_pendukung' => $namaDokumen,
                 'status_supervisor' => $statusSupervisor,
-                'status_manager' => $statusManager,
-                'status_akhir' => $statusAkhir,
+                'supervisor_id'     => $supervisorId,
+                'status_manager'    => $statusManager,
+                'manager_id'        => $managerId,
+                'status_akhir'      => $statusAkhir,
             ]);
 
             foreach ($request->items as $item) {
@@ -122,7 +125,6 @@ class PengajuanMprController extends Controller
 
             DB::commit();
 
-            // Notifikasi WhatsApp ke Atasan
             if ($statusAkhir === 'pending') {
                 $targetAtasan = User::where('station_id', $user->station_id)
                     ->whereHas('role', function($query) {
@@ -184,7 +186,7 @@ class PengajuanMprController extends Controller
     }
 
     // ATASAN: Memproses Aksi Setuju / Tolak
-    public function prosesPersetujuan(Request $request, $id)
+    public function prosesPersetujuan(Request $request,int $id)
     {
         $request->validate([
             'tindakan' => 'required|in:approved,rejected',
@@ -199,13 +201,15 @@ class PengajuanMprController extends Controller
         if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
-                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
+                'supervisor_id'     => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir'      => $tindakan === 'rejected' ? 'rejected' : 'pending',
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
         } elseif ($roleName === 'manager') {
             $pengajuan->update([
                 'status_manager' => $tindakan,
-                'status_akhir' => $tindakan,
+                'manager_id'     => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir'   => $tindakan,
                 'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
             ]);
         }
@@ -213,11 +217,12 @@ class PengajuanMprController extends Controller
         return redirect()->back()->with('success', 'Status pengajuan MPR berhasil diperbarui.');
     }
 
+    // CETAK PDF MPR
     public function cetakPdf(int $id)
     {
-        $mpr = PengajuanMpr::with(['user.role', 'user.station', 'items'])->findOrFail($id);
+        // Load relasi pemohon, supervisor, manager, station, dan items
+        $mpr = PengajuanMpr::with(['user.role', 'user.station', 'supervisor', 'manager', 'items'])->findOrFail($id);
 
-        // Amankan agar cetak PDF hanya untuk pengajuan yang sudah disetujui (opsional)
         if ($mpr->status_akhir === 'rejected') {
             return redirect()->back()->with('error', 'Dokumen MPR yang ditolak tidak dapat dicetak.');
         }

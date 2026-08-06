@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // 1. Tabel Header Pengajuan MPR
         Schema::create('pengajuan_mprs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
@@ -16,16 +17,20 @@ return new class extends Migration
             $table->text('keperluan_urgensi');
             $table->string('dokumen_pendukung')->nullable();
             
-            // Status Persetujuan Bertingkat
+            // Status Persetujuan Bertingkat & ID Approver (Untuk TTD Otomatis)
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
+
             $table->enum('status_manager', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
+
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('catatan_penolakan')->nullable();
             
             $table->timestamps();
         });
 
-        // Tabel Detail Material/Barang yang Diminta
+        // 2. Tabel Detail Material/Barang MPR
         Schema::create('pengajuan_mpr_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pengajuan_mpr_id')->constrained('pengajuan_mprs')->onDelete('cascade');
@@ -40,7 +45,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('pengajuan_mpr_items');
+        Schema::dropIfExists('pengajuan_mpr_details');
         Schema::dropIfExists('pengajuan_mprs');
     }
 };

@@ -217,9 +217,9 @@
         </tbody>
     </table>
 
-    <!-- TABLE OTORISASI / APPROVAL -->
     <table class="approval-table">
         <tr>
+            {{-- 1. PEMOHON MATERIAL --}}
             <td>
                 <div class="approval-title">Diajukan Oleh</div>
                 <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Pemohon Material</div>
@@ -228,27 +228,41 @@
                         <img src="{{ public_path('storage/' . $mpr->user->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
                     @endif
                 </div>
-                <div class="signer-name">{{ $mpr->user->name }}</div>
+                <div class="signer-name">{{ $mpr->user->name ?? '-' }}</div>
                 <div style="font-size: 8.5px; color: #475569;">{{ $mpr->user->job_title ?? 'Karyawan' }}</div>
             </td>
+
+            {{-- 2. DIVERIFIKASI SUPERVISOR --}}
             <td>
                 <div class="approval-title">Diverifikasi Oleh</div>
                 <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Supervisor Operasional</div>
-                <div class="signature-space"></div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($mpr->supervisor)->signature && file_exists(public_path('storage/' . $mpr->supervisor->signature)))
+                        <img src="{{ public_path('storage/' . $mpr->supervisor->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
                 <div class="signer-name">
-                    {{ $mpr->status_supervisor === 'approved' ? 'DISAGI / VERIFIED' : '...........................' }}
+                    {{ $mpr->supervisor->name ?? '...........................' }}
                 </div>
                 <div style="font-size: 8.5px; color: #475569;">Supervisor</div>
             </td>
+
+            {{-- 3. DISETUJUI MANAGER --}}
             <td>
                 <div class="approval-title">Disetujui Oleh</div>
                 <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Manager Department</div>
-                <div class="signature-space"></div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($mpr->manager)->signature && file_exists(public_path('storage/' . $mpr->manager->signature)))
+                        <img src="{{ public_path('storage/' . $mpr->manager->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
                 <div class="signer-name">
-                    {{ $mpr->status_manager === 'approved' ? 'APPROVED' : '...........................' }}
+                    {{ $mpr->manager->name ?? '...........................' }}
                 </div>
                 <div style="font-size: 8.5px; color: #475569;">General Manager</div>
             </td>
+
+            {{-- 4. PROCUREMENT --}}
             <td>
                 <div class="approval-title">Diketahui Oleh</div>
                 <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Procurement / Finance</div>

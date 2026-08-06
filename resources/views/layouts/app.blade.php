@@ -255,7 +255,10 @@
 
                 <!-- Administrasi -->
                 @if($hasAccess)
-                    @php $isAdminActive = request()->is('admin/*') || request()->routeIs('admin.*'); @endphp
+                @php 
+                    $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*')) 
+                                    && !request()->is('admin/persetujuan/*'); 
+                @endphp
                     <div class="dropdown-container" data-active="{{ $isAdminActive ? 'true' : 'false' }}">
                         <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isAdminActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Administrasi">
                             <div class="flex items-center space-x-3">
