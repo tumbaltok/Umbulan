@@ -223,7 +223,11 @@
             <td>
                 <div class="approval-title">Diajukan Oleh</div>
                 <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Pemohon Material</div>
-                <div class="signature-space"></div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($mpr->user)->signature && file_exists(public_path('storage/' . $mpr->user->signature)))
+                        <img src="{{ public_path('storage/' . $mpr->user->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
                 <div class="signer-name">{{ $mpr->user->name }}</div>
                 <div style="font-size: 8.5px; color: #475569;">{{ $mpr->user->job_title ?? 'Karyawan' }}</div>
             </td>

@@ -12,31 +12,50 @@
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 bg-slate-50/50">
             <h2 class="text-xl font-bold text-slate-800">Pengaturan Akun & Keamanan</h2>
-            <p class="text-sm text-slate-500 mt-0.5">Perbarui informasi profil Anda dan amankan akun dengan kombinasi password baru.</p>
+            <p class="text-sm text-slate-500 mt-0.5">Perbarui informasi profil, tanda tangan digital, dan amankan akun dengan kombinasi password baru.</p>
         </div>
 
         {{-- Form data umum, jadwal kerja, & keamanan --}}
-        <form action="{{ route('account.update') }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
             @csrf
             @method('PUT')
 
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Informasi Profil</h3>
 
-                {{-- Container Foto Profil Utama --}}
-                <div class="flex flex-col items-center justify-center text-center mb-8">
-                    <div class="w-24 h-24 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden border-4 border-white ring-4 ring-sky-100">
-                        @if($user->profile_photo)
-                            <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                        @endif
+                {{-- Container Foto Profil & TTD --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 border-b border-slate-100 pb-6">
+                    {{-- Foto Profil --}}
+                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden border-2 border-white ring-2 ring-sky-100">
+                            @if($user->profile_photo)
+                                <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                            @endif
+                        </div>
+
+                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Ubah Foto Profil</span>
+                        </button>
                     </div>
 
-                    <button type="button" id="openModalPhotoBtn" class="mt-3 text-sm font-semibold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
-                        <i class="fa-solid fa-camera"></i>
-                        <span>Ubah Foto Profil</span>
-                    </button>
+                    {{-- Tanda Tangan Digital (TTD) --}}
+                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2 shadow-inner">
+                            @if($user->signature)
+                                <img src="{{ asset('storage/' . $user->signature) }}" alt="Tanda Tangan" class="max-w-full max-h-full object-contain">
+                            @else
+                                <span class="text-xs text-slate-400 italic">Belum Ada TTD</span>
+                            @endif
+                        </div>
+
+                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center space-x-1">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <span>Unggah Tanda Tangan (TTD)</span>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Grid untuk Form Data Profil --}}
@@ -343,6 +362,55 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL UPLOAD TANDA TANGAN DIGITAL (TTD) --}}
+<div id="signatureModal" 
+     data-has-error="{{ $errors->has('signature') ? 'true' : 'false' }}"
+     class="fixed inset-0 z-50 items-center justify-center hidden">
+    <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-800 text-base">Unggah Berkas TTD</h3>
+            <button type="button" id="closeModalSignatureBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <form action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" id="uploadSignatureForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="name" value="{{ $user->name }}">
+                <input type="hidden" name="email" value="{{ $user->email }}">
+                <input type="hidden" name="schedule_type" value="{{ $user->schedule_type ?? 'normal' }}">
+
+                <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors bg-slate-50/50">
+                    <input type="file" name="signature" id="signature_input" accept="image/png,image/jpeg,image/jpg" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" required/>
+                </div>
+                @error('signature') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
+                <p class="text-xs text-slate-400 text-center mt-2">Disarankan menggunakan format PNG transparan. Maksimal 2MB.</p>
+            </form>
+
+            @if($user->signature)
+                <div class="pt-2 text-center border-t border-slate-100">
+                    <form action="{{ route('account.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="delete_signature" value="1">
+                        <button type="submit" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors bg-rose-50 hover:bg-rose-100/70 px-3 py-1.5 rounded-lg border border-rose-200/40">
+                            <i class="fa-solid fa-trash-can"></i> <span>Hapus TTD Saat Ini</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
+        </div>
+
+        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 pt-4">
+            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50">Batal</button>
+            <button type="submit" form="uploadSignatureForm" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 shadow-sm">Simpan TTD</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -420,12 +488,69 @@
     document.addEventListener("DOMContentLoaded", function () {
         toggleScheduleOptions();
 
-        const modal = document.getElementById("photoModal");
-        const openBtn = document.getElementById("openModalPhotoBtn");
-        const closeBtn = document.getElementById("closeModalPhotoBtn");
-        const cancelBtn = document.getElementById("cancelModalPhotoBtn");
-        const backdrop = document.getElementById("modalBackdrop");
+        // LOGIKA MODAL FOTO PROFIL
+        const modalPhoto = document.getElementById("photoModal");
+        const openPhotoBtn = document.getElementById("openModalPhotoBtn");
+        const closePhotoBtn = document.getElementById("closeModalPhotoBtn");
+        const cancelPhotoBtn = document.getElementById("cancelModalPhotoBtn");
+        const backdropPhoto = document.getElementById("modalBackdrop");
 
+        function showPhotoModal() {
+            if (modalPhoto) {
+                modalPhoto.classList.remove("hidden");
+                modalPhoto.classList.add("flex");
+                document.body.classList.add("overflow-hidden");
+            }
+        }
+        function hidePhotoModal() {
+            if (modalPhoto) {
+                modalPhoto.classList.remove("flex");
+                modalPhoto.classList.add("hidden");
+                document.body.classList.remove("overflow-hidden");
+            }
+        }
+
+        if (openPhotoBtn) openPhotoBtn.addEventListener("click", showPhotoModal);
+        if (closePhotoBtn) closePhotoBtn.addEventListener("click", hidePhotoModal);
+        if (cancelPhotoBtn) cancelPhotoBtn.addEventListener("click", hidePhotoModal);
+        if (backdropPhoto) backdropPhoto.addEventListener("click", hidePhotoModal);
+
+        if (modalPhoto && modalPhoto.dataset.hasError === 'true') {
+            showPhotoModal();
+        }
+
+        // LOGIKA MODAL TANDA TANGAN DIGITAL (TTD)
+        const modalSig = document.getElementById("signatureModal");
+        const openSigBtn = document.getElementById("openModalSignatureBtn");
+        const closeSigBtn = document.getElementById("closeModalSignatureBtn");
+        const cancelSigBtn = document.getElementById("cancelModalSignatureBtn");
+        const backdropSig = document.getElementById("modalSignatureBackdrop");
+
+        function showSigModal() {
+            if (modalSig) {
+                modalSig.classList.remove("hidden");
+                modalSig.classList.add("flex");
+                document.body.classList.add("overflow-hidden");
+            }
+        }
+        function hideSigModal() {
+            if (modalSig) {
+                modalSig.classList.remove("flex");
+                modalSig.classList.add("hidden");
+                document.body.classList.remove("overflow-hidden");
+            }
+        }
+
+        if (openSigBtn) openSigBtn.addEventListener("click", showSigModal);
+        if (closeSigBtn) closeSigBtn.addEventListener("click", hideSigModal);
+        if (cancelSigBtn) cancelSigBtn.addEventListener("click", hideSigModal);
+        if (backdropSig) backdropSig.addEventListener("click", hideSigModal);
+
+        if (modalSig && modalSig.dataset.hasError === 'true') {
+            showSigModal();
+        }
+
+        // LOGIKA OTP & TELEPON
         const btnSendOtp = document.getElementById("btn-send-otp");
         const btnVerifyOtp = document.getElementById("btn-verify-otp");
         const inputPhone = document.getElementById("phone_number");
@@ -437,7 +562,6 @@
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        // KIRIM OTP
         if (btnSendOtp) {
             btnSendOtp.addEventListener("click", function () {
                 phoneError.classList.add("hidden");
@@ -477,7 +601,6 @@
             });
         }
 
-        // VERIFIKASI OTP
         if (btnVerifyOtp) {
             btnVerifyOtp.addEventListener("click", function () {
                 otpMessage.innerText = "";
@@ -552,30 +675,6 @@
                     timeLeft--;
                 }
             }, 1000);
-        }
-
-        function showModal() {
-            if (modal) {
-                modal.classList.remove("hidden");
-                modal.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
-        }
-        function hideModal() {
-            if (modal) {
-                modal.classList.remove("flex");
-                modal.classList.add("hidden");
-                document.body.classList.remove("overflow-hidden");
-            }
-        }
-
-        if (openBtn) openBtn.addEventListener("click", showModal);
-        if (closeBtn) closeBtn.addEventListener("click", hideModal);
-        if (cancelBtn) cancelBtn.addEventListener("click", hideModal);
-        if (backdrop) backdrop.addEventListener("click", hideModal);
-
-        if (modal && modal.dataset.hasError === 'true') {
-            showModal();
         }
     });
 </script>

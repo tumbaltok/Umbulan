@@ -211,7 +211,11 @@
             <td>
                 <div class="approval-title">Requested By</div>
                 <div style="font-size: 9px; margin-top: 2px;">Requester</div>
-                <div class="signature-space"></div>
+                <div class="signature-space" style="text-align: center; vertical-align: middle;">
+                    @if(optional($car->user)->signature && file_exists(public_path('storage/' . $car->user->signature)))
+                        <img src="{{ public_path('storage/' . $car->user->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
+                    @endif
+                </div>
                 <div class="signer-name">{{ $car->user->name }}</div>
                 <div>Staff</div>
             </td>

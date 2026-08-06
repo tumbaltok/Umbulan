@@ -368,7 +368,12 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="ttd-border-right">
+                            <td class="ttd-border-right" style="padding-top: 10px;">
+                                <div style="height: 60px; text-align: center; vertical-align: middle;">
+                                    @if(optional($pengajuan->user)->signature && file_exists(public_path('storage/' . $pengajuan->user->signature)))
+                                        <img src="{{ public_path('storage/' . $pengajuan->user->signature) }}" style="max-height: 55px; max-width: 110px; object-fit: contain;">
+                                    @endif
+                                </div>
                                 <span class="ttd-line">{{ $pengajuan->user->name }}</span>
                                 <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Karyawan</div>
                             </td>

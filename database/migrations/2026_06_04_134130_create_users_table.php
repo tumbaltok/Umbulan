@@ -28,6 +28,7 @@ return new class extends Migration
             $table->date('roster_start_date')->nullable();
             $table->json('face_descriptor')->nullable();
             $table->string('profile_photo')->nullable();
+            $table->string('signature')->nullable();
             $table->string('phone_number')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
