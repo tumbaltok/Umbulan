@@ -31,8 +31,8 @@ class DashboardController extends Controller
         $today = Carbon::today()->format('Y-m-d');
 
         // 1. Parameter Navigasi Bulan & Tahun Kalender Activity
-        $selectedMonth = $request->get('month', Carbon::now()->month);
-        $selectedYear = $request->get('year', Carbon::now()->year);
+        $selectedMonth = (int) $request->get('month', Carbon::now()->month);
+        $selectedYear = (int) $request->get('year', Carbon::now()->year);
 
         // 2. Ambil Matriks Kalender Bulanan & Deteksi Jadwal Hari Ini
         $calendarDays = $this->calendarService->getMonthlyCalendar($user, $selectedMonth, $selectedYear);
@@ -43,41 +43,16 @@ class DashboardController extends Controller
             ->where('date', $today)
             ->first();
 
-        // 4. Data Saldo Cuti & CAR Existing
-        // Pastikan nama kolom konsisten 'sisa_saldo'
-        $saldoTahunan = SaldoCuti::firstOrCreate(
-            [
-                'user_id'       => $user->id,
-                'jenis_cuti_id' => User::CUTI_TAHUNAN_ID,
-                'tahun'         => $tahunSekarang,
-            ],
-            [
-                'kuota_awal' => 12,
-                'sisa_saldo' => 12,
-            ]
-        );
-
-        $kuotaTahunan = $saldoTahunan->kuota_awal;
-
-        $riwayatCar = PengajuanCar::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Total hari cuti tahunan yang telah disetujui (Approved)
-        $totalCutiDiambil = DB::table('pengajuan_cutis')
-            ->where('user_id', $user->id)
+        // 4. Data Saldo Cuti (Proteksi agar tidak error untuk Pria & Wanita)
+        $saldoTahunan = SaldoCuti::where('user_id', $user->id)
             ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
-            ->where('status_akhir', 'approved')
-            ->whereYear('tanggal_mulai', $tahunSekarang)
-            ->sum('total_hari');
+            ->where('tahun', $tahunSekarang)
+            ->first();
 
-        // Total pengajuan yang masih dalam antrean (Pending)
-        $totalPending = DB::table('pengajuan_cutis')
-            ->where('user_id', $user->id)
-            ->where('status_akhir', 'pending')
-            ->count();
+        // Jika data saldo belum terbuat, gunakan nilai default tanpa bikin crash
+        $kuotaTahunan = $saldoTahunan->kuota_awal ?? 12;
 
-        // 1. Total hari cuti tahunan yang telah disetujui (Approved)
+        // 5. Total Cuti Diambil & Pending
         $totalCutiDiambil = (int) DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('jenis_cuti_id', User::CUTI_TAHUNAN_ID)
@@ -85,8 +60,18 @@ class DashboardController extends Controller
             ->whereYear('tanggal_mulai', $tahunSekarang)
             ->sum('total_hari');
 
-        // 2. Hitung Sisa Kuota Real-Time (Kuota Awal - Total Cuti Diambil)
-        $sisaKuota = max(0, $kuotaTahunan - $totalCutiDiambil);
+        $totalPending = DB::table('pengajuan_cutis')
+            ->where('user_id', $user->id)
+            ->where('status_akhir', 'pending')
+            ->count();
+
+        // 6. Hitung Sisa Kuota Real-Time
+        $sisaKuota = $saldoTahunan->sisa_saldo ?? max(0, $kuotaTahunan - $totalCutiDiambil);
+
+        // 7. Riwayat CAR & Cuti
+        $riwayatCar = PengajuanCar::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')

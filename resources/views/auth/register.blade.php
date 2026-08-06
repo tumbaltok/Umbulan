@@ -292,11 +292,11 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="password" dan mengubah typo text-slate-880 menjadi text-slate-800 -->
                                     <input type="password" id="password" name="password" required
                                         class="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Min. 8 karakter">
-                                    <button type="button" onclick="togglePasswordVisibility('password', 'password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                    
+                                    <button type="button" tabindex="-1" onclick="togglePasswordVisibility('password', 'password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="password-icon" class="fa-solid fa-eye text-xs"></i>
                                     </button>
                                 </div>
@@ -309,11 +309,11 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="password_confirmation" (Standar Laravel) -->
                                     <input type="password" id="confirm_password" name="password_confirmation" required
                                         class="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Ulangi kata sandi">
-                                    <button type="button" onclick="togglePasswordVisibility('confirm_password', 'confirm-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                        
+                                    <button type="button" tabindex="-1" onclick="togglePasswordVisibility('confirm_password', 'confirm-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="confirm-icon" class="fa-solid fa-eye text-xs"></i>
                                     </button>
                                 </div>

@@ -29,7 +29,8 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        User::create([
+        // 1. Buat User Baru
+        $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
@@ -39,7 +40,12 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
+        // 2. OTOMATIS LOGIN-KAN USER
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // 3. DIRECT LANGSUNG KE DASHBOARD
+        return redirect()->intended('/dashboard')->with('success', 'Pendaftaran berhasil! Selamat datang di Portal Cuti.');
     }
 
     /**

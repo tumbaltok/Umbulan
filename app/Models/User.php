@@ -60,19 +60,31 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         static::created(function ($user) {
-            $jenisCuti = JenisCuti::where('name_cuti', 'LIKE', '%Cuti%')
-                                ->where('kuota_default', 12)
-                                ->first();
-                                
-            $jenisCutiId = $jenisCuti ? $jenisCuti->id : self::CUTI_TAHUNAN_ID;
+            // Ambil semua master Jenis Cuti
+            $semuaJenisCuti = JenisCuti::all();
 
-            SaldoCuti::create([
-                'user_id'       => $user->id,
-                'jenis_cuti_id' => $jenisCutiId,
-                'tahun'         => now()->year,
-                'kuota_awal'    => 12, 
-                'sisa_saldo'    => 12, // Disesuaikan dengan $fillable SaldoCuti
-            ]);
+            foreach ($semuaJenisCuti as $cuti) {
+                // 1. Proteksi Cuti Melahirkan (id = 3) -> Hanya untuk Gender Wanita (id = 2)
+                if ($cuti->id == 3 && $user->gender_id != 2) {
+                    continue;
+                }
+
+                // 2. Tentukan kuota & saldo awal
+                $saldoAwal = $cuti->kuota_default ?? 0;
+
+                // Jika Ijin Meninggalkan Pekerjaan (id = 1) dan Gender Wanita (id = 2), beri kuota 2 untuk Haid
+                if ($cuti->id == 1 && $user->gender_id == 2) {
+                    $saldoAwal = 2;
+                }
+
+                SaldoCuti::create([
+                    'user_id'       => $user->id,
+                    'jenis_cuti_id' => $cuti->id,
+                    'tahun'         => now()->year,
+                    'kuota_awal'    => $saldoAwal,
+                    'sisa_saldo'    => $saldoAwal,
+                ]);
+            }
         });
     }
 
