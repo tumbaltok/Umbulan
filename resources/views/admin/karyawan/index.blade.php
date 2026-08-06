@@ -111,19 +111,15 @@
                             {{-- Status Operasional --}}
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
-                                    <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold">
+                                    @php $cuti = $karyawan->cuti_aktif->first(); @endphp
+                                    <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold" title="{{ $cuti->alasan_cuti }}">
                                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
                                         On Leave (Cuti)
                                     </span>
-                                @elseif($karyawan->status_is_on_now)
-                                    <span class="inline-flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold">
-                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
-                                        ON (Sedang Bekerja)
-                                    </span>
                                 @else
-                                    <span class="inline-flex items-center text-xs text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full font-semibold">
-                                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full mr-1.5"></span>
-                                        OFF (Tidak Bekerja)
+                                    <span class="inline-flex items-center text-xs {{ $karyawan->status_detail['badge_class'] }} border px-2.5 py-1 rounded-full font-bold">
+                                        <span class="w-1.5 h-1.5 {{ $karyawan->status_detail['dot_class'] }} rounded-full mr-1.5 {{ $karyawan->status_detail['is_on'] ? 'animate-pulse' : '' }}"></span>
+                                        {{ $karyawan->status_detail['label'] }}
                                     </span>
                                 @endif
                             </td>
@@ -152,7 +148,7 @@
 <div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="detailModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
             <h3 class="font-bold text-slate-800 text-base">Detail Lengkap Karyawan</h3>
             <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50">
@@ -178,7 +174,7 @@
                     <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
                 
-                {{-- EMAIL DENGAN TOMBOL KIRIM EMAIL --}}
+                {{-- EMAIL --}}
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Email</span>
                     <div class="col-span-2 flex items-center space-x-2">
@@ -190,7 +186,7 @@
                     </div>
                 </div>
 
-                {{-- NO. TELEPON DENGAN TOMBOL CHAT WA --}}
+                {{-- NO. TELEPON --}}
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">No. Telepon</span>
                     <div class="col-span-2 flex items-center space-x-2">
@@ -206,9 +202,46 @@
                     <span class="text-slate-400 font-medium">Jobdesk</span>
                     <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
-                <div class="grid grid-cols-3 pb-2">
+                
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
                     <span class="text-slate-400 font-medium">Stasiun</span>
                     <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+
+                {{-- SEKSI DETIL JADWAL KERJA & SHIFT --}}
+                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sistem Jadwal Kerja</span>
+                        <span id="detail_schedule_badge" class="px-2 py-0.5 text-xs font-bold rounded-md"></span>
+                    </div>
+
+                    {{-- DETAIL JADWAL NORMAL --}}
+                    <div id="detail_normal_schedule_box" class="hidden space-y-1.5 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Hari Kerja Masuk:</span>
+                            <span id="detail_normal_days" class="font-semibold text-slate-700"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Hari Libur Kerja:</span>
+                            <span class="font-semibold text-rose-600">Sabtu & Minggu</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Jam Operasional:</span>
+                            <span id="detail_normal_hours" class="font-semibold text-emerald-600"></span>
+                        </div>
+                    </div>
+
+                    {{-- DETAIL JADWAL ROSTER --}}
+                    <div id="detail_roster_schedule_box" class="hidden space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Jadwal Shift Hari Ini:</span>
+                            <span id="detail_roster_today_badge" class="px-2 py-0.5 rounded font-bold text-[11px]"></span>
+                        </div>
+                        <div id="detail_roster_hours_container" class="flex justify-between">
+                            <span class="text-slate-400">Jam Shift Kerja:</span>
+                            <span id="detail_roster_hours" class="font-semibold text-slate-700"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -396,6 +429,48 @@
                         else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
 
                         document.getElementById("detail_job").textContent = jobTitleText;
+
+                        // LOGIKA PENAMPILAN JADWAL KERJA & SHIFT
+                        const scheduleBadge = document.getElementById("detail_schedule_badge");
+                        const normalBox = document.getElementById("detail_normal_schedule_box");
+                        const rosterBox = document.getElementById("detail_roster_schedule_box");
+
+                        if (data.schedule_type === 'normal') {
+                            scheduleBadge.textContent = 'Jadwal Normal';
+                            scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-sky-100 text-sky-700 border border-sky-200';
+                            
+                            normalBox.classList.remove('hidden');
+                            rosterBox.classList.add('hidden');
+
+                            document.getElementById("detail_normal_days").textContent = data.normal_work_days;
+                            document.getElementById("detail_normal_hours").textContent = `${data.normal_check_in} - ${data.normal_check_out} WIB`;
+                        } else {
+                            scheduleBadge.textContent = 'Jadwal Roster';
+                            scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200';
+
+                            rosterBox.classList.remove('hidden');
+                            normalBox.classList.add('hidden');
+
+                            const rosterTodayBadge = document.getElementById("detail_roster_today_badge");
+                            const rosterHoursContainer = document.getElementById("detail_roster_hours_container");
+                            const rosterHours = document.getElementById("detail_roster_hours");
+
+                            if (data.today_shift_type === 'pagi') {
+                                rosterTodayBadge.textContent = 'Shift Pagi';
+                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-emerald-100 text-emerald-700 border border-emerald-200';
+                                rosterHoursContainer.classList.remove('hidden');
+                                rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
+                            } else if (data.today_shift_type === 'malam') {
+                                rosterTodayBadge.textContent = 'Shift Malam';
+                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-indigo-100 text-indigo-700 border border-indigo-200';
+                                rosterHoursContainer.classList.remove('hidden');
+                                rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
+                            } else {
+                                rosterTodayBadge.textContent = 'OFF / Libur Roster';
+                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-rose-100 text-rose-700 border border-rose-200';
+                                rosterHoursContainer.classList.add('hidden');
+                            }
+                        }
 
                         const photoContainer = document.getElementById("detail_photo_container");
                         if (data.profile_photo) {

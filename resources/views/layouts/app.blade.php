@@ -13,6 +13,24 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
+        /* ========================================================
+           SEMBUNYIKAN SCROLLBAR DI SELURUH ELEMENT & ELEMEN SPESIFIK
+           ======================================================== */
+        html, body, div, nav, aside, main, section {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        div::-webkit-scrollbar,
+        nav::-webkit-scrollbar,
+        aside::-webkit-scrollbar,
+        main::-webkit-scrollbar,
+        section::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
         /* Dropdown Animation Base */
         .dropdown-content {
             max-height: 0;
@@ -76,15 +94,6 @@
                 max-height: 0 !important;
             }
         }
-
-        /* Custom Scrollbar Tipis */
-        .sidebar-nav-container::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar-nav-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
-        }
     </style>
 
     <!-- PWA Head -->
@@ -116,7 +125,7 @@
             </div>
 
             <!-- Menu Navigasi -->
-            <nav class="sidebar-nav-container p-3 space-y-2 flex-1">
+            <nav class="sidebar-nav-container p-3 space-y-2 flex-1 overflow-y-auto">
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 mb-2 hide-on-collapse">Menu Utama</span>
 
                 <!-- Dashboard -->
