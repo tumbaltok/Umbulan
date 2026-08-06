@@ -49,28 +49,24 @@ class DatabaseSeeder extends Seeder
             'name' => 'Stasiun Umbulan'
         ]);
 
-        $stasiunBooster = Station::create([
-            'kode_stasiun' => 'booster',
-            'name' => 'Stasiun Booster-M'
-        ]);
-
-        Station::updateOrCreate(
+        $stasiunUmbulan = Station::updateOrCreate(
             ['kode_stasiun' => 'umbulan'],
             [
+                'name' => 'Stasiun Umbulan',
                 'latitude' => -7.7572565,
                 'longitude' => 112.9314949,
-                'radius_meters' => 1000, // Area besar: Radius 300 meter
+                'radius_meters' => 1000,
             ]
         );
 
-        Station::updateOrCreate(
+        $stasiunBooster = Station::updateOrCreate(
             ['kode_stasiun' => 'booster'],
             [
+                'name' => 'Stasiun Booster-M',
                 'latitude' => -7.1932227,
                 'longitude' => 112.6371782,
-                'radius_meters' => 500, // Area kecil: Radius 50 meter
+                'radius_meters' => 500,
             ]
-
         );
 
         // ==========================================

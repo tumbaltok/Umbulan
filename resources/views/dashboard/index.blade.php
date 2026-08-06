@@ -277,8 +277,10 @@
                 <input type="hidden" id="absen_long" name="longitude">
                 <input type="hidden" id="absen_face_image" name="face_image">
 
-                <div class="relative bg-black rounded-xl overflow-hidden h-56 flex items-center justify-center border border-slate-200">
-                    <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                {{-- TAMPILAN KAMERA LANDSCAPE --}}
+                <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center border border-slate-200">
+                    {{-- Style scaleX(1) mematikan efek mirror secara paksa --}}
+                    <video id="webcamVideo" autoplay playsinline style="transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important;" class="w-full h-full object-cover"></video>
                     <canvas id="webcamCanvas" class="hidden"></canvas>
                     <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm">
                         Mempersiapkan kamera...
@@ -747,7 +749,7 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI
+    // 4. WEBCAM & GPS ABSENSI (UPDATED LANDSCAPE & NON-MIRROR)
     let mediaStream = null;
 
     function bukaModalAbsen(type) {
@@ -758,6 +760,7 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
+        // Minta Lokasi GPS
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -766,11 +769,22 @@
                 },
                 (err) => {
                     alert('Gagal mendapatkan lokasi GPS. Harap izinkan akses lokasi pada browser Anda.');
-                }
+                },
+                { enableHighAccuracy: true }
             );
         }
 
-        navigator.mediaDevices.getUserMedia({ video: true })
+        // Minta Video Kamera dengan format Landscape
+        const constraints = {
+            audio: false,
+            video: {
+                facingMode: "user",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
             .then((stream) => {
                 mediaStream = stream;
                 const video = document.getElementById('webcamVideo');
@@ -778,6 +792,7 @@
                 document.getElementById('cameraStatus').innerText = 'Kamera Aktif';
             })
             .catch((err) => {
+                console.error("Gagal Akses Kamera:", err);
                 document.getElementById('cameraStatus').innerText = 'Kamera tidak dapat diakses';
             });
     }
@@ -789,6 +804,7 @@
 
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
         }
     }
 
@@ -799,8 +815,10 @@
         const canvas = document.getElementById('webcamCanvas');
         const context = canvas.getContext('2d');
 
-        canvas.width = video.videoWidth || 320;
-        canvas.height = video.videoHeight || 240;
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 360;
+        
+        // Ambil gambar secara normal tanpa mirror
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
         const base64Photo = canvas.toDataURL('image/png');
