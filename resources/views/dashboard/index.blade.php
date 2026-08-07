@@ -277,12 +277,17 @@
                 <input type="hidden" id="absen_long" name="longitude">
                 <input type="hidden" id="absen_face_image" name="face_image">
 
-                {{-- TAMPILAN KAMERA LANDSCAPE --}}
-                <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center border border-slate-200">
-                    {{-- Style scaleX(1) mematikan efek mirror secara paksa --}}
-                    <video id="webcamVideo" autoplay playsinline style="transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important;" class="w-full h-full object-cover"></video>
+                {{-- TAMPILAN KAMERA RESPONSIVE (PORTRAIT DI HP, LANDSCAPE DI DESKTOP) --}}
+                <div class="relative bg-black rounded-xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
+                    {{-- Style scaleX(1) & scale-x-100 memastikan video TIDAK MIRROR --}}
+                    <video id="webcamVideo" 
+                        autoplay 
+                        playsinline 
+                        style="transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important;" 
+                        class="w-full h-full object-cover scale-x-100"></video>
+                    
                     <canvas id="webcamCanvas" class="hidden"></canvas>
-                    <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm">
+                    <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm z-10">
                         Mempersiapkan kamera...
                     </div>
                 </div>
@@ -749,7 +754,7 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI (UPDATED LANDSCAPE & NON-MIRROR)
+    // 4. WEBCAM & GPS ABSENSI (RESPONSIVE PORTRAIT/LANDSCAPE & NON-MIRROR)
     let mediaStream = null;
 
     function bukaModalAbsen(type) {
@@ -774,13 +779,18 @@
             );
         }
 
-        // Minta Video Kamera dengan format Landscape
+        // Deteksi jika pengguna membuka lewat Smartphone/Mobile
+        const isMobile = window.innerWidth < 640;
+
+        // Pengaturan Resolusi kamera ideal
         const constraints = {
             audio: false,
             video: {
                 facingMode: "user",
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                // Jika HP: Resolusi dibuat Portrait (Lebar 720, Tinggi 1280)
+                // Jika Desktop: Resolusi dibuat Landscape (Lebar 1280, Tinggi 720)
+                width: { ideal: isMobile ? 720 : 1280 },
+                height: { ideal: isMobile ? 1280 : 720 }
             }
         };
 
@@ -797,17 +807,6 @@
             });
     }
 
-    function tutupModalAbsen() {
-        const modal = document.getElementById('modalAbsensi');
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop());
-            mediaStream = null;
-        }
-    }
-
     function submitAbsensi(e) {
         e.preventDefault();
 
@@ -816,10 +815,13 @@
         const context = canvas.getContext('2d');
 
         canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 360;
+        canvas.height = video.videoHeight || 480;
         
-        // Ambil gambar secara normal tanpa mirror
+        // Pastikan pengambilan foto di Canvas TIDAK terbalik/mirror
+        context.save();
+        context.scale(1, 1);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.restore();
         
         const base64Photo = canvas.toDataURL('image/png');
         document.getElementById('absen_face_image').value = base64Photo;

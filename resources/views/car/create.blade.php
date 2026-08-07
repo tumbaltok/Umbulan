@@ -129,6 +129,27 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{-- POPUP BERHASIL MENGIRIM PENGAJUAN --}}
+@if(session('success'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
 <script>
     const containerItem = document.getElementById('container-item');
     const btnTambahItem = document.getElementById('btn-tambah-item');
@@ -136,6 +157,35 @@
     const labelJumlahItem = document.getElementById('label-jumlah-item');
 
     let itemIndex = 1;
+
+    // POPUP KONFIRMASI SEBELUM MENGIRIM FORM
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector('form[action="{{ route("car.store") }}"]');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Pengajuan',
+                    text: 'Apakah Anda yakin ingin mengirim pengajuan CAR ini?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0284c7',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Kirim',
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                        cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        }
+    });
 
     function hitungAkumulasi() {
         let akumulasiGrandTotal = 0;
@@ -155,7 +205,7 @@
         });
 
         grandTotalOutput.textContent = 'Rp ' + akumulasiGrandTotal.toLocaleString('id-ID');
-        labelJumlahItem.textContent = `${semuaBaris.length} Macam Item`;
+        if (labelJumlahItem) labelJumlahItem.textContent = `${semuaBaris.length} Macam Item`;
     }
 
     function tanganiPreviewDokumen(inputElement) {
@@ -175,8 +225,7 @@
                 labelTipeFile.textContent = 'Gambar';
                 labelTipeFile.className = 'p-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold uppercase tracking-wider label-tipe-file';
                 areaPreviewVisual.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-h-40 rounded-lg border border-slate-200 shadow-inner object-contain" alt="Pratinjau Nota">`;
-            }
-            else if (file.type === 'application/pdf') {
+            } else if (file.type === 'application/pdf') {
                 labelTipeFile.textContent = 'PDF';
                 labelTipeFile.className = 'p-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold uppercase tracking-wider label-tipe-file';
                 areaPreviewVisual.innerHTML = `

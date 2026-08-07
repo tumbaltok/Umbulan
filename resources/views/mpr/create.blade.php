@@ -23,7 +23,7 @@
         </div>
     @endif
 
-    <form action="{{ route('mpr.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form id="formMpr" action="{{ route('mpr.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         {{-- Section 1: Informasi Umum Pengajuan --}}
@@ -73,7 +73,12 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Satuan</label>
-                                <input type="text" name="items[0][satuan]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Pcs/Unit/Box">
+                                <select name="items[0][satuan]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
+                                    <option value="" disabled selected hidden>Pilih</option>
+                                    <option value="PCS">PCS</option>
+                                    <option value="Unit">Unit</option>
+                                    <option value="BOX">BOX</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Est. Harga (Rp)</label>
@@ -119,6 +124,27 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{-- POPUP BERHASIL MENGIRIM PENGAJUAN --}}
+@if(session('success'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
 <script>
     const containerItem = document.getElementById('container-item');
     const btnTambahItem = document.getElementById('btn-tambah-item');
@@ -126,6 +152,39 @@
     const labelJumlahItem = document.getElementById('label-jumlah-item');
 
     let itemIndex = 1;
+    let isConfirmed = false;
+
+    // HANDLER SUBMIT DENGAN FLAG KONFIRMASI (MENGHINDARI INFINITE LOOP)
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById('formMpr');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Konfirmasi Pengajuan',
+                        text: 'Apakah Anda yakin ingin mengirim pengajuan MPR ini?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#0284c7',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Kirim',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'rounded-2xl',
+                            confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                            cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            isConfirmed = true;
+                            form.submit();
+                        }
+                    });
+                }
+            });
+        }
+    });
 
     function hitungAkumulasi() {
         let akumulasiGrandTotal = 0;
@@ -145,7 +204,7 @@
         });
 
         grandTotalOutput.textContent = 'Rp ' + akumulasiGrandTotal.toLocaleString('id-ID');
-        labelJumlahItem.textContent = `${semuaBaris.length} Macam Item`;
+        if (labelJumlahItem) labelJumlahItem.textContent = `${semuaBaris.length} Macam Item`;
     }
 
     containerItem.addEventListener('input', function(e) {
@@ -172,7 +231,12 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Satuan</label>
-                        <input type="text" name="items[${itemIndex}][satuan]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Satuan">
+                        <select name="items[${itemIndex}][satuan]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
+                            <option value="" disabled selected hidden>Pilih</option>
+                            <option value="PCS">PCS</option>
+                            <option value="Unit">Unit</option>
+                            <option value="BOX">BOX</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Est. Harga (Rp)</label>

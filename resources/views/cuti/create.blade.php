@@ -18,7 +18,7 @@
             {{-- ELEMEN PENAMPUNG PESAN ERROR SALDO --}}
             <div id="pesan-error-saldo" class="mb-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-sm font-medium" style="display: none;"></div>
 
-            <form action="{{ route('cuti.storeWeb') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+            <form id="formCuti" action="{{ route('cuti.storeWeb') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                 @csrf
 
                 {{-- JENIS CUTI UTAMA --}}
@@ -123,6 +123,29 @@
         </div>
     </div>
 </div>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{-- POPUP BERHASIL MENGIRIM PENGAJUAN --}}
+@if(session('success'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -146,10 +169,39 @@
 
         const tombolSubmit = document.getElementById('btn-submit');
         const pesanErrorSaldo = document.getElementById('pesan-error-saldo');
+        const form = document.getElementById('formCuti');
 
-        // =======================================================
-        // 1. KUNCI TANGGAL MINIMAL SEJAK HALAMAN DI-LOAD (WAKTU LOKAL)
-        // =======================================================
+        let isConfirmed = false;
+
+        // POPUP KONFIRMASI SEBELUM MENGIRIM FORM (DENGAN FLAG MENGHINDARI LOOP)
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Konfirmasi Pengajuan',
+                        text: 'Apakah Anda yakin ingin mengajukan permohonan cuti ini?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#0284c7',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Kirim',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'rounded-2xl',
+                            confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                            cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            isConfirmed = true;
+                            form.submit();
+                        }
+                    });
+                }
+            });
+        }
+
         const sekarang = new Date();
         const yyyy = sekarang.getFullYear();
         const mm = String(sekarang.getMonth() + 1).padStart(2, '0');
@@ -262,9 +314,6 @@
             }
         }
 
-        // =======================================================
-        // 2. FUNGSI UTAMA UNTUK MEMBATASI KALENDER SELESAI
-        // =======================================================
         function batasiKalenderSelesai() {
             if (tanggalMulai.value) {
                 tanggalSelesai.min = tanggalMulai.value;
@@ -342,4 +391,4 @@
         periksaSaldo();
     });
 </script>
-@endsection
+@endpush

@@ -510,7 +510,7 @@ class PengajuanCutiController extends Controller
                 }
             }
 
-            return redirect()->route('dashboard')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
+            return redirect()->route('cuti.riwayat')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()])->withInput();
