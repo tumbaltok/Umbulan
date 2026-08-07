@@ -7,11 +7,6 @@
         <p class="text-xs text-slate-400">Daftar pengajuan masuk dari staf di lingkungan stasiun kerja Anda</p>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl">
-            {{ session('success') }}
-        </div>
-    @endif
     @if(session('error'))
         <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
             <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
@@ -37,7 +32,6 @@
                         {{ $car->user->name }}
                     </td>
 
-                    {{-- LOOP DAFTAR BARANG MULTI-ITEM DAN NOTA SPESIFIKNYA --}}
                     <td class="p-4 align-top min-w-[320px]">
                         <ul class="space-y-2">
                             @foreach($car->details as $item)
@@ -60,7 +54,9 @@
                                                 <i class="fa-solid fa-file-pdf"></i> Lihat PDF
                                             </a>
                                         @else
-                                            <button type="button" onclick="openImageModal('{{ asset('storage/' . $item->dokumen_nota_or_proposal) }}')"
+                                            <button type="button" 
+                                                    data-url="{{ asset('storage/' . $item->dokumen_nota_or_proposal) }}"
+                                                    onclick="openImageModal(this.getAttribute('data-url'))"
                                                     class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
                                                 <i class="fa-solid fa-file-invoice"></i> Lampiran Gambar
                                             </button>
@@ -71,7 +67,6 @@
                         </ul>
                     </td>
 
-                    {{-- TOTAL BIAYA DIHITUNG OTOMATIS DARI SUM TABLE DETAIL --}}
                     <td class="p-4 font-bold text-emerald-600 whitespace-nowrap align-center text-center">
                         Rp {{ number_format($car->details->sum('total_harga'), 0, ',', '.') }}
                     </td>
@@ -82,15 +77,21 @@
 
                     <td class="p-4 text-center whitespace-nowrap align-center">
                         <div class="flex items-center justify-center space-x-2">
-                            <form action="{{ route('admin.persetujuan.car.process', $car->id) }}" method="POST">
+                            <form id="form-approve-car-{{ $car->id }}" action="{{ route('admin.persetujuan.car.process', $car->id) }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="aksi" value="approved">
-                                <button type="submit" onclick="return confirm('Setujui pengajuan material ini?')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                                <button type="button" 
+                                        data-form="form-approve-car-{{ $car->id }}"
+                                        onclick="konfirmasiApprove(this.getAttribute('data-form'), 'Setujui Pengajuan CAR?')" 
+                                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-colors">
                                     <i class="fa-solid fa-check mr-1"></i> Setujui
                                 </button>
                             </form>
 
-                            <button onclick="bukaModalTolak({{ $car->id }})" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                            <button type="button" 
+                                    data-id="{{ $car->id }}"
+                                    onclick="bukaModalTolak(this.getAttribute('data-id'))"
+                                    class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-colors">
                                 <i class="fa-solid fa-xmark mr-1"></i> Tolak
                             </button>
                         </div>
@@ -143,7 +144,50 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{-- Masukkan session success ke variabel JS aman --}}
+@if(session('success'))
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
+<script>
+    function konfirmasiApprove(formId, pesan) {
+        Swal.fire({
+            title: 'Konfirmasi Persetujuan',
+            text: pesan,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Setujui',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
     function bukaModalTolak(id) {
         const modal = document.getElementById('modalTolak');
         const form = document.getElementById('formTolak');
@@ -166,13 +210,6 @@
 
     function closeImageModal() {
         const modal = document.getElementById('imageModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    function closeImageModal() {
-        const modal = document.getElementById('imageModal');
-
         modal.classList.remove('flex');
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';

@@ -13,12 +13,6 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl">
-            {{ session('success') }}
-        </div>
-    @endif
-
     <div class="space-y-4">
         @forelse($daftarPengajuan as $mpr)
             <div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-200 space-y-3">
@@ -62,18 +56,18 @@
                 </div>
 
                 <div class="pt-2 flex flex-col sm:flex-row justify-end gap-2 border-t border-slate-200/60">
-                    <form action="{{ route('admin.persetujuan.mpr.process', $mpr->id) }}" method="POST" class="flex gap-2 w-full sm:w-auto">
+                    <form id="form-reject-mpr-{{ $mpr->id }}" action="{{ route('admin.persetujuan.mpr.process', $mpr->id) }}" method="POST" class="flex gap-2 w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="tindakan" value="rejected">
-                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin MENOLAK pengajuan ini?')" class="w-1/2 sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs px-4 py-2 rounded-xl transition-colors">
+                        <button type="button" onclick="konfirmasiAksi('form-reject-mpr-{{ $mpr->id }}', 'Tolak Pengajuan MPR?', '#dc2626', 'Ya, Tolak')" class="w-1/2 sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs px-4 py-2 rounded-xl transition-colors">
                             Tolak
                         </button>
                     </form>
 
-                    <form action="{{ route('admin.persetujuan.mpr.process', $mpr->id) }}" method="POST" class="flex gap-2 w-full sm:w-auto">
+                    <form id="form-approve-mpr-{{ $mpr->id }}" action="{{ route('admin.persetujuan.mpr.process', $mpr->id) }}" method="POST" class="flex gap-2 w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="tindakan" value="approved">
-                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin MENYETUJUI pengajuan ini?')" class="w-1/2 sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs px-5 py-2 rounded-xl shadow-sm transition-colors">
+                        <button type="button" onclick="konfirmasiAksi('form-approve-mpr-{{ $mpr->id }}', 'Setujui Pengajuan MPR?', '#059669', 'Ya, Setujui')" class="w-1/2 sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs px-5 py-2 rounded-xl shadow-sm transition-colors">
                             Setujui
                         </button>
                     </form>
@@ -88,3 +82,49 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if(session('success'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
+<script>
+    function konfirmasiAksi(formId, pesan, warnaTombol, teksTombol) {
+        Swal.fire({
+            title: 'Konfirmasi Tindakan',
+            text: pesan,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: warnaTombol,
+            cancelButtonColor: '#64748b',
+            confirmButtonText: teksTombol,
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+</script>
+@endpush

@@ -2,12 +2,6 @@
 @section('title', 'Persetujuan CUTI')
 @section('content')
 <div class="max-w-7xl mx-auto mt-8 px-4">
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
-            <i class="fa-solid fa-circle-check mr-2 text-emerald-500"></i>
-            {{ session('success') }}
-        </div>
-    @endif
     @if(session('error'))
         <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
             <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
@@ -37,14 +31,15 @@
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                     @forelse($daftarPengajuan as $item)
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-6 py-4 font-medium text-slate-900 text-center" >{{ $item->user_name }}</td>
+                            <td class="px-6 py-4 font-medium text-slate-900 text-center">{{ $item->user_name }}</td>
 
                             <td class="px-6 py-4">
                                 <div class="font-medium text-slate-800 text-center">{{ $item->nama_sub_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
                                     <div class="mt-1">
                                         <button type="button"
-                                                onclick="bukaPratinjauLampiran('{{ asset('storage/' . $item->dokumen_pendukung) }}')"
+                                                data-url="{{ asset('storage/' . $item->dokumen_pendukung) }}"
+                                                onclick="bukaPratinjauLampiran(this.getAttribute('data-url'))"
                                                 class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 w-fit cursor-pointer self-start sm:self-center shrink-0">
                                             <i class="fa-solid fa-file-invoice"></i> Berkas Cuti
                                         </button>
@@ -76,25 +71,27 @@
                             </td>
 
                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                @if(($item->status_supervisor === 'pending' || $item->status_manager === 'pending'))
-                                    <div class="flex items-center justify-center space-x-2">
-                                        {{-- FORM KHUSUS APPROVE --}}
-                                        <form action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pengajuan cuti ini?')">
-                                            @csrf
-                                            <input type="hidden" name="tindakan" value="approved">
-                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
-                                                Approve
-                                            </button>
-                                        </form>
-
-                                        {{-- BUTTON KHUSUS MEMICU MODAL REJECT --}}
-                                        <button type="button" onclick="bukaModalTolak({{ $item->id }})" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
-                                            Reject
+                                <div class="flex items-center justify-center space-x-2">
+                                    {{-- FORM KHUSUS APPROVE --}}
+                                    <form id="form-approve-cuti-{{ $item->id }}" action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="tindakan" value="approved">
+                                        <button type="button" 
+                                                data-form="form-approve-cuti-{{ $item->id }}"
+                                                onclick="konfirmasiApprove(this.getAttribute('data-form'), 'Setujui Pengajuan Cuti?')" 
+                                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
+                                            Approve
                                         </button>
-                                    </div>
-                                @else
-                                    <span class="text-xs text-slate-400 italic">Selesai Diproses</span>
-                                @endif
+                                    </form>
+
+                                    {{-- BUTTON KHUSUS MEMICU MODAL REJECT --}}
+                                    <button type="button" 
+                                            data-id="{{ $item->id }}"
+                                            onclick="bukaModalTolak(this.getAttribute('data-id'))" 
+                                            class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
+                                        Reject
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -150,8 +147,49 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if(session('success'))
 <script>
-    // FUNGSI MODAL TOLAK CUTI
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
+<script>
+    function konfirmasiApprove(formId, pesan) {
+        Swal.fire({
+            title: 'Konfirmasi Persetujuan',
+            text: pesan,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Setujui',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-4 py-2 rounded-xl font-semibold',
+                cancelButton: 'px-4 py-2 rounded-xl font-semibold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
     function bukaModalTolak(id) {
         const modal = document.getElementById('modalTolakCuti');
         const form = document.getElementById('formTolakCuti');
@@ -164,7 +202,6 @@
         modal.classList.add('hidden');
     }
 
-    // FUNGSI PREVIEW BERKAS
     function bukaPratinjauLampiran(urlFile) {
         document.getElementById('judulModalLampiran').innerText = 'Pratinjau Berkas Lampiran Cuti';
         tampilkanModal(urlFile);
