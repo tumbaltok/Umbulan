@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Station;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -355,5 +356,13 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'Berhasil logout API, token telah dihapus.'
         ], 200);
+    }
+
+    public function showRegisterForm()
+    {
+        // Ambil seluruh stasiun yang terdaftar di database
+        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+
+        return view('auth.register', compact('daftarStasiun'));
     }
 }

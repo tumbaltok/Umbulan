@@ -236,22 +236,39 @@
                             </div>
 
                             <!-- Station Selection -->
-                            <div>
-                                <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Stasiun / Wilayah Kerja</label>
+                           <div>
+                                <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Stasiun / Wilayah Kerja
+                                </label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    {{-- IKON DI SISI KIRI --}}
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-faucet-drip text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="station_id" -->
-                                    <select id="station_id" name="station_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none">
-                                        <option value="" disabled selected>Pilih Lokasi Stasiun</option>
-                                        <option value="1">Stasiun Umbulan</option>
-                                        <option value="2">Stasiun Booster-M</option>
+
+                                    {{-- SELECT INPUT --}}
+                                    <select id="station_id" 
+                                            name="station_id" 
+                                            required 
+                                            class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled selected>Pilih Stasiun Kerja</option>
+                                        
+                                        @foreach($daftarStasiun as $stasiun)
+                                            <option value="{{ $stasiun->id }}" {{ old('station_id') == $stasiun->id ? 'selected' : '' }}>
+                                                {{ $stasiun->name }} ({{ $stasiun->kode_stasiun }})
+                                            </option>
+                                        @endforeach
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+
+                                    {{-- IKON PANAH / CHEVRON DI SISI KANAN --}}
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </div>
                                 </div>
+
+                                @error('station_id') 
+                                    <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> 
+                                @enderror
                             </div>
 
                             <!-- Jobdesk Karyawan -->

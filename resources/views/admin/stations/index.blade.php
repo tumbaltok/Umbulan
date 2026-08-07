@@ -23,27 +23,55 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto mt-8 px-4">
+
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium">
+            <i class="fa-solid fa-circle-check mr-1.5 text-emerald-600"></i> {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium">
+            <i class="fa-solid fa-circle-xmark mr-1.5 text-rose-600"></i> {{ session('error') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
+            <ul class="list-disc pl-5 space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800">Daftar Sektor / Stasiun Kerja</h2>
-                <p class="text-sm text-slate-500 mt-0.5">Manajemen titik lokasi wilayah kerja untuk distribusi karyawan dan validasi struktur persetujuan.</p>
+                <p class="text-sm text-slate-500 mt-0.5">Manajemen titik lokasi wilayah kerja untuk distribusi karyawan dan validasi absensi GPS.</p>
             </div>
+            <button type="button" onclick="bukaModalTambahStasiun()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-plus"></i> Tambah Stasiun Baru
+            </button>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                        <th class="px-6 py-4 w-20 text-center">ID</th>
+                        <th class="px-6 py-4 w-24">Kode</th>
                         <th class="px-6 py-4">Nama Sektor / Stasiun</th>
+                        <th class="px-6 py-4 text-center">Radius GPS</th>
                         <th class="px-6 py-4 text-center">Total Penempatan Staf</th>
+                        <th class="px-6 py-4 text-center w-32">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                     @forelse($daftarStasiun as $stasiun)
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-6 py-4 text-center font-mono text-sm font-bold text-slate-400">{{ $stasiun->id }}</td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-slate-600 uppercase">{{ $stasiun->kode_stasiun }}</td>
 
                             {{-- KLIK NAMA STASIUN UNTUK MEMBUKA POPUP PETA GPS --}}
                             <td class="px-6 py-4 font-semibold text-slate-800">
@@ -57,6 +85,10 @@
                                 </div>
                             </td>
 
+                            <td class="px-6 py-4 text-center font-mono text-xs font-semibold text-slate-600">
+                                {{ $stasiun->radius_meters }} Meter
+                            </td>
+
                             <td class="px-6 py-4 text-center">
                                 <span data-id="{{ $stasiun->id }}" data-name="{{ $stasiun->name }}"
                                     class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200
@@ -64,10 +96,30 @@
                                     {{ $stasiun->total_karyawan }} Orang
                                 </span>
                             </td>
+
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button type="button" 
+                                            data-stasiun='@json($stasiun)'
+                                            onclick="bukaModalEditStasiun(this)"
+                                            class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs transition-colors" 
+                                            title="Edit Stasiun">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+
+                                    <form action="{{ route('admin.stations.destroy', $stasiun->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus stasiun ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs transition-colors" title="Hapus Stasiun">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="px-6 py-10 text-center text-slate-400">
+                            <td colspan="5" class="px-6 py-10 text-center text-slate-400">
                                 <i class="fa-solid fa-map-location-dot text-3xl mb-2 block text-slate-200"></i>
                                 Belum ada data stasiun kerja yang diinput ke dalam database erp.
                             </td>
@@ -76,6 +128,64 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+{{-- MODAL FORM TAMBAH / EDIT STASIUN --}}
+<div id="modalFormStasiun" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalFormStasiun()"></div>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+            <h3 class="font-bold text-slate-800 text-base" id="judulModalForm">Tambah Stasiun Kerja</h3>
+            <button type="button" onclick="tutupModalFormStasiun()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form id="formStasiunAction" action="{{ route('admin.stations.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <input type="hidden" name="_method" id="methodFormStasiun" value="POST">
+
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Stasiun</label>
+                    <input type="text" name="kode_stasiun" id="input_kode_stasiun" required placeholder="UMB" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs uppercase focus:outline-none focus:border-sky-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Stasiun / Sektor</label>
+                    <input type="text" name="name" id="input_name" required placeholder="Stasiun Umbulan" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                </div>
+            </div>
+
+            {{-- INPUT PASTE URL GOOGLE MAPS --}}
+            <div class="p-3 bg-sky-50/50 border border-sky-100 rounded-xl space-y-2">
+                <label class="block text-xs font-bold text-sky-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-link"></i> Tempel (Paste) Link Google Maps
+                </label>
+                <input type="url" id="input_maps_url" name="maps_url" oninput="autoParseMapsUrl(this.value)" placeholder="https://www.google.com/maps/place/.../@-7.182341,113.241512,17z/..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                <p class="text-[10px] text-slate-500 leading-relaxed">* Tempelkan link lokasi dari Google Maps untuk mengekstrak latitude & longitude secara otomatis.</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude</label>
+                    <input type="text" name="latitude" id="input_latitude" required placeholder="-7.123456" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude</label>
+                    <input type="text" name="longitude" id="input_longitude" required placeholder="112.654321" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Radius (M)</label>
+                    <input type="number" name="radius_meters" id="input_radius" required value="1000" min="10" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="tutupModalFormStasiun()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
+                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan Stasiun</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -225,6 +335,62 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+    // AUTO PARSE GOOGLE MAPS URL DI JAVASCRIPT
+    function autoParseMapsUrl(url) {
+        if (!url) return;
+
+        let match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (!match) match = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (!match) match = url.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+        if (match && match[1] && match[2]) {
+            document.getElementById('input_latitude').value = match[1];
+            document.getElementById('input_longitude').value = match[2];
+        }
+    }
+
+    function bukaModalTambahStasiun() {
+        document.getElementById('judulModalForm').innerText = 'Tambah Stasiun Kerja';
+        document.getElementById('formStasiunAction').action = "{{ route('admin.stations.store') }}";
+        document.getElementById('methodFormStasiun').value = 'POST';
+
+        document.getElementById('input_kode_stasiun').value = '';
+        document.getElementById('input_name').value = '';
+        document.getElementById('input_maps_url').value = '';
+        document.getElementById('input_latitude').value = '';
+        document.getElementById('input_longitude').value = '';
+        document.getElementById('input_radius').value = '1000';
+
+        const modal = document.getElementById('modalFormStasiun');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function bukaModalEditStasiun(button) {
+        const stasiun = JSON.parse(button.getAttribute('data-stasiun'));
+
+        document.getElementById('judulModalForm').innerText = 'Edit Stasiun Kerja';
+        document.getElementById('formStasiunAction').action = `/admin/stations/${stasiun.id}`;
+        document.getElementById('methodFormStasiun').value = 'PUT';
+
+        document.getElementById('input_kode_stasiun').value = stasiun.kode_stasiun;
+        document.getElementById('input_name').value = stasiun.name;
+        document.getElementById('input_maps_url').value = `https://www.google.com/maps?q=${stasiun.latitude},${stasiun.longitude}`;
+        document.getElementById('input_latitude').value = stasiun.latitude;
+        document.getElementById('input_longitude').value = stasiun.longitude;
+        document.getElementById('input_radius').value = stasiun.radius_meters;
+
+        const modal = document.getElementById('modalFormStasiun');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function tutupModalFormStasiun() {
+        const modal = document.getElementById('modalFormStasiun');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
     let mapInstance = null;
     let markerInstance = null;
 
