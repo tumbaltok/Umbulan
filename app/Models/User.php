@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'gender_id',
         'station_id',
+        'sektor',
         'job_title',
         'phone_number',
         'profile_photo',
@@ -146,5 +147,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function attendances(): HasMany
     {
         return $this->hasMany(Kehadiran::class, 'user_id');
+    }
+
+    public function saldoCuti()
+    {
+        return $this->hasMany(SaldoCuti::class, 'user_id');
+    }
+
+    public function pengajuanCuti(): HasMany
+    {
+        return $this->hasMany(PengajuanCuti::class, 'user_id');
     }
 }

@@ -14,19 +14,14 @@ class RecordController extends Controller
     //            MANAGEMENT RECORD CUTI
     // ==========================================
 
-    /**
-     * Menampilkan data seluruh riwayat cuti karyawan dengan Filter
-     */
     public function cuti(Request $request)
     {
         $query = PengajuanCuti::with(['user.role', 'user.station', 'jenisCuti', 'subCuti']);
 
-        // 1. Filter Bulan
         if ($request->filled('bulan')) {
             $query->whereMonth('tanggal_mulai', $request->bulan);
         }
 
-        // 2. Filter Tahun (Default ke tahun sekarang)
         $tahun = $request->get('tahun', date('Y'));
         $query->whereYear('tanggal_mulai', $tahun);
 
@@ -35,9 +30,6 @@ class RecordController extends Controller
         return view('admin.record.cuti', compact('daftarCuti'));
     }
 
-    /**
-     * Export data Cuti ke Excel / CSV
-     */
     public function exportCuti(Request $request)
     {
         $query = PengajuanCuti::with(['user.role', 'user.station', 'jenisCuti', 'subCuti']);
@@ -87,25 +79,18 @@ class RecordController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-
     // ==========================================
     //            MANAGEMENT RECORD CAR
     // ==========================================
 
-    /**
-     * Menampilkan data seluruh riwayat CAR karyawan dengan Filter
-     */
     public function car(Request $request)
     {
-        // Sesuaikan relasi Eager Loading dengan field table CAR Anda (contoh: user)
-        $query = PengajuanCar::with(['user.role', 'user.station']);
+        $query = PengajuanCar::with(['user.role', 'user.station', 'details']);
 
-        // 1. Filter Bulan (berdasarkan created_at atau tanggal pengajuan CAR Anda)
         if ($request->filled('bulan')) {
             $query->whereMonth('created_at', $request->bulan);
         }
 
-        // 2. Filter Tahun (Default ke tahun sekarang)
         $tahun = $request->get('tahun', date('Y'));
         $query->whereYear('created_at', $tahun);
 
@@ -114,12 +99,9 @@ class RecordController extends Controller
         return view('admin.record.car', compact('daftarCar'));
     }
 
-    /**
-     * Export data CAR ke Excel / CSV
-     */
     public function exportCar(Request $request)
     {
-        $query = PengajuanCar::with(['user.role', 'user.station']);
+        $query = PengajuanCar::with(['user.role', 'user.station', 'details']);
 
         if ($request->filled('bulan')) {
             $query->whereMonth('created_at', $request->bulan);
@@ -140,7 +122,6 @@ class RecordController extends Controller
             "Expires"             => "0"
         ];
 
-        // Kolom disesuaikan dengan kebutuhan berkas CAR (Nominal, Keperluan, dll)
         $columns = ['Nama Karyawan', 'NIP', 'Station', 'Nominal Dana', 'Keperluan / Deskripsi', 'Tanggal Pengajuan', 'Status'];
 
         $callback = function() use($dataCar, $columns) {
@@ -149,9 +130,8 @@ class RecordController extends Controller
             fputcsv($file, $columns, ';');
 
             foreach ($dataCar as $car) {
-                $totalNominal = $car->details->sum('total_harga');
-
-                $keperluanBarang = $car->details->pluck('nama_barang')->implode(', ');
+                $totalNominal = $car->details ? $car->details->sum('total_harga') : 0;
+                $keperluanBarang = $car->details ? $car->details->pluck('nama_barang')->implode(', ') : '-';
 
                 fputcsv($file, [
                     $car->user->name ?? '-',
@@ -172,16 +152,15 @@ class RecordController extends Controller
     // ==========================================
     //            MANAGEMENT RECORD MPR
     // ==========================================
+
     public function mpr(Request $request)
     {
         $query = PengajuanMpr::with(['user.role', 'user.station', 'items']);
 
-        // 1. Filter Bulan
         if ($request->filled('bulan')) {
             $query->whereMonth('tanggal_pengajuan', $request->bulan);
         }
 
-        // 2. Filter Tahun (Default ke tahun sekarang)
         $tahun = $request->get('tahun', date('Y'));
         $query->whereYear('tanggal_pengajuan', $tahun);
 
@@ -190,9 +169,6 @@ class RecordController extends Controller
         return view('admin.record.mpr', compact('daftarMpr'));
     }
 
-    /**
-     * Export data MPR ke Excel / CSV
-     */
     public function exportMpr(Request $request)
     {
         $query = PengajuanMpr::with(['user.role', 'user.station', 'items']);
@@ -224,13 +200,13 @@ class RecordController extends Controller
             fputcsv($file, $columns, ';');
 
             foreach ($dataMpr as $mpr) {
-                $totalNominal = $mpr->items->sum(function($item) {
+                $totalNominal = $mpr->items ? $mpr->items->sum(function($item) {
                     return $item->jumlah * $item->estimasi_harga;
-                });
+                }) : 0;
 
-                $rincianBarang = $mpr->items->map(function($item) {
+                $rincianBarang = $mpr->items ? $mpr->items->map(function($item) {
                     return $item->nama_barang . ' (' . $item->jumlah . ' ' . $item->satuan . ')';
-                })->implode(', ');
+                })->implode(', ') : '-';
 
                 fputcsv($file, [
                     $mpr->nomor_mpr,

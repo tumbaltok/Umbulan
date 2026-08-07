@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Station;
 
 class StationController extends Controller
@@ -11,28 +10,23 @@ class StationController extends Controller
     public function index()
     {
         $daftarStasiun = Station::withCount(['users as total_karyawan'])
+            ->orderBy('type', 'asc')
             ->orderBy('name', 'asc')
             ->get();
 
         return view('admin.stations.index', compact('daftarStasiun'));
     }
 
-    /**
-     * FUNGSI UTILITAS: Membaca (Parse) Latitude & Longitude dari URL Google Maps
-     */
     private function parseGoogleMapsUrl(string $url): ?array
     {
-        // Pattern 1: Format standar browser (@lat,lng)
         if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
 
-        // Pattern 2: Format query parameter (?q=lat,lng)
         if (preg_match('/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
 
-        // Pattern 3: Format ll parameter (&ll=lat,lng)
         if (preg_match('/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
@@ -40,14 +34,12 @@ class StationController extends Controller
         return null;
     }
 
-    /**
-     * CREATE: Tambah Stasiun Baru
-     */
     public function store(Request $request)
     {
         $request->validate([
             'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun',
             'name'          => 'required|string|max:255',
+            'type'          => 'required|in:kantor,stasiun,rumah_meter',
             'maps_url'      => 'nullable|url',
             'latitude'      => 'nullable|numeric',
             'longitude'     => 'nullable|numeric',
@@ -57,7 +49,6 @@ class StationController extends Controller
         $lat = $request->latitude;
         $lng = $request->longitude;
 
-        // Jika user memasukkan URL Google Maps, prioritaskan ekstraksi dari URL
         if ($request->filled('maps_url')) {
             $parsed = $this->parseGoogleMapsUrl($request->maps_url);
             if ($parsed) {
@@ -73,22 +64,21 @@ class StationController extends Controller
         Station::create([
             'kode_stasiun'  => strtoupper($request->kode_stasiun),
             'name'          => $request->name,
+            'type'          => strtolower($request->type),
             'latitude'      => $lat,
             'longitude'     => $lng,
             'radius_meters' => $request->radius_meters,
         ]);
 
-        return redirect()->back()->with('success', 'Stasiun kerja baru berhasil ditambahkan!');
+        return redirect()->back()->with('success', 'Lokasi/Stasiun kerja baru berhasil ditambahkan!');
     }
 
-    /**
-     * UPDATE: Edit Stasiun Kerja
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun,' . $id,
             'name'          => 'required|string|max:255',
+            'type'          => 'required|in:kantor,stasiun,rumah_meter',
             'maps_url'      => 'nullable|url',
             'latitude'      => 'nullable|numeric',
             'longitude'     => 'nullable|numeric',
@@ -111,18 +101,16 @@ class StationController extends Controller
         $station->update([
             'kode_stasiun'  => strtoupper($request->kode_stasiun),
             'name'          => $request->name,
+            'type'          => strtolower($request->type),
             'latitude'      => $lat ?? $station->latitude,
             'longitude'     => $lng ?? $station->longitude,
             'radius_meters' => $request->radius_meters,
         ]);
 
-        return redirect()->back()->with('success', 'Data stasiun kerja berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Data lokasi/stasiun kerja berhasil diperbarui!');
     }
 
-    /**
-     * DELETE: Hapus Stasiun Kerja
-     */
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $station = Station::withCount('users')->findOrFail($id);
 

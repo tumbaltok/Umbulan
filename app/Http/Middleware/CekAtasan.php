@@ -9,28 +9,39 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CekAtasan
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1. Pastikan user sudah login
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        // 2. Ambil nama role user saat ini (Akan menjadi huruf kecil semua)
-        /** @var string $roleName */
-        $roleName = strtolower(Auth::user()->role?->role_name ?? '');
+        $user = Auth::user();
+        $role = $user->role;
 
-        // 3. Cek menggunakan array huruf kecil semua agar cocok dengan strtolower
-        if (!in_array($roleName, ['manager', 'supervisor', 'hrd', 'admin'])) {
-            return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman tersebut!');
+        if (!$role) {
+            return redirect()->route('dashboard')->with('error', 'Akun Anda belum memiliki role jabatan!');
         }
 
-        // 4. Jika termasuk Manager, Supervisor, HRD, atau Admin, izinkan akses
+        $level = (int) ($role->level ?? 3);
+
+        // Level 3 = User Biasa (Sama sekali tidak boleh akses halaman admin)
+        if ($level === 3) {
+            return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman administrator!');
+        }
+
+        // Level 2 = Read Only (Bisa lihat fitur admin, tapi dilarang ubah data admin)
+        if ($level === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+            // Kecualikan rute persetujuan (tetap boleh approve/reject jika ditujukan kepadanya)
+            $isApprovalRoute = $request->routeIs('admin.persetujuan.*');
+
+            if (!$isApprovalRoute) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Role Anda hanya memiliki akses Monitoring (Read-Only)!'], 403);
+                }
+                return redirect()->back()->with('error', 'Aksi ditolak: Role Anda hanya memiliki hak akses Read-Only (Monitoring)!');
+            }
+        }
+
         return $next($request);
     }
 }

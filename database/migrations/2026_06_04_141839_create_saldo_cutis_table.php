@@ -16,12 +16,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('jenis_cuti_id')->constrained('jenis_cutis')->onDelete('cascade');
             $table->integer('kuota_awal')->default(12);
+            $table->integer('sisa_saldo');
+            $table->integer('tahun');
             $table->integer('bulan')->nullable();
-            $table->integer('sisa_saldo'); // Jumlah hari yang tersisa
-            $table->year('tahun'); // Tahun saat ini
             $table->timestamps();
 
-            $table->unique(['user_id', 'jenis_cuti_id', 'bulan', 'tahun'], 'user_jenis_tahun_unique');
+            // Disesuaikan agar unik per user, jenis cuti, dan TAHUN
+            $table->unique(['user_id', 'jenis_cuti_id', 'tahun'], 'user_jenis_tahun_unique');
         });
     }
 

@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('jenis_cutis', function (Blueprint $table) {
             $table->id();
-            $table->string('name_cuti');
-            $table->integer('kuota_default')->default(0)->nullable(); // Misal: 12 hari untuk tahunan
-            $table->boolean('butuh_surat_dokter')->default(false); // Untuk cuti sakit
+            $table->string('kode_cuti')->unique(); // Tambahkan kode unik
+            $table->string('name_cuti'); // Misal: 'Cuti', 'Cuti Tahunan'
+            $table->integer('kuota_default')->default(12); // Default kuota
+            $table->boolean('butuh_surat_dokter')->default(false);
             $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

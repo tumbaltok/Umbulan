@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->foreignId('gender_id')->nullable()->constrained('genders');
             $table->foreignId('station_id')->constrained('stations');
+            $table->enum('sektor', ['manajemen', 'operasional'])->default('operasional');
             $table->string('job_title')->nullable();
             $table->enum('schedule_type', ['normal', 'roster'])->default('normal')->nullable();
             $table->json('normal_work_days')->nullable();

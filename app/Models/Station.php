@@ -12,6 +12,7 @@ class Station extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'kode_stasiun',
         'latitude',
         'longitude',

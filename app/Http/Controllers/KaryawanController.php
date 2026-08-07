@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use App\Services\ScheduleService;
+use App\Models\SaldoCuti;
+use App\Models\JenisCuti;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class KaryawanController extends Controller
 {
@@ -16,14 +20,72 @@ class KaryawanController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $daftarKaryawan = User::with(['role', 'station', 'cuti_aktif'])
-            ->orderBy('name', 'asc')
-            ->get();
+        $currentUser = Auth::user();
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
+
+        $cutiJenis = JenisCuti::where('name_cuti', 'Cuti')->first();
+        $jenisCutiId = $cutiJenis ? $cutiJenis->id : null;
+
+        $query = User::with([
+            'role', 
+            'station', 
+            'saldoCuti' => function($q) use ($jenisCutiId) {
+                if ($jenisCutiId) {
+                    $q->where('jenis_cuti_id', $jenisCutiId);
+                }
+            },
+            'pengajuanCuti' => function($q) use ($today) {
+                $q->where('status_akhir', 'approved')
+                  ->whereDate('tanggal_mulai', '<=', $today)
+                  ->whereDate('tanggal_selesai', '>=', $today);
+            }
+        ]);
+
+        // Proteksi Binding Sektor: Jika pengguna terikat pada sektornya (Bukan Level 1 Full Akses)
+        if (($currentUser->role->level ?? 3) != 1) {
+            $query->where('sektor', $currentUser->sektor ?? 'operasional');
+        } elseif ($request->filled('sektor') && in_array(strtolower($request->sektor), ['manajemen', 'operasional'])) {
+            // Filter opsional jika memilih dari UI dropdown
+            $query->where('sektor', strtolower($request->sektor));
+        }
+
+        $daftarKaryawan = $query->orderBy('name', 'asc')->get();
 
         $daftarKaryawan->transform(function ($karyawan) {
-            $karyawan->status_detail = $this->scheduleService->getWorkingStatusText($karyawan);
+            $sisaCuti = $karyawan->saldoCuti->first() ?? null;
+            $karyawan->sisaCutiUtama = $sisaCuti ? $sisaCuti->sisa_saldo : 12;
+            $karyawan->cuti_aktif = $karyawan->pengajuanCuti;
+
+            if ($karyawan->cuti_aktif->isEmpty()) {
+                $todaySchedule = $this->scheduleService->getTodaySchedule($karyawan);
+                $shiftType = $todaySchedule['shift_type'] ?? 'libur';
+
+                if ($shiftType === 'pagi') {
+                    $karyawan->status_detail = [
+                        'badge_class' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        'dot_class'   => 'bg-emerald-500',
+                        'is_on'       => true,
+                        'label'       => 'Shift Pagi'
+                    ];
+                } elseif ($shiftType === 'malam') {
+                    $karyawan->status_detail = [
+                        'badge_class' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                        'dot_class'   => 'bg-indigo-500',
+                        'is_on'       => true,
+                        'label'       => 'Shift Malam'
+                    ];
+                } else {
+                    $karyawan->status_detail = [
+                        'badge_class' => 'bg-slate-50 text-slate-600 border-slate-200',
+                        'dot_class'   => 'bg-slate-400',
+                        'is_on'       => false,
+                        'label'       => 'Standby / Libur'
+                    ];
+                }
+            }
+
             return $karyawan;
         });
 
@@ -33,7 +95,7 @@ class KaryawanController extends Controller
     public function showDetail(int $id): JsonResponse
     {
         try {
-            $karyawan = User::with(['role', 'station'])->find($id);
+            $karyawan = User::with(['role', 'station', 'saldoCuti.jenisCuti'])->find($id);
 
             if (!$karyawan) {
                 return response()->json(['message' => 'Karyawan tidak ditemukan'], 404);
@@ -41,50 +103,47 @@ class KaryawanController extends Controller
 
             $todaySchedule = $this->scheduleService->getTodaySchedule($karyawan);
 
-            $normalWorkDaysFormatted = [];
-            if ($karyawan->schedule_type === 'normal' && is_array($karyawan->normal_work_days)) {
-                $dayMap = [
-                    'Mon' => 'Senin',
-                    'Tue' => 'Selasa',
-                    'Wed' => 'Rabu',
-                    'Thu' => 'Kamis',
-                    'Fri' => 'Jumat',
-                    'Sat' => 'Sabtu',
-                    'Sun' => 'Minggu'
-                ];
-                foreach ($karyawan->normal_work_days as $day) {
-                    if (isset($dayMap[$day])) {
-                        $normalWorkDaysFormatted[] = $dayMap[$day];
-                    }
-                }
-            }
-
             return response()->json([
                 'id'                 => $karyawan->id,
                 'nip'                => $karyawan->nip ?? '-',
                 'name'               => $karyawan->name ?? '-',
                 'email'              => $karyawan->email ?? '-',
+                'sektor'             => ucfirst($karyawan->sektor ?? 'Operasional'),
                 'phone_number'       => $karyawan->phone_number ?? null,
                 'profile_photo'      => $karyawan->profile_photo ?? null,
                 'role_name'          => optional($karyawan->role)->role_name ?? 'Tidak Ada Role',
                 'nama_stasiun'       => optional($karyawan->station)->name ?? '-',
                 'job_title'          => $karyawan->job_title ?? 'Belum Memilih',
-                
-                // DATA JADWAL KERJA
                 'schedule_type'      => $karyawan->schedule_type ?? 'normal',
-                'normal_work_days'   => !empty($normalWorkDaysFormatted) ? implode(', ', $normalWorkDaysFormatted) : 'Senin - Jumat',
-                'normal_check_in'    => $karyawan->normal_check_in ? substr($karyawan->normal_check_in, 0, 5) : '08:00',
-                'normal_check_out'   => $karyawan->normal_check_out ? substr($karyawan->normal_check_out, 0, 5) : '17:00',
                 'today_shift'        => $todaySchedule['shift_name'] ?? '-',
-                'today_shift_type'   => $todaySchedule['shift_type'] ?? 'libur',
-                'today_scheduled_in' => $todaySchedule['scheduled_in'] ? substr($todaySchedule['scheduled_in'], 0, 5) : null,
-                'today_scheduled_out'=> $todaySchedule['scheduled_out'] ? substr($todaySchedule['scheduled_out'], 0, 5) : null,
+                'saldo_cuti'         => $karyawan->saldoCuti ? $karyawan->saldoCuti->map(function ($saldo) {
+                    return [
+                        'id'         => $saldo->id,
+                        'nama_cuti'  => optional($saldo->jenisCuti)->name_cuti ?? 'Cuti',
+                        'sisa_saldo' => $saldo->sisa_saldo,
+                    ];
+                }) : [],
             ], 200);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Terjadi kesalahan server: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function updateSaldoCuti(Request $request, int $id)
+    {
+        $request->validate([
+            'sisa_saldo' => 'required|integer|min:0',
+        ]);
+
+        if ($id > 0) {
+            $saldo = SaldoCuti::findOrFail($id);
+            $saldo->update(['sisa_saldo' => $request->sisa_saldo]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sisa saldo cuti berhasil diperbarui!'
+        ]);
     }
 }

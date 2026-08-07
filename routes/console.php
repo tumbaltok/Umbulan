@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Models\PengajuanCuti;
 use App\Models\User;
+use App\Models\Kehadiran; // Atau model/setting jam kerja Anda
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 // Bawaan Laravel: Menampilkan quotes inspiratif
 Artisan::command('inspire', function () {
@@ -20,11 +22,10 @@ Schedule::command('saldo:reset-haid')->monthlyOn(1, '00:00');
 // 2. Reset Saldo Tahunan otomatis setiap tanggal 1 Januari jam 00:00
 Schedule::command('saldo:reset-tahunan')->yearlyOn(1, 1, '00:00');
 
-
-// 3. JADWAL: Pengingat WhatsApp Cuti Pending (Setiap 10 Menit di Jam Kerja)
+// 3. JADWAL: Pengingat WhatsApp Cuti Pending (Dinamis Sesuai Jam Kerja Database)
 Schedule::call(function () {
     // Ambil pengajuan yang secara keseluruhan masih 'pending'
-    $pengajuanPending = PengajuanCuti::with(['user', 'jenisCuti', 'subCuti'])
+    $pengajuanPending = PengajuanCuti::with(['user.station', 'jenisCuti', 'subCuti'])
         ->where('status_akhir', 'pending')
         ->get();
 
@@ -41,16 +42,12 @@ Schedule::call(function () {
         // Tentukan Role Atasan mana yang harus dihubungi berdasarkan kondisi persetujuan
         $targetRole = null;
 
-        // KONDISI 1: Jika Supervisor masih pending, maka targetnya adalah SUPERVISOR
         if ($pengajuan->status_supervisor === 'pending') {
             $targetRole = 'supervisor';
-        }
-        // KONDISI 2: Jika Supervisor sudah approve tapi Manager masih pending, targetnya adalah MANAGER
-        elseif ($pengajuan->status_supervisor === 'approved' && $pengajuan->status_manager === 'pending') {
+        } elseif ($pengajuan->status_supervisor === 'approved' && $pengajuan->status_manager === 'pending') {
             $targetRole = 'manager';
         }
 
-        // Jika tidak masuk dalam kedua kondisi di atas, lewati pengajuan ini
         if (!$targetRole) {
             continue;
         }
@@ -58,15 +55,15 @@ Schedule::call(function () {
         // Cari atasan yang sesuai dengan targetRole di station yang sama
         $targetAtasan = User::where('station_id', $user->station_id)
             ->whereHas('role', function($query) use ($targetRole) {
-                $query->where(DB::raw('LOWER(role_name)'), $targetRole);
+                $query->where(DB::raw('LOWER(role_name)'), 'LIKE', '%' . strtolower($targetRole) . '%');
             })
             ->whereNotNull('phone_verified_at')
             ->get();
 
-        $namaStation = $user->station->nama_stasiun ?? 'Pusat / Utama';
+        $namaStation = $user->station->name ?? 'Pusat / Utama';
         $perihal = $pengajuan->sub_cuti_id && $pengajuan->subCuti ? $pengajuan->subCuti->nama_sub_cuti : ($pengajuan->jenisCuti->name_cuti ?? 'Cuti/Izin');
 
-        // Template Pesan WhatsApp (Disesuaikan dengan Jabatan Atasan saat ini)
+        // Template Pesan WhatsApp
         $labelAtasan = strtoupper($targetRole);
         $templatePesan = "⏳ *PENGINGAT: PENGAJUAN " . strtoupper($perihal) . " PERLU PERSETUJUAN {$labelAtasan}*\n\n"
             . "Halo Bapak/Ibu {$labelAtasan},\n"
@@ -77,17 +74,16 @@ Schedule::call(function () {
             . "▪ *Tanggal:* {$pengajuan->tanggal_mulai} s/d {$pengajuan->tanggal_selesai} ({$pengajuan->total_hari} Hari)\n"
             . "▪ *Alasan:* " . ($pengajuan->alasan_cuti ?? '-') . "\n\n"
             . "Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
-            . "Link: " . url('/admin/persetujuan') . "\n\n"
+            . "Link: " . url('/admin/persetujuan/cuti') . "\n\n"
             . "_Pesan pengingat otomatis sistem Tirta Umbulan._";
 
-        // Kirim ke nomor HP masing-masing atasan hasil filter
+        // Kirim ke nomor HP masing-masing atasan
         foreach ($targetAtasan as $atasan) {
             $targetPhone = $atasan->phone_number;
             if (!$targetPhone) {
                 continue;
             }
 
-            // Normalisasi nomor HP
             $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
             if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
                 $cleanPhone = '62' . substr($cleanPhone, 1);
@@ -107,7 +103,28 @@ Schedule::call(function () {
         }
     }
 })
-// ->everyMinute();
 ->everyTenMinutes()
-->between('08:00', '16:00')
-->timezone('Asia/Jakarta'); // Batasan Pukul (Setiap Hari)
+->timezone('Asia/Jakarta')
+->when(function () {
+    // --- PENGECEKAN JAM KERJA DINAMIS DARI DATABASE ---
+    $now = Carbon::now('Asia/Jakarta');
+
+    // Ambil setting jam kerja dari database (Contoh: tabel/pengaturan jadwal kerja)
+    // Silakan sesuaikan nama tabel/model pencarian sesuai aplikasi Anda
+    $scheduleSetting = DB::table('settings')->where('key', 'jam_kerja')->first();
+
+    // Nilai Fallback/Default jika setting database belum diisi
+    $jamMasuk  = '08:00';
+    $jamPulang = '17:00';
+
+    if ($scheduleSetting && isset($scheduleSetting->jam_masuk, $scheduleSetting->jam_pulang)) {
+        $jamMasuk  = $scheduleSetting->jam_masuk;
+        $jamPulang = $scheduleSetting->jam_pulang;
+    }
+
+    $startWork = Carbon::createFromTimeString($jamMasuk, 'Asia/Jakarta');
+    $endWork   = Carbon::createFromTimeString($jamPulang, 'Asia/Jakarta');
+
+    // Kembalikan 'true' HANYA jika waktu sekarang berada di antara Jam Masuk & Jam Pulang
+    return $now->between($startWork, $endWork);
+});

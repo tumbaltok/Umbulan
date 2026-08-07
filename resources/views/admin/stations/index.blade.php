@@ -25,14 +25,14 @@
 <div class="max-w-6xl mx-auto mt-8 px-4">
 
     @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium">
-            <i class="fa-solid fa-circle-check mr-1.5 text-emerald-600"></i> {{ session('success') }}
+        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i> {{ session('success') }}
         </div>
     @endif
 
     @if(session('error'))
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium">
-            <i class="fa-solid fa-circle-xmark mr-1.5 text-rose-600"></i> {{ session('error') }}
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-xmark mr-2 text-rose-600"></i> {{ session('error') }}
         </div>
     @endif
 
@@ -49,31 +49,35 @@
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h2 class="text-xl font-bold text-slate-800">Daftar Sektor / Stasiun Kerja</h2>
-                <p class="text-sm text-slate-500 mt-0.5">Manajemen titik lokasi wilayah kerja untuk distribusi karyawan dan validasi absensi GPS.</p>
+                <h2 class="text-xl font-bold text-slate-800">Daftar Tempat Kerja & Checkpoint</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Manajemen Kantor, Stasiun, dan Rumah Meter untuk penempatan staf dan validasi GPS.</p>
             </div>
+            @if(Auth::user()->role && Auth::user()->role->level == 1)
             <button type="button" onclick="bukaModalTambahStasiun()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-plus"></i> Tambah Stasiun Baru
+                <i class="fa-solid fa-plus"></i> Tambah Lokasi Baru
             </button>
+            @endif
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                        <th class="px-6 py-4 w-24">Kode</th>
-                        <th class="px-6 py-4">Nama Sektor / Stasiun</th>
+                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                        <th class="px-6 py-4 w-20">Kode</th>
+                        <th class="px-6 py-4">Nama Tempat Kerja</th>
+                        <th class="px-6 py-4 text-center">Tipe</th>
                         <th class="px-6 py-4 text-center">Radius GPS</th>
                         <th class="px-6 py-4 text-center">Total Penempatan Staf</th>
-                        <th class="px-6 py-4 text-center w-32">Aksi</th>
+                        @if(Auth::user()->role && Auth::user()->role->level == 1)
+                        <th class="px-6 py-4 text-center w-28">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
                     @forelse($daftarStasiun as $stasiun)
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="px-6 py-4 font-mono text-xs font-bold text-slate-600 uppercase">{{ $stasiun->kode_stasiun }}</td>
 
-                            {{-- KLIK NAMA STASIUN UNTUK MEMBUKA POPUP PETA GPS --}}
                             <td class="px-6 py-4 font-semibold text-slate-800">
                                 <div class="flex items-center space-x-2.5 cursor-pointer hover:text-sky-600 transition-colors btn-view-map group"
                                      data-name="{{ $stasiun->name }}" 
@@ -85,18 +89,37 @@
                                 </div>
                             </td>
 
+                            {{-- BADGE TIPE LOKASI --}}
+                            <td class="px-6 py-4 text-center">
+                                @if(($stasiun->type ?? 'stasiun') === 'kantor')
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                        🏢 Kantor
+                                    </span>
+                                @elseif(($stasiun->type ?? 'stasiun') === 'rumah_meter')
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                        📍 Rumah Meter
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        ⚡ Stasiun
+                                    </span>
+                                @endif
+                            </td>
+
                             <td class="px-6 py-4 text-center font-mono text-xs font-semibold text-slate-600">
-                                {{ $stasiun->radius_meters }} Meter
+                                {{ $stasiun->radius_meters ?? 1000 }} Meter
                             </td>
 
                             <td class="px-6 py-4 text-center">
+                                @php $totalStaf = $stasiun->total_karyawan ?? ($stasiun->users_count ?? 0); @endphp
                                 <span data-id="{{ $stasiun->id }}" data-name="{{ $stasiun->name }}"
                                     class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200
-                                    {{ $stasiun->total_karyawan > 0 ? 'bg-sky-50 text-sky-700 border border-sky-100 hover:bg-sky-100 hover:text-sky-800 cursor-pointer shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}">
-                                    {{ $stasiun->total_karyawan }} Orang
+                                    {{ $totalStaf > 0 ? 'bg-sky-50 text-sky-700 border border-sky-100 hover:bg-sky-100 hover:text-sky-800 cursor-pointer shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}">
+                                    {{ $totalStaf }} Orang
                                 </span>
                             </td>
 
+                            @if(Auth::user()->role && Auth::user()->role->level == 1)
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center space-x-2">
                                     <button type="button" 
@@ -106,22 +129,15 @@
                                             title="Edit Stasiun">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-
-                                    <form action="{{ route('admin.stations.destroy', $stasiun->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus stasiun ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs transition-colors" title="Hapus Stasiun">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                            <td colspan="6" class="px-6 py-10 text-center text-slate-400">
                                 <i class="fa-solid fa-map-location-dot text-3xl mb-2 block text-slate-200"></i>
-                                Belum ada data stasiun kerja yang diinput ke dalam database erp.
+                                Belum ada data lokasi tempat kerja yang diinput ke dalam database.
                             </td>
                         </tr>
                     @endforelse
@@ -136,7 +152,7 @@
     <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalFormStasiun()"></div>
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-            <h3 class="font-bold text-slate-800 text-base" id="judulModalForm">Tambah Stasiun Kerja</h3>
+            <h3 class="font-bold text-slate-800 text-base" id="judulModalForm">Tambah Lokasi Kerja</h3>
             <button type="button" onclick="tutupModalFormStasiun()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
@@ -146,14 +162,23 @@
             @csrf
             <input type="hidden" name="_method" id="methodFormStasiun" value="POST">
 
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe Tempat Kerja / Checkpoint</label>
+                <select name="type" id="input_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
+                    <option value="kantor">Kantor</option>
+                    <option value="stasiun" selected>Stasiun</option>
+                    <option value="rumah_meter">Rumah Meter (Khusus Checkpoint Absensi)</option>
+                </select>
+            </div>
+
             <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Stasiun</label>
                     <input type="text" name="kode_stasiun" id="input_kode_stasiun" required placeholder="UMB" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs uppercase focus:outline-none focus:border-sky-500">
                 </div>
                 <div class="col-span-2">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Stasiun / Sektor</label>
-                    <input type="text" name="name" id="input_name" required placeholder="Stasiun Umbulan" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Tempat Kerja / Wilayah</label>
+                    <input type="text" name="name" id="input_name" required placeholder="Contoh: Kantor Surabaya / Stasiun Umbulan" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
                 </div>
             </div>
 
@@ -183,7 +208,7 @@
 
             <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button type="button" onclick="tutupModalFormStasiun()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan Stasiun</button>
+                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan Lokasi</button>
             </div>
         </form>
     </div>
@@ -335,13 +360,13 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // AUTO PARSE GOOGLE MAPS URL DI JAVASCRIPT
     function autoParseMapsUrl(url) {
         if (!url) return;
 
         let match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (!match) match = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (!match) match = url.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (!match) match = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
 
         if (match && match[1] && match[2]) {
             document.getElementById('input_latitude').value = match[1];
@@ -350,10 +375,11 @@
     }
 
     function bukaModalTambahStasiun() {
-        document.getElementById('judulModalForm').innerText = 'Tambah Stasiun Kerja';
+        document.getElementById('judulModalForm').innerText = 'Tambah Lokasi Kerja';
         document.getElementById('formStasiunAction').action = "{{ route('admin.stations.store') }}";
         document.getElementById('methodFormStasiun').value = 'POST';
 
+        document.getElementById('input_type').value = 'stasiun';
         document.getElementById('input_kode_stasiun').value = '';
         document.getElementById('input_name').value = '';
         document.getElementById('input_maps_url').value = '';
@@ -369,16 +395,17 @@
     function bukaModalEditStasiun(button) {
         const stasiun = JSON.parse(button.getAttribute('data-stasiun'));
 
-        document.getElementById('judulModalForm').innerText = 'Edit Stasiun Kerja';
+        document.getElementById('judulModalForm').innerText = 'Edit Lokasi Kerja';
         document.getElementById('formStasiunAction').action = `/admin/stations/${stasiun.id}`;
         document.getElementById('methodFormStasiun').value = 'PUT';
 
+        document.getElementById('input_type').value = stasiun.type || 'stasiun';
         document.getElementById('input_kode_stasiun').value = stasiun.kode_stasiun;
         document.getElementById('input_name').value = stasiun.name;
         document.getElementById('input_maps_url').value = `https://www.google.com/maps?q=${stasiun.latitude},${stasiun.longitude}`;
         document.getElementById('input_latitude').value = stasiun.latitude;
         document.getElementById('input_longitude').value = stasiun.longitude;
-        document.getElementById('input_radius').value = stasiun.radius_meters;
+        document.getElementById('input_radius').value = stasiun.radius_meters || 1000;
 
         const modal = document.getElementById('modalFormStasiun');
         modal.classList.remove('hidden');
@@ -401,7 +428,6 @@
         const closeMapBtn2 = document.getElementById("closeMapModalBtn2");
         const mapContainer = document.getElementById("stationMap");
 
-        // Definisi Icon Marker
         const customMarkerIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
             iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -412,7 +438,6 @@
             shadowSize: [41, 41]
         });
 
-        // RESIZE OBSERVER: Memaksa Leaflet menyesuaikan ukuran peta secara otomatis
         const mapResizeObserver = new ResizeObserver(() => {
             if (mapInstance) {
                 mapInstance.invalidateSize();
@@ -453,13 +478,11 @@
                 document.getElementById("mapModalCoords").textContent = `Koordinat GPS: ${lat}, ${lng}`;
                 document.getElementById("btnOpenGoogleMaps").href = `https://www.google.com/maps?q=${lat},${lng}`;
 
-                // Hapus instance peta lama jika ada
                 if (mapInstance !== null) {
                     mapInstance.remove();
                     mapInstance = null;
                 }
 
-                // Inisialisasi Peta Leaflet + OpenStreetMap
                 mapInstance = L.map('stationMap', {
                     center: [lat, lng],
                     zoom: 16
@@ -474,7 +497,6 @@
                     .bindPopup(`<b>${name}</b><br>Titik Validasi Absensi GPS`)
                     .openPopup();
 
-                // Pemicu ganda untuk memastikan peta penuh di segala kondisi
                 setTimeout(() => {
                     if (mapInstance) {
                         mapInstance.invalidateSize();
@@ -483,7 +505,6 @@
             });
         });
 
-        // --- 2. LOGIKA MODAL LIST STAF PER STASIUN ---
         const modalStaff = document.getElementById("staffStationModal");
         const backdropStaff = document.getElementById("staffModalBackdrop");
         const closeStaffBtn = document.getElementById("closeStaffModalBtn");
@@ -494,7 +515,6 @@
         const stationTitle = document.getElementById("modalStationTitle");
         const staffContainer = document.getElementById("staffListContainer");
 
-        // --- 3. LOGIKA MODAL DETAIL LENGKAP KARYAWAN ---
         const modalDetail = document.getElementById("detailKaryawanModal");
         const backdropDetail = document.getElementById("detailModalBackdrop");
         const closeDetailBtn = document.getElementById("closeDetailModalBtn");
@@ -537,7 +557,6 @@
         if (closeDetailBtn2) closeDetailBtn2.addEventListener("click", closeDetailModal);
         if (backdropDetail) backdropDetail.addEventListener("click", closeDetailModal);
 
-        // FETCH DAFTAR STAF DALAM STASIUN
         document.querySelectorAll(".btn-view-staff").forEach(badge => {
             badge.addEventListener("click", function () {
                 const stationId = this.getAttribute("data-id");
@@ -624,7 +643,6 @@
             });
         });
 
-        // FETCH POPUP DETAIL KARYAWAN SAAT NAMA DI-KLIK
         document.addEventListener("click", function(e) {
             const button = e.target.closest(".btn-detail-karyawan");
             if (button) {
@@ -650,7 +668,6 @@
                         document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
                         document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
 
-                        // LOGIKA EMAIL
                         const emailSpan = document.getElementById("detail_email");
                         const emailLink = document.getElementById("detail_email_link");
 
@@ -663,7 +680,6 @@
                             emailLink.classList.add("hidden");
                         }
 
-                        // LOGIKA PHONE (WHATSAPP)
                         const phoneSpan = document.getElementById("detail_phone");
                         const phoneLink = document.getElementById("detail_phone_link");
 

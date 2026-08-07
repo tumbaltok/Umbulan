@@ -54,17 +54,6 @@
                     <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
                 </div>
             </div>
-            {{-- <div class="z-10 flex items-center space-x-3">
-                <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                    <svg class="w-6 h-6 text-cyan-200 fill-current" viewBox="0 0 24 24">
-                        <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
-                </div>
-            </div> --}}
 
             <!-- Konten Tengah -->
             <div class="my-auto py-8 z-10 hidden lg:flex flex-col items-start">
@@ -93,19 +82,6 @@
         <!-- Sisi Kanan: Formulir Registrasi -->
         <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
 
-            <!-- Header Mobile (Hanya tampil di perangkat mobile/tablet) -->
-            {{-- <div class="flex items-center space-x-3 mb-6 lg:hidden">
-                <div class="bg-sky-100 p-2 rounded-xl">
-                    <svg class="w-5 h-5 text-sky-600 fill-current" viewBox="0 0 24 24">
-                        <path d="M12,2.69C12,2.69 19,10 19,14C19,17.86 15.86,21 12,21C8.14,21 5,17.86 5,14C5,10 12,2.69 12,2.69M12,5.18C9.53,8.71 7,12.16 7,14A5,5 0 0,0 12,19A5,5 0 0,0 17,14C17,12.16 14.47,8.71 12,5.18Z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="font-bold tracking-wide text-xs text-sky-950">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[8px] text-sky-600 uppercase tracking-widest font-bold">Penyaluran Air Bersih</p>
-                </div>
-            </div> --}}
-
             <!-- Wrapper Form -->
             <div>
                 <div class="mb-6">
@@ -113,13 +89,12 @@
                     <p class="text-slate-500 text-xs sm:text-sm mt-1">Lengkapi data di bawah sesuai dengan database kepegawaian Anda.</p>
                 </div>
 
-                <!-- Box Notifikasi Validasi / Error -->
+                <!-- Box Notifikasi Validasi / Error JS -->
                 <div id="notification" style="display: none;" class="mb-6 p-4 rounded-xl border flex items-center space-x-3 transition-all duration-300">
                     <div id="notif-icon"></div>
                     <div class="text-sm font-medium" id="notif-message"></div>
                 </div>
 
-                <!-- Form Registrasi -->
                 <!-- Deteksi Error dari Laravel -->
                 @if ($errors->any())
                     <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
@@ -134,8 +109,9 @@
                         </ul>
                     </div>
                 @endif
+
                 <form id="registerForm" class="space-y-4" onsubmit="handleRegistration(event)" method="POST" action="/register">
-                    <?php echo csrf_field(); ?>
+                    @csrf
 
                     <!-- Section 1: Data Utama Karyawan -->
                     <div class="border-b border-slate-100 pb-4">
@@ -144,20 +120,6 @@
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- NIP Input -->
-                            {{-- <div>
-                                <label for="nip" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">NIP / ID Karyawan</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-id-card text-xs"></i>
-                                    </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="nip" -->
-                                    <input type="text" id="nip" name="nip" required
-                                        class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
-                                        placeholder="Contoh: TA-2026045">
-                                </div>
-                            </div> --}}
-
                             <!-- Name Input -->
                             <div>
                                 <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
@@ -165,8 +127,7 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-user text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="name" -->
-                                    <input type="text" id="name" name="name" required
+                                    <input type="text" id="name" name="name" value="{{ old('name') }}" required
                                         class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Nama sesuai KTP">
                                 </div>
@@ -179,25 +140,23 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-envelope text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="email" -->
-                                    <input type="email" id="email" name="email" required
+                                    <input type="email" id="email" name="email" value="{{ old('email') }}" required
                                         class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="email@tirtaamerta.co.id">
                                 </div>
                             </div>
 
                             <!-- Gender Selection -->
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="gender_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-venus-mars text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="gender_id" -->
-                                    <select id="gender_id" name="gender_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none">
-                                        <option value="" disabled selected>Pilih Jenis Kelamin</option>
-                                        <option value="1">Laki-laki</option>
-                                        <option value="2">Perempuan</option>
+                                    <select id="gender_id" name="gender_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('gender_id') ? '' : 'selected' }}>Pilih Jenis Kelamin</option>
+                                        <option value="1" {{ old('gender_id') == '1' ? 'selected' : '' }}>Laki-laki</option>
+                                        <option value="2" {{ old('gender_id') == '2' ? 'selected' : '' }}>Perempuan</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -214,6 +173,23 @@
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Sektor Selection -->
+                            <div>
+                                <label for="sektor" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sektor Kerja</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-building-user text-xs"></i>
+                                    </div>
+                                    <select id="sektor" name="sektor" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="operasional" {{ old('sektor', 'operasional') == 'operasional' ? 'selected' : '' }}>Operasional</option>
+                                        <option value="manajemen" {{ old('sektor') == 'manajemen' ? 'selected' : '' }}>Manajemen</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Role Selection -->
                             <div>
                                 <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jabatan</label>
@@ -221,13 +197,13 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-briefcase text-xs"></i>
                                     </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="role_id" -->
-                                    <select id="role_id" name="role_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none">
-                                        <option value="" disabled selected>Pilih Peran Jabatan</option>
-                                        <option value="4">Staff Operasional/Lapangan</option>
-                                        <option value="3">Supervisor</option>
-                                        <option value="2">Manager</option>
-                                        <option class="hidden" value="1">Admin</option>
+                                    <select id="role_id" name="role_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('role_id') ? '' : 'selected' }}>Pilih Peran Jabatan</option>
+                                        @foreach($daftarRole as $role)
+                                            <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                                {{ $role->role_name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -235,63 +211,33 @@
                                 </div>
                             </div>
 
-                            <!-- Station Selection -->
-                           <div>
+                            <!-- Station / Tempat Kerja Selection (Rumah Meter Otomatis Terfilter) -->
+                            <div class="md:col-span-2">
                                 <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Stasiun / Wilayah Kerja
+                                    Tempat Kerja / Penempatan
                                 </label>
                                 <div class="relative">
-                                    {{-- IKON DI SISI KIRI --}}
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-faucet-drip text-xs"></i>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-location-dot text-xs"></i>
                                     </div>
 
-                                    {{-- SELECT INPUT --}}
-                                    <select id="station_id" 
-                                            name="station_id" 
-                                            required 
-                                            class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="" disabled selected>Pilih Stasiun Kerja</option>
-                                        
+                                    <select id="station_id" name="station_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('station_id') ? '' : 'selected' }}>Pilih Tempat Kerja</option>
                                         @foreach($daftarStasiun as $stasiun)
                                             <option value="{{ $stasiun->id }}" {{ old('station_id') == $stasiun->id ? 'selected' : '' }}>
-                                                {{ $stasiun->name }} ({{ $stasiun->kode_stasiun }})
+                                                [{{ strtoupper($stasiun->type ?? 'STASIUN') }}] {{ $stasiun->name }} ({{ $stasiun->kode_stasiun }})
                                             </option>
                                         @endforeach
                                     </select>
 
-                                    {{-- IKON PANAH / CHEVRON DI SISI KANAN --}}
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-
-                                @error('station_id') 
-                                    <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> 
-                                @enderror
-                            </div>
-
-                            <!-- Jobdesk Karyawan -->
-                            {{-- <div>
-                                <label for="tipe_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tipe Pekerjaan</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-tags text-xs"></i>
-                                    </div>
-                                    <!-- PERBAIKAN: Ditambahkan name="tipe_id" -->
-                                    <select id="tipe_id" name="tipe_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none">
-                                        <option value="" disabled selected>Pilih Tipe Jobs</option>
-                                        <option value="1">Operator</option>
-                                        <option value="2">Maintenance</option>
-                                        <option value="3">Pipeline</option>
-                                        <option value="4">Safety (HSE)</option>
-                                        <option value="5">Documenter</option>
-                                    </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </div>
                                 </div>
-                            </div> --}}
+                                @error('station_id') 
+                                    <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> 
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -368,7 +314,6 @@
 
     <!-- Script Operasi Frontend -->
     <script>
-        // Mengubah visibilitas kata sandi (Sembunyikan/Tampilkan)
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const toggleIcon = document.getElementById(iconId);
@@ -384,9 +329,8 @@
             }
         }
 
-        // Proses Submit Registrasi
         function handleRegistration(event) {
-            event.preventDefault(); // Menghentikan pengiriman otomatis instan untuk divalidasi terlebih dahulu
+            event.preventDefault();
 
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
@@ -395,7 +339,6 @@
             const notifIcon = document.getElementById('notif-icon');
             const notifMessage = document.getElementById('notif-message');
 
-            // Validasi Kesesuaian Kata Sandi Baru dan Konfirmasi
             if (password !== confirmPassword) {
                 notification.style.display = 'flex';
                 notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
@@ -404,7 +347,6 @@
                 return;
             }
 
-            // Validasi panjang kata sandi minimal 8 karakter
             if (password.length < 8) {
                 notification.style.display = 'flex';
                 notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
@@ -413,7 +355,6 @@
                 return;
             }
 
-            // Mengubah tombol menjadi state loading
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
                 <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -423,34 +364,11 @@
                 <span>Mendaftarkan data Anda...</span>
             `;
 
-            // PERBAIKAN UTAMA: Setelah validasi frontend sukses, teruskan form ke backend (PHP/Laravel)
-            // Ini akan memicu Request POST asli ke Route Laravel di `/register` Anda
             event.target.submit();
         }
     </script>
 
-    <!-- PWA Script Registrations & Tools -->
     @laravelPwa
     @pwaInstallButton
-
-    <!-- Custom PWA Update Notifier -->
-    {{-- <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(registration => {
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm("[META System] Versi baru telah tersedia. Perbarui halaman sekarang?")) {
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-        }
-    </script> --}}
 </body>
 </html>

@@ -13,6 +13,7 @@ use App\Http\Controllers\PengajuanCarController;
 use App\Http\Controllers\PengajuanMprController;
 use App\Http\Controllers\KehadiranController;
 use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
@@ -117,9 +118,15 @@ Route::middleware('auth')->group(function () {
 });
 
 // ==========================================================
-// GRUP ATASAN (Khusus Supervisor & Manager)
+// GRUP ATASAN (Khusus)
 // ==========================================================
 Route::middleware(['auth', 'atasan'])->group(function () {
+    // CRUD Role & Jabatan (Penamaan diseleraskan dengan Blade View)
+    Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role.index');
+    Route::post('/admin/role', [RoleController::class, 'store'])->name('admin.role.store');
+    Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
+    Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
+
     // Jalur Utama Persetujuan Cuti
     Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');
     Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
@@ -135,6 +142,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Karyawan
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
     Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
+    Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
     
     // CRUD Stasiun Kerja
     Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');

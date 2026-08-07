@@ -755,108 +755,108 @@
     });
 
     // 4. WEBCAM & GPS ABSENSI (RESPONSIVE PORTRAIT/LANDSCAPE & NON-MIRROR)
-    let mediaStream = null;
+let mediaStream = null;
 
-    function bukaModalAbsen(type) {
-        document.getElementById('absen_type').value = type;
-        document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
-        
-        const modal = document.getElementById('modalAbsensi');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+function bukaModalAbsen(type) {
+    document.getElementById('absen_type').value = type;
+    document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
+    
+    const modal = document.getElementById('modalAbsensi');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
-        // Minta Lokasi GPS
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    document.getElementById('absen_lat').value = pos.coords.latitude;
-                    document.getElementById('absen_long').value = pos.coords.longitude;
-                },
-                (err) => {
-                    alert('Gagal mendapatkan lokasi GPS. Harap izinkan akses lokasi pada browser Anda.');
-                },
-                { enableHighAccuracy: true }
-            );
+    // Minta Lokasi GPS
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                document.getElementById('absen_lat').value = pos.coords.latitude;
+                document.getElementById('absen_long').value = pos.coords.longitude;
+            },
+            (err) => {
+                alert('Gagal mendapatkan lokasi GPS. Harap izinkan akses lokasi pada browser Anda.');
+            },
+            { enableHighAccuracy: true }
+        );
+    }
+
+    // Deteksi jika pengguna membuka lewat Smartphone/Mobile
+    const isMobile = window.innerWidth < 640;
+
+    // Pengaturan Resolusi kamera ideal
+    const constraints = {
+        audio: false,
+        video: {
+            facingMode: "user",
+            // Jika HP: Resolusi dibuat Portrait (Lebar 720, Tinggi 1280)
+            // Jika Desktop: Resolusi dibuat Landscape (Lebar 1280, Tinggi 720)
+            width: { ideal: isMobile ? 720 : 1280 },
+            height: { ideal: isMobile ? 1280 : 720 }
         }
+    };
 
-        // Deteksi jika pengguna membuka lewat Smartphone/Mobile
-        const isMobile = window.innerWidth < 640;
-
-        // Pengaturan Resolusi kamera ideal
-        const constraints = {
-            audio: false,
-            video: {
-                facingMode: "user",
-                // Jika HP: Resolusi dibuat Portrait (Lebar 720, Tinggi 1280)
-                // Jika Desktop: Resolusi dibuat Landscape (Lebar 1280, Tinggi 720)
-                width: { ideal: isMobile ? 720 : 1280 },
-                height: { ideal: isMobile ? 1280 : 720 }
-            }
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then((stream) => {
-                mediaStream = stream;
-                const video = document.getElementById('webcamVideo');
-                video.srcObject = stream;
-                document.getElementById('cameraStatus').innerText = 'Kamera Aktif';
-            })
-            .catch((err) => {
-                console.error("Gagal Akses Kamera:", err);
-                document.getElementById('cameraStatus').innerText = 'Kamera tidak dapat diakses';
-            });
-    }
-
-    function submitAbsensi(e) {
-        e.preventDefault();
-
-        const video = document.getElementById('webcamVideo');
-        const canvas = document.getElementById('webcamCanvas');
-        const context = canvas.getContext('2d');
-
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        
-        // Pastikan pengambilan foto di Canvas TIDAK terbalik/mirror
-        context.save();
-        context.scale(1, 1);
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        context.restore();
-        
-        const base64Photo = canvas.toDataURL('image/png');
-        document.getElementById('absen_face_image').value = base64Photo;
-
-        const type = document.getElementById('absen_type').value;
-        const url = type === 'in' ? '{{ route("attendance.checkin") }}' : '{{ route("attendance.checkout") }}';
-        
-        const payload = {
-            _token: '{{ csrf_token() }}',
-            latitude: document.getElementById('absen_lat').value,
-            longitude: document.getElementById('absen_long').value,
-            face_image: base64Photo,
-            reason_out_of_radius: document.getElementById('inputAlasan').value,
-            reason_checkout: document.getElementById('inputAlasan').value,
-        };
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify(payload)
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+            mediaStream = stream;
+            const video = document.getElementById('webcamVideo');
+            video.srcObject = stream;
+            document.getElementById('cameraStatus').innerText = 'Kamera Aktif';
         })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(res => {
-            if (res.status === 200) {
-                alert(res.body.message);
-                window.location.reload();
-            } else if (res.status === 422) {
-                document.getElementById('wrapperAlasan').classList.remove('hidden');
-                document.getElementById('labelAlasan').innerText = res.body.message;
-                alert(res.body.message);
-            } else {
-                alert(res.body.message || 'Terjadi kesalahan sistem.');
-            }
-        })
-        .catch(err => alert('Gagal mengirim absensi. Periksa koneksi internet Anda.'));
-    }
+        .catch((err) => {
+            console.error("Gagal Akses Kamera:", err);
+            document.getElementById('cameraStatus').innerText = 'Kamera tidak dapat diakses';
+        });
+}
+
+function submitAbsensi(e) {
+    e.preventDefault();
+
+    const video = document.getElementById('webcamVideo');
+    const canvas = document.getElementById('webcamCanvas');
+    const context = canvas.getContext('2d');
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    
+    // Pastikan pengambilan foto di Canvas TIDAK terbalik/mirror
+    context.save();
+    context.scale(1, 1);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.restore();
+    
+    const base64Photo = canvas.toDataURL('image/png');
+    document.getElementById('absen_face_image').value = base64Photo;
+
+    const type = document.getElementById('absen_type').value;
+    const url = type === 'in' ? '{{ route("attendance.checkin") }}' : '{{ route("attendance.checkout") }}';
+    
+    const payload = {
+        _token: '{{ csrf_token() }}',
+        latitude: document.getElementById('absen_lat').value,
+        longitude: document.getElementById('absen_long').value,
+        face_image: base64Photo,
+        reason_out_of_radius: document.getElementById('inputAlasan').value,
+        reason_checkout: document.getElementById('inputAlasan').value,
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+    .then(res => {
+        if (res.status === 200) {
+            alert(res.body.message);
+            window.location.reload();
+        } else if (res.status === 422) {
+            document.getElementById('wrapperAlasan').classList.remove('hidden');
+            document.getElementById('labelAlasan').innerText = res.body.message;
+            alert(res.body.message);
+        } else {
+            alert(res.body.message || 'Terjadi kesalahan sistem.');
+        }
+    })
+    .catch(err => alert('Gagal mengirim absensi. Periksa koneksi internet Anda.'));
+}
 </script>
 @endpush

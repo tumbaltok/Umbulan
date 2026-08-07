@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Daftar Karyawan')
 @section('content')
-<div class="max-w-7xl mx-auto mt-8 px-4">
+<div class="max-w-7xl auto mt-8 px-4">
     {{-- Notifikasi Sukses --}}
     @if(session('success'))
         <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
@@ -43,13 +43,24 @@
                         <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="3">
                             Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                         </th>
-                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="4">
+                        <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
+                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
                             Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                         </th>
+                        <th class="px-6 py-4 text-center w-28">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
                     @forelse($daftarKaryawan as $karyawan)
+                        @php
+                            $cutiUtama = $karyawan->saldoCuti ? $karyawan->saldoCuti->filter(function($s) {
+                                $namaCuti = strtolower(optional($s->jenisCuti)->name_cuti ?? '');
+                                return $namaCuti === 'cuti' || $namaCuti === 'cuti tahunan' || optional($s->jenisCuti)->kuota_default == 12;
+                            })->first() : null;
+                            $sisaCutiVal = $cutiUtama ? $cutiUtama->sisa_saldo : ($karyawan->sisaCutiUtama ?? 12);
+                            $saldoIdVal = $cutiUtama ? $cutiUtama->id : 0;
+                            $namaCutiText = optional(optional($cutiUtama)->jenisCuti)->name_cuti ?? 'Cuti Utama';
+                        @endphp
                         <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
                             {{-- Kolom Nama & Foto Profil --}}
                             <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
@@ -108,6 +119,11 @@
                                 @endif
                             </td>
 
+                            {{-- Kolom Sisa Cuti Utama --}}
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $sisaCutiVal }} Hari</span>
+                            </td>
+
                             {{-- Status Operasional --}}
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
@@ -117,23 +133,43 @@
                                         On Leave (Cuti)
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center text-xs {{ $karyawan->status_detail['badge_class'] }} border px-2.5 py-1 rounded-full font-bold">
-                                        <span class="w-1.5 h-1.5 {{ $karyawan->status_detail['dot_class'] }} rounded-full mr-1.5 {{ $karyawan->status_detail['is_on'] ? 'animate-pulse' : '' }}"></span>
-                                        {{ $karyawan->status_detail['label'] }}
+                                    @php
+                                        $statusDetail = $karyawan->status_detail ?? [
+                                            'badge_class' => 'bg-slate-50 text-slate-600 border-slate-200',
+                                            'dot_class' => 'bg-slate-400',
+                                            'is_on' => false,
+                                            'label' => 'Standby'
+                                        ];
+                                    @endphp
+                                    <span class="inline-flex items-center text-xs {{ $statusDetail['badge_class'] }} border px-2.5 py-1 rounded-full font-bold">
+                                        <span class="w-1.5 h-1.5 {{ $statusDetail['dot_class'] }} rounded-full mr-1.5 {{ $statusDetail['is_on'] ? 'animate-pulse' : '' }}"></span>
+                                        {{ $statusDetail['label'] }}
                                     </span>
                                 @endif
+                            </td>
+
+                            {{-- Tombol Edit Saldo Langsung (Aman dengan Atribut data-*) --}}
+                            <td class="px-6 py-4 text-center">
+                                <button type="button" 
+                                    data-id="{{ $saldoIdVal }}"
+                                    data-nama="{{ $namaCutiText }}"
+                                    data-saldo="{{ $sisaCutiVal }}"
+                                    onclick="bukaModalEditSaldoBtn(this)" 
+                                    class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
                             </td>
                         </tr>
                     @empty
                         <tr id="emptyRow">
-                            <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">
                                 <i class="fa-solid fa-users text-3xl mb-2 block text-slate-200"></i>
                                 Belum ada data karyawan terdaftar di database.
                             </td>
                         </tr>
                     @endforelse
                     <tr id="noResultRow" class="hidden">
-                        <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                        <td colspan="7" class="px-6 py-10 text-center text-slate-400">
                             <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
                             Karyawan dengan nama tersebut tidak ditemukan.
                         </td>
@@ -161,20 +197,19 @@
             <p class="text-xs text-slate-400">Memuat data...</p>
         </div>
 
-        <div id="modalDataContent" class="hidden space-y-6">
+        <div id="modalDataContent" class="hidden space-y-5">
             <div class="flex flex-col items-center justify-center text-center">
                 <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white ring-4 ring-sky-50"></div>
                 <h4 id="detail_name" class="font-bold text-lg text-slate-800"></h4>
                 <p id="detail_role" class="text-xs font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100"></p>
             </div>
 
-            <div class="border-t border-slate-100 pt-4 grid grid-cols-1 gap-y-4 text-sm">
+            <div class="border-t border-slate-100 pt-4 grid grid-cols-1 gap-y-3.5 text-sm">
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
                     <span class="text-slate-400 font-medium">NIP</span>
                     <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
                 
-                {{-- EMAIL --}}
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Email</span>
                     <div class="col-span-2 flex items-center space-x-2">
@@ -186,7 +221,6 @@
                     </div>
                 </div>
 
-                {{-- NO. TELEPON --}}
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">No. Telepon</span>
                     <div class="col-span-2 flex items-center space-x-2">
@@ -208,14 +242,12 @@
                     <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
 
-                {{-- SEKSI DETIL JADWAL KERJA & SHIFT --}}
                 <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-2">
                     <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sistem Jadwal Kerja</span>
                         <span id="detail_schedule_badge" class="px-2 py-0.5 text-xs font-bold rounded-md"></span>
                     </div>
 
-                    {{-- DETAIL JADWAL NORMAL --}}
                     <div id="detail_normal_schedule_box" class="hidden space-y-1.5 text-xs">
                         <div class="flex justify-between">
                             <span class="text-slate-400">Hari Kerja Masuk:</span>
@@ -231,7 +263,6 @@
                         </div>
                     </div>
 
-                    {{-- DETAIL JADWAL ROSTER --}}
                     <div id="detail_roster_schedule_box" class="hidden space-y-1.5 text-xs">
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400">Jadwal Shift Hari Ini:</span>
@@ -253,12 +284,37 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL EDIT SALDO CUTI UTAMA --}}
+<div id="editSaldoModal" class="fixed inset-0 z-60 items-center justify-center hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="tutupModalEditSaldo()"></div>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200">
+        <h4 class="font-bold text-slate-800 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
+        
+        <form id="formEditSaldo" onsubmit="submitEditSaldo(event)" class="space-y-3">
+            @csrf
+            @method('PUT')
+            <input type="hidden" id="edit_saldo_id" name="saldo_id">
+
+            <div>
+                <label id="label_jenis_cuti" class="block text-xs font-semibold text-slate-500 mb-1">Jenis Cuti</label>
+                <input type="number" id="input_sisa_saldo" name="sisa_saldo" min="0" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-sky-500">
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="tutupModalEditSaldo()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
+                <button type="submit" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
+    let activeKaryawanId = null;
+
     document.addEventListener("DOMContentLoaded", function () {
-        // --- SEKTOR REAL-TIME FILTER SEARCH ---
         const searchInput = document.getElementById("searchKaryawanInput");
         const noResultRow = document.getElementById("noResultRow");
 
@@ -291,7 +347,6 @@
             });
         }
 
-        // --- SEKTOR SORTING UTK SEMUA HEADER ---
         const headers = document.querySelectorAll("#karyawanTable th[data-sort]");
         const tableBody = document.getElementById("karyawanTableBody");
         let currentSortColumn = -1;
@@ -340,20 +395,10 @@
             });
         });
 
-        // --- LOGIKA MODAL POPUP & FETCH DETAIL KARYAWAN ---
         const modal = document.getElementById("detailKaryawanModal");
         const backdrop = document.getElementById("detailModalBackdrop");
         const closeBtn = document.getElementById("closeDetailModalBtn");
         const closeBtn2 = document.getElementById("closeDetailModalBtn2");
-
-        const loadingSection = document.getElementById("modalLoading");
-        const contentSection = document.getElementById("modalDataContent");
-
-        function showModal() {
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-            document.body.classList.add("overflow-hidden");
-        }
 
         function hideModal() {
             modal.classList.remove("flex");
@@ -368,130 +413,179 @@
         document.addEventListener("click", function(e) {
             const button = e.target.closest(".btn-detail-karyawan");
             if (button) {
-                const karyawanId = button.getAttribute("data-id");
-
-                showModal();
-                loadingSection.classList.remove("hidden");
-                contentSection.classList.add("hidden");
-
-                fetch(`/admin/karyawan/${karyawanId}/detail`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Gagal mengambil data (Status: ${response.status})`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data || Object.keys(data).length === 0) throw new Error("Data karyawan kosong.");
-
-                        loadingSection.classList.add("hidden");
-                        contentSection.classList.remove("hidden");
-
-                        document.getElementById("detail_name").textContent = data.name || '-';
-                        document.getElementById("detail_nip").textContent = data.nip ? data.nip : '-';
-                        document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
-                        document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
-
-                        // LOGIKA ELEMEN EMAIL
-                        const emailSpan = document.getElementById("detail_email");
-                        const emailLink = document.getElementById("detail_email_link");
-
-                        if (data.email) {
-                            emailSpan.textContent = data.email;
-                            emailLink.href = `mailto:${data.email}`;
-                            emailLink.classList.remove("hidden");
-                        } else {
-                            emailSpan.textContent = '-';
-                            emailLink.classList.add("hidden");
-                        }
-
-                        // LOGIKA ELEMEN TELEPON (WHATSAPP)
-                        const phoneSpan = document.getElementById("detail_phone");
-                        const phoneLink = document.getElementById("detail_phone_link");
-
-                        if (data.phone_number) {
-                            phoneSpan.textContent = data.phone_number;
-
-                            let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
-                            if (cleanNumber.startsWith('0')) {
-                                cleanNumber = '62' + cleanNumber.substring(1);
-                            }
-
-                            phoneLink.href = `https://wa.me/${cleanNumber}`;
-                            phoneLink.classList.remove("hidden");
-                        } else {
-                            phoneSpan.textContent = '-';
-                            phoneLink.classList.add("hidden");
-                        }
-
-                        let jobTitleText = 'Belum Memilih';
-                        if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
-                        else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
-                        else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
-                        else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
-
-                        document.getElementById("detail_job").textContent = jobTitleText;
-
-                        // LOGIKA PENAMPILAN JADWAL KERJA & SHIFT
-                        const scheduleBadge = document.getElementById("detail_schedule_badge");
-                        const normalBox = document.getElementById("detail_normal_schedule_box");
-                        const rosterBox = document.getElementById("detail_roster_schedule_box");
-
-                        if (data.schedule_type === 'normal') {
-                            scheduleBadge.textContent = 'Jadwal Normal';
-                            scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-sky-100 text-sky-700 border border-sky-200';
-                            
-                            normalBox.classList.remove('hidden');
-                            rosterBox.classList.add('hidden');
-
-                            document.getElementById("detail_normal_days").textContent = data.normal_work_days;
-                            document.getElementById("detail_normal_hours").textContent = `${data.normal_check_in} - ${data.normal_check_out} WIB`;
-                        } else {
-                            scheduleBadge.textContent = 'Jadwal Roster';
-                            scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200';
-
-                            rosterBox.classList.remove('hidden');
-                            normalBox.classList.add('hidden');
-
-                            const rosterTodayBadge = document.getElementById("detail_roster_today_badge");
-                            const rosterHoursContainer = document.getElementById("detail_roster_hours_container");
-                            const rosterHours = document.getElementById("detail_roster_hours");
-
-                            if (data.today_shift_type === 'pagi') {
-                                rosterTodayBadge.textContent = 'Shift Pagi';
-                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-emerald-100 text-emerald-700 border border-emerald-200';
-                                rosterHoursContainer.classList.remove('hidden');
-                                rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
-                            } else if (data.today_shift_type === 'malam') {
-                                rosterTodayBadge.textContent = 'Shift Malam';
-                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-indigo-100 text-indigo-700 border border-indigo-200';
-                                rosterHoursContainer.classList.remove('hidden');
-                                rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
-                            } else {
-                                rosterTodayBadge.textContent = 'OFF / Libur Roster';
-                                rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-rose-100 text-rose-700 border border-rose-200';
-                                rosterHoursContainer.classList.add('hidden');
-                            }
-                        }
-
-                        const photoContainer = document.getElementById("detail_photo_container");
-                        if (data.profile_photo) {
-                            const img = document.createElement("img");
-                            img.src = `/storage/${data.profile_photo}`;
-                            img.className = "w-full h-full object-cover";
-                            photoContainer.textContent = "";
-                            photoContainer.appendChild(img);
-                        } else {
-                            const initials = data.name ? data.name.substring(0, 2).toUpperCase() : '??';
-                            photoContainer.textContent = initials;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        loadingSection.classList.add("hidden");
-                        alert(`Terjadi kesalahan saat memuat data karyawan: ${error.message}`);
-                        hideModal();
-                    });
+                activeKaryawanId = button.getAttribute("data-id");
+                loadDetailKaryawan(activeKaryawanId);
             }
         });
     });
+
+    function loadDetailKaryawan(karyawanId) {
+        const modal = document.getElementById("detailKaryawanModal");
+        const loadingSection = document.getElementById("modalLoading");
+        const contentSection = document.getElementById("modalDataContent");
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+
+        loadingSection.classList.remove("hidden");
+        contentSection.classList.add("hidden");
+
+        fetch(`/admin/karyawan/${karyawanId}/detail`)
+            .then(response => {
+                if (!response.ok) throw new Error(`Gagal mengambil data (Status: ${response.status})`);
+                return response.json();
+            })
+            .then(data => {
+                if (!data || Object.keys(data).length === 0) throw new Error("Data karyawan kosong.");
+
+                loadingSection.classList.add("hidden");
+                contentSection.classList.remove("hidden");
+
+                document.getElementById("detail_name").textContent = data.name || '-';
+                document.getElementById("detail_nip").textContent = data.nip ? data.nip : '-';
+                document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
+                document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
+
+                const emailSpan = document.getElementById("detail_email");
+                const emailLink = document.getElementById("detail_email_link");
+                if (data.email) {
+                    emailSpan.textContent = data.email;
+                    emailLink.href = `mailto:${data.email}`;
+                    emailLink.classList.remove("hidden");
+                } else {
+                    emailSpan.textContent = '-';
+                    emailLink.classList.add("hidden");
+                }
+
+                const phoneSpan = document.getElementById("detail_phone");
+                const phoneLink = document.getElementById("detail_phone_link");
+                if (data.phone_number) {
+                    phoneSpan.textContent = data.phone_number;
+                    let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
+                    if (cleanNumber.startsWith('0')) cleanNumber = '62' + cleanNumber.substring(1);
+                    phoneLink.href = `https://wa.me/${cleanNumber}`;
+                    phoneLink.classList.remove("hidden");
+                } else {
+                    phoneSpan.textContent = '-';
+                    phoneLink.classList.add("hidden");
+                }
+
+                let jobTitleText = 'Belum Memilih';
+                if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
+                else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
+                else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
+                else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
+
+                document.getElementById("detail_job").textContent = jobTitleText;
+
+                const scheduleBadge = document.getElementById("detail_schedule_badge");
+                const normalBox = document.getElementById("detail_normal_schedule_box");
+                const rosterBox = document.getElementById("detail_roster_schedule_box");
+
+                if (data.schedule_type === 'normal') {
+                    scheduleBadge.textContent = 'Jadwal Normal';
+                    scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-sky-100 text-sky-700 border border-sky-200';
+                    normalBox.classList.remove('hidden');
+                    rosterBox.classList.add('hidden');
+                    document.getElementById("detail_normal_days").textContent = data.normal_work_days;
+                    document.getElementById("detail_normal_hours").textContent = `${data.normal_check_in} - ${data.normal_check_out} WIB`;
+                } else {
+                    scheduleBadge.textContent = 'Jadwal Roster';
+                    scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200';
+                    rosterBox.classList.remove('hidden');
+                    normalBox.classList.add('hidden');
+
+                    const rosterTodayBadge = document.getElementById("detail_roster_today_badge");
+                    const rosterHoursContainer = document.getElementById("detail_roster_hours_container");
+                    const rosterHours = document.getElementById("detail_roster_hours");
+
+                    if (data.today_shift_type === 'pagi') {
+                        rosterTodayBadge.textContent = 'Shift Pagi';
+                        rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-emerald-100 text-emerald-700 border border-emerald-200';
+                        rosterHoursContainer.classList.remove('hidden');
+                        rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
+                    } else if (data.today_shift_type === 'malam') {
+                        rosterTodayBadge.textContent = 'Shift Malam';
+                        rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-indigo-100 text-indigo-700 border border-indigo-200';
+                        rosterHoursContainer.classList.remove('hidden');
+                        rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
+                    } else {
+                        rosterTodayBadge.textContent = 'OFF / Libur Roster';
+                        rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-rose-100 text-rose-700 border border-rose-200';
+                        rosterHoursContainer.classList.add('hidden');
+                    }
+                }
+
+                const photoContainer = document.getElementById("detail_photo_container");
+                if (data.profile_photo) {
+                    const img = document.createElement("img");
+                    img.src = `/storage/${data.profile_photo}`;
+                    img.className = "w-full h-full object-cover";
+                    photoContainer.textContent = "";
+                    photoContainer.appendChild(img);
+                } else {
+                    const initials = data.name ? data.name.substring(0, 2).toUpperCase() : '??';
+                    photoContainer.textContent = initials;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                loadingSection.classList.add("hidden");
+                alert(`Terjadi kesalahan saat memuat data karyawan: ${error.message}`);
+            });
+    }
+
+    function bukaModalEditSaldoBtn(button) {
+        const saldoId = button.getAttribute('data-id') || 0;
+        const namaCuti = button.getAttribute('data-nama') || 'Cuti Utama';
+        const currentSaldo = button.getAttribute('data-saldo') || 0;
+
+        document.getElementById('edit_saldo_id').value = saldoId;
+        document.getElementById('label_jenis_cuti').textContent = `Edit Saldo: ${namaCuti}`;
+        document.getElementById('input_sisa_saldo').value = currentSaldo;
+
+        const modalEdit = document.getElementById('editSaldoModal');
+        modalEdit.classList.remove('hidden');
+        modalEdit.classList.add('flex');
+    }
+
+    function tutupModalEditSaldo() {
+        const modalEdit = document.getElementById('editSaldoModal');
+        modalEdit.classList.remove('flex');
+        modalEdit.classList.add('hidden');
+    }
+
+    function submitEditSaldo(e) {
+        e.preventDefault();
+        const saldoId = document.getElementById('edit_saldo_id').value;
+        const newSaldo = document.getElementById('input_sisa_saldo').value;
+        const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '{{ csrf_token() }}';
+
+        fetch(`/admin/karyawan/saldo-cuti/${saldoId}/update`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ sisa_saldo: newSaldo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                tutupModalEditSaldo();
+                window.location.reload();
+            } else {
+                alert(data.message || 'Gagal memperbarui saldo cuti.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan jaringan.');
+        });
+    }
 </script>
 @endpush

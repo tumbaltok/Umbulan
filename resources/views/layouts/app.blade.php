@@ -8,27 +8,21 @@
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* ========================================================
-           SEMBUNYIKAN SCROLLBAR DI SELURUH ELEMENT & ELEMEN SPESIFIK
-           ======================================================== */
+        /* SEMBUNYIKAN SCROLLBAR */
         html, body, div, nav, aside, main, section {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar,
-        div::-webkit-scrollbar,
-        nav::-webkit-scrollbar,
-        aside::-webkit-scrollbar,
-        main::-webkit-scrollbar,
+        html::-webkit-scrollbar, body::-webkit-scrollbar, div::-webkit-scrollbar,
+        nav::-webkit-scrollbar, aside::-webkit-scrollbar, main::-webkit-scrollbar,
         section::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none;
         }
 
         /* Dropdown Animation Base */
@@ -46,24 +40,47 @@
             transform: rotate(180deg);
         }
 
+        /* TRANSISI MOBILE (SAMA DAN TIDAK DIUBAH) */
+        #sidebarApp {
+            will-change: transform, width;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #sidebarBackdrop {
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        @media (max-width: 767px) {
+            #sidebarApp {
+                width: 17.5rem !important; /* 280px */
+            }
+            #sidebarApp .hide-on-collapse {
+                opacity: 1 !important;
+                transform: none !important;
+                pointer-events: auto !important;
+                white-space: normal !important;
+            }
+        }
+
         /* ========================================================
-           EFEK HOVER SIDEBAR SMOOTH (KHUSUS DESKTOP >= 768px)
+           EFEK HOVER SIDEBAR DESKTOP (MODIFIKASI PENUTUPAN HALUS)
            ======================================================== */
         @media (min-width: 768px) {
             .sidebar-hover-mode {
                 width: 5rem; /* ~80px saat kuncup */
-                transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                /* Kurva dan durasi khusus saat MENUTUP (0.55s halus & lembut) */
+                transition: width 0.55s cubic-bezier(0.25, 1, 0.3, 1), box-shadow 0.55s ease;
                 overflow: hidden !important;
                 will-change: width;
             }
             
-            /* Sidebar Mekar saat Hover */
+            /* Sidebar Mekar saat Hover (0.4s) */
             .sidebar-hover-mode:hover {
-                width: 16rem; /* 256px saat mekar */
-                box-shadow: 10px 0 30px -5px rgba(0, 0, 0, 0.3);
+                width: 17.5rem;
+                box-shadow: 12px 0 35px -5px rgba(0, 0, 0, 0.35);
+                transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
             }
 
-            /* Hilangkan Scrollbar saat proses transisi mekar/kuncup */
             .sidebar-hover-mode .sidebar-nav-container {
                 overflow-y: hidden;
             }
@@ -71,33 +88,33 @@
                 overflow-y: auto;
             }
 
-            /* Smooth Fade-In Teks Menu Utama & Sub-menu */
+            /* Smooth Fade-In / Fade-Out Teks Menu Utama & Sub-menu */
             .hide-on-collapse {
                 opacity: 0;
                 transform: translateX(-10px);
                 white-space: nowrap;
                 pointer-events: none;
-                transition: opacity 0.25s ease-out, transform 0.25s ease-out;
-                transition-delay: 0s;
+                /* Durasi fade out cepat agar teks tidak bertumpuk saat menutup */
+                transition: opacity 0.2s ease-in, transform 0.2s ease-in;
             }
 
-            /* Teks Muncul Perlahan Hanya Saat Sidebar Sudah Melebar */
             .sidebar-hover-mode:hover .hide-on-collapse {
                 opacity: 1;
                 transform: translateX(0);
                 pointer-events: auto;
-                transition-delay: 0.15s;
+                /* Fade in dengan jeda halus saat mekar */
+                transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+                transition-delay: 0.165s;
             }
 
-            /* Paksa Tutup Dropdown saat Mouse Keluar dari Sidebar */
             .sidebar-hover-mode:not(:hover) .dropdown-content {
                 max-height: 0 !important;
+                transition: max-height 0.35s ease-in-out !important;
             }
         }
     </style>
 
-    <!-- PWA Head -->
-    @pwaHead
+    @stack('styles')
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 flex overflow-hidden">
 
@@ -107,19 +124,22 @@
     @endphp
 
     <!-- SIDEBAR -->
-    <aside id="sidebarApp" class="sidebar-hover-mode bg-slate-900 text-slate-300 flex flex-col h-screen justify-between border-r border-slate-800 shrink-0 z-30 fixed md:relative -translate-x-full md:translate-x-0">
+    <aside id="sidebarApp" class="sidebar-hover-mode bg-slate-900 text-slate-300 flex flex-col h-screen justify-between border-r border-slate-800 shrink-0 z-40 fixed md:relative -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
         <div class="flex flex-col h-full overflow-hidden">
             <!-- Header Sidebar -->
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
-                <div class="z-10 flex items-center space-x-3 overflow-hidden">
+                <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
                     <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
                         <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
                     </div>
-                    <div class="hide-on-collapse">
-                        <h2 class="font-bold tracking-wide text-xs text-cyan-100 leading-tight">META ADHYA TIRTA UMBULAN</h2>
+                    
+                    <div class="hide-on-collapse min-w-0 w-44">
+                        <h2 class="font-bold tracking-wide text-[11px] text-cyan-100 leading-snug whitespace-normal break-words">
+                            META ADHYA TIRTA UMBULAN
+                        </h2>
                     </div>
                 </div>
-                <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800">
+                <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors shrink-0">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -270,6 +290,9 @@
                             <i class="fa-solid fa-chevron-down text-xs chevron-icon hide-on-collapse"></i>
                         </button>
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
+                            <a href="{{ route('admin.role.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.role.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                                <span class="hide-on-collapse">Daftar Role / Jabatan</span>
+                            </a>
                             <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <span class="hide-on-collapse">Daftar Karyawan</span>
                             </a>
@@ -314,7 +337,7 @@
     </aside>
 
     <!-- BACKDROP MOBILE -->
-    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-20 hidden md:hidden"></div>
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 opacity-0 pointer-events-none md:hidden"></div>
 
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col h-screen overflow-y-auto">
@@ -322,7 +345,7 @@
         <header class="bg-white border-b border-slate-100 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
             {{-- Sisi Kiri: Tombol Drawer Mobile & Nama Stasiun --}}
             <div class="flex items-center space-x-3">
-                <button id="toggleSidebarBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 border border-slate-100">
+                <button id="toggleSidebarBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 border border-slate-100 active:scale-95 transition-transform">
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
@@ -332,8 +355,7 @@
             </div>
 
             {{-- Sisi Tengah: Jam Digital & Tanggal Real-Time --}}
-            {{-- Menggunakan class fixed bottom-4 left-1/2 -translate-x-1/2 pada mobile & inline pada desktop --}}
-            <div class="fixed bottom-4 right-4 z-40 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 text-white sm:text-slate-800 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
+            <div class="fixed bottom-4 right-4 z-20 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 text-white sm:text-slate-800 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
                 <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
                     <i class="fa-solid fa-clock text-[10px] sm:text-xs text-sky-400 sm:text-sky-500"></i>
                     <span id="headerDigitalClock">00:00:00 WIB</span>
@@ -345,7 +367,7 @@
             <div class="flex items-center space-x-3">
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ auth()->user()->role->role_name ?? 'USER' }} {{ Auth::user()->job_title }}</p>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ Auth::user()->role->role_name ?? 'USER' }} {{ Auth::user()->job_title }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0">
                     @if(Auth::user()->profile_photo)
@@ -361,8 +383,6 @@
             @yield('content')
         </main>
     </div>
-
-    @stack('scripts')
 
     <!-- JAVASCRIPT HANDLER -->
     <script>
@@ -437,24 +457,35 @@
                 });
             });
 
+            // PENANGANAN MOUSEOVER SIDEBAR DESKTOP DENGAN DELAY SMOOTH
+            let sidebarHoverTimeout = null;
+
             if (sidebar) {
                 sidebar.addEventListener('mouseenter', function() {
                     if (window.innerWidth >= 768) {
+                        if (sidebarHoverTimeout) {
+                            clearTimeout(sidebarHoverTimeout);
+                            sidebarHoverTimeout = null;
+                        }
+
                         setTimeout(() => {
                             dropdownContainers.forEach(container => {
                                 if (container.getAttribute('data-active') === 'true') {
                                     openDropdown(container);
                                 }
                             });
-                        }, 180);
+                        }, 200);
                     }
                 });
 
                 sidebar.addEventListener('mouseleave', function() {
                     if (window.innerWidth >= 768) {
-                        dropdownContainers.forEach(container => {
-                            closeDropdown(container);
-                        });
+                        // Jeda penutupan diselaraskan dengan animasi CSS baru agar super smooth
+                        sidebarHoverTimeout = setTimeout(() => {
+                            dropdownContainers.forEach(container => {
+                                closeDropdown(container);
+                            });
+                        }, 250);
                     }
                 });
             }
@@ -467,11 +498,15 @@
                 });
             }
 
+            // --- SMOOTH ANIMATION UNTUK MOBILE SIDEBAR (TIDAK DIUBAH) ---
             function openSidebarMobile() {
                 if (sidebar && backdrop) {
                     sidebar.classList.remove("-translate-x-full");
                     sidebar.classList.add("translate-x-0");
-                    backdrop.classList.remove("hidden");
+                    
+                    backdrop.classList.remove("pointer-events-none");
+                    backdrop.classList.add("opacity-100");
+                    backdrop.classList.remove("opacity-0");
                 }
             }
 
@@ -479,7 +514,10 @@
                 if (sidebar && backdrop) {
                     sidebar.classList.remove("translate-x-0");
                     sidebar.classList.add("-translate-x-full");
-                    backdrop.classList.add("hidden");
+                    
+                    backdrop.classList.add("opacity-0");
+                    backdrop.classList.remove("opacity-100");
+                    backdrop.classList.add("pointer-events-none");
                 }
             }
 
@@ -490,7 +528,8 @@
             window.addEventListener("resize", function () {
                 if (window.innerWidth >= 768) {
                     sidebar.classList.remove("-translate-x-full", "translate-x-0");
-                    backdrop.classList.add("hidden");
+                    backdrop.classList.add("opacity-0", "pointer-events-none");
+                    backdrop.classList.remove("opacity-100");
                 } else {
                     sidebar.classList.add("-translate-x-full");
                 }
@@ -498,7 +537,6 @@
         });
     </script>
 
-    @laravelPwa
-    @pwaInstallButton
+    @stack('scripts')
 </body>
 </html>

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubCuti extends Model
 {
@@ -24,13 +26,14 @@ class SubCuti extends Model
     ];
 
     // Relasi balik: Satu sub-cuti dimiliki oleh satu Jenis Cuti utama
-    public function jenisCuti()
+    public function jenisCuti(): BelongsTo
     {
         return $this->belongsTo(JenisCuti::class, 'jenis_cuti_id');
     }
 
-    public function pengajuanCuti()
+    // Relasi: Satu Sub Cuti memiliki banyak pengajuan cuti
+    public function pengajuanCuti(): HasMany
     {
-        return $this->belongsTo(PengajuanCuti::class, 'sub_cuti_id');
+        return $this->hasMany(PengajuanCuti::class, 'sub_cuti_id');
     }
 }
