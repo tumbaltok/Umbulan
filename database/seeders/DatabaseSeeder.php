@@ -28,12 +28,16 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         Storage::disk('public')->deleteDirectory('profile_photos');
         Storage::disk('public')->deleteDirectory('dokumen_cuti');
+        Storage::disk('public')->deleteDirectory('dokumen_cat');
+        Storage::disk('public')->deleteDirectory('dokumen_mpr');
 
         Storage::disk('public')->makeDirectory('profile_photos');
         Storage::disk('public')->makeDirectory('dokumen_cuti');
+        Storage::disk('public')->makeDirectory('dokumen_cat');
+        Storage::disk('public')->makeDirectory('dokumen_mpr');
 
         // ==========================================
-        // DATA MASTER ROLES (DENGAN DIVISI & LEVEL)
+        // DATA MASTER ROLES (Hanya Role Admin & Staff/Lainnya jika dibutuhkan)
         // ==========================================
         $roleAdmin   = Role::create(['role_name' => 'Admin', 'divisi' => 'Manajemen', 'level' => 1, 'description' => 'Akses penuh ke seluruh sistem ERP']);
         $roleManager = Role::create(['role_name' => 'Manager', 'divisi' => 'Manajemen', 'level' => 2, 'description' => 'Persetujuan tingkat manajerial']);
@@ -57,19 +61,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $stasiunBooster = Station::updateOrCreate(
-            ['kode_stasiun' => 'BOOSTER'],
-            [
-                'name'          => 'Stasiun Booster-M',
-                'type'          => 'stasiun',
-                'latitude'      => -7.1932227,
-                'longitude'     => 112.6371782,
-                'radius_meters' => 500,
-            ]
-        );
-
         // ==========================================
-        // DATA MASTER JENIS CUTI & SUB-CUTI
+        // DATA MASTER JENIS CUTI & SUB-CUTI (TETAP LENGKAP)
         // ==========================================
 
         // 1. Ijin Meninggalkan Pekerjaan
@@ -148,135 +141,51 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ==========================================
-        // DATA SEEDING USERS
+        // DATA SEEDING USERS (HANYA AKUN ADMIN)
         // ==========================================
 
-        // Akun ADMIN
-        User::create([
+        $admin = User::create([
             'nip'               => '000',
-            'name'              => 'Admin',
+            'name'              => 'Admin Sistem',
             'email'             => 'admin@meta.com',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'role_id'           => $roleAdmin->id,
             'gender_id'         => $pria->id,
             'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'manajemen',
+            'sektor'            => 'operasional',
+            'job_title'         => 'System Administrator',
+            'schedule_type'     => 'roster',
+            'roster_start_date'  => now(),
+            'normal_work_days'  => '',
+            'normal_check_in'   => '',
+            'normal_check_out'  => '',
+            'phone_number'      => '081234567890',
+            'phone_verified_at' => now(),
             'password'          => Hash::make('admin123'),
         ]);
 
-        // Akun Manager
-        User::create([
-            'nip'               => '100',
-            'name'              => 'Manager',
-            'email'             => 'manager@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleManager->id,
-            'gender_id'         => $pria->id,
-            'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'manajemen',
-            'password'          => Hash::make('manager123'),
-        ]);
-
-        // Akun HRD
-        User::create([
-            'nip'               => '101',
-            'name'              => 'HRD',
-            'email'             => 'hrd@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleHRD->id,
-            'gender_id'         => $pria->id,
-            'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'manajemen',
-            'password'          => Hash::make('hrd123'),
-        ]);
-
-        // SPV Umbulan
-        User::create([
-            'nip'               => '110',
-            'name'              => 'SPV Umbulan',
-            'email'             => 'spv.umbulan@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleSpv->id,
-            'gender_id'         => $pria->id,
-            'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'operasional',
-            'password'          => Hash::make('supervisor123'),
-        ]);
-
-        // Karyawan Wanita Umbulan
-        User::create([
-            'nip'               => '213',
-            'name'              => 'Karyawan Wanita Umbulan',
-            'email'             => 'staff.umbulan@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleStaff->id,
-            'gender_id'         => $wanita->id,
-            'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'operasional',
-            'password'          => Hash::make('staff123'),
-        ]);
-
-        // SPV Booster
-        User::create([
-            'nip'               => '210',
-            'name'              => 'SPV Booster-M',
-            'email'             => 'spv.booster@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleSpv->id,
-            'gender_id'         => $pria->id,
-            'station_id'        => $stasiunBooster->id,
-            'sektor'            => 'operasional',
-            'password'          => Hash::make('supervisor123'),
-        ]);
-
-        // Karyawan Wanita Booster
-        User::create([
-            'nip'               => '223',
-            'name'              => 'Karyawan Wanita Booster',
-            'email'             => 'staff.booster@meta.com',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'role_id'           => $roleStaff->id,
-            'gender_id'         => $wanita->id,
-            'station_id'        => $stasiunBooster->id,
-            'sektor'            => 'operasional',
-            'password'          => Hash::make('staff123'),
-        ]);
-
         // ==========================================
-        // ISI DATA SALDO CUTI OTOMATIS (TAHUN 2026)
+        // ISI DATA SALDO CUTI OTOMATIS (HANYA UNTUK ADMIN)
         // ==========================================
 
-        $daftarUser = User::orderBy('id', 'asc')->get();
+        $jenisCutiSaldos = [
+            ['id' => $cutiTahunan->id, 'saldo' => 12],
+            ['id' => $cutiFamilyVisit->id, 'saldo' => 0],
+            ['id' => $cutiMelahirkan->id, 'saldo' => 45],
+            ['id' => $ijinMeninggalkanPekerjaan->id, 'saldo' => ($admin->gender_id == $wanita->id) ? 2 : 0],
+        ];
 
-        foreach ($daftarUser as $user) {
-
-            $jenisCutiSaldos = [
-                ['id' => $cutiTahunan->id, 'saldo' => 12],
-                ['id' => $cutiFamilyVisit->id, 'saldo' => 0],
-                ['id' => $cutiMelahirkan->id, 'saldo' => 45],
-                ['id' => $ijinMeninggalkanPekerjaan->id, 'saldo' => ($user->gender_id == $wanita->id) ? 2 : 0],
-            ];
-
-            foreach ($jenisCutiSaldos as $cutiData) {
-
-                if ($cutiData['id'] == $cutiMelahirkan->id && $user->gender_id != $wanita->id) {
-                    continue;
-                }
-
-                SaldoCuti::create([
-                    'user_id'       => $user->id,
-                    'jenis_cuti_id' => $cutiData['id'],
-                    'sisa_saldo'    => $cutiData['saldo'],
-                    'tahun'         => 2026
-                ]);
+        foreach ($jenisCutiSaldos as $cutiData) {
+            if ($cutiData['id'] == $cutiMelahirkan->id && $admin->gender_id != $wanita->id) {
+                continue;
             }
+
+            SaldoCuti::create([
+                'user_id'       => $admin->id,
+                'jenis_cuti_id' => $cutiData['id'],
+                'sisa_saldo'    => $cutiData['saldo'],
+                'tahun'         => 2026
+            ]);
         }
     }
 }
