@@ -1,11 +1,11 @@
 {
     "name": "META Adhya Tirta Umbulan",
     "short_name": "META",
-    "start_url": "/index.php",
-    "background_color": "#6777ef",
+    "start_url": "/auth/login.php",
+    "background_color": "#ffffff",
     "description": "META Adhya Tirta Umbulan",
     "display": "fullscreen",
-    "theme_color": "#6777ef",
+    "theme_color": "#ffffff",
     "icons": [
         {
             "src": "icon-72x72.png?v=1785726155",
