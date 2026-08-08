@@ -153,7 +153,7 @@ class DatabaseSeeder extends Seeder
             'gender_id'         => $pria->id,
             'station_id'        => $stasiunUmbulan->id,
             'sektor'            => 'operasional',
-            'job_title'         => 'System Administrator',
+            'job_title'         => '',
             'schedule_type'     => 'roster',
             'roster_start_date'  => now(),
             'normal_work_days'  => '',
