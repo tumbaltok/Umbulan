@@ -103,16 +103,24 @@
                         @error('email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Tipe Jobs --}}
+                    {{-- Tipe Jobs / Jobdesk --}}
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Tipe Jobs</label>
                         <select id="job_title" name="job_title" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('job_title') ? 'border-rose-500' : 'border-slate-200' }}">
                             <option value="" disabled {{ old('job_title', $user->job_title) == '' ? 'selected' : '' }}>Pilih Tipe Jobs</option>
-                            <option value="Operator" {{ old('job_title', $user->job_title) == 'Operator' ? 'selected' : '' }}>Operator</option>
-                            <option value="Maintenance" {{ old('job_title', $user->job_title) == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                            <option value="Pipeline" {{ old('job_title', $user->job_title) == 'Pipeline' ? 'selected' : '' }}>Pipeline</option>
-                            <option value="HSE" {{ old('job_title', $user->job_title) == 'HSE' ? 'selected' : '' }}>Safety (HSE)</option>
-                            <option value="Dokumentasi" {{ old('job_title', $user->job_title) == 'Dokumentasi' ? 'selected' : '' }}>Documenter</option>
+                            
+                            {{-- LOOPING DINAMIS DARI DATABASE JOBDESK --}}
+                            @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
+                                @foreach($daftarJobdesk as $jd)
+                                    <option value="{{ $jd->job_title }}" {{ old('job_title', $user->job_title) == $jd->job_title ? 'selected' : '' }}>
+                                        {{ $jd->job_title }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="Operator" {{ old('job_title', $user->job_title) == 'Operator' ? 'selected' : '' }}>Operator</option>
+                                <option value="Maintenance" {{ old('job_title', $user->job_title) == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                <option value="HSE" {{ old('job_title', $user->job_title) == 'HSE' ? 'selected' : '' }}>Safety (HSE)</option>
+                            @endif
                         </select>
                         @error('job_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>

@@ -95,7 +95,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
             Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
             Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
-            Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'ambilSubCuti'])->name('cuti.ambilSubCuti');
+            Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
             // Form CAR
             Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
@@ -121,11 +121,16 @@ Route::middleware('auth')->group(function () {
 // GRUP ATASAN (Khusus)
 // ==========================================================
 Route::middleware(['auth', 'atasan'])->group(function () {
-    // CRUD Role & Jabatan (Penamaan diseleraskan dengan Blade View)
+    // CRUD Role & Jabatan
     Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role.index');
     Route::post('/admin/role', [RoleController::class, 'store'])->name('admin.role.store');
     Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
     Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
+
+    // Kelola Jobdesk Baru (URL diselaraskan menjadi /admin/jobdesk)
+    Route::post('/admin/jobdesk', [RoleController::class, 'storeJobdesk'])->name('admin.jobdesk.store');
+    Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
+    Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
 
     // Jalur Utama Persetujuan Cuti
     Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');

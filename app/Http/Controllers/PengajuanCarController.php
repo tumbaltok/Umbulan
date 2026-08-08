@@ -83,31 +83,31 @@ class PengajuanCarController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
+        $roleName = $atasan->role->role_name ?? 'Atasan';
 
         $query = PengajuanCar::with(['user.role', 'details']);
 
-        if ($roleName === 'supervisor') {
+        if (strtolower($roleName) === 'supervisor') {
             $query->where('status_supervisor', 'pending')
                 ->whereHas('user', function($q) use ($atasan) {
                     $q->where('station_id', $atasan->station_id);
                 });
-        } elseif ($roleName === 'manager') {
+        } elseif (strtolower($roleName) === 'manager') {
             $query->where('status_supervisor', 'approved')
                 ->where('status_manager', 'pending');
-        } elseif ($roleName === 'admin') {
+        } else {
             $query->where(function($q) {
                 $q->where('status_supervisor', 'pending')
                 ->orWhere('status_manager', 'pending');
             })
             ->where('status_supervisor', '!=', 'rejected')
             ->where('status_manager', '!=', 'rejected');
-        } else {
-            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
+        // Eksekusi query terlebih dahulu
         $daftarPengajuan = $query->get();
 
+        // Return response view secara terpisah
         return response()
             ->view('admin.persetujuan.car', compact('daftarPengajuan', 'roleName'))
             ->header('Content-Type', 'text/html')

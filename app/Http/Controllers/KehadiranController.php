@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Attendance;
 use App\Models\Kehadiran;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
@@ -36,12 +35,12 @@ class KehadiranController extends Controller
             ->first();
 
         if ($attendance && $attendance->check_in) {
-            return response()->json(['message' => 'Anda sudah melakukan absen masuk hari ini!'], 400);
+            return redirect()->back()->with('error', 'Anda sudah melakukan absen masuk hari ini!');
         }
 
         $schedule = $this->scheduleService->getTodaySchedule($user, $today);
         if ($schedule['is_day_off']) {
-            return response()->json(['message' => 'Hari ini adalah jadwal libur Anda.'], 400);
+            return redirect()->back()->with('error', 'Hari ini adalah jadwal libur Anda.');
         }
 
         $station = $user->station;
@@ -55,17 +54,17 @@ class KehadiranController extends Controller
         }
 
         if (!$isInRadius && empty($request->reason_out_of_radius)) {
-            return response()->json([
-                'message' => 'Anda berada di luar radius lokasi stasiun. Harap isi alasan berada di luar radius!'
-            ], 422);
+            return redirect()->back()->withErrors([
+                'reason_out_of_radius' => 'Anda berada di luar radius lokasi stasiun. Harap isi alasan berada di luar radius!'
+            ])->withInput();
         }
 
         $facePath = null;
-        if ($request->face_image) {
+        if ($request->filled('face_image')) {
             $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkin');
         }
 
-        $attendance = Kehadiran::updateOrCreate(
+        Kehadiran::updateOrCreate(
             ['user_id' => $user->id, 'date' => $today],
             [
                 'shift_type' => $schedule['shift_type'],
@@ -80,13 +79,9 @@ class KehadiranController extends Controller
             ]
         );
 
-        return response()->json([
-            'message' => 'Berhasil melakukan absen masuk. Selamat bekerja!',
-            'data' => $attendance
-        ], 200);
+        return redirect()->back()->with('success', 'Berhasil melakukan absen masuk. Selamat bekerja!');
     }
 
-    // 2. Absen Pulang (Check-Out)
     public function checkOut(Request $request)
     {
         $request->validate([
@@ -104,37 +99,25 @@ class KehadiranController extends Controller
             ->where('date', $today)
             ->first();
 
-        if (!$attendance || !$attendance->check_in) {
-            return response()->json(['message' => 'Anda belum melakukan absen masuk hari ini!'], 400);
+        if (!$attendance) {
+            return redirect()->back()->with('error', 'Anda belum melakukan absen masuk hari ini!');
         }
 
-        if ($attendance->check_out) {
-            return response()->json(['message' => 'Anda sudah melakukan absen pulang hari ini!'], 400);
-        }
-
-        $station = $user->station;
-        $isInRadius = true;
-        if ($station && $station->latitude && $station->longitude) {
-            $distance = $this->calculateDistance(
-                $request->latitude, $request->longitude,
-                $station->latitude, $station->longitude
-            );
-            $isInRadius = $distance <= $station->radius_meters;
+        if ($attendance->check_out !== null) {
+            return redirect()->back()->with('error', 'Anda sudah melakukan absen pulang hari ini!');
         }
 
         $scheduledOut = Carbon::parse($today . ' ' . $attendance->scheduled_out);
         $isEarlyCheckout = $now->lt($scheduledOut);
 
-        if ((!$isInRadius || $isEarlyCheckout) && empty($request->reason_checkout)) {
-            $msg = !$isInRadius && $isEarlyCheckout 
-                ? 'Anda berada di luar radius dan pulang lebih cepat dari jadwal. Berikan alasan!' 
-                : (!$isInRadius ? 'Anda berada di luar radius lokasi stasiun. Berikan alasan!' : 'Anda pulang lebih cepat dari jadwal. Berikan alasan!');
-            
-            return response()->json(['message' => $msg], 422);
+        if ($isEarlyCheckout && !$request->filled('reason_checkout')) {
+            return redirect()->back()->withErrors([
+                'reason_checkout' => 'Alasan pulang cepat wajib diisi.'
+            ])->withInput();
         }
 
         $facePath = null;
-        if ($request->face_image) {
+        if ($request->filled('face_image')) {
             $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkout');
         }
 
@@ -142,19 +125,15 @@ class KehadiranController extends Controller
             'check_out' => $now->format('H:i:s'),
             'check_out_lat' => $request->latitude,
             'check_out_long' => $request->longitude,
-            'is_in_radius_check_out' => $isInRadius,
             'is_early_checkout' => $isEarlyCheckout,
             'reason_checkout' => $request->reason_checkout,
             'face_photo_out' => $facePath,
         ]);
 
-        return response()->json([
-            'message' => 'Berhasil melakukan absen pulang. Hati-hati di jalan!',
-            'data' => $attendance
-        ], 200);
+        return redirect()->back()->with('success', 'Absen pulang berhasil dikirim!');
     }
 
-    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2)
     {
         $earthRadius = 6371000; // Radius bumi dalam meter
         $dLat = deg2rad($lat2 - $lat1);
@@ -169,7 +148,7 @@ class KehadiranController extends Controller
         return $earthRadius * $c;
     }
 
-    private function saveBase64Image($base64String, $folder)
+    private function saveBase64Image(string $base64String, string $folder)
     {
         $imageParts = explode(";base64,", $base64String);
         $imageTypeAux = explode("image/", $imageParts[0]);

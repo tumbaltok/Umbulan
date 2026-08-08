@@ -68,7 +68,7 @@
                                id="tanggal_mulai"
                                min="{{ date('Y-m-d') }}"
                                value="{{ old('tanggal_mulai') }}"
-                               class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('tanggal_mulai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                               class="w-full px-4 py-2.5 border rounded-xl bg-white focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_mulai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
                                required>
                         @error('tanggal_mulai') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -80,7 +80,7 @@
                                id="tanggal_selesai"
                                min="{{ date('Y-m-d') }}"
                                value="{{ old('tanggal_selesai') }}"
-                               class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('tanggal_selesai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                               class="w-full px-4 py-2.5 border rounded-xl bg-white focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_selesai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
                                required>
                         @error('tanggal_selesai') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -128,7 +128,6 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{{-- POPUP BERHASIL MENGIRIM PENGAJUAN --}}
 @if(session('success'))
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -157,6 +156,22 @@
         const userGender = "{{ strtolower(auth()->user()->gender->name ?? auth()->user()->gender ?? '') }}";
         const isPria = (userGender === 'pria' || userGender === 'male' || userGender === '1');
 
+        // SINKRONISASI JADWAL USER
+        const scheduleType = "{{ auth()->user()->schedule_type ?? 'normal' }}";
+        const rosterOffDates = JSON.parse('{!! json_encode($rosterOffDates ?? []) !!}');
+        const rawHolidays = JSON.parse('{!! json_encode($holidays ?? []) !!}');
+
+        // EKSTRAK KEY DAN VALUE DARI DATA LIBUR NASIONAL
+        let holidaysList = [];
+        let holidayNamesMap = {};
+
+        if (Array.isArray(rawHolidays)) {
+            holidaysList = rawHolidays;
+        } else if (typeof rawHolidays === 'object' && rawHolidays !== null) {
+            holidaysList = Object.keys(rawHolidays);
+            holidayNamesMap = rawHolidays;
+        }
+
         const jenisCutiSelect = document.getElementById('jenis_cuti_id');
         const wrapperSubCuti = document.getElementById('wrapper_sub_cuti');
         const subCutiSelect = document.getElementById('sub_cuti_id');
@@ -173,11 +188,91 @@
 
         let isConfirmed = false;
 
-        // POPUP KONFIRMASI SEBELUM MENGIRIM FORM (DENGAN FLAG MENGHINDARI LOOP)
+        // FUNGSI MEMERIKSA APAKAH TANGGAL TERMASUK HARI LIBUR
+        function getKeteranganLibur(dateString) {
+            if (!dateString) return null;
+
+            const parts = dateString.split('-');
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayOfWeek = dateObj.getDay(); // 0 = Minggu, 6 = Sabtu
+
+            if (scheduleType === 'normal') {
+                if (dayOfWeek === 0) return "Hari Minggu (Libur Kerja)";
+                if (dayOfWeek === 6) return "Hari Sabtu (Libur Kerja)";
+                if (holidaysList.includes(dateString)) {
+                    return holidayNamesMap[dateString] ? `Libur Nasional: ${holidayNamesMap[dateString]}` : "Hari Libur Nasional";
+                }
+            } else if (scheduleType === 'roster') {
+                if (rosterOffDates.includes(dateString)) {
+                    return "Jadwal OFF Roster (Libur Shift)";
+                }
+            }
+
+            return null;
+        }
+
+        // VALIDASI OTOMATIS DAN POPUP SAAT USER MEMILIH TANGGAL
+        function validasiTanggalLibur(inputElem) {
+            const dateValue = inputElem.value;
+            const ketLibur = getKeteranganLibur(dateValue);
+
+            if (ketLibur) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal Libur!',
+                    html: `Tanggal yang Anda pilih (<b>${dateValue}</b>) adalah <b>${ketLibur}</b>.<br><br>Silakan pilih tanggal pada hari dinas / kerja aktif!`,
+                    confirmColor: '#f59e0b',
+                    customClass: { popup: 'rounded-2xl', confirmButton: 'px-4 py-2 rounded-xl font-semibold' }
+                });
+
+                inputElem.value = '';
+                return false;
+            }
+            return true;
+        }
+
+        // BUKA KALENDER POPUP SAAT INPUT DIKLIK
+        [tanggalMulai, tanggalSelesai].forEach(input => {
+            input.addEventListener('click', function() {
+                if (typeof this.showPicker === 'function') {
+                    this.showPicker();
+                }
+            });
+        });
+
+        // HANDLER CHANGE INPUT TANGGAL
+        tanggalMulai.addEventListener('change', function() {
+            if (validasiTanggalLibur(this)) {
+                if (this.value) {
+                    tanggalSelesai.min = this.value;
+                    if (tanggalSelesai.value && tanggalSelesai.value < this.value) {
+                        tanggalSelesai.value = this.value;
+                    }
+                    batasiKalenderSelesai();
+                }
+            }
+        });
+
+        tanggalSelesai.addEventListener('change', function() {
+            validasiTanggalLibur(this);
+        });
+
+        // POPUP KONFIRMASI SEBELUM SUBMIT
         if (form) {
             form.addEventListener('submit', function (e) {
                 if (!isConfirmed) {
                     e.preventDefault();
+
+                    if (getKeteranganLibur(tanggalMulai.value) || getKeteranganLibur(tanggalSelesai.value)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Pengajuan Gagal',
+                            text: 'Pilihan tanggal pengajuan cuti jatuh pada hari libur kerja!',
+                            confirmColor: '#e11d48'
+                        });
+                        return;
+                    }
+
                     Swal.fire({
                         title: 'Konfirmasi Pengajuan',
                         text: 'Apakah Anda yakin ingin mengajukan permohonan cuti ini?',
@@ -225,19 +320,6 @@
                 tombolSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
-
-        tanggalMulai.addEventListener('mousedown', function(e) {
-            if (typeof this.showPicker === 'function') {
-                e.preventDefault();
-                this.showPicker();
-            }
-        });
-        tanggalSelesai.addEventListener('mousedown', function(e) {
-            if (typeof this.showPicker === 'function') {
-                e.preventDefault();
-                this.showPicker();
-            }
-        });
 
         function handleJenisCutiChange(selectedId, isInitialLoad = false) {
             const optionTerpilih = jenisCutiSelect.options[jenisCutiSelect.selectedIndex];
@@ -335,7 +417,8 @@
             } else {
                 if (tanggalMulai.value) {
                     const maxDays = parseInt(durasi);
-                    let dateMulai = new Date(tanggalMulai.value);
+                    let [y, m, d] = tanggalMulai.value.split('-').map(Number);
+                    let dateMulai = new Date(y, m - 1, d);
 
                     dateMulai.setDate(dateMulai.getDate() + (maxDays - 1));
 
@@ -371,16 +454,6 @@
         subCutiSelect.addEventListener('change', function() {
             checkDokumenRequirement();
             batasiKalenderSelesai();
-        });
-
-        tanggalMulai.addEventListener('change', function() {
-            if (this.value) {
-                tanggalSelesai.min = this.value;
-                if (tanggalSelesai.value && tanggalSelesai.value < this.value) {
-                    tanggalSelesai.value = this.value;
-                }
-                batasiKalenderSelesai();
-            }
         });
 
         batasiKalenderSelesai();

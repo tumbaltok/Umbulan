@@ -35,4 +35,35 @@ class JadwalController extends Controller
 
         return redirect()->back()->with('success', 'Shift berhasil dikonfirmasi! Rotasi shift Anda akan otomatis berganti setiap hari Selasa.');
     }
+    
+    public function showInitialShiftForm()
+    {
+        return view('schedule.initial_shift'); // Sesuaikan dengan nama Blade Anda
+    }
+
+    public function updateSchedule(Request $request)
+    {
+        $request->validate([
+            'schedule_type' => 'required|in:normal,roster',
+        ]);
+
+        $request->user()->update([
+            'schedule_type' => $request->schedule_type,
+        ]);
+
+        return redirect()->back()->with('success', 'Jadwal kerja berhasil diperbarui.');
+    }
+
+    public function registerFace(Request $request)
+    {
+        $request->validate([
+            'face_descriptor' => 'required',
+        ]);
+
+        $request->user()->update([
+            'face_descriptor' => $request->face_descriptor,
+        ]);
+
+        return response()->json(['message' => 'Perekaman wajah berhasil disimpan!']);
+    }
 }

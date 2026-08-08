@@ -39,10 +39,11 @@
                                     </div>
 
                                     @if($detail->dokumen_nota_or_proposal)
-                                        <button type="button"
-                                                onclick="bukaPratinjauLampiran('{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}')"
-                                                class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 w-fit cursor-pointer self-start sm:self-center shrink-0 transition-colors">
-                                            <i class="fa-solid fa-eye"></i> Lampiran Car
+                                        <button type="button" 
+                                                data-url="{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}" 
+                                                onclick="bukaPratinjauLampiran(this.dataset.url)" 
+                                                class="...">
+                                            <span>Lihat Lampiran</span>
                                         </button>
                                     @else
                                         <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg w-fit self-start sm:self-center shrink-0">Tanpa Nota</span>
@@ -76,8 +77,9 @@
                             @if(trim(strtolower($car->status_supervisor)) === 'approved')
                                 @if(trim(strtolower($car->status_manager)) === 'approved')
                                     @if(trim(strtolower($car->status_akhir)) === 'approved')
-                                        <button type="button"
-                                                onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
+                                        <button type="button" 
+                                                data-url="{{ route('car.print', $car->id) }}" 
+                                                onclick="bukaPratinjauCetak(this.dataset.url)" 
                                                 class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
                                             <i class="fa-solid fa-print"></i> Cetak CAR
                                         </button>

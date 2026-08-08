@@ -4,67 +4,131 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Role;
+use App\Models\Jobdesk;
 
 class RoleController extends Controller
 {
     public function index()
     {
-        $daftarRole = Role::withCount('users')
-            ->orderBy('divisi', 'asc')
-            ->orderBy('level', 'asc')
-            ->get();
+        $daftarRole = Role::withCount('users')->get();
+        $daftarJobdesk = Jobdesk::all();
 
-        return view('admin.role.index', compact('daftarRole'));
+        return view('admin.role.index', compact('daftarRole', 'daftarJobdesk'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'role_name'   => 'required|string|max:100',
-            'divisi'      => 'required|string|max:100',
-            'level'       => 'required|integer|in:1,2,3',
-            'description' => 'nullable|string|max:255',
-        ]);
+        if ($request->has('roles')) {
+            $request->validate([
+                'roles.*.role_name'   => 'required|string|max:255',
+                'roles.*.divisi'      => 'required|string|max:255',
+                'roles.*.level'       => 'required|integer',
+                'roles.*.description' => 'nullable|string',
+            ]);
 
-        Role::create([
-            'role_name'   => trim($request->role_name),
-            'divisi'      => trim($request->divisi),
-            'level'       => (int) $request->level,
-            'description' => $request->description,
-        ]);
+            foreach ($request->roles as $roleData) {
+                Role::create($roleData);
+            }
+        } else {
+            $request->validate([
+                'role_name'   => 'required|string|max:255',
+                'divisi'      => 'required|string|max:255',
+                'level'       => 'required|integer',
+                'description' => 'nullable|string',
+            ]);
 
-        return redirect()->back()->with('success', 'Role baru berhasil ditambahkan!');
+            Role::create($request->all());
+        }
+
+        return redirect()->back()->with('success', 'Data Role berhasil ditambahkan!');
     }
 
-    public function update(Request $request, int $id)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'role_name'   => 'required|string|max:100',
-            'divisi'      => 'required|string|max:100',
-            'level'       => 'required|integer|in:1,2,3',
-            'description' => 'nullable|string|max:255',
-        ]);
-
         $role = Role::findOrFail($id);
-        $role->update([
-            'role_name'   => trim($request->role_name),
-            'divisi'      => trim($request->divisi),
-            'level'       => (int) $request->level,
-            'description' => $request->description,
-        ]);
 
-        return redirect()->back()->with('success', 'Data role berhasil diperbarui!');
+        if ($request->has('roles')) {
+            $roleData = $request->roles[0] ?? [];
+            $role->update($roleData);
+        } else {
+            $role->update($request->all());
+        }
+
+        return redirect()->back()->with('success', 'Data Role berhasil diperbarui!');
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
-        $role = Role::withCount('users')->findOrFail($id);
+        $role = Role::findOrFail($id);
 
-        if ($role->users_count > 0) {
-            return redirect()->back()->with('error', 'Role tidak dapat dihapus karena masih digunakan oleh ' . $role->users_count . ' karyawan!');
+        if ($role->users()->count() > 0) {
+            return redirect()->back()->with('error', 'Gagal menghapus! Role masih digunakan oleh karyawan.');
         }
 
         $role->delete();
+
         return redirect()->back()->with('success', 'Role berhasil dihapus!');
+    }
+
+    public function storeJobdesk(Request $request)
+    {
+        if ($request->has('jobdesks')) {
+            $request->validate([
+                'jobdesks.*.job_title'   => 'required|string|max:255|unique:jobdesks,job_title',
+                'jobdesks.*.description' => 'nullable|string',
+            ], [
+                'jobdesks.*.job_title.required' => 'Nama Jobdesk / Bidang Tugas wajib diisi.',
+                'jobdesks.*.job_title.unique'   => 'Nama Jobdesk tersebut sudah ada.',
+            ]);
+
+            foreach ($request->jobdesks as $jobdeskData) {
+                if (!empty($jobdeskData['job_title'])) {
+                    Jobdesk::create([
+                        'job_title'   => $jobdeskData['job_title'],
+                        'description' => $jobdeskData['description'] ?? null,
+                    ]);
+                }
+            }
+        } else {
+            $request->validate([
+                'job_title'   => 'required|string|max:255|unique:jobdesks,job_title',
+                'description' => 'nullable|string',
+            ]);
+
+            Jobdesk::create([
+                'job_title'   => $request->job_title,
+                'description' => $request->description,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Kategori Jobdesk berhasil ditambahkan!');
+    }
+
+    // === METHOD PERBAIKAN (UPDATE JOBDESK) ===
+    public function updateJobdesk(Request $request, $id)
+    {
+        $request->validate([
+            'job_title'   => 'required|string|max:255|unique:jobdesks,job_title,' . $id,
+            'description' => 'nullable|string',
+        ], [
+            'job_title.required' => 'Nama Jobdesk wajib diisi.',
+            'job_title.unique'   => 'Nama Jobdesk tersebut sudah digunakan.',
+        ]);
+
+        $jobdesk = Jobdesk::findOrFail($id);
+        $jobdesk->update([
+            'job_title'   => $request->job_title,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->back()->with('success', 'Data Jobdesk berhasil diperbarui!');
+    }
+
+    public function destroyJobdesk($id)
+    {
+        $jobdesk = Jobdesk::findOrFail($id);
+        $jobdesk->delete();
+
+        return redirect()->back()->with('success', 'Jobdesk berhasil dihapus!');
     }
 }

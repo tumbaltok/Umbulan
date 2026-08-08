@@ -2,22 +2,24 @@
 @section('title', 'Daftar Karyawan')
 @section('content')
 <div class="max-w-7xl auto mt-8 px-4">
-    {{-- Notifikasi Sukses --}}
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
-            <i class="fa-solid fa-circle-check mr-2 text-emerald-500"></i>
-            {{ session('success') }}
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+            <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
+            {{ session('error') }}
         </div>
     @endif
 
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        {{-- Header & Fitur Cari --}}
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="p-6 border-b border-slate-100 bg-sky-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200/80">
+                        {{ isset($daftarKaryawan) ? count($daftarKaryawan) : 0 }} Karyawan
+                    </span>
+                </div>
                 <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
             </div>
-            {{-- Input Pencarian Nama --}}
             <div class="relative w-full md:w-80">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -44,10 +46,10 @@
                             Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                         </th>
                         <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
+                        <th class="px-6 py-4 text-center w-28">Edit Saldo Cuti</th>
                         <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
                             Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                         </th>
-                        <th class="px-6 py-4 text-center w-28">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
@@ -62,7 +64,6 @@
                             $namaCutiText = optional(optional($cutiUtama)->jenisCuti)->name_cuti ?? 'Cuti Utama';
                         @endphp
                         <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
-                            {{-- Kolom Nama & Foto Profil --}}
                             <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
                                 <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
                                     <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
@@ -79,7 +80,6 @@
                                 </div>
                             </td>
 
-                            {{-- Kolom Jabatan (Role) --}}
                             <td class="px-6 py-4">
                                 @php
                                     $roleName = $karyawan->role->role_name ?? 'Tidak Ada Role';
@@ -90,7 +90,6 @@
                                 </span>
                             </td>
 
-                            {{-- Kolom Jobdesk --}}
                             <td class="px-6 py-4 text-sm font-medium">
                                 @if($karyawan->job_title == 'Operator' || $karyawan->job_title == '1')
                                     <span class="text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded-md text-xs border border-sky-100">Operator</span>
@@ -105,7 +104,6 @@
                                 @endif
                             </td>
 
-                            {{-- Kolom Penempatan Stasiun --}}
                             <td class="px-6 py-4 text-center">
                                 @if(($karyawan->station && !empty($karyawan->station->name)))
                                     <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
@@ -119,12 +117,21 @@
                                 @endif
                             </td>
 
-                            {{-- Kolom Sisa Cuti Utama --}}
                             <td class="px-6 py-4 text-center">
                                 <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $sisaCutiVal }} Hari</span>
                             </td>
 
-                            {{-- Status Operasional --}}
+                            <td class="px-6 py-4 text-center">
+                                <button type="button" 
+                                    data-id="{{ $saldoIdVal }}"
+                                    data-nama="{{ $namaCutiText }}"
+                                    data-saldo="{{ $sisaCutiVal }}"
+                                    onclick="bukaModalEditSaldoBtn(this)" 
+                                    class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                            </td>
+
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
                                     @php $cuti = $karyawan->cuti_aktif->first(); @endphp
@@ -146,18 +153,6 @@
                                         {{ $statusDetail['label'] }}
                                     </span>
                                 @endif
-                            </td>
-
-                            {{-- Tombol Edit Saldo Langsung (Aman dengan Atribut data-*) --}}
-                            <td class="px-6 py-4 text-center">
-                                <button type="button" 
-                                    data-id="{{ $saldoIdVal }}"
-                                    data-nama="{{ $namaCutiText }}"
-                                    data-saldo="{{ $sisaCutiVal }}"
-                                    onclick="bukaModalEditSaldoBtn(this)" 
-                                    class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
                             </td>
                         </tr>
                     @empty
@@ -286,7 +281,7 @@
 </div>
 
 {{-- MODAL EDIT SALDO CUTI UTAMA --}}
-<div id="editSaldoModal" class="fixed inset-0 z-60 items-center justify-center hidden">
+<div id="editSaldoModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="tutupModalEditSaldo()"></div>
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200">
         <h4 class="font-bold text-slate-800 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
@@ -311,6 +306,26 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if(session('success'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: 'BERHASIL!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0284c7',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+            }
+        });
+    });
+</script>
+@endif
+
 <script>
     let activeKaryawanId = null;
 
@@ -500,16 +515,19 @@
                     const rosterHoursContainer = document.getElementById("detail_roster_hours_container");
                     const rosterHours = document.getElementById("detail_roster_hours");
 
-                    if (data.today_shift_type === 'pagi') {
+                    const shiftType = (data.today_shift_type || '').toLowerCase();
+                    const shiftName = (data.today_shift || '').toLowerCase();
+
+                    if (shiftType === 'pagi' || shiftName.includes('pagi')) {
                         rosterTodayBadge.textContent = 'Shift Pagi';
                         rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-emerald-100 text-emerald-700 border border-emerald-200';
                         rosterHoursContainer.classList.remove('hidden');
-                        rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
-                    } else if (data.today_shift_type === 'malam') {
+                        rosterHours.textContent = `${data.today_scheduled_in || '07:00'} - ${data.today_scheduled_out || '19:00'} WIB`;
+                    } else if (shiftType === 'malam' || shiftName.includes('malam')) {
                         rosterTodayBadge.textContent = 'Shift Malam';
                         rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-indigo-100 text-indigo-700 border border-indigo-200';
                         rosterHoursContainer.classList.remove('hidden');
-                        rosterHours.textContent = `${data.today_scheduled_in} - ${data.today_scheduled_out} WIB`;
+                        rosterHours.textContent = `${data.today_scheduled_in || '19:00'} - ${data.today_scheduled_out || '07:00'} WIB`;
                     } else {
                         rosterTodayBadge.textContent = 'OFF / Libur Roster';
                         rosterTodayBadge.className = 'px-2 py-0.5 rounded font-bold text-[11px] bg-rose-100 text-rose-700 border border-rose-200';
@@ -532,7 +550,13 @@
             .catch(error => {
                 console.error(error);
                 loadingSection.classList.add("hidden");
-                alert(`Terjadi kesalahan saat memuat data karyawan: ${error.message}`);
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: `Terjadi kesalahan saat memuat data karyawan: ${error.message}`,
+                    icon: 'error',
+                    confirmButtonColor: '#e11d48',
+                    customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+                });
             });
     }
 
@@ -574,17 +598,40 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                alert(data.message);
+            if (data.success || data.message) {
                 tutupModalEditSaldo();
-                window.location.reload();
+                Swal.fire({
+                    title: 'BERHASIL!',
+                    text: data.message || 'Sisa saldo cuti berhasil diperbarui!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0284c7',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
-                alert(data.message || 'Gagal memperbarui saldo cuti.');
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: data.message || 'Gagal memperbarui saldo cuti.',
+                    icon: 'error',
+                    confirmButtonColor: '#e11d48',
+                    customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+                });
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Terjadi kesalahan jaringan.');
+            Swal.fire({
+                title: 'Error!',
+                text: 'Terjadi kesalahan jaringan.',
+                icon: 'error',
+                confirmButtonColor: '#e11d48',
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+            });
         });
     }
 </script>

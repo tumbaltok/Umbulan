@@ -59,7 +59,10 @@
                                             <span>Disetujui</span>
                                         </span>
                                         {{-- MODIFIKASI: Menggunakan button yang memicu fungsi bukaPratinjauCetak ala halaman CAR --}}
-                                        <button type="button" onclick="bukaPratinjauCetak('{{ route('cuti.cetak', $cuti->id) }}')" class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm w-fit cursor-pointer">
+                                        <button type="button" 
+                                                data-url="{{ route('cuti.cetak', $cuti->id) }}" 
+                                                onclick="bukaPratinjauCetak(this.dataset.url)" 
+                                                class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm w-fit cursor-pointer">
                                             <span>Cetak</span>
                                         </button>
                                     </div>
@@ -161,7 +164,7 @@
 
         <div class="flex items-center mt-6 justify-end border-t border-slate-100 pt-4">
             <button type="button" id="closeCutiModalBtn2" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-semibold rounded-xl transition-colors">
-                Tutup Jendela
+                Tutup
             </button>
         </div>
     </div>

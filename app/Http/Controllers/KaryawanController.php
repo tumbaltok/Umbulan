@@ -43,11 +43,9 @@ class KaryawanController extends Controller
             }
         ]);
 
-        // Proteksi Binding Sektor: Jika pengguna terikat pada sektornya (Bukan Level 1 Full Akses)
         if (($currentUser->role->level ?? 3) != 1) {
             $query->where('sektor', $currentUser->sektor ?? 'operasional');
         } elseif ($request->filled('sektor') && in_array(strtolower($request->sektor), ['manajemen', 'operasional'])) {
-            // Filter opsional jika memilih dari UI dropdown
             $query->where('sektor', strtolower($request->sektor));
         }
 
@@ -115,7 +113,13 @@ class KaryawanController extends Controller
                 'nama_stasiun'       => optional($karyawan->station)->name ?? '-',
                 'job_title'          => $karyawan->job_title ?? 'Belum Memilih',
                 'schedule_type'      => $karyawan->schedule_type ?? 'normal',
+                'normal_work_days'   => is_array($karyawan->normal_work_days) ? implode(', ', $karyawan->normal_work_days) : ($karyawan->normal_work_days ?? 'Senin - Jumat'),
+                'normal_check_in'    => $karyawan->normal_check_in ? Carbon::parse($karyawan->normal_check_in)->format('H:i') : '08:00',
+                'normal_check_out'   => $karyawan->normal_check_out ? Carbon::parse($karyawan->normal_check_out)->format('H:i') : '17:00',
                 'today_shift'        => $todaySchedule['shift_name'] ?? '-',
+                'today_shift_type'   => $todaySchedule['shift_type'] ?? 'libur',
+                'today_scheduled_in'  => !empty($todaySchedule['scheduled_in']) ? Carbon::parse($todaySchedule['scheduled_in'])->format('H:i') : null,
+                'today_scheduled_out' => !empty($todaySchedule['scheduled_out']) ? Carbon::parse($todaySchedule['scheduled_out'])->format('H:i') : null,
                 'saldo_cuti'         => $karyawan->saldoCuti ? $karyawan->saldoCuti->map(function ($saldo) {
                     return [
                         'id'         => $saldo->id,

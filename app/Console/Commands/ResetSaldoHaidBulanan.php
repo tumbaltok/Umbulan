@@ -17,14 +17,22 @@ class ResetSaldoHaidBulanan extends Command
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
 
-        $jenisCutiIdHaid = User::CUTI_HAID_ID;
+        // Ambil ID Cuti Haid dari database terlebih dahulu
+        $jenisCutiHaid = \App\Models\JenisCuti::where('kode_cuti', 'HAID')
+            ->orWhere('name_cuti', 'LIKE', '%Haid%')
+            ->first();
 
-        // Update saldo untuk bulan & tahun berjalan
-        SaldoCuti::where('jenis_cuti_id', $jenisCutiIdHaid)
+        if (!$jenisCutiHaid) {
+            $this->error('Jenis cuti Haid tidak ditemukan!');
+            return 1;
+        }
+
+        SaldoCuti::where('jenis_cuti_id', $jenisCutiHaid->id)
             ->where('tahun', $tahunSekarang)
             ->where('bulan', $bulanSekarang)
             ->update(['sisa_saldo' => 2]);
 
         $this->info('Saldo haid bulanan berhasil di-reset!');
+        return 0;
     }
 }

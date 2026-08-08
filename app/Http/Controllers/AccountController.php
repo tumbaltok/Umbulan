@@ -6,14 +6,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User; 
+use App\Models\User;
+use App\Models\Jobdesk;
 
 class AccountController extends Controller
 {
     public function index()
     {
         $user = User::find(Auth::id());
-        return view('profile.index', compact('user'));
+        
+        // Ambil seluruh daftar Jobdesk dari Database
+        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
+
+        // Mengarahkan ke file resources/views/profile/index.blade.php
+        return view('profile.index', compact('user', 'daftarJobdesk'));
     }
 
     public function update(Request $request)
@@ -47,10 +53,10 @@ class AccountController extends Controller
             'nip'               => 'nullable|string|max:50',
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'job_title'         => 'nullable|string|in:Operator,Maintenance,Pipeline,HSE,Dokumentasi',
+            'job_title'         => 'nullable|string|exists:jobdesks,job_title',
             'phone_number'      => 'nullable|string|max:20',
             'profile_photo'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'signature'         => 'nullable|image|mimes:png,jpg,jpeg|max:2048', // Validasi TTD
+            'signature'         => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'current_password'  => 'nullable|required_with:new_password',
             'new_password'      => 'nullable|min:8|confirmed',
             'schedule_type'     => 'required|in:normal,roster',

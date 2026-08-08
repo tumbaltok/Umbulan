@@ -177,7 +177,7 @@ class ScheduleService
         ];
     }
 
-    private function getShiftRosterDetail($shiftType)
+    private function getShiftRosterDetail(string $shiftType)
     {
         if ($shiftType === 'pagi') {
             return [
@@ -206,5 +206,26 @@ class ScheduleService
             'scheduled_out' => null,
             'is_day_off' => true,
         ];
+    }
+
+    /**
+     * Menghitung jarak presisi antara dua titik GPS dalam satuan METER (Haversine Formula)
+     */
+    public function calculateDistanceMeter(float $userLat, float $userLng, float $stationLat, float $stationLng): float
+    {
+        $earthRadius = 6371000; // Radius bumi dalam meter
+
+        $latFrom = deg2rad($userLat);
+        $lonFrom = deg2rad($userLng);
+        $latTo = deg2rad($stationLat);
+        $lonTo = deg2rad($stationLng);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+                cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return round($angle * $earthRadius, 2);
     }
 }

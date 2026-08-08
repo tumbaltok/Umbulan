@@ -333,7 +333,10 @@
             </div>
             <div>
                 <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Menunggu Review</p>
-                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $totalPending }} Pengajuan</h3>
+                {{-- Modifikasi di sini: Menjumlahkan total pending cuti dan CAR (atau gunakan variabel gabungan dari controller) --}}
+                <h3 class="text-xl font-bold text-slate-800 mt-0.5">
+                    {{ (isset($totalPendingCuti) ? $totalPendingCuti : $totalPending) + (isset($totalPendingCar) ? $totalPendingCar : 0) }} Pengajuan
+                </h3>
             </div>
         </div>
 
@@ -771,11 +774,16 @@ function bukaModalAbsen(type) {
             (pos) => {
                 document.getElementById('absen_lat').value = pos.coords.latitude;
                 document.getElementById('absen_long').value = pos.coords.longitude;
+                console.log("GPS Terdeteksi:", pos.coords.latitude, pos.coords.longitude, "Akurasi (Meter):", pos.coords.accuracy);
             },
             (err) => {
-                alert('Gagal mendapatkan lokasi GPS. Harap izinkan akses lokasi pada browser Anda.');
+                alert('Gagal mendapatkan lokasi GPS. Harap pastikan GPS HP aktif dan izinkan akses lokasi pada browser Anda.');
             },
-            { enableHighAccuracy: true }
+            { 
+                enableHighAccuracy: true, // Memaksa penggunaan chip GPS HP (bukan IP Internet/Wi-Fi)
+                timeout: 10000,            // Waktu tunggu maksimum 10 detik
+                maximumAge: 0              // Memaksa browser TIDAK menggunakan lokasi cache lama
+            }
         );
     }
 

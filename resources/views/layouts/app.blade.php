@@ -291,7 +291,7 @@
                         </button>
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
                             <a href="{{ route('admin.role.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.role.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Daftar Role / Jabatan</span>
+                                <span class="hide-on-collapse">Daftar Role / Jabatan & Jobdesk</span>
                             </a>
                             <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <span class="hide-on-collapse">Daftar Karyawan</span>

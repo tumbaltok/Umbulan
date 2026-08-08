@@ -7,7 +7,6 @@ use App\Models\PengajuanCuti;
 use App\Models\SaldoCuti;
 use App\Models\JenisCuti;
 use App\Models\SubCuti;
-use App\Models\Absensi;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -60,23 +59,6 @@ class PengajuanCutiController extends Controller
         return $totalHariKerja;
     }
 
-    private function alurPotongSaldo(int $jenisCutiId, ?int $subCutiId): bool
-    {
-        $jenisCuti = JenisCuti::find($jenisCutiId);
-        if ($jenisCuti && strtolower($jenisCuti->name_cuti) === 'cuti') {
-            return true;
-        }
-
-        if ($subCutiId) {
-            $subCuti = SubCuti::find($subCutiId);
-            if ($subCuti && strtolower($subCuti->nama_sub_cuti) === 'haid') {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private function sendWhatsAppNotification(?string $targetPhone, string $message)
     {
         if (!$targetPhone) return false;
@@ -107,10 +89,18 @@ class PengajuanCutiController extends Controller
         $user = Auth::user();
         $jenisCuti = JenisCuti::with('subCutis')->get();
 
-        $saldoTahunan = SaldoCuti::where('user_id', $user->id)
-            ->where('jenis_cuti_id', 4)
-            ->where('tahun', Carbon::now()->year)
+        // Cari ID Cuti Tahunan secara dinamis berdasarkan kode/nama
+        $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')
+            ->orWhere('name_cuti', 'LIKE', '%Tahunan%')
             ->first();
+
+        $saldoTahunan = null;
+        if ($cutiTahunan) {
+            $saldoTahunan = SaldoCuti::where('user_id', $user->id)
+                ->where('jenis_cuti_id', $cutiTahunan->id)
+                ->where('tahun', Carbon::now()->year)
+                ->first();
+        }
 
         $sisaSaldo = $saldoTahunan ? $saldoTahunan->sisa_saldo : 0;
 
@@ -175,6 +165,7 @@ class PengajuanCutiController extends Controller
             }
         }
 
+        // Menggunakan alurPotongSaldo dari CutiHelperTrait
         if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
             $saldo = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $jenisCutiId)
@@ -186,6 +177,7 @@ class PengajuanCutiController extends Controller
             }
 
             try {
+                // Menggunakan validasiDanCekSaldo dari CutiHelperTrait
                 $this->validasiDanCekSaldo($user->id, $jenisCutiId, $subCutiId, $tahunSekarang, $totalHari);
             } catch (\Exception $e) {
                 return back()->withErrors(['error' => $e->getMessage()])->withInput();
@@ -247,6 +239,7 @@ class PengajuanCutiController extends Controller
             ]);
 
             if ($statusAkhir === 'approved') {
+                // Dipanggil dari CutiHelperTrait
                 $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
 
@@ -257,48 +250,6 @@ class PengajuanCutiController extends Controller
             DB::rollBack();
             return back()->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()])->withInput();
         }
-    }
-
-    private function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
-    {
-        if ($this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id)) {
-            $saldo = SaldoCuti::where('user_id', $pengajuan->user_id)
-                ->where('jenis_cuti_id', $pengajuan->jenis_cuti_id)
-                ->where('tahun', Carbon::parse($pengajuan->tanggal_mulai)->year)
-                ->lockForUpdate()
-                ->first();
-
-            if ($saldo) {
-                $sisaJatah = (int)$saldo->sisa_saldo;
-                $jumlahHariDipotong = (int)$pengajuan->total_hari;
-
-                if ($sisaJatah < $jumlahHariDipotong) {
-                    throw new \Exception("Sisa saldo jatah cuti tidak mencukupi.");
-                }
-
-                $saldo->decrement('sisa_saldo', $jumlahHariDipotong);
-            }
-        }
-
-        $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
-        $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
-
-        for ($date = $tanggalMulai->copy(); $date->lte($tanggalSelesai); $date->addDay()) {
-            Absensi::updateOrCreate(
-                [
-                    'user_id' => $pengajuan->user_id,
-                    'tanggal' => $date->format('Y-m-d')
-                ],
-                [
-                    'status_kehadiran' => 'Cuti',
-                    'keterangan' => 'Cuti disetujui: ' . $pengajuan->alasan_cuti,
-                    'jam_masuk' => null,
-                    'jam_pulang' => null
-                ]
-            );
-        }
-
-        return true;
     }
 
     public function riwayatView(Request $request)
@@ -373,6 +324,7 @@ class PengajuanCutiController extends Controller
                 ]);
 
                 if ($tindakan === 'approved') {
+                    // Dipanggil dari CutiHelperTrait
                     $this->sinkronisasiCutiDanAbsen($pengajuan);
                 }
 
@@ -385,6 +337,25 @@ class PengajuanCutiController extends Controller
         }
 
         return redirect()->back()->with('error', 'Akses ditolak.');
+    }
+
+    public function detailCutiJSON(int $id)
+    {
+        $cuti = PengajuanCuti::with(['jenisCuti', 'subCuti'])->findOrFail($id);
+        
+        return response()->json([
+            'name_cuti' => $cuti->jenisCuti->name_cuti ?? '-',
+            'nama_sub_cuti' => $cuti->subCuti->nama_sub_cuti ?? null,
+            'tanggal_mulai_formatted' => Carbon::parse($cuti->tanggal_mulai)->format('d M Y'),
+            'tanggal_selesai_formatted' => Carbon::parse($cuti->tanggal_selesai)->format('d M Y'),
+            'total_hari' => $cuti->total_hari,
+            'alasan_cuti' => $cuti->alasan_cuti,
+            'status_supervisor' => $cuti->status_supervisor,
+            'status_manager' => $cuti->status_manager,
+            'status_akhir' => $cuti->status_akhir,
+            'catatan_penolakan' => $cuti->catatan_penolakan,
+            'dokumen_pendukung' => $cuti->dokumen_pendukung
+        ]);
     }
 
     public function cetakSuratCuti(int $id)

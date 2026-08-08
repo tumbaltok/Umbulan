@@ -60,10 +60,20 @@ class DashboardController extends Controller
             ->whereYear('tanggal_mulai', $tahunSekarang)
             ->sum('total_hari');
 
-        $totalPending = DB::table('pengajuan_cutis')
+        // Hitung pending cuti
+        $pendingCuti = DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
             ->where('status_akhir', 'pending')
             ->count();
+
+        // Hitung pending CAR (Sesuaikan nama tabel jika berbeda, misal: 'pengajuan_cars' atau 'cars')
+        $pendingCar = DB::table('pengajuan_cars')
+            ->where('user_id', $user->id)
+            ->where('status_akhir', 'pending')
+            ->count();
+
+        // Gabungkan total pending cuti dan CAR
+        $totalPending = $pendingCuti + $pendingCar;  
 
         // 6. Hitung Sisa Kuota Real-Time
         $sisaKuota = $saldoTahunan->sisa_saldo ?? max(0, $kuotaTahunan - $totalCutiDiambil);

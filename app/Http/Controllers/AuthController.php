@@ -44,19 +44,76 @@ class AuthController extends Controller
             'gender_id'  => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
             'sektor'     => 'required|in:manajemen,operasional',
+            'job_title'  => 'required|string|max:100',
             'password'   => 'required|string|min:8|confirmed',
         ]);
 
+        $sektorInput = strtolower($request->sektor);
+        $roleSelected = Role::find($request->role_id);
+        $roleName = strtolower($roleSelected->role_name ?? '');
+
+        $supervisorId = null;
+        $managerId    = null;
+
+        // -------------------------------------------------------------
+        // LOGIKA PENENTUAN ATASAN LANGSUNG BERJENJANG (LINIER)
+        // -------------------------------------------------------------
+        if (str_contains($roleName, 'staff')) {
+            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Jobdesk SAMA)
+            $supervisor = User::whereHas('role', function($q) {
+                    $q->where('role_name', 'LIKE', '%Supervisor%');
+                })
+                ->where('sektor', $sektorInput)
+                ->where('station_id', $request->station_id)
+                ->where('job_title', $request->job_title)
+                ->first();
+
+            // Fallback: Jika tidak ada Supervisor dengan jobdesk yang sama, cari Supervisor di Sektor & Tempat Kerja yang sama
+            if (!$supervisor) {
+                $supervisor = User::whereHas('role', function($q) {
+                        $q->where('role_name', 'LIKE', '%Supervisor%');
+                    })
+                    ->where('sektor', $sektorInput)
+                    ->where('station_id', $request->station_id)
+                    ->first();
+            }
+
+            $supervisorId = $supervisor ? $supervisor->id : null;
+
+            // Cari Manager Linier berdasarkan Sektor
+            $manager = User::whereHas('role', function($q) {
+                    $q->where('role_name', 'LIKE', '%Manager%');
+                })
+                ->where('sektor', $sektorInput)
+                ->first();
+
+            $managerId = $manager ? $manager->id : null;
+
+        } elseif (str_contains($roleName, 'supervisor')) {
+            // 2. UNTUK SUPERVISOR: Penentuan Manager BEBAS (Tidak butuh linier jobdesk, cukup Sektor)
+            $manager = User::whereHas('role', function($q) {
+                    $q->where('role_name', 'LIKE', '%Manager%');
+                })
+                ->where('sektor', $sektorInput)
+                ->first();
+
+            $supervisorId = null;
+            $managerId    = $manager ? $manager->id : null;
+        }
+
         // 1. Buat User Baru
         $user = User::create([
-            'nip'        => $request->nip,
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'role_id'    => $request->role_id,
-            'gender_id'  => $request->gender_id,
-            'station_id' => $request->station_id,
-            'sektor'     => strtolower($request->sektor),
-            'password'   => Hash::make($request->password),
+            'nip'           => $request->nip,
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'role_id'       => $request->role_id,
+            'gender_id'     => $request->gender_id,
+            'station_id'    => $request->station_id,
+            'sektor'        => $sektorInput,
+            'job_title'     => $request->job_title,
+            'supervisor_id' => $supervisorId,
+            'manager_id'    => $managerId,
+            'password'      => Hash::make($request->password),
         ]);
 
         // 2. OTOMATIS LOGIN-KAN USER
@@ -114,20 +171,20 @@ class AuthController extends Controller
         }
     }
 
-    // 2. VERIFIKASI OTP SAJA (AJAX)
+    // 2. VERIFIKASI OTP SAJA 
     public function verifyOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required']);
 
-        $sessionEmail   = session('reset_email');
-        $sessionOtp     = session('reset_otp');
+        $sessionOtp = session('reset_otp');
+        $sessionEmail = session('reset_email');
         $sessionExpires = session('reset_otp_expires');
 
         if (!$sessionOtp || $sessionEmail !== $request->email || now()->greaterThan(Carbon::parse($sessionExpires))) {
             return response()->json(['status' => 'error', 'message' => 'Kode OTP sudah kedaluwarsa atau tidak valid.'], 400);
         }
 
-        if (trim((string)$sessionOtp) !== trim((string)$request->otp)) {
+        if ($sessionOtp != $request->otp) {
             return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
         }
 
@@ -140,7 +197,7 @@ class AuthController extends Controller
     public function forgotWeb(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|min:8|confirmed',
         ]);
 
@@ -149,16 +206,14 @@ class AuthController extends Controller
         }
 
         DB::table('users')->where('email', $request->email)->update([
-            'password'   => Hash::make($request->password),
-            'updated_at' => now()
+            'password' => Hash::make($request->password),
         ]);
 
         session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified_for']);
 
         return response()->json([
-            'status'       => 'success',
-            'message'      => 'Kata sandi Anda berhasil diperbarui! Silakan login.',
-            'redirect_url' => route('login')
+            'status' => 'success',
+            'message' => 'Kata sandi berhasil diperbarui. Silakan login.',
         ]);
     }
 
