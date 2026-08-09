@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Absen;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Absen\Kehadiran;
+use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -160,5 +161,33 @@ class KehadiranController extends Controller
         Storage::disk('public')->put($fileName, $imageBase64);
 
         return $fileName;
+    }
+
+    public function rekapHarian(Request $request)
+    {
+        $tanggal = $request->input('tanggal', date('Y-m-d'));
+
+        $karyawan = \App\Models\User\User::with(['station', 'role'])->orderBy('name', 'asc')->get();
+
+        $kehadiran = Kehadiran::whereDate('date', $tanggal)
+            ->get()
+            ->keyBy('user_id');
+
+        $sudahAbsen = [];
+        $belumAbsen = [];
+
+        foreach ($karyawan as $user) {
+            if (isset($kehadiran[$user->id]) && $kehadiran[$user->id]->check_in) {
+                $sudahAbsen[] = [
+                    'user' => $user,
+                    'absen' => $kehadiran[$user->id]
+                ];
+            } else {
+                $belumAbsen[] = $user;
+            }
+        }
+
+        // PERBAIKAN: Arahkan ke file 'admin.record.absensi' sesuai struktur folder di VS Code Anda
+        return view('admin.record.absensi', compact('tanggal', 'sudahAbsen', 'belumAbsen', 'karyawan'));
     }
 }

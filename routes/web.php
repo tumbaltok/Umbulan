@@ -116,7 +116,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
     Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
 
-    // Kelola Jobdesk Baru (URL diselaraskan menjadi /admin/jobdesk)
+    // Kelola Jobdesk Baru
     Route::post('/admin/jobdesk', [RoleController::class, 'storeJobdesk'])->name('admin.jobdesk.store');
     Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
     Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
@@ -156,4 +156,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Record MPR
     Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
     Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
+
+    // Rekap Absensi Harian 
+    Route::get('/admin/absensi', [KehadiranController::class, 'rekapHarian'])->name('admin.absensi.index');
 });

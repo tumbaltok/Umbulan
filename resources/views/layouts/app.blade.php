@@ -26,21 +26,22 @@
         }
 
         /* Dropdown Animation Base */
-        .dropdown-content {
+        .dropdown-content, .sub-dropdown-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
-        .chevron-icon {
+        .chevron-icon, .sub-chevron-icon {
             transition: transform 0.3s ease;
         }
 
-        .dropdown-open .chevron-icon {
+        .dropdown-open > .dropdown-btn .chevron-icon,
+        .sub-dropdown-open > .sub-dropdown-btn .sub-chevron-icon {
             transform: rotate(180deg);
         }
 
-        /* TRANSISI MOBILE (SAMA DAN TIDAK DIUBAH) */
+        /* TRANSISI MOBILE */
         #sidebarApp {
             will-change: transform, width;
             transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
@@ -62,19 +63,15 @@
             }
         }
 
-        /* ========================================================
-           EFEK HOVER SIDEBAR DESKTOP (MODIFIKASI PENUTUPAN HALUS)
-           ======================================================== */
+        /* EFEK HOVER SIDEBAR DESKTOP */
         @media (min-width: 768px) {
             .sidebar-hover-mode {
                 width: 5rem; /* ~80px saat kuncup */
-                /* Kurva dan durasi khusus saat MENUTUP (0.55s halus & lembut) */
                 transition: width 0.55s cubic-bezier(0.25, 1, 0.3, 1), box-shadow 0.55s ease;
                 overflow: hidden !important;
                 will-change: width;
             }
             
-            /* Sidebar Mekar saat Hover (0.4s) */
             .sidebar-hover-mode:hover {
                 width: 17.5rem;
                 box-shadow: 12px 0 35px -5px rgba(0, 0, 0, 0.35);
@@ -88,13 +85,11 @@
                 overflow-y: auto;
             }
 
-            /* Smooth Fade-In / Fade-Out Teks Menu Utama & Sub-menu */
             .hide-on-collapse {
                 opacity: 0;
                 transform: translateX(-10px);
                 white-space: nowrap;
                 pointer-events: none;
-                /* Durasi fade out cepat agar teks tidak bertumpuk saat menutup */
                 transition: opacity 0.2s ease-in, transform 0.2s ease-in;
             }
 
@@ -102,12 +97,12 @@
                 opacity: 1;
                 transform: translateX(0);
                 pointer-events: auto;
-                /* Fade in dengan jeda halus saat mekar */
                 transition: opacity 0.3s ease-out, transform 0.3s ease-out;
                 transition-delay: 0.165s;
             }
 
-            .sidebar-hover-mode:not(:hover) .dropdown-content {
+            .sidebar-hover-mode:not(:hover) .dropdown-content,
+            .sidebar-hover-mode:not(:hover) .sub-dropdown-content {
                 max-height: 0 !important;
                 transition: max-height 0.35s ease-in-out !important;
             }
@@ -129,7 +124,6 @@
             <!-- Header Sidebar -->
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
                 <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
-                    <!-- BINGKAI LOGO SIDEBAR: Diperbarui agar tajam, menggunakan object-contain dan memanggil gambar HD -->
                     <div class="bg-white p-0.5 rounded-full shadow-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
                         <img src="{{ asset('images/iconfav.png') }}" 
                             alt="Logo META" 
@@ -276,41 +270,77 @@
                     </div>
                 </div>
 
-                <!-- Administrasi -->
+                <!-- MENU ADMINISTRATOR (MODIFIKASI: STRUKTUR SUB-MENU BERTINGKAT & ABSENSI) -->
                 @if($hasAccess)
                 @php 
                     $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*')) 
                                     && !request()->is('admin/persetujuan/*'); 
+                    $isDaftarActive = request()->routeIs('admin.karyawan.*') || request()->routeIs('admin.stations.*') || request()->routeIs('admin.role.*');
+                    $isRecordActive = request()->is('admin/record/*');
                 @endphp
                     <div class="dropdown-container" data-active="{{ $isAdminActive ? 'true' : 'false' }}">
-                        <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isAdminActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Administrasi">
+                        <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isAdminActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Administrator">
                             <div class="flex items-center space-x-3">
                                 <div class="w-9 h-9 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-folder-open text-base text-center"></i>
                                 </div>
-                                <span class="hide-on-collapse">Administrasi</span>
+                                <span class="hide-on-collapse">Administrator</span>
                             </div>
                             <i class="fa-solid fa-chevron-down text-xs chevron-icon hide-on-collapse"></i>
                         </button>
+                        
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                            <a href="{{ route('admin.role.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.role.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Daftar Role / Jabatan & Jobdesk</span>
+                            
+                            <!-- SUB-MENU 1: DAFTAR -->
+                            <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
+                                <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fa-solid fa-list-check text-xs"></i>
+                                        <span class="hide-on-collapse">Daftar</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-down text-[10px] sub-chevron-icon hide-on-collapse"></i>
+                                </button>
+                                <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
+                                    <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.karyawan.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Karyawan</span>
+                                    </a>
+                                    <a href="{{ route('admin.stations.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.stations.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Stations</span>
+                                    </a>
+                                    <a href="{{ route('admin.role.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Role / Jabatan & Jobdesk</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- SUB-MENU 2: RECORD -->
+                            <div class="sub-dropdown-container" data-active="{{ $isRecordActive ? 'true' : 'false' }}">
+                                <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                                        <span class="hide-on-collapse">Record</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-down text-[10px] sub-chevron-icon hide-on-collapse"></i>
+                                </button>
+                                <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
+                                    <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/cuti*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Cuti</span>
+                                    </a>
+                                    <a href="{{ route('admin.record.car') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">CAR</span>
+                                    </a>
+                                    <a href="{{ route('admin.record.mpr') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/mpr*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">MPR</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- MENU BARU: REKAP ABSENSI HARIAN -->
+                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                                <i class="fa-solid fa-user-check text-xs"></i>
+                                <span class="hide-on-collapse">Rekap Absensi Harian</span>
                             </a>
-                            <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Daftar Karyawan</span>
-                            </a>
-                            <a href="{{ route('admin.stations.index') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->routeIs('admin.stations.*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Daftar Stasiun Kerja</span>
-                            </a>
-                            <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/record/cuti*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Record Cuti Karyawan</span>
-                            </a>
-                            <a href="{{ route('admin.record.car') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/record/car*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Record CAR Karyawan</span>
-                            </a>
-                            <a href="{{ route('admin.record.mpr') }}" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/record/mpr*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Record MPR Karyawan</span>
-                            </a>
+
                         </div>
                     </div>
                 @endif
@@ -344,9 +374,8 @@
 
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- HEADER UTAMA DENGAN JAM DIGITAL (DESKTOP) DAN FLOATING (MOBILE) -->
+        <!-- HEADER UTAMA DENGAN JAM DIGITAL -->
         <header class="bg-white border-b border-slate-100 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
-            {{-- Sisi Kiri: Tombol Drawer Mobile & Nama Stasiun --}}
             <div class="flex items-center space-x-3">
                 <button id="toggleSidebarBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 border border-slate-100 active:scale-95 transition-transform">
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
@@ -357,7 +386,6 @@
                 </div>
             </div>
 
-            {{-- Sisi Tengah: Jam Digital & Tanggal Real-Time --}}
             <div class="fixed bottom-4 right-4 z-20 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 text-white sm:text-slate-800 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
                 <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
                     <i class="fa-solid fa-clock text-[10px] sm:text-xs text-sky-400 sm:text-sky-500"></i>
@@ -366,7 +394,6 @@
                 <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 font-medium tracking-tight">--</span>
             </div>
 
-            {{-- Sisi Kanan: Profil User --}}
             <div class="flex items-center space-x-3">
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
@@ -389,7 +416,6 @@
 
     <!-- JAVASCRIPT HANDLER -->
     <script>
-        // --- 1. SCRIPT REAL-TIME JAM DIGITAL HEADER ---
         function updateHeaderClock() {
             const now = new Date();
             const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
@@ -402,12 +428,8 @@
             const clockElement = document.getElementById('headerDigitalClock');
             const dateElement = document.getElementById('headerDateDisplay');
 
-            if (clockElement) {
-                clockElement.innerText = `${hours}:${minutes}:${seconds} WIB`;
-            }
-            if (dateElement) {
-                dateElement.innerText = dateString;
-            }
+            if (clockElement) clockElement.innerText = `${hours}:${minutes}:${seconds} WIB`;
+            if (dateElement) dateElement.innerText = dateString;
         }
 
         setInterval(updateHeaderClock, 1000);
@@ -415,17 +437,18 @@
         document.addEventListener("DOMContentLoaded", function () {
             updateHeaderClock();
 
-            // --- 2. SIDEBAR & DROPDOWN HANDLER ---
             const sidebar = document.getElementById("sidebarApp");
             const backdrop = document.getElementById("sidebarBackdrop");
             const toggleBtn = document.getElementById("toggleSidebarBtn");
             const closeBtn = document.getElementById("closeSidebarBtn");
+            
+            // HANDLER DROPDOWN LEVEL 1
             const dropdownContainers = document.querySelectorAll('.dropdown-container');
-
+            
             function openDropdown(container) {
                 const content = container.querySelector('.dropdown-content');
                 container.classList.add('dropdown-open');
-                content.style.maxHeight = content.scrollHeight + "px";
+                content.style.maxHeight = content.scrollHeight + 500 + "px";
             }
 
             function closeDropdown(container) {
@@ -436,45 +459,63 @@
 
             dropdownContainers.forEach(container => {
                 const btn = container.querySelector('.dropdown-btn');
-
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-
-                    if (window.innerWidth >= 768 && sidebar.matches(':not(:hover)')) {
-                        return; 
-                    }
+                    if (window.innerWidth >= 768 && sidebar.matches(':not(:hover)')) return;
 
                     const isOpen = container.classList.contains('dropdown-open');
-
-                    dropdownContainers.forEach(otherContainer => {
-                        if (otherContainer !== container) {
-                            closeDropdown(otherContainer);
-                        }
-                    });
-
-                    if (isOpen) {
-                        closeDropdown(container);
-                    } else {
-                        openDropdown(container);
-                    }
+                    dropdownContainers.forEach(other => { if (other !== container) closeDropdown(other); });
+                    if (isOpen) closeDropdown(container); else openDropdown(container);
                 });
             });
 
-            // PENANGANAN MOUSEOVER SIDEBAR DESKTOP DENGAN DELAY SMOOTH
-            let sidebarHoverTimeout = null;
+            // HANDLER SUB-DROPDOWN LEVEL 2 (DAFTAR & RECORD)
+            const subDropdownContainers = document.querySelectorAll('.sub-dropdown-container');
 
+            function openSubDropdown(subContainer) {
+                const subContent = subContainer.querySelector('.sub-dropdown-content');
+                subContainer.classList.add('sub-dropdown-open');
+                subContent.style.maxHeight = subContent.scrollHeight + "px";
+                
+                // Recalculate parent max-height
+                const parentDropdown = subContainer.closest('.dropdown-container');
+                if (parentDropdown) {
+                    const parentContent = parentDropdown.querySelector('.dropdown-content');
+                    parentContent.style.maxHeight = parentContent.scrollHeight + subContent.scrollHeight + "px";
+                }
+            }
+
+            function closeSubDropdown(subContainer) {
+                const subContent = subContainer.querySelector('.sub-dropdown-content');
+                subContainer.classList.remove('sub-dropdown-open');
+                subContent.style.maxHeight = "0px";
+            }
+
+            subDropdownContainers.forEach(subContainer => {
+                const subBtn = subContainer.querySelector('.sub-dropdown-btn');
+                subBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const isSubOpen = subContainer.classList.contains('sub-dropdown-open');
+                    if (isSubOpen) closeSubDropdown(subContainer); else openSubDropdown(subContainer);
+                });
+            });
+
+            // HOVER MOUSE SIDEBAR DESKTOP
+            let sidebarHoverTimeout = null;
             if (sidebar) {
                 sidebar.addEventListener('mouseenter', function() {
                     if (window.innerWidth >= 768) {
-                        if (sidebarHoverTimeout) {
-                            clearTimeout(sidebarHoverTimeout);
-                            sidebarHoverTimeout = null;
-                        }
-
+                        if (sidebarHoverTimeout) clearTimeout(sidebarHoverTimeout);
                         setTimeout(() => {
                             dropdownContainers.forEach(container => {
                                 if (container.getAttribute('data-active') === 'true') {
                                     openDropdown(container);
+                                    
+                                    // Auto-open sub-dropdown if active
+                                    const activeSub = container.querySelectorAll('.sub-dropdown-container[data-active="true"]');
+                                    activeSub.forEach(sub => openSubDropdown(sub));
                                 }
                             });
                         }, 200);
@@ -483,33 +524,30 @@
 
                 sidebar.addEventListener('mouseleave', function() {
                     if (window.innerWidth >= 768) {
-                        // Jeda penutupan diselaraskan dengan animasi CSS baru agar super smooth
                         sidebarHoverTimeout = setTimeout(() => {
-                            dropdownContainers.forEach(container => {
-                                closeDropdown(container);
-                            });
+                            dropdownContainers.forEach(container => closeDropdown(container));
+                            subDropdownContainers.forEach(sub => closeSubDropdown(sub));
                         }, 250);
                     }
                 });
             }
 
-            if (window.innerWidth < 768) {
-                dropdownContainers.forEach(container => {
-                    if (container.getAttribute('data-active') === 'true') {
-                        openDropdown(container);
-                    }
-                });
-            }
+            // AUTO OPEN JIKA DIPANGGIL LANGSUNG
+            dropdownContainers.forEach(container => {
+                if (container.getAttribute('data-active') === 'true') {
+                    openDropdown(container);
+                    const activeSubs = container.querySelectorAll('.sub-dropdown-container[data-active="true"]');
+                    activeSubs.forEach(sub => openSubDropdown(sub));
+                }
+            });
 
-            // --- SMOOTH ANIMATION UNTUK MOBILE SIDEBAR (TIDAK DIUBAH) ---
+            // MOBILE SIDEBAR HANDLER
             function openSidebarMobile() {
                 if (sidebar && backdrop) {
                     sidebar.classList.remove("-translate-x-full");
                     sidebar.classList.add("translate-x-0");
-                    
-                    backdrop.classList.remove("pointer-events-none");
+                    backdrop.classList.remove("pointer-events-none", "opacity-0");
                     backdrop.classList.add("opacity-100");
-                    backdrop.classList.remove("opacity-0");
                 }
             }
 
@@ -517,26 +555,14 @@
                 if (sidebar && backdrop) {
                     sidebar.classList.remove("translate-x-0");
                     sidebar.classList.add("-translate-x-full");
-                    
-                    backdrop.classList.add("opacity-0");
                     backdrop.classList.remove("opacity-100");
-                    backdrop.classList.add("pointer-events-none");
+                    backdrop.classList.add("opacity-0", "pointer-events-none");
                 }
             }
 
             if (toggleBtn) toggleBtn.addEventListener("click", openSidebarMobile);
             if (closeBtn) closeBtn.addEventListener("click", closeSidebarMobile);
             if (backdrop) backdrop.addEventListener("click", closeSidebarMobile);
-
-            window.addEventListener("resize", function () {
-                if (window.innerWidth >= 768) {
-                    sidebar.classList.remove("-translate-x-full", "translate-x-0");
-                    backdrop.classList.add("opacity-0", "pointer-events-none");
-                    backdrop.classList.remove("opacity-100");
-                } else {
-                    sidebar.classList.add("-translate-x-full");
-                }
-            });
         });
     </script>
 

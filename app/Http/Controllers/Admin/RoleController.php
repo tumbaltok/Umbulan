@@ -14,7 +14,7 @@ class RoleController extends Controller
         $daftarRole = Role::withCount('users')->get();
         $daftarJobdesk = Jobdesk::all();
 
-        return view('admin.role.index', compact('daftarRole', 'daftarJobdesk'));
+        return view('admin.daftar.role.index', compact('daftarRole', 'daftarJobdesk'));
     }
 
     public function store(Request $request)

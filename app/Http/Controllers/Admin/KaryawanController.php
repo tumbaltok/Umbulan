@@ -88,7 +88,8 @@ class KaryawanController extends Controller
             return $karyawan;
         });
 
-        return view('admin.karyawan.index', compact('daftarKaryawan'));
+        // PERBAIKAN: Menggunakan 'daftarKaryawan' agar cocok dengan nama variabel di atas
+        return view('admin.daftar.karyawan.index', compact('daftarKaryawan'));
     }
 
     public function showDetail(int $id): JsonResponse
