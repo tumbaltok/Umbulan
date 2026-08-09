@@ -105,22 +105,36 @@
 
                     {{-- Tipe Jobs / Jobdesk --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Tipe Jobs</label>
-                        <select id="job_title" name="job_title" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('job_title') ? 'border-rose-500' : 'border-slate-200' }}">
-                            <option value="" disabled {{ old('job_title', $user->job_title) == '' ? 'selected' : '' }}>Pilih Tipe Jobs</option>
-                            
-                            {{-- LOOPING DINAMIS DARI DATABASE JOBDESK --}}
+                        <label for="jobdesk" class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Tipe Jobs</label>
+                        <select id="jobdesk" name="jobdesk" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('jobdesk') ? 'border-rose-500' : 'border-slate-200' }}">
+                            @php
+                                // PERBAIKAN: Ambil nilai dari job_title terlebih dahulu
+                                $userJobValue = old('jobdesk', $user->job_title ?? $user->jobdesk ?? '');
+                                // Format pencocokan aman (case-insensitive & trim whitespace)
+                                $selectedClean = strtolower(trim((string)$userJobValue));
+                            @endphp
+                            <option value="" disabled {{ $selectedClean === '' ? 'selected' : '' }}>Pilih Tipe Jobs</option>
+                            {{-- LOOPING DINAMIS SESUAI KOLOM DATABASE --}}
                             @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
                                 @foreach($daftarJobdesk as $jd)
-                                    <option value="{{ $jd->job_title }}" {{ old('job_title', $user->job_title) == $jd->job_title ? 'selected' : '' }}>
-                                        {{ $jd->job_title }}
+                                    @php 
+                                        $namaJobdesk = $jd->job_title ?? $jd->name ?? $jd->nama_jobdesk ?? $jd->jobdesk ?? ''; 
+                                        $namaClean = strtolower(trim((string)$namaJobdesk));
+                                        $idClean = strtolower(trim((string)$jd->id));
+                                        // Cek apakah nilai DB cocok dengan Nama Jobdesk ATAU ID Jobdesk
+                                        $isSelected = ($selectedClean === $namaClean) || ($selectedClean === $idClean);
+                                    @endphp
+                                    <option value="{{ $namaJobdesk }}" {{ $isSelected ? 'selected' : '' }}>
+                                        {{ $namaJobdesk }}
                                     </option>
                                 @endforeach
                             @else
-                                <option value="" disabled>Tidak ada data jobdesk tersedia</option>
+                                <option value="" disabled>Tidak ada data Jobdesk tersedia</option>
                             @endif
                         </select>
-                        @error('job_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        @error('jobdesk') 
+                            <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- No. Telephone --}}
@@ -180,13 +194,16 @@
                 </div>
             </div>
 
+            <hr class="border-slate-100">
+
             {{-- PENGATURAN JADWAL KERJA --}}
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Pengaturan Jadwal Kerja</h3>
                 <p class="text-xs text-slate-400 mb-4">Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster).</p>
 
                 @php
-                    $activeScheduleType = old('schedule_type', $user->schedule_type ?? 'normal');
+                    // PERBAIKAN: Default di-set null / empty string jika kolom di DB kosong
+                    $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
                     
                     // Hitung Shift Roster Aktif Berdasarkan DB jika tersedia
                     $currentDbShift = 'pagi';
@@ -214,6 +231,9 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
                         <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500">
+                            
+                            {{-- OPTION PLACEHOLDER DIBUAT TERPILIH JIKA DIBATALKAN / BELUM PILIH --}}
+                            <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
                             <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
                             <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
                         </select>

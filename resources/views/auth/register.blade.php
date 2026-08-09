@@ -36,7 +36,7 @@
 
         <!-- Sisi Kiri: Branding & Informasi -->
         <div class="lg:w-5/12 wave-bg text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
-            <!-- SVG Wave Dekoratif di Latar Belakang -->
+            <!-- SVG Wave Dekoratif -->
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
                 <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
@@ -73,7 +73,7 @@
                 </p>
             </div>
 
-            <!-- Informasi Kaki (Footer) -->
+            <!-- Footer -->
             <div class="z-10 text-xs text-white/50">
                 &copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan. All rights reserved.
             </div>
@@ -82,20 +82,19 @@
         <!-- Sisi Kanan: Formulir Registrasi -->
         <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
 
-            <!-- Wrapper Form -->
             <div>
                 <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Registrasi Karyawan</h2>
                     <p class="text-slate-500 text-xs sm:text-sm mt-1">Lengkapi data di bawah sesuai dengan database kepegawaian Anda.</p>
                 </div>
 
-                <!-- Box Notifikasi Validasi / Error JS -->
+                <!-- Box Notifikasi JS -->
                 <div id="notification" style="display: none;" class="mb-6 p-4 rounded-xl border flex items-center space-x-3 transition-all duration-300">
                     <div id="notif-icon"></div>
-                    <div class="text-sm font-medium" id="notif-message"></div>
+                    <div class="text-xs sm:text-sm font-medium" id="notif-message"></div>
                 </div>
 
-                <!-- Deteksi Error dari Laravel -->
+                <!-- Notifikasi Error Server/Laravel -->
                 @if ($errors->any())
                     <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
                         <div class="font-bold mb-2 flex items-center">
@@ -120,7 +119,7 @@
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Name Input -->
+                            <!-- Nama Lengkap -->
                             <div>
                                 <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
                                 <div class="relative">
@@ -133,7 +132,7 @@
                                 </div>
                             </div>
 
-                            <!-- Email Input -->
+                            <!-- Alamat Email -->
                             <div>
                                 <label for="email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Alamat Email</label>
                                 <div class="relative">
@@ -142,11 +141,11 @@
                                     </div>
                                     <input type="email" id="email" name="email" value="{{ old('email') }}" required
                                         class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
-                                        placeholder="email@tirtaamerta.co.id">
+                                        placeholder="mail@meta.com">
                                 </div>
                             </div>
 
-                            <!-- Gender Selection -->
+                            <!-- Jenis Kelamin (Database Select) -->
                             <div class="md:col-span-2">
                                 <label for="gender_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
                                 <div class="relative">
@@ -155,8 +154,16 @@
                                     </div>
                                     <select id="gender_id" name="gender_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
                                         <option value="" disabled {{ old('gender_id') ? '' : 'selected' }}>Pilih Jenis Kelamin</option>
-                                        <option value="1" {{ old('gender_id') == '1' ? 'selected' : '' }}>Laki-laki</option>
-                                        <option value="2" {{ old('gender_id') == '2' ? 'selected' : '' }}>Perempuan</option>
+                                        @if(isset($daftarGender) && count($daftarGender) > 0)
+                                            @foreach($daftarGender as $gender)
+                                                <option value="{{ $gender->id }}" {{ old('gender_id') == $gender->id ? 'selected' : '' }}>
+                                                    {{ $gender->name ?? $gender->gender_name }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="1" {{ old('gender_id') == '1' ? 'selected' : '' }}>Laki-laki</option>
+                                            <option value="2" {{ old('gender_id') == '2' ? 'selected' : '' }}>Perempuan</option>
+                                        @endif
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -173,7 +180,7 @@
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Sektor Selection -->
+                            <!-- Sektor Kerja (Database Select) -->
                             <div>
                                 <label for="sektor" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sektor Kerja</label>
                                 <div class="relative">
@@ -181,8 +188,18 @@
                                         <i class="fa-solid fa-building-user text-xs"></i>
                                     </div>
                                     <select id="sektor" name="sektor" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="operasional" {{ old('sektor', 'operasional') == 'operasional' ? 'selected' : '' }}>Operasional</option>
-                                        <option value="manajemen" {{ old('sektor') == 'manajemen' ? 'selected' : '' }}>Manajemen</option>
+                                        <option value="" disabled {{ old('sektor') ? '' : 'selected' }}>Pilih Sektor Kerja</option>
+                                        @if(isset($daftarSektor) && count($daftarSektor) > 0)
+                                            @foreach($daftarSektor as $sektorItem)
+                                                <option value="{{ $sektorItem->value ?? $sektorItem->name }}" {{ old('sektor') == ($sektorItem->value ?? $sektorItem->name) ? 'selected' : '' }}>
+                                                    {{ ucfirst($sektorItem->name) }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            {{-- PERBAIKAN: Hapus default 'operasional' agar sejajar dengan select lain --}}
+                                            <option value="operasional" {{ old('sektor') == 'operasional' ? 'selected' : '' }}>Operasional</option>
+                                            <option value="manajemen" {{ old('sektor') == 'manajemen' ? 'selected' : '' }}>Manajemen</option>
+                                        @endif
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -190,51 +207,10 @@
                                 </div>
                             </div>
 
-                            <!-- Role Selection -->
-                            <div>
-                                <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jabatan</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-briefcase text-xs"></i>
-                                    </div>
-                                    <select id="role_id" name="role_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="" disabled {{ old('role_id') ? '' : 'selected' }}>Pilih Peran Jabatan</option>
-                                        @foreach($daftarRole as $role)
-                                            <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                                                {{ $role->role_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Jobdesk Selection (TAMBAHAN BARU) -->
-                            <div>
-                                <label for="job_title" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jobdesk / Bidang Tugas</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-list-check text-xs"></i>
-                                    </div>
-                                    <select id="job_title" name="job_title" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="" disabled {{ old('job_title') ? '' : 'selected' }}>Pilih Jobdesk / Bidang</option>
-                                        <option value="Operator" {{ old('job_title') == 'Operator' ? 'selected' : '' }}>Operator</option>
-                                        <option value="Maintenance" {{ old('job_title') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                        <option value="HSE" {{ old('job_title') == 'HSE' ? 'selected' : '' }}>Safety (HSE)</option>
-                                        <option value="Dokumentasi" {{ old('job_title') == 'Dokumentasi' ? 'selected' : '' }}>Dokumentasi</option>
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Station / Tempat Kerja Selection -->
+                            <!-- Station / Penempatan (Database Select) -->
                             <div>
                                 <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Tempat Kerja / Penempatan
+                                    Penempatan Kerja 
                                 </label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -244,9 +220,59 @@
                                         <option value="" disabled {{ old('station_id') ? '' : 'selected' }}>Pilih Tempat Kerja</option>
                                         @foreach($daftarStasiun as $stasiun)
                                             <option value="{{ $stasiun->id }}" {{ old('station_id') == $stasiun->id ? 'selected' : '' }}>
-                                                [{{ strtoupper($stasiun->type ?? 'STASIUN') }}] {{ $stasiun->name }} ({{ $stasiun->kode_stasiun }})
+                                                {{ $stasiun->name }}
                                             </option>
                                         @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Jabatan / Role (Database Select) -->
+                            <div>
+                                <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jabatan</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-briefcase text-xs"></i>
+                                    </div>
+                                    <select id="role_id" name="role_id" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('role_id') ? '' : 'selected' }}>Pilih Peran Jabatan</option>
+                                        @if(isset($daftarRole) && count($daftarRole) > 0)
+                                            @foreach($daftarRole as $role)
+                                                <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                                    {{ $role->role_name }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="" disabled>Tidak ada data role tersedia</option>
+                                        @endif
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Jobdesk / Bidang Tugas (Database Select) -->
+                            <div>
+                                <label for="jobdesk" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jobdesk</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-list-check text-xs"></i>
+                                    </div>
+                                    <select id="jobdesk" name="jobdesk" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('jobdesk') ? '' : 'selected' }}>Pilih Jobdesk / Bidang</option>
+                                        @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
+                                            @foreach($daftarJobdesk as $jobdesk)
+                                                <option value="{{ $jobdesk->id }}" {{ old('jobdesk') == $jobdesk->id ? 'selected' : '' }}>
+                                                    {{ $jobdesk->name ?? $jobdesk->nama_jobdesk ?? $jobdesk->job_title ?? $jobdesk->nama }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="" disabled>Tidak ada data Jobdesk tersedia</option>
+                                        @endif
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
@@ -270,9 +296,9 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </div>
-                                    <input type="password" id="password" name="password" required
+                                    <input type="password" id="password" name="password" required onkeyup="checkPasswordStrength()"
                                         class="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
-                                        placeholder="Min. 8 karakter">
+                                        placeholder="Kombinasi sandi kuat">
                                     
                                     <button type="button" tabindex="-1" onclick="togglePasswordVisibility('password', 'password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="password-icon" class="fa-solid fa-eye text-xs"></i>
@@ -297,6 +323,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Indikator Validasi Password Real-Time -->
+                        <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1">
+                            <!-- Indikator Password Minimalis & Elegan -->
+                            <div class="mt-2 space-y-1.5">
+                                <!-- Baris Progress & Label Kekuatan Sandi -->
+                                <div class="flex items-center justify-between text-[11px] font-medium text-slate-500">
+                                    <span>Kekuatan Kata Sandi:</span>
+                                    <span id="pwd-status-text" class="font-bold text-slate-400">Belum diisi</span>
+                                </div>
+                                
+                                <!-- Progress Bar Halus -->
+                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex gap-1">
+                                    <div id="pwd-bar-1" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
+                                    <div id="pwd-bar-2" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
+                                    <div id="pwd-bar-3" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
+                                    <div id="pwd-bar-4" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
+                                </div>
+
+                                <!-- Micro Text Bantuan (Sangat Ringkas & Tidak Memakan Tempat) -->
+                                <p id="pwd-hint" class="text-[10px] text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-info text-[9px]"></i>
+                                    <span>Wajib min. 8 karakter, kombinasi huruf besar, kecil, angka & simbol.</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Terms & Agreement -->
@@ -316,7 +368,6 @@
                     </button>
                 </form>
 
-                <!-- Link Alternatif Masuk -->
                 <div class="mt-6 text-center text-xs sm:text-sm text-slate-500">
                     Sudah memiliki akun portal cuti?
                     <a href="login" class="font-bold text-sky-600 hover:text-sky-700 hover:underline">Masuk Sekarang</a>
@@ -344,6 +395,77 @@
             }
         }
 
+        // Pengecekan Kriteria Password Real-Time
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            
+            // Kriteria Standar Industri
+            const hasMinLen = password.length >= 8;
+            const hasUpper  = /[A-Z]/.test(password);
+            const hasLower  = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSymbol = /[@$!%*?&]/.test(password);
+
+            // Hitung Skor (0 - 4)
+            let score = 0;
+            if (hasMinLen) score++;
+            if (hasUpper && hasLower) score++;
+            if (hasNumber) score++;
+            if (hasSymbol) score++;
+
+            // Element Target
+            const statusText = document.getElementById('pwd-status-text');
+            const hintText   = document.getElementById('pwd-hint');
+            const bars       = [
+                document.getElementById('pwd-bar-1'),
+                document.getElementById('pwd-bar-2'),
+                document.getElementById('pwd-bar-3'),
+                document.getElementById('pwd-bar-4')
+            ];
+
+            // Reset Bar Warna
+            bars.forEach(bar => bar.className = "h-full w-1/4 bg-slate-200 transition-all duration-300");
+
+            if (password.length === 0) {
+                statusText.innerText = "Belum diisi";
+                statusText.className = "font-bold text-slate-400";
+                hintText.className = "text-[10px] text-slate-400 flex items-center gap-1";
+                return false;
+            }
+
+            // Update Tampilan Berdasarkan Skor
+            if (score <= 1) {
+                statusText.innerText = "Sangat Lemah";
+                statusText.className = "font-bold text-rose-500";
+                bars[0].className = "h-full w-1/4 bg-rose-500 transition-all duration-300";
+            } else if (score === 2) {
+                statusText.innerText = "Sedang";
+                statusText.className = "font-bold text-amber-500";
+                bars[0].className = bars[1].className = "h-full w-1/4 bg-amber-500 transition-all duration-300";
+            } else if (score === 3) {
+                statusText.innerText = "Bagus";
+                statusText.className = "font-bold text-sky-500";
+                bars[0].className = bars[1].className = bars[2].className = "h-full w-1/4 bg-sky-500 transition-all duration-300";
+            } else if (score === 4 && hasMinLen && hasUpper && hasLower && hasNumber && hasSymbol) {
+                statusText.innerText = "Sangat Kuat ✓";
+                statusText.className = "font-bold text-emerald-500";
+                bars.forEach(bar => bar.className = "h-full w-1/4 bg-emerald-500 transition-all duration-300");
+            }
+
+            // Cek Apakah Semua Syarat Terpenuhi
+            const isAllValid = hasMinLen && hasUpper && hasLower && hasNumber && hasSymbol;
+
+            if (isAllValid) {
+                hintText.className = "text-[10px] text-emerald-600 font-semibold flex items-center gap-1";
+                hintText.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Kata sandi memenuhi standar keamanan.`;
+            } else {
+                hintText.className = "text-[10px] text-slate-400 flex items-center gap-1";
+                hintText.innerHTML = `<i class="fa-solid fa-circle-info text-[9px]"></i> Wajib min. 8 karakter, kombinasi huruf besar, kecil, angka & simbol.`;
+            }
+
+            return isAllValid;
+        }
+
         function handleRegistration(event) {
             event.preventDefault();
 
@@ -354,19 +476,21 @@
             const notifIcon = document.getElementById('notif-icon');
             const notifMessage = document.getElementById('notif-message');
 
+            const isPasswordValid = checkPasswordStrength();
+
+            if (!isPasswordValid) {
+                notification.style.display = 'flex';
+                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
+                notifIcon.innerHTML = `<i class="fa-solid fa-shield-halved text-rose-500 text-lg"></i>`;
+                notifMessage.innerText = "Error: Kata Sandi Baru belum memenuhi semua standar keamanan (Huruf Besar, Huruf Kecil, Angka, & Simbol).";
+                return;
+            }
+
             if (password !== confirmPassword) {
                 notification.style.display = 'flex';
                 notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
                 notifIcon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500 text-lg"></i>`;
                 notifMessage.innerText = "Error: Konfirmasi Kata Sandi tidak cocok dengan Kata Sandi Baru.";
-                return;
-            }
-
-            if (password.length < 8) {
-                notification.style.display = 'flex';
-                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
-                notifIcon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500 text-lg"></i>`;
-                notifMessage.innerText = "Error: Kata Sandi Baru minimal harus berukuran 8 karakter.";
                 return;
             }
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Absen;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Absen\Kehadiran;
-use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;

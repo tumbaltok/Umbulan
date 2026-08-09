@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User\User;
 use App\Models\User\Station;
 use App\Models\User\Role;
+use App\Models\User\Jobdesk;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -27,9 +28,13 @@ class AuthController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        $daftarRole = Role::orderBy('role_name', 'asc')->get();
+        $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')
+        ->orderBy('role_name', 'asc')
+        ->get();
+        
+        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
 
-        return view('auth.register', compact('daftarStasiun', 'daftarRole'));
+        return view('auth.register', compact('daftarStasiun', 'daftarRole', 'daftarJobdesk'));
     }
 
     /**
@@ -38,15 +43,15 @@ class AuthController extends Controller
     public function registerWeb(Request $request)
     {
         $request->validate([
-            'nip'        => 'nullable|string|max:50|unique:users,nip',
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|string|email|max:255|unique:users,email',
-            'role_id'    => 'required|exists:roles,id',
-            'gender_id'  => 'required|exists:genders,id',
-            'station_id' => 'required|exists:stations,id',
-            'sektor'     => 'required|in:manajemen,operasional',
-            'job_title'  => 'required|string|max:100',
-            'password'   => 'required|string|min:8|confirmed',
+            'nip'         => 'nullable|string|max:50|unique:users,nip',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|string|email|max:255|unique:users,email',
+            'role_id'     => 'required|exists:roles,id',
+            'gender_id'   => 'required|exists:genders,id',
+            'station_id'  => 'required|exists:stations,id',
+            'sektor'      => 'required|in:manajemen,operasional',
+            'jobdesk'     => 'required|string|max:100',
+            'password'    => 'required|string|min:8|confirmed',
         ]);
 
         $sektorInput = strtolower($request->sektor);
@@ -60,13 +65,16 @@ class AuthController extends Controller
         // LOGIKA PENENTUAN ATASAN LANGSUNG BERJENJANG (LINIER)
         // -------------------------------------------------------------
         if (str_contains($roleName, 'staff')) {
-            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Jobdesk SAMA)
+            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Job Title/Jobdesk SAMA)
             $supervisor = User::whereHas('role', function($q) {
                     $q->where('role_name', 'LIKE', '%Supervisor%');
                 })
                 ->where('sektor', $sektorInput)
                 ->where('station_id', $request->station_id)
-                ->where('job_title', $request->job_title)
+                ->where(function($q) use ($request) {
+                    $q->where('job_title', $request->jobdesk)
+                      ->orWhere('jobdesk', $request->jobdesk);
+                })
                 ->first();
 
             // Fallback: Jika tidak ada Supervisor dengan jobdesk yang sama, cari Supervisor di Sektor & Tempat Kerja yang sama
@@ -102,7 +110,7 @@ class AuthController extends Controller
             $managerId    = $manager ? $manager->id : null;
         }
 
-        // 1. Buat User Baru
+        // 1. Buat User Baru (Disimpan ke kolom 'job_title' agar sesuai struktur DB)
         $user = User::create([
             'nip'           => $request->nip,
             'name'          => $request->name,
@@ -111,7 +119,7 @@ class AuthController extends Controller
             'gender_id'     => $request->gender_id,
             'station_id'    => $request->station_id,
             'sektor'        => $sektorInput,
-            'job_title'     => $request->job_title,
+            'job_title'     => $request->jobdesk, // PERBAIKAN: Disimpan ke kolom job_title
             'supervisor_id' => $supervisorId,
             'manager_id'    => $managerId,
             'password'      => Hash::make($request->password),

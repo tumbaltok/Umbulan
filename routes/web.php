@@ -14,6 +14,7 @@ use App\Http\Controllers\Mpr\PengajuanMprController;
 use App\Http\Controllers\Absen\KehadiranController;
 use App\Http\Controllers\Absen\JadwalController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\AbsensiAdminController;
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
@@ -158,5 +159,6 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
 
     // Rekap Absensi Harian 
-    Route::get('/admin/absensi', [KehadiranController::class, 'rekapHarian'])->name('admin.absensi.index');
+    // Route::get('/admin/absensi', [KehadiranController::class, 'rekapHarian'])->name('admin.absensi.index');
+    Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
 });

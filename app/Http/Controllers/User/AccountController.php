@@ -16,10 +16,9 @@ class AccountController extends Controller
     {
         $user = User::find(Auth::id());
         
-        // Ambil seluruh daftar Jobdesk dari Database
+        // Ambil seluruh daftar Jobdesk dari Database diurutkan dari job_title
         $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
 
-        // Mengarahkan ke file resources/views/profile/index.blade.php
         return view('profile.index', compact('user', 'daftarJobdesk'));
     }
 
@@ -49,12 +48,12 @@ class AccountController extends Controller
             return redirect()->back()->with('success', 'Tanda tangan digital berhasil dihapus.');
         }
 
-        // VALIDASI
+        // VALIDASI LENGKAP
         $request->validate([
             'nip'               => 'nullable|string|max:50',
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'job_title'         => 'nullable|string|exists:jobdesks,job_title',
+            'jobdesk'           => 'nullable|string|max:255',
             'phone_number'      => 'nullable|string|max:20',
             'profile_photo'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature'         => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -72,7 +71,7 @@ class AccountController extends Controller
         if ($request->has('nip')) $updateData['nip'] = $request->nip;
         if ($request->has('name')) $updateData['name'] = $request->name;
         if ($request->has('email')) $updateData['email'] = $request->email;
-        if ($request->has('job_title')) $updateData['job_title'] = $request->job_title;
+        if ($request->has('jobdesk')) $updateData['job_title'] = $request->jobdesk;
         if ($request->has('phone_number')) $updateData['phone_number'] = $request->phone_number;
 
         // SIMPAN JADWAL KERJA
@@ -103,7 +102,7 @@ class AccountController extends Controller
             $updateData['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-        // UPLOAD TANDA TANGAN DIGITAL (TTD)
+        // UPLOAD TTD
         if ($request->hasFile('signature')) {
             if ($user->signature && Storage::disk('public')->exists($user->signature)) {
                 Storage::disk('public')->delete($user->signature);

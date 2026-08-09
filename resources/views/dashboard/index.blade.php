@@ -267,7 +267,9 @@
         <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <h3 id="judulModalAbsen" class="font-bold text-slate-800 text-sm">Verifikasi Absensi</h3>
-                <button type="button" onclick="tutupModalAbsen()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button type="button" onclick="tutupModalAbsen()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
 
             <form id="formAbsensi" onsubmit="submitAbsensi(event)" class="p-5 space-y-4">
@@ -277,9 +279,17 @@
                 <input type="hidden" id="absen_long" name="longitude">
                 <input type="hidden" id="absen_face_image" name="face_image">
 
-                {{-- TAMPILAN KAMERA RESPONSIVE (PORTRAIT DI HP, LANDSCAPE DI DESKTOP) --}}
+                {{-- WIDGET INDIKATOR LOKASI TERKINI --}}
+                <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-2.5 transition-all">
+                    <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
+                    <div class="flex-1">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini:</span>
+                        <span id="textNamaLokasi" class="text-xs font-bold text-slate-600">Mendeteksi lokasi GPS...</span>
+                    </div>
+                </div>
+
+                {{-- TAMPILAN KAMERA RESPONSIVE --}}
                 <div class="relative bg-black rounded-xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
-                    {{-- Style scaleX(1) & scale-x-100 memastikan video TIDAK MIRROR --}}
                     <video id="webcamVideo" 
                         autoplay 
                         playsinline 
@@ -757,114 +767,214 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI (RESPONSIVE PORTRAIT/LANDSCAPE & NON-MIRROR)
-let mediaStream = null;
+    // 4. WEBCAM & GPS ABSENSI + PENGECEKAN RADIUS STASIUN
+    let mediaStream = null;
 
-function bukaModalAbsen(type) {
-    document.getElementById('absen_type').value = type;
-    document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
-    
-    const modal = document.getElementById('modalAbsensi');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    // Ambil daftar stasiun dari Laravel Controller secara aman
+    const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
 
-    // Minta Lokasi GPS
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                document.getElementById('absen_lat').value = pos.coords.latitude;
-                document.getElementById('absen_long').value = pos.coords.longitude;
-                console.log("GPS Terdeteksi:", pos.coords.latitude, pos.coords.longitude, "Akurasi (Meter):", pos.coords.accuracy);
-            },
-            (err) => {
-                alert('Gagal mendapatkan lokasi GPS. Harap pastikan GPS HP aktif dan izinkan akses lokasi pada browser Anda.');
-            },
-            { 
-                enableHighAccuracy: true, // Memaksa penggunaan chip GPS HP (bukan IP Internet/Wi-Fi)
-                timeout: 10000,            // Waktu tunggu maksimum 10 detik
-                maximumAge: 0              // Memaksa browser TIDAK menggunakan lokasi cache lama
-            }
-        );
+    // Fungsi Menghitung Jarak GPS (Haversine Formula) dalam Meter (SUDAH DIBENARKAN)
+    function calculateDistanceMeter(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // Radius bumi (meter)
+        const radLat1 = lat1 * Math.PI / 180;
+        const radLat2 = lat2 * Math.PI / 180;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(radLat1) * Math.cos(radLat2) * 
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
-    // Deteksi jika pengguna membuka lewat Smartphone/Mobile
-    const isMobile = window.innerWidth < 640;
+    // Fungsi Membuka Modal Absen
+    function bukaModalAbsen(type) {
+        document.getElementById('absen_type').value = type;
+        document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
+        
+        // Reset status box lokasi
+        const statusBox = document.getElementById('statusLokasiBox');
+        const textLokasi = document.getElementById('textNamaLokasi');
+        const iconLokasi = document.getElementById('iconLokasi');
 
-    // Pengaturan Resolusi kamera ideal
-    const constraints = {
-        audio: false,
-        video: {
-            facingMode: "user",
-            // Jika HP: Resolusi dibuat Portrait (Lebar 720, Tinggi 1280)
-            // Jika Desktop: Resolusi dibuat Landscape (Lebar 1280, Tinggi 720)
-            width: { ideal: isMobile ? 720 : 1280 },
-            height: { ideal: isMobile ? 1280 : 720 }
+        if (statusBox && textLokasi && iconLokasi) {
+            statusBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-2.5 transition-all";
+            iconLokasi.className = "fa-solid fa-spinner fa-spin text-slate-400 text-sm";
+            textLokasi.innerText = "Mendeteksi posisi GPS Anda...";
         }
-    };
 
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            mediaStream = stream;
-            const video = document.getElementById('webcamVideo');
-            video.srcObject = stream;
-            document.getElementById('cameraStatus').innerText = 'Kamera Aktif';
+        const modal = document.getElementById('modalAbsensi');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Minta Lokasi GPS Real-Time
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const userLat = pos.coords.latitude;
+                    const userLng = pos.coords.longitude;
+
+                    document.getElementById('absen_lat').value = userLat;
+                    document.getElementById('absen_long').value = userLng;
+
+                    // Cek pencocokan ke seluruh stasiun terdaftar
+                    let matchedStation = null;
+
+                    if (Array.isArray(daftarStasiun) && daftarStasiun.length > 0) {
+                        for (let station of daftarStasiun) {
+                            if (station.latitude && station.longitude) {
+                                const distance = calculateDistanceMeter(
+                                    userLat, 
+                                    userLng, 
+                                    parseFloat(station.latitude), 
+                                    parseFloat(station.longitude)
+                                );
+                                const radiusLimit = parseFloat(station.radius_meters) || 100;
+
+                                if (distance <= radiusLimit) {
+                                    matchedStation = station;
+                                    break; // Ditemukan stasiun terdekat yang masuk radius!
+                                }
+                            }
+                        }
+                    }
+
+                    // Tampilkan Hasil Pencocokan Lokasi
+                    if (statusBox && textLokasi && iconLokasi) {
+                        if (matchedStation) {
+                            statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                            iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
+                            textLokasi.className = "text-xs font-bold text-emerald-700";
+                            textLokasi.innerText = "Lokasi: " + matchedStation.name;
+                        } else {
+                            statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                            iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
+                            textLokasi.className = "text-xs font-bold text-rose-700";
+                            textLokasi.innerText = "Lokasi berada di luar area kerja";
+                        }
+                    }
+                },
+                (err) => {
+                    if (statusBox && textLokasi && iconLokasi) {
+                        statusBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                        iconLokasi.className = "fa-solid fa-circle-exclamation text-amber-600 text-sm";
+                        textLokasi.className = "text-xs font-bold text-amber-700";
+                        textLokasi.innerText = "Gagal mengakses GPS. Pastikan izin lokasi aktif!";
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // Aktifkan Kamera
+        const isMobile = window.innerWidth < 640;
+        const constraints = {
+            audio: false,
+            video: {
+                facingMode: "user",
+                width: { ideal: isMobile ? 720 : 1280 },
+                height: { ideal: isMobile ? 1280 : 720 }
+            }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then((stream) => {
+                mediaStream = stream;
+                const video = document.getElementById('webcamVideo');
+                if (video) video.srcObject = stream;
+                
+                const camStatus = document.getElementById('cameraStatus');
+                if (camStatus) camStatus.innerText = 'Kamera Aktif';
+            })
+            .catch((err) => {
+                console.error("Gagal Akses Kamera:", err);
+                const camStatus = document.getElementById('cameraStatus');
+                if (camStatus) camStatus.innerText = 'Kamera tidak dapat diakses';
+            });
+    }
+
+    // Menutup kamera & mematikan stream hardware
+    function tutupModalAbsen() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop()); // Stop hardware kamera
+            mediaStream = null;
+        }
+
+        const video = document.getElementById('webcamVideo');
+        if (video) {
+            video.srcObject = null;
+        }
+
+        // Reset Form Input
+        const wrapperAlasan = document.getElementById('wrapperAlasan');
+        const inputAlasan = document.getElementById('inputAlasan');
+        if (wrapperAlasan) wrapperAlasan.classList.add('hidden');
+        if (inputAlasan) inputAlasan.value = '';
+
+        const modal = document.getElementById('modalAbsensi');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    function submitAbsensi(e) {
+        e.preventDefault();
+
+        const video = document.getElementById('webcamVideo');
+        const canvas = document.getElementById('webcamCanvas');
+        if (!video || !canvas) return;
+
+        const context = canvas.getContext('2d');
+
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        
+        context.save();
+        context.scale(1, 1);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.restore();
+        
+        const base64Photo = canvas.toDataURL('image/png');
+        document.getElementById('absen_face_image').value = base64Photo;
+
+        const type = document.getElementById('absen_type').value;
+        const url = type === 'in' ? '{{ route("attendance.checkin") }}' : '{{ route("attendance.checkout") }}';
+        
+        const payload = {
+            _token: '{{ csrf_token() }}',
+            latitude: document.getElementById('absen_lat').value,
+            longitude: document.getElementById('absen_long').value,
+            face_image: base64Photo,
+            reason_out_of_radius: document.getElementById('inputAlasan').value,
+            reason_checkout: document.getElementById('inputAlasan').value,
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
         })
-        .catch((err) => {
-            console.error("Gagal Akses Kamera:", err);
-            document.getElementById('cameraStatus').innerText = 'Kamera tidak dapat diakses';
-        });
-}
-
-function submitAbsensi(e) {
-    e.preventDefault();
-
-    const video = document.getElementById('webcamVideo');
-    const canvas = document.getElementById('webcamCanvas');
-    const context = canvas.getContext('2d');
-
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    
-    // Pastikan pengambilan foto di Canvas TIDAK terbalik/mirror
-    context.save();
-    context.scale(1, 1);
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    context.restore();
-    
-    const base64Photo = canvas.toDataURL('image/png');
-    document.getElementById('absen_face_image').value = base64Photo;
-
-    const type = document.getElementById('absen_type').value;
-    const url = type === 'in' ? '{{ route("attendance.checkin") }}' : '{{ route("attendance.checkout") }}';
-    
-    const payload = {
-        _token: '{{ csrf_token() }}',
-        latitude: document.getElementById('absen_lat').value,
-        longitude: document.getElementById('absen_long').value,
-        face_image: base64Photo,
-        reason_out_of_radius: document.getElementById('inputAlasan').value,
-        reason_checkout: document.getElementById('inputAlasan').value,
-    };
-
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json().then(data => ({ status: res.status, body: data })))
-    .then(res => {
-        if (res.status === 200) {
-            alert(res.body.message);
-            window.location.reload();
-        } else if (res.status === 422) {
-            document.getElementById('wrapperAlasan').classList.remove('hidden');
-            document.getElementById('labelAlasan').innerText = res.body.message;
-            alert(res.body.message);
-        } else {
-            alert(res.body.message || 'Terjadi kesalahan sistem.');
-        }
-    })
-    .catch(err => alert('Gagal mengirim absensi. Periksa koneksi internet Anda.'));
-}
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(res => {
+            if (res.status === 200) {
+                tutupModalAbsen(); // Tutup kamera dulu sebelum reload
+                alert(res.body.message);
+                window.location.reload();
+            } else if (res.status === 422) {
+                document.getElementById('wrapperAlasan').classList.remove('hidden');
+                document.getElementById('labelAlasan').innerText = res.body.message;
+                alert(res.body.message);
+            } else {
+                alert(res.body.message || 'Terjadi kesalahan sistem.');
+            }
+        })
+        .catch(err => alert('Gagal mengirim absensi. Periksa koneksi internet Anda.'));
+    }
 </script>
 @endpush

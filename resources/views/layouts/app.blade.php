@@ -290,6 +290,12 @@
                         </button>
                         
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
+
+                            <!-- MENU BARU: REKAP ABSENSI HARIAN -->
+                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                                <i class="fa-solid fa-user-check text-xs"></i>
+                                <span class="hide-on-collapse">Rekap Absensi Harian</span>
+                            </a>
                             
                             <!-- SUB-MENU 1: DAFTAR -->
                             <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
@@ -301,14 +307,14 @@
                                     <i class="fa-solid fa-chevron-down text-[10px] sub-chevron-icon hide-on-collapse"></i>
                                 </button>
                                 <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
+                                    <a href="{{ route('admin.role.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Role / Jabatan & Jobdesk</span>
+                                    </a>
                                     <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.karyawan.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
                                         <span class="hide-on-collapse">Karyawan</span>
                                     </a>
                                     <a href="{{ route('admin.stations.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.stations.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
                                         <span class="hide-on-collapse">Stations</span>
-                                    </a>
-                                    <a href="{{ route('admin.role.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Role / Jabatan & Jobdesk</span>
                                     </a>
                                 </div>
                             </div>
@@ -334,13 +340,6 @@
                                     </a>
                                 </div>
                             </div>
-
-                            <!-- MENU BARU: REKAP ABSENSI HARIAN -->
-                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <i class="fa-solid fa-user-check text-xs"></i>
-                                <span class="hide-on-collapse">Rekap Absensi Harian</span>
-                            </a>
-
                         </div>
                     </div>
                 @endif
@@ -381,7 +380,7 @@
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Sektor Kerja,</p>
+                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Lokasi Kerja,</p>
                     <h1 class="text-base font-bold text-slate-800 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>
@@ -397,7 +396,19 @@
             <div class="flex items-center space-x-3">
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ Auth::user()->role->role_name ?? 'USER' }} {{ Auth::user()->job_title }}</p>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        {{ Auth::user()->role->role_name ?? 'USER' }} 
+                        @php
+                            $userAuth = Auth::user();
+                            $jobText = $userAuth->jobdesk 
+                                ?? $userAuth->job_title 
+                                ?? optional($userAuth->jobTitle)->job_title;
+                        @endphp
+
+                        @if(!empty($jobText))
+                            • {{ $jobText }}
+                        @endif
+                    </p>               
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0">
                     @if(Auth::user()->profile_photo)
