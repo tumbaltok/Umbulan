@@ -35,8 +35,36 @@ class StationController extends Controller
         return null;
     }
 
+    // 1. TAMBAH LOKASI / STASIUN (Dukungan Multi-Row Repeater & Single Row)
     public function store(Request $request)
     {
+        // Pengecekan jika input dikirim dari repeater JavaScript Blade ($request->has('stations'))
+        if ($request->has('stations') && is_array($request->stations)) {
+            $request->validate([
+                'stations'                 => 'required|array|min:1',
+                'stations.*.kode_stasiun'  => 'required|string|unique:stations,kode_stasiun',
+                'stations.*.name'          => 'required|string|max:255',
+                'stations.*.type'          => 'required|in:kantor,stasiun,rumah_meter',
+                'stations.*.latitude'      => 'required|numeric',
+                'stations.*.longitude'     => 'required|numeric',
+                'stations.*.radius_meters' => 'required|numeric|min:10',
+            ]);
+
+            foreach ($request->stations as $stasiunData) {
+                Station::create([
+                    'kode_stasiun'  => strtoupper($stasiunData['kode_stasiun']),
+                    'name'          => $stasiunData['name'],
+                    'type'          => strtolower($stasiunData['type']),
+                    'latitude'      => $stasiunData['latitude'],
+                    'longitude'     => $stasiunData['longitude'],
+                    'radius_meters' => $stasiunData['radius_meters'],
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Semua lokasi/stasiun kerja berhasil ditambahkan!');
+        }
+
+        // Fallback jika input dikirim secara single item
         $request->validate([
             'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun',
             'name'          => 'required|string|max:255',
@@ -74,43 +102,40 @@ class StationController extends Controller
         return redirect()->back()->with('success', 'Lokasi/Stasiun kerja baru berhasil ditambahkan!');
     }
 
+    // 2. UPDATE LOKASI / STASIUN
     public function update(Request $request, int $id)
     {
+        $station = Station::findOrFail($id);
+
+        // Jika update dikirim via array 'stations[0]' dari form edit
+        $input = $request->has('stations') && isset($request->stations[0]) 
+            ? $request->stations[0] 
+            : $request->all();
+
+        $request->merge($input);
+
         $request->validate([
             'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun,' . $id,
             'name'          => 'required|string|max:255',
             'type'          => 'required|in:kantor,stasiun,rumah_meter',
-            'maps_url'      => 'nullable|url',
-            'latitude'      => 'nullable|numeric',
-            'longitude'     => 'nullable|numeric',
+            'latitude'      => 'required|numeric',
+            'longitude'     => 'required|numeric',
             'radius_meters' => 'required|numeric|min:10',
         ]);
-
-        $station = Station::findOrFail($id);
-
-        $lat = $request->latitude;
-        $lng = $request->longitude;
-
-        if ($request->filled('maps_url')) {
-            $parsed = $this->parseGoogleMapsUrl($request->maps_url);
-            if ($parsed) {
-                $lat = $parsed['latitude'];
-                $lng = $parsed['longitude'];
-            }
-        }
 
         $station->update([
             'kode_stasiun'  => strtoupper($request->kode_stasiun),
             'name'          => $request->name,
             'type'          => strtolower($request->type),
-            'latitude'      => $lat ?? $station->latitude,
-            'longitude'     => $lng ?? $station->longitude,
+            'latitude'      => $request->latitude,
+            'longitude'     => $request->longitude,
             'radius_meters' => $request->radius_meters,
         ]);
 
         return redirect()->back()->with('success', 'Data lokasi/stasiun kerja berhasil diperbarui!');
     }
 
+    // 3. HAPUS STASIUN
     public function destroy(int $id)
     {
         $station = Station::withCount('users')->findOrFail($id);
@@ -123,6 +148,7 @@ class StationController extends Controller
         return redirect()->back()->with('success', 'Stasiun kerja berhasil dihapus!');
     }
 
+    // 4. AMBIL LIST KARYAWAN PER STASIUN (JSON)
     public function getKaryawan(int $id)
     {
         try {
