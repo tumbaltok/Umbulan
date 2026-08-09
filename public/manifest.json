@@ -1,56 +1,56 @@
 {
-    "name": "META Adhya Tirta Umbulan",
-    "short_name": "META",
-    "start_url": "/auth/login.php",
-    "background_color": "#ffffff",
-    "description": "META Adhya Tirta Umbulan",
+    "name": "Laravel Package Tutorial",
+    "short_name": "LPT",
+    "start_url": "/index.php",
+    "background_color": "#6777ef",
+    "description": "Tutorial of Laravel Package",
     "display": "fullscreen",
-    "theme_color": "#ffffff",
+    "theme_color": "#6777ef",
     "icons": [
         {
-            "src": "icon-72x72.png?v=1785726155",
+            "src": "icon-72x72.png?v=1786284554",
             "sizes": "72x72",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-96x96.png?v=1785726155",
+            "src": "icon-96x96.png?v=1786284554",
             "sizes": "96x96",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-128x128.png?v=1785726155",
+            "src": "icon-128x128.png?v=1786284554",
             "sizes": "128x128",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-144x144.png?v=1785726155",
+            "src": "icon-144x144.png?v=1786284554",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-152x152.png?v=1785726155",
+            "src": "icon-152x152.png?v=1786284554",
             "sizes": "152x152",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-192x192.png?v=1785726155",
+            "src": "icon-192x192.png?v=1786284554",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-384x384.png?v=1785726155",
+            "src": "icon-384x384.png?v=1786284554",
             "sizes": "384x384",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-512x512.png?v=1785726155",
+            "src": "icon-512x512.png?v=1786284554",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"

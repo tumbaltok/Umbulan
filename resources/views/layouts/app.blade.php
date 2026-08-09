@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | PT META Adhya Tirta Umbulan</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}?v=2">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
@@ -129,8 +129,11 @@
             <!-- Header Sidebar -->
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
                 <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
-                    <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
-                        <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+                    <!-- BINGKAI LOGO SIDEBAR: Diperbarui agar tajam, menggunakan object-contain dan memanggil gambar HD -->
+                    <div class="bg-white p-0.5 rounded-full shadow-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
+                        <img src="{{ asset('images/iconfav.png') }}" 
+                            alt="Logo META" 
+                            class="w-full h-full object-contain rounded-full">
                     </div>
                     
                     <div class="hide-on-collapse min-w-0 w-44">

@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama
 Route::get('/', function () {
-    return view('welcome1');
+    return view('welcome3');
 });
 
 // ==========================================================
