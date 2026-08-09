@@ -280,11 +280,18 @@
                 <input type="hidden" id="absen_face_image" name="face_image">
 
                 {{-- WIDGET INDIKATOR LOKASI TERKINI --}}
-                <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-2.5 transition-all">
-                    <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
-                    <div class="flex-1">
-                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini:</span>
-                        <span id="textNamaLokasi" class="text-xs font-bold text-slate-600">Mendeteksi lokasi GPS...</span>
+                <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all">
+                    <div class="flex items-center space-x-2.5">
+                        <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini:</span>
+                            <span id="textNamaLokasi" class="text-xs font-bold text-slate-600">Mendeteksi lokasi GPS...</span>
+                        </div>
+                    </div>
+                    {{-- Elemen visual timer reload di sebelah kanan --}}
+                    <div id="reloadContainer" class="hidden text-right pl-2 border-l border-rose-200/60">
+                        <span class="text-[10px] text-rose-600 block font-semibold leading-tight">Memuat Ulang</span>
+                        <span id="reloadCountdown" class="text-xs font-mono font-bold text-rose-700 animate-pulse">5s</span>
                     </div>
                 </div>
 
@@ -767,15 +774,18 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI + PENGECEKAN RADIUS STASIUN
+    // 4. WEBCAM & GPS ABSENSI + PENGECEKAN RADIUS STASIUN + AUTO RELOAD 15 DETIK DI LUAR RADIUS
     let mediaStream = null;
+    let gpsInterval = null;
+    let countdownInterval = null;
+    let secondsLeft = 15;
 
-    // Ambil daftar stasiun dari Laravel Controller secara aman
+    // Ambil daftar stasiun dari Laravel Controller
     const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
 
-    // Fungsi Menghitung Jarak GPS (Haversine Formula) dalam Meter (SUDAH DIBENARKAN)
+    // Fungsi Menghitung Jarak GPS (Haversine Formula) dalam Meter
     function calculateDistanceMeter(lat1, lon1, lat2, lon2) {
-        const R = 6371000; // Radius bumi (meter)
+        const R = 6371000;
         const radLat1 = lat1 * Math.PI / 180;
         const radLat2 = lat2 * Math.PI / 180;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -790,29 +800,13 @@
         return R * c;
     }
 
-    // Fungsi Membuka Modal Absen
-    function bukaModalAbsen(type) {
-        document.getElementById('absen_type').value = type;
-        document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
-        
-        // Reset status box lokasi
+    // Fungsi Memeriksa Lokasi GPS
+    function checkUserLocation() {
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
         const iconLokasi = document.getElementById('iconLokasi');
+        const reloadContainer = document.getElementById('reloadContainer');
 
-        if (statusBox && textLokasi && iconLokasi) {
-            statusBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-2.5 transition-all";
-            iconLokasi.className = "fa-solid fa-spinner fa-spin text-slate-400 text-sm";
-            textLokasi.innerText = "Mendeteksi posisi GPS Anda...";
-        }
-
-        const modal = document.getElementById('modalAbsensi');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        // Minta Lokasi GPS Real-Time
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -822,7 +816,6 @@
                     document.getElementById('absen_lat').value = userLat;
                     document.getElementById('absen_long').value = userLng;
 
-                    // Cek pencocokan ke seluruh stasiun terdaftar
                     let matchedStation = null;
 
                     if (Array.isArray(daftarStasiun) && daftarStasiun.length > 0) {
@@ -838,38 +831,104 @@
 
                                 if (distance <= radiusLimit) {
                                     matchedStation = station;
-                                    break; // Ditemukan stasiun terdekat yang masuk radius!
+                                    break;
                                 }
                             }
                         }
                     }
 
-                    // Tampilkan Hasil Pencocokan Lokasi
+                    // Logika Penampilan & Auto-Reload
                     if (statusBox && textLokasi && iconLokasi) {
                         if (matchedStation) {
-                            statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                            // JIKA BERADA DI DALAM RADIUS
+                            statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-emerald-700";
                             textLokasi.innerText = "Lokasi: " + matchedStation.name;
+
+                            // Hentikan Auto Reload jika sudah dalam radius
+                            if (reloadContainer) reloadContainer.classList.add('hidden');
+                            stopGpsTimer();
                         } else {
-                            statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                            // JIKA DI LUAR AREA KERJA
+                            statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-rose-700";
                             textLokasi.innerText = "Lokasi berada di luar area kerja";
+
+                            // Tampilkan indikator reload & jalankan timer jika belum aktif
+                            if (reloadContainer) reloadContainer.classList.remove('hidden');
+                            startGpsTimer();
                         }
                     }
                 },
                 (err) => {
                     if (statusBox && textLokasi && iconLokasi) {
-                        statusBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center space-x-2.5 transition-all";
+                        statusBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between transition-all";
                         iconLokasi.className = "fa-solid fa-circle-exclamation text-amber-600 text-sm";
                         textLokasi.className = "text-xs font-bold text-amber-700";
                         textLokasi.innerText = "Gagal mengakses GPS. Pastikan izin lokasi aktif!";
+                        if (reloadContainer) reloadContainer.classList.add('hidden');
                     }
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
+    }
+
+    // Jalankan timer hitung mundur 15 detik
+    function startGpsTimer() {
+        if (countdownInterval) return; // Mencegah double interval
+
+        secondsLeft = 15;
+        const reloadCountdown = document.getElementById('reloadCountdown');
+        if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
+
+        countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
+
+            if (secondsLeft <= 0) {
+                secondsLeft = 15;
+                if (reloadCountdown) reloadCountdown.innerText = '15s';
+                checkUserLocation(); // Cek ulang posisi GPS saat mencapai 0
+            }
+        }, 1000);
+    }
+
+    // Matikan timer hitung mundur
+    function stopGpsTimer() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+
+    // Fungsi Membuka Modal Absen
+    function bukaModalAbsen(type) {
+        document.getElementById('absen_type').value = type;
+        document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
+        
+        const statusBox = document.getElementById('statusLokasiBox');
+        const textLokasi = document.getElementById('textNamaLokasi');
+        const iconLokasi = document.getElementById('iconLokasi');
+        const reloadContainer = document.getElementById('reloadContainer');
+
+        if (statusBox && textLokasi && iconLokasi) {
+            statusBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all";
+            iconLokasi.className = "fa-solid fa-spinner fa-spin text-slate-400 text-sm";
+            textLokasi.innerText = "Mendeteksi posisi GPS Anda...";
+            if (reloadContainer) reloadContainer.classList.add('hidden');
+        }
+
+        const modal = document.getElementById('modalAbsensi');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Cek lokasi GPS awal
+        checkUserLocation();
 
         // Aktifkan Kamera
         const isMobile = window.innerWidth < 640;
@@ -898,10 +957,12 @@
             });
     }
 
-    // Menutup kamera & mematikan stream hardware
+    // Menutup kamera & mematikan timer
     function tutupModalAbsen() {
+        stopGpsTimer(); // Hentikan timer auto-reload GPS
+
         if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop()); // Stop hardware kamera
+            mediaStream.getTracks().forEach(track => track.stop());
             mediaStream = null;
         }
 
@@ -910,7 +971,6 @@
             video.srcObject = null;
         }
 
-        // Reset Form Input
         const wrapperAlasan = document.getElementById('wrapperAlasan');
         const inputAlasan = document.getElementById('inputAlasan');
         if (wrapperAlasan) wrapperAlasan.classList.add('hidden');
