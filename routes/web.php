@@ -159,6 +159,5 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
 
     // Rekap Absensi Harian 
-    // Route::get('/admin/absensi', [KehadiranController::class, 'rekapHarian'])->name('admin.absensi.index');
     Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
 });

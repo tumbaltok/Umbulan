@@ -158,7 +158,7 @@
 
                 <div class="pt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                     <a href="#about-kami" class="w-full sm:w-auto px-8 py-4 bg-water-600 hover:bg-water-700 active:scale-95 text-white font-bold rounded-2xl text-center shadow-lg shadow-water-600/25 transition-all duration-150">
-                        Detail Proyek SPAM
+                        Detail SPAM UMBULAN
                     </a>
                     <a href="#titik-distribusi" class="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 border border-slate-200 active:scale-95 text-slate-700 font-bold rounded-2xl text-center shadow-sm transition-all duration-150">
                         Cakupan Wilayah
@@ -173,7 +173,7 @@
                     <div class="relative bg-white border border-slate-100 p-6 md:p-8 rounded-3xl shadow-2xl space-y-6 transition-all duration-300 hover:shadow-water-500/10 hover:shadow-3xl">
 
                         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Status Operasional Proyek</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Status Operasional</span>
                             <span class="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                                 <span class="relative flex h-2 w-2 mr-2">
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -256,7 +256,7 @@
             <div class="w-full lg:w-1/2 space-y-6">
                 <div class="inline-flex items-center space-x-2 text-water-600 font-bold text-xs uppercase tracking-wider">
                     <span class="w-8 h-0.5 bg-water-600"></span>
-                    <span>Detail Proyek KPBU</span>
+                    <span>Proyek KPBU</span>
                 </div>
 
                 <h2 class="text-3xl md:text-4xl font-extrabold font-heading text-slate-900 leading-tight">
