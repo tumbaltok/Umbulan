@@ -3,9 +3,8 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-use App\Models\PengajuanCuti;
-use App\Models\User;
-use App\Models\Kehadiran; // Atau model/setting jam kerja Anda
+use App\Models\Cuti\PengajuanCuti;
+use App\Models\User\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;

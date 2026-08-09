@@ -117,9 +117,7 @@
                                     </option>
                                 @endforeach
                             @else
-                                <option value="Operator" {{ old('job_title', $user->job_title) == 'Operator' ? 'selected' : '' }}>Operator</option>
-                                <option value="Maintenance" {{ old('job_title', $user->job_title) == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                <option value="HSE" {{ old('job_title', $user->job_title) == 'HSE' ? 'selected' : '' }}>Safety (HSE)</option>
+                                <option value="" disabled>Tidak ada data jobdesk tersedia</option>
                             @endif
                         </select>
                         @error('job_title') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror

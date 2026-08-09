@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\SaldoCuti;
-use App\Models\User;
+use App\Models\Cuti\SaldoCuti;
+use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 

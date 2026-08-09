@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\SaldoCuti;
-use App\Models\User; // 1. Impor Model User
+use App\Models\Cuti\SaldoCuti;
 use Carbon\Carbon;
 
 class ResetSaldoHaidBulanan extends Command
@@ -17,8 +16,7 @@ class ResetSaldoHaidBulanan extends Command
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
 
-        // Ambil ID Cuti Haid dari database terlebih dahulu
-        $jenisCutiHaid = \App\Models\JenisCuti::where('kode_cuti', 'HAID')
+        $jenisCutiHaid = \App\Models\Cuti\JenisCuti::where('kode_cuti', 'HAID')
             ->orWhere('name_cuti', 'LIKE', '%Haid%')
             ->first();
 
