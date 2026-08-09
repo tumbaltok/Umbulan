@@ -79,34 +79,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
     // Fitur Internal (Wajib Verified)
-    Route::middleware('verified')->group(function () {
-        Route::group(['middleware' => function ($request, $next) {
-            $user = $request->user();
-            if ($user && !$user->phone_verified_at) {
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => 'Nomor telepon Anda belum diverifikasi.'], 403);
-                }
-                return redirect()->route('account.index')->with('error', 'Silakan verifikasi nomor telepon Anda terlebih dahulu.');
-            }
-            return $next($request);
-        }], function () {
-            // Form Cuti
-            Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
-            Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
-            Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
-            Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
-            Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
+    Route::middleware(['verified', 'phone.verified'])->group(function () {
+        // Form Cuti
+        Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
+        Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
+        Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
+        Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
+        Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
-            // Form CAR
-            Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
-            Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
-            Route::get('/car/print/{id}', [PengajuanCarController::class, 'print'])->name('car.print');
+        // Form CAR
+        Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
+        Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
+        Route::get('/car/print/{id}', [PengajuanCarController::class, 'print'])->name('car.print');
 
-            // Form MPR
-            Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
-            Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
-            Route::get('/mpr/cetak/{id}', [PengajuanMprController::class, 'cetakPdf'])->name('mpr.cetak');
-        });
+        // Form MPR
+        Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
+        Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
+        Route::get('/mpr/cetak/{id}', [PengajuanMprController::class, 'cetakPdf'])->name('mpr.cetak');
     });
 
     // Fitur Jadwal Kerja (Set Initial Shift)

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'atasan' => \App\Http\Middleware\CekAtasan::class,
+            'phone.verified' => \App\Http\Middleware\EnsurePhoneIsVerified::class, 
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
