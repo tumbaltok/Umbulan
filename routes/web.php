@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PengajuanCutiController;
-use App\Http\Controllers\StationController;
-use App\Http\Controllers\KaryawanController;
-use App\Http\Controllers\AccountController;
-use App\Http\Controllers\RecordController;
+use App\Http\Controllers\User\AuthController;
+use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\Cuti\PengajuanCutiController;
+use App\Http\Controllers\Admin\StationController;
+use App\Http\Controllers\Admin\KaryawanController;
+use App\Http\Controllers\User\AccountController;
+use App\Http\Controllers\Admin\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use App\Http\Controllers\PengajuanCarController;
-use App\Http\Controllers\PengajuanMprController;
-use App\Http\Controllers\KehadiranController;
-use App\Http\Controllers\JadwalController;
-use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Car\PengajuanCarController;
+use App\Http\Controllers\Mpr\PengajuanMprController;
+use App\Http\Controllers\Absen\KehadiranController;
+use App\Http\Controllers\Absen\JadwalController;
+use App\Http\Controllers\Admin\RoleController;
 use Illuminate\Http\Request;
 
 // Halaman Selamat Datang / Landing Page Utama

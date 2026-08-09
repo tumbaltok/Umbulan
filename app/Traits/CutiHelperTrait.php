@@ -2,11 +2,11 @@
 
 namespace App\Traits;
 
-use App\Models\SubCuti;
-use App\Models\SaldoCuti;
-use App\Models\Absensi;
-use App\Models\PengajuanCuti;
-use App\Models\User;
+use App\Models\Cuti\SubCuti;
+use App\Models\Cuti\SaldoCuti;
+use App\Models\Absen\Absensi;
+use App\Models\Cuti\PengajuanCuti;
+use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 

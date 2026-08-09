@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models\Mpr;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\User\User;
+
+class PengajuanMpr extends Model
+{
+    use HasFactory;
+
+    protected $guarded = ['id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function supervisor()
+    {
+        return $this->belongsTo(User::class, 'supervisor_id');
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(PengajuanMprDetail::class, 'pengajuan_mpr_id');
+    }
+}

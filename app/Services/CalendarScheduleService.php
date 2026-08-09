@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\PengajuanCuti;
+use App\Models\User\User;
+use App\Models\Cuti\PengajuanCuti;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;

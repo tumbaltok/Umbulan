@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Role;
+use App\Models\User\User;
+use App\Models\User\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Gender;
-use App\Models\JenisCuti;
-use App\Models\Station;
+use App\Models\User\Gender;
+use App\Models\Cuti\JenisCuti;
+use App\Models\User\Station;
 use Illuminate\Support\Facades\Hash;
-use App\Models\SaldoCuti;
-use App\Models\SubCuti;
+use App\Models\Cuti\SaldoCuti;
+use App\Models\Cuti\SubCuti;
 use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
