@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User\User;
 use App\Models\User\Jobdesk;
+use App\Models\User\Station;
+use App\Models\User\Role;
 
 class AccountController extends Controller
 {
@@ -16,10 +18,24 @@ class AccountController extends Controller
     {
         $user = User::find(Auth::id());
         
-        // Ambil seluruh daftar Jobdesk dari Database diurutkan dari job_title
+        // 1. Ambil daftar Jobdesk
         $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
 
-        return view('profile.index', compact('user', 'daftarJobdesk'));
+        // 2. Ambil seluruh Penempatan Kerja / Stasiun
+        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+
+        // 3. Ambil Peran / Jabatan KECUALI Admin (Filter out level 1 / 'Admin')
+        $daftarRole = Role::where('level', '>', 1)
+            ->where('role_name', '!=', 'Admin')
+            ->orderBy('level', 'asc')
+            ->get();
+
+        return view('profile.index', compact(
+            'user', 
+            'daftarJobdesk', 
+            'daftarStasiun', 
+            'daftarRole'
+        ));
     }
 
     public function update(Request $request)
@@ -53,13 +69,17 @@ class AccountController extends Controller
             'nip'               => 'nullable|string|max:50',
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'gender_id'         => 'nullable|integer',
+            'sektor'            => 'nullable|string|max:255',
+            'station_id'        => 'nullable|integer|exists:stations,id',
+            'role_id'           => 'nullable|integer|exists:roles,id',
             'jobdesk'           => 'nullable|string|max:255',
             'phone_number'      => 'nullable|string|max:20',
             'profile_photo'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature'         => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'current_password'  => 'nullable|required_with:new_password',
             'new_password'      => 'nullable|min:8|confirmed',
-            'schedule_type'     => 'required|in:normal,roster',
+            'schedule_type'     => 'nullable|in:normal,roster',
             'normal_work_days'  => 'nullable|array',
             'normal_check_in'   => 'nullable|string',
             'normal_check_out'  => 'nullable|string',
@@ -70,20 +90,40 @@ class AccountController extends Controller
 
         if ($request->has('nip')) $updateData['nip'] = $request->nip;
         if ($request->has('name')) $updateData['name'] = $request->name;
-        if ($request->has('email')) $updateData['email'] = $request->email;
+
+        // CEK PERUBAHAN EMAIL (RESET VERIFIKASI JIKA DIUBAH)
+        if ($request->has('email')) {
+            if ($request->email !== $user->email) {
+                $updateData['email'] = $request->email;
+                $updateData['email_verified_at'] = null; // Reset status verifikasi email
+            }
+        }
+
+        // CEK PERUBAHAN NO TELEPON (RESET VERIFIKASI JIKA DIUBAH)
+        if ($request->has('phone_number')) {
+            if ($request->phone_number !== $user->phone_number) {
+                $updateData['phone_number'] = $request->phone_number;
+                $updateData['phone_verified_at'] = null; // Reset status verifikasi nomor HP
+            }
+        }
+
+        if ($request->has('gender_id')) $updateData['gender_id'] = $request->gender_id;
+        if ($request->has('sektor')) $updateData['sektor'] = $request->sektor;
+        if ($request->has('station_id')) $updateData['station_id'] = $request->station_id;
         if ($request->has('jobdesk')) $updateData['job_title'] = $request->jobdesk;
-        if ($request->has('phone_number')) $updateData['phone_number'] = $request->phone_number;
 
         // SIMPAN JADWAL KERJA
-        $updateData['schedule_type'] = $request->schedule_type;
-        if ($request->schedule_type === 'normal') {
-            $updateData['normal_work_days'] = $request->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-            $updateData['normal_check_in'] = $request->normal_check_in ?? '08:00';
-            $updateData['normal_check_out'] = $request->normal_check_out ?? '17:00';
-            $updateData['roster_start_date'] = null;
-        } else {
-            $updateData['roster_start_date'] = $request->roster_start_date;
-            $updateData['normal_work_days'] = null;
+        if ($request->filled('schedule_type')) {
+            $updateData['schedule_type'] = $request->schedule_type;
+            if ($request->schedule_type === 'normal') {
+                $updateData['normal_work_days'] = $request->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                $updateData['normal_check_in'] = $request->normal_check_in ?? '08:00';
+                $updateData['normal_check_out'] = $request->normal_check_out ?? '17:00';
+                $updateData['roster_start_date'] = null;
+            } else {
+                $updateData['roster_start_date'] = $request->roster_start_date;
+                $updateData['normal_work_days'] = null;
+            }
         }
 
         // SIMPAN PASSWORD BARU
@@ -110,8 +150,18 @@ class AccountController extends Controller
             $updateData['signature'] = $request->file('signature')->store('signatures', 'public');
         }
 
+        // Mencegah penetapan/perubahan role jika akun saat ini adalah Admin
+        if ($user->role_id != 1 && strtolower($user->role->role_name ?? '') !== 'admin') {
+            if ($request->has('role_id') && !empty($request->role_id)) {
+                $selectedRole = Role::find($request->role_id);
+                if ($selectedRole && strtolower($selectedRole->role_name) !== 'admin' && $selectedRole->level > 1) {
+                    $updateData['role_id'] = $request->role_id;
+                }
+            }
+        }
+
         $user->update($updateData);
 
-        return redirect()->route('account.index')->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
     }
 }

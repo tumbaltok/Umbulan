@@ -143,7 +143,11 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        // Tangkap status centang checkbox 'remember' (menghasilkan boolean true/false)
+        $remember = $request->boolean('remember');
+
+        // Masukkan $remember sebagai parameter kedua pada Auth::attempt
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
             return redirect()->intended('/dashboard');
         }

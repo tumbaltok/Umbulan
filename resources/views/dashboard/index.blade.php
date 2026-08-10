@@ -24,7 +24,7 @@
         </div>
     @endif
 
-    {{-- Banner Peringatan 2: Email Belum Diverifikasi --}}
+    {{-- Banner Peringatan 2: Email / Phone Belum Diverifikasi --}}
     @if(auth()->check() && !auth()->user()->hasVerifiedEmail())
         <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start space-x-3 shadow-sm">
             <div class="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5">
@@ -53,8 +53,9 @@
                     Email Anda berhasil diverifikasi! Satu langkah lagi, silakan <strong>verifikasi nomor telepon</strong> Anda untuk dapat menggunakan fitur Pengajuan Cuti.
                 </p>
                 <div class="mt-2">
-                    <a href="{{ url('/profile') }}" class="text-xs font-bold text-indigo-800 underline hover:text-indigo-900 transition-colors">
-                        Klik di sini untuk memverifikasi nomor telepon &rarr;
+                    <a href="{{ url('/profile?phone_required=1#phone_number') }}" class="text-xs font-bold text-indigo-800 underline hover:text-indigo-900 transition-colors flex items-center space-x-1">
+                        <span>Klik di sini untuk mengisi dan memverifikasi nomor telepon sekarang</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
                 </div>
             </div>
@@ -68,7 +69,6 @@
                 <div class="flex items-center space-x-2 mb-1">
                     <span class="text-xs font-semibold text-sky-600 uppercase tracking-wider">Status Operasional Hari Ini</span>
                     
-                    {{-- Badge hanya muncul jika tipe jadwal adalah ROSTER --}}
                     @if($user->schedule_type === 'roster')
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-100">
                             Sistem Roster
@@ -76,7 +76,6 @@
                     @endif
                 </div>
 
-                {{-- Status Real-Time Berdasarkan Jam Saat Ini --}}
                 <div class="flex items-center space-x-3 mt-1">
                     @php
                         $isWorkingNow = app(App\Services\ScheduleService::class)->isUserWorkingNow($user);
@@ -84,12 +83,10 @@
 
                     <h3 class="text-xl font-bold text-slate-800">
                         @if(is_null($user->schedule_type))
-                            {{-- ================= JADWAL BELUM DIATUR ================= --}}
                             <span class="text-amber-600 flex items-center gap-1.5">
                                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Jadwal Kerja Kosong
                             </span>
                         @elseif($user->schedule_type === 'roster')
-                            {{-- ================= TAMPILAN KHUSUS JADWAL ROSTER ================= --}}
                             @if(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
                                 <span class="text-rose-600 flex items-center gap-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Sedang OFF (Libur)
@@ -106,7 +103,6 @@
                                 </span>
                             @endif
                         @else
-                            {{-- ================= TAMPILAN KHUSUS JADWAL NORMAL ================= --}}
                             @if(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
                                 <span class="text-rose-600 flex items-center gap-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Sedang OFF (Libur)
@@ -135,7 +131,6 @@
                 </p>
             </div>
 
-            {{-- Tombol Tindakan Absensi --}}
             @if(!is_null($user->schedule_type) && isset($todaySchedule['is_day_off']) && !$todaySchedule['is_day_off'])
                 <div class="flex items-center gap-2">
                     @if(!$todayAttendance || !$todayAttendance->check_in)
@@ -157,7 +152,6 @@
             @endif
         </div>
 
-        {{-- Info Waktu Masuk & Pulang Terdaftar --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
                 <span class="text-xs font-medium text-slate-500">Waktu Absen Masuk:</span>
@@ -170,7 +164,7 @@
         </div>
     </div>
 
-    {{-- Widget Kalender Aktivitas Jadwal (GitHub Activity Style) --}}
+    {{-- Widget Kalender Aktivitas Jadwal --}}
     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
             <div>
@@ -178,7 +172,6 @@
                 <p class="text-xs text-slate-500 mt-0.5">Visualisasi jadwal shift, libur nasional, dan histori cuti Anda.</p>
             </div>
 
-            {{-- Navigasi Bulan / Tahun --}}
             <div class="flex items-center space-x-2">
                 @php
                     $prevMonth = $currentCarbonDate->copy()->subMonth();
@@ -196,7 +189,6 @@
             </div>
         </div>
 
-        {{-- Legenda Warna --}}
         <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl">
             <span class="text-slate-400 font-bold">Keterangan:</span>
             
@@ -230,7 +222,6 @@
             </div>
         </div>
 
-        {{-- Grid Kotak-Kotak Activity GitHub --}}
         <div class="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-15 gap-2 pt-2">
             @foreach($calendarDays as $day)
                 <button type="button" 
@@ -279,7 +270,6 @@
                 <input type="hidden" id="absen_long" name="longitude">
                 <input type="hidden" id="absen_face_image" name="face_image">
 
-                {{-- WIDGET INDIKATOR LOKASI TERKINI --}}
                 <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all">
                     <div class="flex items-center space-x-2.5">
                         <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
@@ -288,14 +278,12 @@
                             <span id="textNamaLokasi" class="text-xs font-bold text-slate-600">Mendeteksi lokasi GPS...</span>
                         </div>
                     </div>
-                    {{-- Elemen visual timer reload di sebelah kanan --}}
                     <div id="reloadContainer" class="hidden text-right pl-2 border-l border-rose-200/60">
                         <span class="text-[10px] text-rose-600 block font-semibold leading-tight">Memuat Ulang</span>
                         <span id="reloadCountdown" class="text-xs font-mono font-bold text-rose-700 animate-pulse">5s</span>
                     </div>
                 </div>
 
-                {{-- TAMPILAN KAMERA RESPONSIVE --}}
                 <div class="relative bg-black rounded-xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
                     <video id="webcamVideo" 
                         autoplay 
@@ -350,7 +338,6 @@
             </div>
             <div>
                 <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Menunggu Review</p>
-                {{-- Modifikasi di sini: Menjumlahkan total pending cuti dan CAR (atau gunakan variabel gabungan dari controller) --}}
                 <h3 class="text-xl font-bold text-slate-800 mt-0.5">
                     {{ (isset($totalPendingCuti) ? $totalPendingCuti : $totalPending) + (isset($totalPendingCar) ? $totalPendingCar : 0) }} Pengajuan
                 </h3>
@@ -774,16 +761,14 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI + PENGECEKAN RADIUS STASIUN + AUTO RELOAD 15 DETIK DI LUAR RADIUS
+    // 4. WEBCAM & GPS ABSENSI
     let mediaStream = null;
     let gpsInterval = null;
     let countdownInterval = null;
-    let secondsLeft = 15;
+    let secondsLeft = 5;
 
-    // Ambil daftar stasiun dari Laravel Controller
     const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
 
-    // Fungsi Menghitung Jarak GPS (Haversine Formula) dalam Meter
     function calculateDistanceMeter(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const radLat1 = lat1 * Math.PI / 180;
@@ -800,7 +785,6 @@
         return R * c;
     }
 
-    // Fungsi Memeriksa Lokasi GPS
     function checkUserLocation() {
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
@@ -837,26 +821,21 @@
                         }
                     }
 
-                    // Logika Penampilan & Auto-Reload
                     if (statusBox && textLokasi && iconLokasi) {
                         if (matchedStation) {
-                            // JIKA BERADA DI DALAM RADIUS
                             statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-emerald-700";
                             textLokasi.innerText = "Lokasi: " + matchedStation.name;
 
-                            // Hentikan Auto Reload jika sudah dalam radius
                             if (reloadContainer) reloadContainer.classList.add('hidden');
                             stopGpsTimer();
                         } else {
-                            // JIKA DI LUAR AREA KERJA
                             statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-rose-700";
                             textLokasi.innerText = "Lokasi berada di luar area kerja";
 
-                            // Tampilkan indikator reload & jalankan timer jika belum aktif
                             if (reloadContainer) reloadContainer.classList.remove('hidden');
                             startGpsTimer();
                         }
@@ -876,11 +855,10 @@
         }
     }
 
-    // Jalankan timer hitung mundur 15 detik
     function startGpsTimer() {
-        if (countdownInterval) return; // Mencegah double interval
+        if (countdownInterval) return;
 
-        secondsLeft = 15;
+        secondsLeft = 5;
         const reloadCountdown = document.getElementById('reloadCountdown');
         if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
 
@@ -889,14 +867,13 @@
             if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
 
             if (secondsLeft <= 0) {
-                secondsLeft = 15;
-                if (reloadCountdown) reloadCountdown.innerText = '15s';
-                checkUserLocation(); // Cek ulang posisi GPS saat mencapai 0
+                secondsLeft = 5;
+                if (reloadCountdown) reloadCountdown.innerText = '5s';
+                checkUserLocation();
             }
         }, 1000);
     }
 
-    // Matikan timer hitung mundur
     function stopGpsTimer() {
         if (countdownInterval) {
             clearInterval(countdownInterval);
@@ -904,7 +881,6 @@
         }
     }
 
-    // Fungsi Membuka Modal Absen
     function bukaModalAbsen(type) {
         document.getElementById('absen_type').value = type;
         document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
@@ -927,10 +903,8 @@
             modal.classList.add('flex');
         }
 
-        // Cek lokasi GPS awal
         checkUserLocation();
 
-        // Aktifkan Kamera
         const isMobile = window.innerWidth < 640;
         const constraints = {
             audio: false,
@@ -957,9 +931,8 @@
             });
     }
 
-    // Menutup kamera & mematikan timer
     function tutupModalAbsen() {
-        stopGpsTimer(); // Hentikan timer auto-reload GPS
+        stopGpsTimer();
 
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
@@ -1023,7 +996,7 @@
         .then(res => res.json().then(data => ({ status: res.status, body: data })))
         .then(res => {
             if (res.status === 200) {
-                tutupModalAbsen(); // Tutup kamera dulu sebelum reload
+                tutupModalAbsen();
                 alert(res.body.message);
                 window.location.reload();
             } else if (res.status === 422) {

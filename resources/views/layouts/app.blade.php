@@ -380,7 +380,7 @@
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Lokasi Kerja,</p>
+                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Penempatan Kerja,</p>
                     <h1 class="text-base font-bold text-slate-800 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>

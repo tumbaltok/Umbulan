@@ -74,82 +74,178 @@
                         @error('name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Alamat Email --}}
+                    {{-- Jenis Kelamin (Database Select) --}}
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
-                            @if($user->email_verified_at)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
-                                </span>
+                        <label for="gender_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Kelamin</label>
+                        <select id="gender_id" name="gender_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('gender_id') ? 'border-rose-500' : 'border-slate-200' }}">
+                            @php
+                                $userGenderValue = old('gender_id', $user->gender_id ?? '');
+                            @endphp
+                            <option value="" disabled {{ empty($userGenderValue) ? 'selected' : '' }}>Pilih Jenis Kelamin</option>
+                            @if(isset($daftarGender) && count($daftarGender) > 0)
+                                @foreach($daftarGender as $gender)
+                                    <option value="{{ $gender->id }}" {{ (string)$userGenderValue === (string)$gender->id ? 'selected' : '' }}>
+                                        {{ $gender->name ?? $gender->gender_name }}
+                                    </option>
+                                @endforeach
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                    Belum Verifikasi
-                                </span>
+                                <option value="1" {{ (string)$userGenderValue === '1' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="2" {{ (string)$userGenderValue === '2' ? 'selected' : '' }}>Perempuan</option>
                             @endif
-                        </div>
-                        <div class="relative">
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                                class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $user->email_verified_at ? ' bg-slate-50 text-slate-500 cursor-not-allowed pr-10' : ($errors->has('email') ? 'border-rose-500' : 'border-slate-200') }}"
-                                required
-                                {{ $user->email_verified_at ? 'readonly' : '' }}>
-
-                            @if($user->email_verified_at)
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-badge-check text-emerald-500"></i>
-                                </div>
-                            @endif
-                        </div>
-                        @error('email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        </select>
+                        @error('gender_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Tipe Jobs / Jobdesk --}}
+                    {{-- Sektor Kerja (Database Select) --}}
                     <div>
-                        <label for="jobdesk" class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Tipe Jobs</label>
+                        <label for="sektor" class="block text-sm font-semibold text-slate-700 mb-1.5">Sektor Kerja</label>
+                        <select id="sektor" name="sektor" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('sektor') ? 'border-rose-500' : 'border-slate-200' }}">
+                            @php
+                                $userSektorValue = old('sektor', $user->sektor ?? '');
+                            @endphp
+                            <option value="" disabled {{ empty($userSektorValue) ? 'selected' : '' }}>Pilih Sektor Kerja</option>
+                            @if(isset($daftarSektor) && count($daftarSektor) > 0)
+                                @foreach($daftarSektor as $sektorItem)
+                                    @php 
+                                        $sektorVal = is_object($sektorItem) ? ($sektorItem->value ?? $sektorItem->name) : $sektorItem; 
+                                    @endphp
+                                    <option value="{{ $sektorVal }}" {{ strtolower($userSektorValue) === strtolower($sektorVal) ? 'selected' : '' }}>
+                                        {{ ucfirst($sektorVal) }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="operasional" {{ strtolower($userSektorValue) === 'operasional' ? 'selected' : '' }}>Operasional</option>
+                                <option value="manajemen" {{ strtolower($userSektorValue) === 'manajemen' ? 'selected' : '' }}>Manajemen</option>
+                            @endif
+                        </select>
+                        @error('sektor') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- Penempatan Kerja / Stasiun (Database Select) --}}
+                    <div>
+                        <label for="station_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Penempatan Kerja</label>
+                        <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200' }}">
+                            @php
+                                $userStationValue = old('station_id', $user->station_id ?? '');
+                            @endphp
+                            <option value="" disabled {{ empty($userStationValue) ? 'selected' : '' }}>Pilih Tempat Kerja</option>
+                            @if(isset($daftarStasiun) && count($daftarStasiun) > 0)
+                                @foreach($daftarStasiun as $stasiun)
+                                    <option value="{{ $stasiun->id }}" {{ (string)$userStationValue === (string)$stasiun->id ? 'selected' : '' }}>
+                                        {{ $stasiun->name }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('station_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- Jabatan / Role (Database Select) --}}
+                    <div>
+                        <label for="role_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jabatan / Peran</label>
+                        
+                        @php
+                            $isAdmin = ($user->role && strtolower($user->role->role_name) === 'admin') || $user->role_id == 1;
+                            $userRoleValue = old('role_id', $user->role_id ?? '');
+                        @endphp
+
+                        @if($isAdmin)
+                            <div class="relative">
+                                <input type="text" 
+                                    value="Admin (Akses Penuh System)" 
+                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm cursor-not-allowed select-none" 
+                                    readonly 
+                                    disabled>
+                                <input type="hidden" name="role_id" value="{{ $user->role_id }}">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">* Role Admin terkunci demi keamanan sistem.</p>
+                        @else
+                            <select id="role_id" name="role_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('role_id') ? 'border-rose-500' : 'border-slate-200' }}">
+                                <option value="" disabled {{ empty($userRoleValue) ? 'selected' : '' }}>Pilih Peran Jabatan</option>
+                                @if(isset($daftarRole) && count($daftarRole) > 0)
+                                    @foreach($daftarRole as $role)
+                                        <option value="{{ $role->id }}" {{ (string)$userRoleValue === (string)$role->id ? 'selected' : '' }}>
+                                            {{ $role->role_name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            @error('role_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        @endif
+                    </div>
+
+                    {{-- Jobdesk / Bidang Tugas --}}
+                    <div>
+                        <label for="jobdesk" class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Bidang Tugas</label>
                         <select id="jobdesk" name="jobdesk" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('jobdesk') ? 'border-rose-500' : 'border-slate-200' }}">
                             @php
-                                // PERBAIKAN: Ambil nilai dari job_title terlebih dahulu
                                 $userJobValue = old('jobdesk', $user->job_title ?? $user->jobdesk ?? '');
-                                // Format pencocokan aman (case-insensitive & trim whitespace)
                                 $selectedClean = strtolower(trim((string)$userJobValue));
                             @endphp
-                            <option value="" disabled {{ $selectedClean === '' ? 'selected' : '' }}>Pilih Tipe Jobs</option>
-                            {{-- LOOPING DINAMIS SESUAI KOLOM DATABASE --}}
+                            <option value="" disabled {{ $selectedClean === '' ? 'selected' : '' }}>Pilih Jobdesk / Bidang</option>
                             @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
                                 @foreach($daftarJobdesk as $jd)
                                     @php 
                                         $namaJobdesk = $jd->job_title ?? $jd->name ?? $jd->nama_jobdesk ?? $jd->jobdesk ?? ''; 
                                         $namaClean = strtolower(trim((string)$namaJobdesk));
                                         $idClean = strtolower(trim((string)$jd->id));
-                                        // Cek apakah nilai DB cocok dengan Nama Jobdesk ATAU ID Jobdesk
                                         $isSelected = ($selectedClean === $namaClean) || ($selectedClean === $idClean);
                                     @endphp
                                     <option value="{{ $namaJobdesk }}" {{ $isSelected ? 'selected' : '' }}>
                                         {{ $namaJobdesk }}
                                     </option>
                                 @endforeach
-                            @else
-                                <option value="" disabled>Tidak ada data Jobdesk tersedia</option>
                             @endif
                         </select>
-                        @error('jobdesk') 
-                            <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> 
-                        @enderror
+                        @error('jobdesk') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- No. Telephone --}}
+                    {{-- Alamat Email (LOCKED / TIDAK BISA DIUBAH) --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
+                            <div>
+                                @if($user->email_verified_at)
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
+                                    </span>
+                                @else
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                        Belum Verifikasi
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <input type="email" 
+                                value="{{ $user->email }}"
+                                class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
+                                readonly 
+                                disabled>
+                            {{-- Hidden input agar nilai email tetap terkirim di form submit jika dibutuhkan controller --}}
+                            <input type="hidden" name="email" value="{{ $user->email }}">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">* Email akun tidak dapat diubah.</p>
+                    </div>
+
+                    {{-- No. Telephone (BISA DIUBAH) --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-sm font-semibold text-slate-700">No. Telephone</label>
-                            @if($user->phone_verified_at)
-                                <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
-                                </span>
-                            @else
-                                <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                    Belum Verifikasi
-                                </span>
-                            @endif
+                            <div class="flex items-center space-x-2">
+                                @if($user->phone_verified_at)
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
+                                    </span>
+                                    <button type="button" id="btn-change-phone" onclick="enableEditPhone()" class="text-xs font-bold text-sky-600 hover:underline">
+                                        Ganti
+                                    </button>
+                                @else
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                        Belum Verifikasi
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="relative flex-1">
@@ -157,7 +253,7 @@
                                     name="phone_number"
                                     id="phone_number"
                                     value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $user->phone_verified_at ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed select-none' : ($errors->has('phone_number') ? 'border-rose-500' : 'border-slate-200') }}"
+                                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $user->phone_verified_at ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed select-none' : 'border-slate-200' }}"
                                     placeholder="Contoh: 08123456789"
                                     {{ $user->phone_verified_at ? 'readonly' : '' }}>
                             </div>
@@ -202,10 +298,8 @@
                 <p class="text-xs text-slate-400 mb-4">Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster).</p>
 
                 @php
-                    // PERBAIKAN: Default di-set null / empty string jika kolom di DB kosong
                     $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
                     
-                    // Hitung Shift Roster Aktif Berdasarkan DB jika tersedia
                     $currentDbShift = 'pagi';
                     if ($user->roster_start_date) {
                         $anchorDate = \Carbon\Carbon::parse($user->roster_start_date)->startOfDay();
@@ -231,8 +325,6 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
                         <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500">
-                            
-                            {{-- OPTION PLACEHOLDER DIBUAT TERPILIH JIKA DIBATALKAN / BELUM PILIH --}}
                             <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
                             <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
                             <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
@@ -272,10 +364,8 @@
                             <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Hari Ini</label>
                             <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa.</p>
                             
-                            {{-- Input Tersembunyi untuk Menyimpan Tanggal Patokan Roster --}}
                             <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
 
-                            {{-- Pilihan Radio Shift --}}
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
                                     <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
@@ -465,7 +555,27 @@
 
 @push('scripts')
 <script>
-    // 1. Fungsi Menyembunyikan / Menampilkan Form Sesuai Opsi Schedule
+    // FUNGSI GANTI NOMOR TELEPON
+    function enableEditPhone() {
+        const phoneInput = document.getElementById('phone_number');
+        const phoneBadge = document.getElementById('phone-badge');
+        const btnSendOtp = document.getElementById('btn-send-otp');
+        const btnChange = document.getElementById('btn-change-phone');
+
+        if (phoneInput) {
+            phoneInput.readOnly = false;
+            phoneInput.classList.remove('bg-slate-50', 'text-slate-500', 'cursor-not-allowed', 'select-none');
+            phoneInput.focus();
+            phoneInput.select();
+        }
+        if (phoneBadge) {
+            phoneBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800";
+            phoneBadge.innerHTML = "Belum Verifikasi";
+        }
+        if (btnSendOtp) btnSendOtp.classList.remove('hidden');
+        if (btnChange) btnChange.classList.add('hidden');
+    }
+
     function toggleScheduleOptions() {
         const scheduleType = document.getElementById('schedule_type')?.value;
         const sectionNormal = document.getElementById('section_normal_schedule');
@@ -482,12 +592,10 @@
         }
     }
 
-    // 2. Fungsi Menghitung Tanggal Patokan Roster & Menampilkan Pratinjau
     function calculateRosterAnchor(selectedShift) {
         const now = new Date();
-        const dayOfWeek = now.getDay(); // 0: Sun, 1: Mon, 2: Tue, ...
+        const dayOfWeek = now.getDay();
         
-        // Cari hari Selasa pada minggu berjalan
         let diffToTuesday = 2 - dayOfWeek;
         if (dayOfWeek < 2) {
             diffToTuesday -= 7;
@@ -504,14 +612,12 @@
             anchorDate.setDate(anchorDate.getDate() - 14);
         }
 
-        // Simpan dalam format YYYY-MM-DD ke input hidden
         const year = anchorDate.getFullYear();
         const month = String(anchorDate.getMonth() + 1).padStart(2, '0');
         const day = String(anchorDate.getDate()).padStart(2, '0');
         
         document.getElementById('roster_start_date_input').value = `${year}-${month}-${day}`;
 
-        // Update Tampilan Box Pratinjau
         const previewBox = document.getElementById('roster_preview_box');
         const w1 = document.getElementById('preview_week_1');
         const w2 = document.getElementById('preview_week_2');
@@ -534,17 +640,48 @@
         }
     }
 
-    // 3. Event Listener Utama
     document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Cek apakah diakses dengan query phone_required=1 atau hash #phone_number
+        if (urlParams.get('phone_required') === '1' || window.location.hash === '#phone_number') {
+            
+            // Hilangkan hash dari URL sementara agar browser tidak melakukan auto-scroll bawaan
+            if (window.location.hash) {
+                history.replaceState(null, null, window.location.pathname + window.location.search);
+            }
+
+            setTimeout(function () {
+                const phoneInput = document.getElementById("phone_number");
+
+                if (phoneInput) {
+                    // Scroll posisi input telepon TEPAT di tengah layar
+                    phoneInput.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+
+                    // HANYA berikan efek highlight merah JIKA nomor telepon BELUM terverifikasi (tidak readonly)
+                    if (!phoneInput.readOnly) {
+                        phoneInput.focus();
+                        phoneInput.classList.add("ring-4", "ring-rose-400", "border-rose-500", "animate-pulse");
+
+                        phoneInput.addEventListener('input', function () {
+                            phoneInput.classList.remove("ring-4", "ring-rose-400", "border-rose-500", "animate-pulse");
+                        }, { once: true });
+                    }
+                }
+            }, 300);
+        }
+
         toggleScheduleOptions();
 
-        // Inisialisasi awal kalkulasi & tampilan pratinjau untuk radio button roster yang terpilih
         const selectedRadio = document.querySelector('input[name="current_shift_choice"]:checked');
         if (selectedRadio) {
             calculateRosterAnchor(selectedRadio.value);
         }
 
-        // LOGIKA MODAL FOTO PROFIL
         const modalPhoto = document.getElementById("photoModal");
         const openPhotoBtn = document.getElementById("openModalPhotoBtn");
         const closePhotoBtn = document.getElementById("closeModalPhotoBtn");
@@ -575,7 +712,6 @@
             showPhotoModal();
         }
 
-        // LOGIKA MODAL TANDA TANGAN DIGITAL (TTD)
         const modalSig = document.getElementById("signatureModal");
         const openSigBtn = document.getElementById("openModalSignatureBtn");
         const closeSigBtn = document.getElementById("closeModalSignatureBtn");
@@ -606,7 +742,6 @@
             showSigModal();
         }
 
-        // LOGIKA OTP & TELEPON
         const btnSendOtp = document.getElementById("btn-send-otp");
         const btnVerifyOtp = document.getElementById("btn-verify-otp");
         const inputPhone = document.getElementById("phone_number");
@@ -618,6 +753,7 @@
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
+        // LOGIKA KIRIM OTP (MEMILIKI TIMER COOLDOWN)
         if (btnSendOtp) {
             btnSendOtp.addEventListener("click", function () {
                 phoneError.classList.add("hidden");
@@ -657,6 +793,7 @@
             });
         }
 
+        // LOGIKA VERIFIKASI OTP (TANPA COOLDOWN BILA KODE SALAH)
         if (btnVerifyOtp) {
             btnVerifyOtp.addEventListener("click", function () {
                 otpMessage.innerText = "";
@@ -691,18 +828,26 @@
                         }
                     } else {
                         otpMessage.className = "text-xs text-rose-500 mt-1 block";
-                        otpMessage.innerText = data.message;
-                        startVerifyOtpCooldown(60);
+                        otpMessage.innerText = data.message || "Kode OTP salah.";
+                        
+                        btnVerifyOtp.disabled = false;
+                        btnVerifyOtp.innerHTML = "Konfirmasi";
+                        
+                        inputOtp.focus();
+                        inputOtp.select();
                     }
                 })
                 .catch(() => {
                     otpMessage.className = "text-xs text-rose-500 mt-1 block";
                     otpMessage.innerText = "Terjadi kesalahan saat memverifikasi.";
-                    startVerifyOtpCooldown(60);
+                    
+                    btnVerifyOtp.disabled = false;
+                    btnVerifyOtp.innerHTML = "Konfirmasi";
                 });
             });
         }
 
+        // TIMER KHUSUS MINTA/KIRIM KODE OTP
         function startSendOtpCooldown(duration) {
             let timeLeft = duration;
             btnSendOtp.disabled = true;
@@ -713,21 +858,6 @@
                     btnSendOtp.innerHTML = "Kirim Ulang";
                 } else {
                     btnSendOtp.innerHTML = `Tunggu (${timeLeft}s)`;
-                    timeLeft--;
-                }
-            }, 1000);
-        }
-
-        function startVerifyOtpCooldown(duration) {
-            let timeLeft = duration;
-            btnVerifyOtp.disabled = true;
-            const timer = setInterval(function() {
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    btnVerifyOtp.disabled = false;
-                    btnVerifyOtp.innerHTML = "Konfirmasi";
-                } else {
-                    btnVerifyOtp.innerHTML = `Tunggu (${timeLeft}s)`;
                     timeLeft--;
                 }
             }, 1000);
