@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\User\Station;
+use App\Models\User\Role;
+use App\Models\User\Gender;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\Cuti\PengajuanCuti;
@@ -53,9 +56,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'normal_work_days' => 'array',
-            'face_descriptor' => 'array',
+            'password'          => 'hashed',
+            'normal_work_days'  => 'array',
+            'face_descriptor'   => 'array',
             'roster_start_date' => 'date',
         ];
     }
@@ -103,17 +106,11 @@ class User extends Authenticatable implements MustVerifyEmail
     const JOB_HSE = 'HSE';
     const JOB_DOKUMENTASI = 'Dokumentasi';
 
-    public function cuti_aktif(): HasMany
-    {
-        return $this->hasMany(PengajuanCuti::class, 'user_id')
-                    ->where('status_manager', 'approved')
-                    ->whereDate('tanggal_mulai', '<=', now())
-                    ->whereDate('tanggal_selesai', '>=', now());
-    }
+    // --- RELASI MODEL ---
 
     public function station(): BelongsTo
     {
-        return $this->belongsTo(Station::class, 'station_id');
+        return $this->belongsTo(Station::class, 'station_id', 'id');
     }
 
     public function role(): BelongsTo
@@ -129,6 +126,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function stations(): BelongsToMany
     {
         return $this->belongsToMany(Station::class, 'station_supervisor', 'supervisor_id', 'station_id');
+    }
+
+    public function cuti_aktif(): HasMany
+    {
+        return $this->hasMany(PengajuanCuti::class, 'user_id')
+                    ->where('status_manager', 'approved')
+                    ->whereDate('tanggal_mulai', '<=', now())
+                    ->whereDate('tanggal_selesai', '>=', now());
     }
 
     public function saldo_cuti_tahunan(int $jenisCutiId): HasOne
@@ -152,7 +157,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Kehadiran::class, 'user_id');
     }
 
-    public function saldoCuti()
+    public function saldoCuti(): HasMany
     {
         return $this->hasMany(SaldoCuti::class, 'user_id');
     }

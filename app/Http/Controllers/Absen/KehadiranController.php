@@ -8,6 +8,7 @@ use App\Models\Absen\Kehadiran;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class KehadiranController extends Controller
 {
@@ -18,125 +19,208 @@ class KehadiranController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
+    /**
+     * Absen Masuk (Clock In) via AJAX
+     */
     public function checkIn(Request $request)
     {
-        $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'face_image' => 'nullable|string', 
-            'reason_out_of_radius' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'latitude'             => 'required',
+                'longitude'            => 'required',
+                'face_image'           => 'nullable|string', 
+                'reason_out_of_radius' => 'nullable|string',
+            ]);
 
-        $user = $request->user();
-        $today = Carbon::today()->format('Y-m-d');
-        $now = Carbon::now();
+            $user = $request->user();
+            $now = Carbon::now('Asia/Jakarta');
+            $today = $now->format('Y-m-d');
+            $waktuSekarang = $now->format('H:i:s');
 
-        $attendance = Kehadiran::where('user_id', $user->id)
-            ->where('date', $today)
-            ->first();
+            // Cek apakah sudah absen masuk hari ini
+            $attendance = Kehadiran::where('user_id', $user->id)
+                ->where(function($q) use ($today) {
+                    $q->whereDate('date', $today)
+                      ->orWhereDate('created_at', $today);
+                })
+                ->first();
 
-        if ($attendance && $attendance->check_in) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan absen masuk hari ini!');
-        }
+            if ($attendance && $attendance->check_in !== null) {
+                return response()->json([
+                    'message' => 'Anda sudah melakukan absen masuk hari ini!'
+                ], 400);
+            }
 
-        $schedule = $this->scheduleService->getTodaySchedule($user, $today);
-        if ($schedule['is_day_off']) {
-            return redirect()->back()->with('error', 'Hari ini adalah jadwal libur Anda.');
-        }
+            // Cek Jadwal Kerja
+            $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
+            if (isset($schedule['is_day_off']) && $schedule['is_day_off']) {
+                return response()->json([
+                    'message' => 'Hari ini adalah jadwal libur (OFF) Anda.'
+                ], 400);
+            }
 
-        $station = $user->station;
-        $isInRadius = true;
-        if ($station && $station->latitude && $station->longitude) {
-            $distance = $this->calculateDistance(
-                $request->latitude, $request->longitude,
-                $station->latitude, $station->longitude
+            // Hitung Radius GPS Stasiun Kerja
+            $station = $user->station ?? null;
+            $isInRadius = true;
+            
+            if ($station && !empty($station->latitude) && !empty($station->longitude)) {
+                $distance = $this->calculateDistance(
+                    (float)$request->latitude, (float)$request->longitude,
+                    (float)$station->latitude, (float)$station->longitude
+                );
+                $radiusMeters = (float)($station->radius_meters ?? 100);
+                $isInRadius = $distance <= $radiusMeters;
+            } else {
+                $isInRadius = false;
+            }
+
+            // Tentukan Keterangan Terlambat / Tepat Waktu
+            $isLate = false;
+            $scheduledInStr = $schedule['scheduled_in'] ?? null;
+            
+            if (!empty($scheduledInStr) && $scheduledInStr !== '--:--') {
+                try {
+                    $scheduledIn = Carbon::parse($today . ' ' . $scheduledInStr, 'Asia/Jakarta');
+                    if ($now->gt($scheduledIn)) {
+                        $isLate = true;
+                    }
+                } catch (\Exception $e) {
+                    $isLate = false;
+                }
+            }
+
+            // Jika Di Luar Radius atau Terlambat, Wajib Alasan
+            $reason = $request->reason_out_of_radius ?? $request->reason;
+            if ((!$isInRadius || $isLate) && empty(trim((string)$reason))) {
+                return response()->json([
+                    'message' => 'Harap isi alasan berada di luar area atau alasan keterlambatan Anda!'
+                ], 422);
+            }
+
+            // Simpan Foto Jika Ada
+            $facePath = null;
+            if ($request->filled('face_image')) {
+                $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkin');
+            }
+
+            $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
+
+            // Simpan Data Ke DB (Sesuaikan murni dengan struktur kolom migrasi 'kehadirans')
+            $absensi = Kehadiran::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'date'    => $today
+                ],
+                [
+                    'shift_type'              => $shiftType,
+                    'scheduled_in'            => $scheduledInStr,
+                    'scheduled_out'           => $schedule['scheduled_out'] ?? null,
+                    'check_in'                => $waktuSekarang,
+                    'check_in_lat'            => (string)$request->latitude,
+                    'check_in_long'           => (string)$request->longitude,
+                    'is_in_radius_check_in'   => $isInRadius,
+                    'reason_out_of_radius_in' => $reason,
+                    'face_photo_in'           => $facePath,
+                ]
             );
-            $isInRadius = $distance <= $station->radius_meters;
+
+            return response()->json([
+                'message' => 'Berhasil melakukan absen masuk. Selamat bekerja!',
+                'data'    => $absensi
+            ], 200);
+
+        } catch (\Throwable $th) {
+            Log::error('Error CheckIn: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage()
+            ], 500);
         }
-
-        if (!$isInRadius && empty($request->reason_out_of_radius)) {
-            return redirect()->back()->withErrors([
-                'reason_out_of_radius' => 'Anda berada di luar radius lokasi stasiun. Harap isi alasan berada di luar radius!'
-            ])->withInput();
-        }
-
-        $facePath = null;
-        if ($request->filled('face_image')) {
-            $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkin');
-        }
-
-        Kehadiran::updateOrCreate(
-            ['user_id' => $user->id, 'date' => $today],
-            [
-                'shift_type' => $schedule['shift_type'],
-                'scheduled_in' => $schedule['scheduled_in'],
-                'scheduled_out' => $schedule['scheduled_out'],
-                'check_in' => $now->format('H:i:s'),
-                'check_in_lat' => $request->latitude,
-                'check_in_long' => $request->longitude,
-                'is_in_radius_check_in' => $isInRadius,
-                'reason_out_of_radius_in' => !$isInRadius ? $request->reason_out_of_radius : null,
-                'face_photo_in' => $facePath,
-            ]
-        );
-
-        return redirect()->back()->with('success', 'Berhasil melakukan absen masuk. Selamat bekerja!');
     }
 
+    /**
+     * Absen Pulang (Clock Out) via AJAX
+     */
     public function checkOut(Request $request)
     {
-        $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'face_image' => 'nullable|string',
-            'reason_checkout' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'latitude'        => 'required',
+                'longitude'       => 'required',
+                'face_image'      => 'nullable|string',
+                'reason_checkout' => 'nullable|string',
+            ]);
 
-        $user = $request->user();
-        $today = Carbon::today()->format('Y-m-d');
-        $now = Carbon::now();
+            $user = $request->user();
+            $now = Carbon::now('Asia/Jakarta');
+            $today = $now->format('Y-m-d');
+            $waktuSekarang = $now->format('H:i:s');
 
-        $attendance = Kehadiran::where('user_id', $user->id)
-            ->where('date', $today)
-            ->first();
+            $attendance = Kehadiran::where('user_id', $user->id)
+                ->where(function($q) use ($today) {
+                    $q->whereDate('date', $today)
+                      ->orWhereDate('created_at', $today);
+                })
+                ->first();
 
-        if (!$attendance) {
-            return redirect()->back()->with('error', 'Anda belum melakukan absen masuk hari ini!');
+            if (!$attendance || $attendance->check_in === null) {
+                return response()->json([
+                    'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.'
+                ], 400);
+            }
+
+            if ($attendance->check_out !== null) {
+                return response()->json([
+                    'message' => 'Anda sudah melakukan absen pulang hari ini!'
+                ], 400);
+            }
+
+            $reason = $request->reason_checkout ?? $request->reason;
+
+            // Simpan Foto Pulang
+            $facePath = null;
+            if ($request->filled('face_image')) {
+                $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkout');
+            }
+
+            // Cek Pulang Awal
+            $isEarly = false;
+            if (!empty($attendance->scheduled_out)) {
+                try {
+                    $scheduledOut = Carbon::parse($today . ' ' . $attendance->scheduled_out, 'Asia/Jakarta');
+                    if ($now->lt($scheduledOut)) {
+                        $isEarly = true;
+                    }
+                } catch (\Exception $e) {
+                    $isEarly = false;
+                }
+            }
+
+            $attendance->update([
+                'check_out'               => $waktuSekarang,
+                'check_out_lat'           => (string)$request->latitude,
+                'check_out_long'          => (string)$request->longitude,
+                'is_in_radius_check_out'  => true,
+                'is_early_checkout'       => $isEarly,
+                'reason_checkout'         => $reason,
+                'face_photo_out'          => $facePath,
+            ]);
+
+            return response()->json([
+                'message' => 'Berhasil melakukan absen pulang. Hati-hati di jalan!',
+                'data'    => $attendance
+            ], 200);
+
+        } catch (\Throwable $th) {
+            Log::error('Error CheckOut: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage()
+            ], 500);
         }
-
-        if ($attendance->check_out !== null) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan absen pulang hari ini!');
-        }
-
-        $scheduledOut = Carbon::parse($today . ' ' . $attendance->scheduled_out);
-        $isEarlyCheckout = $now->lt($scheduledOut);
-
-        if ($isEarlyCheckout && !$request->filled('reason_checkout')) {
-            return redirect()->back()->withErrors([
-                'reason_checkout' => 'Alasan pulang cepat wajib diisi.'
-            ])->withInput();
-        }
-
-        $facePath = null;
-        if ($request->filled('face_image')) {
-            $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkout');
-        }
-
-        $attendance->update([
-            'check_out' => $now->format('H:i:s'),
-            'check_out_lat' => $request->latitude,
-            'check_out_long' => $request->longitude,
-            'is_early_checkout' => $isEarlyCheckout,
-            'reason_checkout' => $request->reason_checkout,
-            'face_photo_out' => $facePath,
-        ]);
-
-        return redirect()->back()->with('success', 'Absen pulang berhasil dikirim!');
     }
 
     private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2)
     {
-        $earthRadius = 6371000; // Radius bumi dalam meter
+        $earthRadius = 6371000;
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
 
@@ -151,24 +235,39 @@ class KehadiranController extends Controller
 
     private function saveBase64Image(string $base64String, string $folder)
     {
-        $imageParts = explode(";base64,", $base64String);
-        $imageTypeAux = explode("image/", $imageParts[0]);
-        $imageType = $imageTypeAux[1] ?? 'png';
-        $imageBase64 = base64_decode($imageParts[1] ?? $base64String);
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+                $data = substr($base64String, strpos($base64String, ',') + 1);
+                $type = strtolower($type[1]);
 
-        $fileName = $folder . '/' . uniqid() . '.' . $imageType;
-        Storage::disk('public')->put($fileName, $imageBase64);
+                if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                    $type = 'jpg';
+                }
 
-        return $fileName;
+                $data = base64_decode($data);
+                if ($data === false) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+            $fileName = $folder . '/' . uniqid() . '.' . $type;
+            Storage::disk('public')->put($fileName, $data);
+
+            return $fileName;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function rekapHarian(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-
         $karyawan = \App\Models\User\User::with(['station', 'role'])->orderBy('name', 'asc')->get();
 
         $kehadiran = Kehadiran::whereDate('date', $tanggal)
+            ->orWhereDate('created_at', $tanggal)
             ->get()
             ->keyBy('user_id');
 
@@ -178,7 +277,7 @@ class KehadiranController extends Controller
         foreach ($karyawan as $user) {
             if (isset($kehadiran[$user->id]) && $kehadiran[$user->id]->check_in) {
                 $sudahAbsen[] = [
-                    'user' => $user,
+                    'user'  => $user,
                     'absen' => $kehadiran[$user->id]
                 ];
             } else {
@@ -186,7 +285,6 @@ class KehadiranController extends Controller
             }
         }
 
-        // PERBAIKAN: Arahkan ke file 'admin.record.absensi' sesuai struktur folder di VS Code Anda
         return view('admin.record.absensi', compact('tanggal', 'sudahAbsen', 'belumAbsen', 'karyawan'));
     }
 }

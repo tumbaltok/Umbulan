@@ -27,7 +27,7 @@ class AbsensiAdminController extends Controller
         $semuaKaryawan = User::with(['role', 'station'])->orderBy('name', 'asc')->get();
 
         // 3. Ambil data absensi pada tanggal tersebut
-        $dataAbsensi = Kehadiran::whereDate('created_at', $tanggal)->get()->keyBy('user_id');
+        $dataAbsensi = Kehadiran::whereDate('date', $tanggal)->get()->keyBy('user_id');
 
         $sudahAbsen = [];
         $belumAbsen = [];

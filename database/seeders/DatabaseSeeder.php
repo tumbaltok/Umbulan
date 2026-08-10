@@ -161,7 +161,7 @@ class DatabaseSeeder extends Seeder
             'normal_check_out'  => '',
             'phone_number'      => '081234567890',
             'phone_verified_at' => now(),
-            'password'          => Hash::make('admin123'),
+            'password'          => Hash::make('Admin123.'),
         ]);
 
         // ==========================================

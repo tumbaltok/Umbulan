@@ -4,7 +4,7 @@ namespace App\Traits;
 
 use App\Models\Cuti\SubCuti;
 use App\Models\Cuti\SaldoCuti;
-use App\Models\Absen\Absensi;
+use App\Models\Absen\Kehadiran;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\User\User;
 use Carbon\Carbon;
@@ -89,33 +89,26 @@ trait CutiHelperTrait
 
     public function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
     {
-        if ($pengajuan->status_akhir !== 'approved') {
-            return;
-        }
-
         $apakahMemotongSaldo = $this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id);
-
+        
         if ($apakahMemotongSaldo) {
-            if (!$pengajuan->is_cut_saldo) {
-                $this->potongSaldoDatabase($pengajuan);
-                $pengajuan->update(['is_cut_saldo' => true]);
-            }
+            $this->potongSaldoDatabase($pengajuan);
+            $pengajuan->update(['is_cut_saldo' => true]);
         }
 
         $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
         $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
 
         for ($date = $tanggalMulai->copy(); $date->lte($tanggalSelesai); $date->addDay()) {
-            Absensi::updateOrCreate(
+            Kehadiran::updateOrCreate(
                 [
                     'user_id' => $pengajuan->user_id,
-                    'tanggal' => $date->format('Y-m-d')
+                    'date'    => $date->format('Y-m-d')
                 ],
                 [
+                    'shift_type'       => 'Cuti',
                     'status_kehadiran' => 'Cuti',
-                    'keterangan' => 'Cuti disetujui: ' . ($pengajuan->alasan_cuti ?? 'Cuti Karyawan'),
-                    'jam_masuk' => null,
-                    'jam_pulang' => null
+                    'keterangan'       => 'Izin Cuti Disetujui'
                 ]
             );
         }

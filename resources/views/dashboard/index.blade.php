@@ -253,24 +253,23 @@
         </div>
     </div>
 
-    {{-- Modal Popup Verifikasi Wajah & Geolocation GPS --}}
+    {{-- MODAL STEP 1: KAMERA WEBCAM & GEOLOCATION GPS --}}
     <div id="modalAbsensi" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            
+            {{-- Header Modal --}}
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <h3 id="judulModalAbsen" class="font-bold text-slate-800 text-sm">Verifikasi Absensi</h3>
                 <button type="button" onclick="tutupModalAbsen()" class="text-slate-400 hover:text-slate-600">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <form id="formAbsensi" onsubmit="submitAbsensi(event)" class="p-5 space-y-4">
-                @csrf
-                <input type="hidden" id="absen_type" name="type" value="in">
-                <input type="hidden" id="absen_lat" name="latitude">
-                <input type="hidden" id="absen_long" name="longitude">
-                <input type="hidden" id="absen_face_image" name="face_image">
-
-                <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all">
+            {{-- Isian Content --}}
+            <div class="p-5 space-y-3 flex-1 overflow-y-auto">
+                
+                {{-- Status GPS --}}
+                <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all shrink-0">
                     <div class="flex items-center space-x-2.5">
                         <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
                         <div>
@@ -284,7 +283,8 @@
                     </div>
                 </div>
 
-                <div class="relative bg-black rounded-xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
+                {{-- Container Video Kamera --}}
+                <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 shadow-inner shrink-0">
                     <video id="webcamVideo" 
                         autoplay 
                         playsinline 
@@ -296,15 +296,92 @@
                         Mempersiapkan kamera...
                     </div>
                 </div>
+            </div>
 
-                <div id="wrapperAlasan" class="hidden space-y-1">
-                    <label id="labelAlasan" class="text-xs font-bold text-rose-700 block">Alasan Khusus:</label>
-                    <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-2.5 text-xs border border-rose-200 bg-rose-50/30 rounded-xl focus:ring-2 focus:ring-rose-400 outline-none" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
+            {{-- Footer Tombol --}}
+            <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+                <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
+                <button type="button" onclick="tangkapFotoDanLanjut()" id="btnTangkapFoto" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Ambil Foto</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- MODAL STEP 2: PRATINJAU FOTO & KONFIRMASI DETAIL ABSENSI --}}
+    <div id="modalKonfirmasiAbsen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            
+            {{-- Header Modal --}}
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="font-bold text-slate-800 text-sm">Konfirmasi Detail Absensi</h3>
+                <button type="button" onclick="kembaliKeKamera()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            {{-- Form & Isian Modal --}}
+            <form id="formAbsensi" onsubmit="submitAbsensi(event)" class="flex flex-col flex-1 overflow-y-auto">
+                @csrf
+                <input type="hidden" id="absen_type" name="type" value="in">
+                <input type="hidden" id="absen_lat" name="latitude">
+                <input type="hidden" id="absen_long" name="longitude">
+                <input type="hidden" id="absen_face_image" name="face_image">
+
+                <div class="p-5 space-y-3 flex-1 overflow-y-auto">
+                    {{-- Container Foto Hasil Tangkapan --}}
+                    <div class="relative w-full h-44 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-sm shrink-0">
+                        <img id="imgPratinjauFoto" src="" class="w-full h-full object-cover" alt="Foto Absensi">
+                        <button type="button" onclick="kembaliKeKamera()" class="absolute top-2 right-2 px-2.5 py-1 bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold rounded-lg backdrop-blur-sm transition-all flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Foto Ulang</span>
+                        </button>
+                    </div>
+
+                    {{-- Informasi Detail Rincian Absen --}}
+                    <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
+                            <span class="text-slate-500 font-medium">Status Lokasi:</span>
+                            <span id="txtStatusRadius" class="font-bold text-emerald-600">Di Dalam Area kerja</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
+                            <span class="text-slate-500 font-medium">Lokasi GPS:</span>
+                            <span id="txtNamaLokasiConfirm" class="font-semibold text-slate-800 truncate max-w-[180px]">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
+                            <span class="text-slate-500 font-medium">Waktu Absen:</span>
+                            <span id="txtWaktuSekarang" class="font-bold text-slate-800">--:-- WIB</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-medium">Ketentuan Jam Kerja:</span>
+                            <span id="txtJamJadwal" class="font-bold text-slate-700">
+                                {{ $todaySchedule['scheduled_in'] ?? '--:--' }} - {{ $todaySchedule['scheduled_out'] ?? '--:--' }} WIB
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Status Peringatan Terlambat / Di Luar Radius --}}
+                    <div id="boxWarningStatus" class="hidden p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-start space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5 shrink-0"></i>
+                        <span id="txtWarningMessage">Harap lengkapi alasan di bawah ini sebelum mengirim absensi.</span>
+                    </div>
+
+                    {{-- Input Alasan Khusus --}}
+                    <div id="wrapperAlasan" class="space-y-1">
+                        <label id="labelAlasan" class="text-xs font-bold text-rose-700 block">Alasan Khusus / Keterangan:</label>
+                        <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-2 text-xs border border-rose-200 bg-rose-50/30 rounded-xl focus:ring-2 focus:ring-rose-400 outline-none resize-none" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
+                        <span id="errorAlasanMsg" class="text-[11px] text-rose-600 hidden font-semibold">* Alasan wajib diisi!</span>
+                    </div>
                 </div>
 
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors">Kirim Absensi</button>
+                {{-- Footer Tombol Aksi --}}
+                <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+                    <button type="button" onclick="kembaliKeKamera()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
+                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm">
+                        Kirim Absensi Sekarang
+                    </button>
                 </div>
             </form>
         </div>
@@ -574,6 +651,9 @@
 @endsection
 
 @push('scripts')
+{{-- Load Pustaka SweetAlert2 CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     // 1. DETAIL KALENDER JADWAL
     function bukaDetailJadwal(tanggal, judul, deskripsi) {
@@ -754,20 +834,27 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        alert("Gagal memuat data detail pengajuan cuti.");
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: 'Gagal memuat data detail pengajuan cuti.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444'
+                        });
                         closeModal();
                     });
             });
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI
+    // 4. WEBCAM & GPS ABSENSI (ALUR 2 LANGKAH)
     let mediaStream = null;
-    let gpsInterval = null;
     let countdownInterval = null;
     let secondsLeft = 5;
+    let isUserInRadius = false;
+    let isLateOrEarly = false;
 
     const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
+    const todaySchedule = JSON.parse('{!! json_encode($todaySchedule ?? []) !!}');
 
     function calculateDistanceMeter(lat1, lon1, lat2, lon2) {
         const R = 6371000;
@@ -776,10 +863,9 @@
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
 
-        const a = 
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(radLat1) * Math.cos(radLat2) * 
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(radLat1) * Math.cos(radLat2) * 
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
@@ -823,18 +909,22 @@
 
                     if (statusBox && textLokasi && iconLokasi) {
                         if (matchedStation) {
+                            isUserInRadius = true;
                             statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-emerald-700";
                             textLokasi.innerText = "Lokasi: " + matchedStation.name;
+                            document.getElementById('txtNamaLokasiConfirm').innerText = matchedStation.name;
 
                             if (reloadContainer) reloadContainer.classList.add('hidden');
                             stopGpsTimer();
                         } else {
+                            isUserInRadius = false;
                             statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-rose-700";
-                            textLokasi.innerText = "Lokasi berada di luar area kerja";
+                            textLokasi.innerText = "Lokasi berada di luar area Kerja";
+                            document.getElementById('txtNamaLokasiConfirm').innerText = "Di Luar Radius Stasiun";
 
                             if (reloadContainer) reloadContainer.classList.remove('hidden');
                             startGpsTimer();
@@ -842,11 +932,13 @@
                     }
                 },
                 (err) => {
+                    isUserInRadius = false;
                     if (statusBox && textLokasi && iconLokasi) {
                         statusBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between transition-all";
                         iconLokasi.className = "fa-solid fa-circle-exclamation text-amber-600 text-sm";
                         textLokasi.className = "text-xs font-bold text-amber-700";
                         textLokasi.innerText = "Gagal mengakses GPS. Pastikan izin lokasi aktif!";
+                        document.getElementById('txtNamaLokasiConfirm').innerText = "GPS Tidak Aktif";
                         if (reloadContainer) reloadContainer.classList.add('hidden');
                     }
                 },
@@ -931,6 +1023,123 @@
             });
     }
 
+    function tangkapFotoDanLanjut() {
+        const video = document.getElementById('webcamVideo');
+        const canvas = document.getElementById('webcamCanvas');
+        if (!video || !canvas) return;
+
+        const context = canvas.getContext('2d');
+        
+        const maxWidth = 640;
+        const scale = Math.min(1, maxWidth / (video.videoWidth || 640));
+        canvas.width = (video.videoWidth || 640) * scale;
+        canvas.height = (video.videoHeight || 480) * scale;
+
+        context.save();
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.restore();
+
+        const base64Photo = canvas.toDataURL('image/jpeg', 0.6);
+        
+        document.getElementById('absen_face_image').value = base64Photo;
+        document.getElementById('imgPratinjauFoto').src = base64Photo;
+
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
+        }
+
+        document.getElementById('modalAbsensi').classList.add('hidden');
+        document.getElementById('modalKonfirmasiAbsen').classList.remove('hidden');
+        document.getElementById('modalKonfirmasiAbsen').classList.add('flex');
+
+        prosesEvaluasiKonfirmasi();
+    }
+
+    function prosesEvaluasiKonfirmasi() {
+        const type = document.getElementById('absen_type').value;
+        const now = new Date();
+        const jamSekarangStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('txtWaktuSekarang').innerText = jamSekarangStr + ' WIB';
+
+        const txtStatusRadius = document.getElementById('txtStatusRadius');
+        if (isUserInRadius) {
+            txtStatusRadius.className = "font-bold text-emerald-600";
+            txtStatusRadius.innerText = "Di Dalam Area Kerja";
+        } else {
+            txtStatusRadius.className = "font-bold text-rose-600";
+            txtStatusRadius.innerText = "Di Luar Area Kerja";
+        }
+
+        isLateOrEarly = false;
+        let warningText = "";
+
+        if (todaySchedule && !todaySchedule.is_day_off) {
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+            if (type === 'in' && todaySchedule.scheduled_in) {
+                const [hIn, mIn] = todaySchedule.scheduled_in.split(':');
+                const schedInMinutes = parseInt(hIn) * 60 + parseInt(mIn);
+                
+                if (currentMinutes > schedInMinutes) {
+                    isLateOrEarly = true;
+                    warningText += "Anda melakukan absen masuk MELEBIHI jam kerja yang ditentukan (Terlambat). ";
+                }
+            } else if (type === 'out' && todaySchedule.scheduled_out) {
+                const [hOut, mOut] = todaySchedule.scheduled_out.split(':');
+                const [hIn, mIn] = (todaySchedule.scheduled_in || "00:00").split(':');
+                
+                const schedOutMinutes = parseInt(hOut) * 60 + parseInt(mOut);
+                const schedInMinutes = parseInt(hIn) * 60 + parseInt(mIn);
+
+                // Cek apakah Shift Malam / Lintas Hari (Contoh: Masuk 19:00, Pulang 07:00)
+                const isCrossDayShift = schedOutMinutes < schedInMinutes;
+
+                if (isCrossDayShift) {
+                    // Untuk Shift Malam, jika absen dilakukan pada malam hari (setelah jam masuk) 
+                    // atau di pagi hari SEBELUM jam 07:00, maka terdeteksi Pulang Cepat.
+                    if (currentMinutes >= schedInMinutes || currentMinutes < schedOutMinutes) {
+                        isLateOrEarly = true;
+                        warningText += "Anda melakukan absen pulang SEBELUM jam pulang selesai (Pulang Cepat). ";
+                    }
+                } else {
+                    // Shift Normal (misal 08:00 - 17:00)
+                    if (currentMinutes < schedOutMinutes) {
+                        isLateOrEarly = true;
+                        warningText += "Anda melakukan absen pulang SEBELUM jam pulang selesai (Pulang Cepat). ";
+                    }
+                }
+            }
+        }
+
+        if (!isUserInRadius) {
+            warningText += "Posisi GPS Anda berada di luar area kerja. ";
+        }
+
+        const boxWarning = document.getElementById('boxWarningStatus');
+        const txtWarningMessage = document.getElementById('txtWarningMessage');
+        const wrapperAlasan = document.getElementById('wrapperAlasan');
+        const inputAlasan = document.getElementById('inputAlasan');
+
+        if (!isUserInRadius || isLateOrEarly) {
+            boxWarning.classList.remove('hidden');
+            txtWarningMessage.innerText = warningText + "Harap isi alasan wajib di bawah ini.";
+            wrapperAlasan.classList.remove('hidden');
+            inputAlasan.required = true;
+        } else {
+            boxWarning.classList.add('hidden');
+            wrapperAlasan.classList.remove('hidden');
+            inputAlasan.required = false;
+        }
+    }
+
+    function kembaliKeKamera() {
+        document.getElementById('modalKonfirmasiAbsen').classList.add('hidden');
+        bukaModalAbsen(document.getElementById('absen_type').value);
+    }
+
     function tutupModalAbsen() {
         stopGpsTimer();
 
@@ -944,72 +1153,99 @@
             video.srcObject = null;
         }
 
-        const wrapperAlasan = document.getElementById('wrapperAlasan');
         const inputAlasan = document.getElementById('inputAlasan');
-        if (wrapperAlasan) wrapperAlasan.classList.add('hidden');
         if (inputAlasan) inputAlasan.value = '';
 
-        const modal = document.getElementById('modalAbsensi');
-        if (modal) {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
+        document.getElementById('modalAbsensi').classList.remove('flex');
+        document.getElementById('modalAbsensi').classList.add('hidden');
+        document.getElementById('modalKonfirmasiAbsen').classList.remove('flex');
+        document.getElementById('modalKonfirmasiAbsen').classList.add('hidden');
     }
 
     function submitAbsensi(e) {
         e.preventDefault();
 
-        const video = document.getElementById('webcamVideo');
-        const canvas = document.getElementById('webcamCanvas');
-        if (!video || !canvas) return;
+        const inputAlasan = document.getElementById('inputAlasan');
+        const errorAlasanMsg = document.getElementById('errorAlasanMsg');
 
-        const context = canvas.getContext('2d');
+        if (inputAlasan.required && inputAlasan.value.trim() === '') {
+            errorAlasanMsg.classList.remove('hidden');
+            inputAlasan.focus();
+            return;
+        }
+        errorAlasanMsg.classList.add('hidden');
 
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        
-        context.save();
-        // Lakukan Flip Horizontal pada Canvas agar foto akhir tersimpan dengan orientasi normal (tidak cermin)
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        context.restore();
-        
-        const base64Photo = canvas.toDataURL('image/png');
-        document.getElementById('absen_face_image').value = base64Photo;
+        const btnSubmit = document.getElementById('btnSubmitAbsen');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengirim...`;
 
         const type = document.getElementById('absen_type').value;
-        const url = type === 'in' ? '{{ route("attendance.checkin") }}' : '{{ route("attendance.checkout") }}';
-        
+        const url = type === 'in' ? '/attendance/check-in' : '/attendance/check-out';
+
         const payload = {
             _token: '{{ csrf_token() }}',
             latitude: document.getElementById('absen_lat').value,
             longitude: document.getElementById('absen_long').value,
-            face_image: base64Photo,
-            reason_out_of_radius: document.getElementById('inputAlasan').value,
-            reason_checkout: document.getElementById('inputAlasan').value,
+            face_image: document.getElementById('absen_face_image').value,
+            reason_out_of_radius: inputAlasan.value,
+            reason_checkout: inputAlasan.value,
         };
 
         fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json' 
+            },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(async res => {
+            const data = await res.json();
+            return { status: res.status, body: data };
+        })
         .then(res => {
             if (res.status === 200) {
                 tutupModalAbsen();
-                alert(res.body.message);
-                window.location.reload();
-            } else if (res.status === 422) {
-                document.getElementById('wrapperAlasan').classList.remove('hidden');
-                document.getElementById('labelAlasan').innerText = res.body.message;
-                alert(res.body.message);
+                
+                // Pop-Up Sukses Menggunakan SweetAlert2
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: res.body.message || 'Absensi berhasil dikirim!',
+                    icon: 'success',
+                    confirmButtonText: 'Selesai',
+                    confirmButtonColor: '#059669'
+                }).then(() => {
+                    window.location.reload();
+                });
+
             } else {
-                alert(res.body.message || 'Terjadi kesalahan sistem.');
+                // Pop-Up Gagal Menggunakan SweetAlert2
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: res.body.message || 'Gagal mengirim absensi.',
+                    icon: 'error',
+                    confirmButtonText: 'Coba Lagi',
+                    confirmButtonColor: '#e11d48'
+                });
+
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Kirim Absensi Sekarang';
             }
         })
-        .catch(err => alert('Gagal mengirim absensi. Periksa koneksi internet Anda.'));
+        .catch(err => {
+            console.error("Detail Error:", err);
+            
+            Swal.fire({
+                title: 'Kesalahan Sistem!',
+                text: 'Gagal mengirim data. Silakan cek koneksi atau hubungi admin.',
+                icon: 'warning',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#d97706'
+            });
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = 'Kirim Absensi Sekarang';
+        });
     }
 </script>
 @endpush
