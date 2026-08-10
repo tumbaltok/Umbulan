@@ -1,11 +1,11 @@
 {
-    "name": "Laravel Package Tutorial",
-    "short_name": "LPT",
-    "start_url": "/index.php",
-    "background_color": "#6777ef",
-    "description": "Tutorial of Laravel Package",
-    "display": "fullscreen",
-    "theme_color": "#6777ef",
+    "name": "META Adhya Tirta Umbulan",
+    "short_name": "META",
+    "start_url": "/login",
+    "background_color": "#ffffff",
+    "description": "META Application",
+    "display": "standalone",
+    "theme_color": "#ffffff",
     "icons": [
         {
             "src": "icon-72x72.png?v=1786284554",
