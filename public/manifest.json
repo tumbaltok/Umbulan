@@ -4,53 +4,53 @@
     "start_url": "/login",
     "background_color": "#ffffff",
     "description": "META Application",
-    "display": "standalone",
+    "display": "fullscreen",
     "theme_color": "#ffffff",
     "icons": [
         {
-            "src": "icon-72x72.png?v=1786284554",
+            "src": "icon-72x72.png?v=1786369035",
             "sizes": "72x72",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-96x96.png?v=1786284554",
+            "src": "icon-96x96.png?v=1786369035",
             "sizes": "96x96",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-128x128.png?v=1786284554",
+            "src": "icon-128x128.png?v=1786369035",
             "sizes": "128x128",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-144x144.png?v=1786284554",
+            "src": "icon-144x144.png?v=1786369035",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-152x152.png?v=1786284554",
+            "src": "icon-152x152.png?v=1786369035",
             "sizes": "152x152",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-192x192.png?v=1786284554",
+            "src": "icon-192x192.png?v=1786369035",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-384x384.png?v=1786284554",
+            "src": "icon-384x384.png?v=1786369035",
             "sizes": "384x384",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icon-512x512.png?v=1786284554",
+            "src": "icon-512x512.png?v=1786369035",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
