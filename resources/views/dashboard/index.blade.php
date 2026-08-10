@@ -288,8 +288,8 @@
                     <video id="webcamVideo" 
                         autoplay 
                         playsinline 
-                        style="transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important;" 
-                        class="w-full h-full object-cover scale-x-100"></video>
+                        style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;" 
+                        class="w-full h-full object-cover"></video>
                     
                     <canvas id="webcamCanvas" class="hidden"></canvas>
                     <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm z-10">
@@ -969,7 +969,9 @@
         canvas.height = video.videoHeight || 480;
         
         context.save();
-        context.scale(1, 1);
+        // Lakukan Flip Horizontal pada Canvas agar foto akhir tersimpan dengan orientasi normal (tidak cermin)
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         context.restore();
         
