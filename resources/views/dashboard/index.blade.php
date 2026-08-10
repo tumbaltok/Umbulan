@@ -910,8 +910,8 @@
             audio: false,
             video: {
                 facingMode: "user",
-                width: { ideal: isMobile ? 1080 : 1920 },
-                height: { ideal: isMobile ? 1920 : 1080 }
+                width: { ideal: isMobile ? 720 : 1280 },
+                height: { ideal: isMobile ? 1280 : 720 }
             }
         };
 
