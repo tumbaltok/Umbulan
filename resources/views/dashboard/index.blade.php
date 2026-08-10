@@ -284,12 +284,12 @@
                     </div>
                 </div>
 
-                <div class="relative bg-black rounded-xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
+                <div class="relative bg-black rounded-xl overflow-hidden aspect-[9/16] sm:aspect-[4/3] flex items-center justify-center border border-slate-200 shadow-inner">
                     <video id="webcamVideo" 
                         autoplay 
                         playsinline 
                         style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;" 
-                        class="w-full h-full object-cover"></video>
+                        class="w-full h-full object-contain bg-black"></video>
                     
                     <canvas id="webcamCanvas" class="hidden"></canvas>
                     <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm z-10">
@@ -910,8 +910,9 @@
             audio: false,
             video: {
                 facingMode: "user",
-                width: { ideal: isMobile ? 720 : 1280 },
-                height: { ideal: isMobile ? 1280 : 720 }
+                width: { ideal: isMobile ? 1080 : 1920 },
+                height: { ideal: isMobile ? 1920 : 1080 },
+                xzoom: 0.5
             }
         };
 
