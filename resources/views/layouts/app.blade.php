@@ -393,9 +393,9 @@
                 <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 font-medium tracking-tight">--</span>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div onclick="openProfileDetailModal()" class="flex items-center space-x-3 cursor-pointer group p-1.5 rounded-2xl hover:bg-slate-100/80 transition-all" title="Klik untuk lihat detail akun">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
+                    <p class="text-sm font-bold text-slate-800 leading-tight group-hover:text-sky-600 transition-colors">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                         {{ Auth::user()->role->role_name ?? 'USER' }} 
                         @php
@@ -410,7 +410,7 @@
                         @endif
                     </p>               
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
                     @if(Auth::user()->profile_photo)
                         <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
                     @else
@@ -574,6 +574,162 @@
             if (toggleBtn) toggleBtn.addEventListener("click", openSidebarMobile);
             if (closeBtn) closeBtn.addEventListener("click", closeSidebarMobile);
             if (backdrop) backdrop.addEventListener("click", closeSidebarMobile);
+        });
+    </script>
+
+    <!-- MODAL POPUP DETAIL AKUN USER -->
+    <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+        <div id="profileDetailModalCard" class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 transform transition-all duration-300 scale-95 opacity-0">
+            
+            <!-- HEADER MODAL -->
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-id-card text-lg"></i>
+                    <h3 class="text-xs font-bold tracking-wide uppercase">Detail Informasi Akun Karyawan</h3>
+                </div>
+                <button onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- BODY MODAL -->
+            <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+                <!-- RINGKASAN AVATAR & NAMA -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md overflow-hidden shrink-0 border-2 border-white">
+                        @if(Auth::user()->profile_photo)
+                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User Photo" class="w-full h-full object-cover">
+                        @else
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        @endif
+                    </div>
+                    <div class="text-center sm:text-left space-y-1">
+                        <h4 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">{{ Auth::user()->name }}</h4>
+                        <p class="text-xs text-slate-500 font-semibold">{{ Auth::user()->email }}</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start mt-1">
+                            <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                {{ Auth::user()->role->role_name ?? 'STAFF' }}
+                            </span>
+                            @if(Auth::user()->nip)
+                                <span class="px-2.5 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[10px] font-mono font-bold">
+                                    NIP: {{ Auth::user()->nip }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRID DETAIL INFORMASI LENGKAP -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">NIP</span>
+                        <p class="font-bold text-slate-800 font-mono text-xs sm:text-sm">{{ Auth::user()->nip ?? '-' }}</p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nomor Telepon</span>
+                        <p class="font-bold text-slate-800">{{ Auth::user()->phone_number ?? '-' }}</p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
+                        <p class="font-bold text-slate-800">
+                            {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Wanita' : 'Laki-Laki') }}
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Divisi</span>
+                        <p class="font-bold text-slate-800">{{ Auth::user()->role->divisi ?? 'Operasional' }}</p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Stasiun Penempatan</span>
+                        <p class="font-bold text-sky-700">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sektor / Area</span>
+                        <p class="font-bold text-slate-800">{{ Auth::user()->sektor ?? '-' }}</p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jobdesk / Title</span>
+                        <p class="font-bold text-slate-800">
+                            @php
+                                $userAuth = Auth::user();
+                                $jobText = $userAuth->jobdesk 
+                                    ?? $userAuth->job_title 
+                                    ?? optional($userAuth->jobTitle)->job_title;
+                            @endphp
+                            {{ !empty($jobText) ? $jobText : '-' }}
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tipe Jadwal Kerja</span>
+                        <p class="font-bold text-indigo-700">
+                            @if(Auth::user()->schedule_type === 'roster')
+                                Sistem Roster (12 Jam)
+                            @elseif(Auth::user()->schedule_type === 'normal')
+                                Jam Kerja Normal
+                            @else
+                                Belum Diatur
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER MODAL -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <a href="{{ route('account.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Pengaturan Akun</span>
+                </a>
+                <button onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openProfileDetailModal() {
+            const modal = document.getElementById('profileDetailModal');
+            const modalCard = document.getElementById('profileDetailModalCard');
+            if (!modal || !modalCard) return;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalCard.classList.remove('scale-95', 'opacity-0');
+                modalCard.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeProfileDetailModal() {
+            const modal = document.getElementById('profileDetailModal');
+            const modalCard = document.getElementById('profileDetailModalCard');
+            if (!modal || !modalCard) return;
+
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        document.getElementById('profileDetailModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfileDetailModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProfileDetailModal();
+            }
         });
     </script>
 
