@@ -101,7 +101,7 @@ class KehadiranController extends Controller
             // Simpan Foto Jika Ada
             $facePath = null;
             if ($request->filled('face_image')) {
-                $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkin');
+                $facePath = $this->saveBase64Image($request->face_image, 'foto_absensi/checkin');
             }
 
             $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
@@ -181,7 +181,7 @@ class KehadiranController extends Controller
             // Simpan Foto Pulang
             $facePath = null;
             if ($request->filled('face_image')) {
-                $facePath = $this->saveBase64Image($request->face_image, 'attendance/checkout');
+                $facePath = $this->saveBase64Image($request->face_image, 'foto_absensi/checkout');
             }
 
             // Cek Pulang Awal
