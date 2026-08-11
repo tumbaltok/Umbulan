@@ -298,7 +298,8 @@
 
                 @php
                     $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
-                    
+                    $scheduleAlreadySet = !empty($user->schedule_type);
+
                     $currentDbShift = 'pagi';
                     if ($user->schedule_type === 'roster') {
                         try {
@@ -313,93 +314,145 @@
                 @endphp
 
                 <div class="space-y-4">
-                    {{-- Pilihan Jenis Jadwal --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
-                        <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all">
-                            <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
-                            <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
-                            <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
-                        </select>
-                    </div>
 
-                    {{-- Form Opsi Jadwal Normal --}}
-                    <div id="section_normal_schedule" class="{{ $activeScheduleType === 'normal' ? '' : 'hidden' }} p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Hari Kerja</label>
-                        @php
-                            $workDays = old('normal_work_days', $user->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
-                        @endphp
-                        <div class="flex flex-wrap gap-3">
-                            @foreach(['Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu', 'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu', 'Sun' => 'Minggu'] as $key => $dayLabel)
-                                <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
-                                    <input type="checkbox" name="normal_work_days[]" value="{{ $key }}" {{ in_array($key, (array)$workDays) ? 'checked' : '' }} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
-                                    <span>{{ $dayLabel }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Masuk</label>
-                                <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                    {{-- BADGE MODE BACA (tampil jika jadwal sudah diatur dan user belum klik "Ubah Jadwal") --}}
+                    @if($scheduleAlreadySet)
+                        <div id="schedule_read_mode" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div class="flex items-center gap-3">
+                                @if($user->schedule_type === 'roster')
+                                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm shrink-0">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                        <p class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                            Sistem Roster / Shift (12 Jam)
+                                        </p>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">
+                                            Shift Saat Ini:
+                                            @if($currentDbShift === 'pagi')
+                                                <span class="font-bold text-emerald-600">Shift Pagi (07:00 – 19:00 WIB)</span>
+                                            @elseif($currentDbShift === 'malam')
+                                                <span class="font-bold text-indigo-600">Shift Malam (19:00 – 07:00 WIB)</span>
+                                            @else
+                                                <span class="font-bold text-rose-600">OFF / Libur</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-sm shrink-0">
+                                        <i class="fa-solid fa-business-time"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                        <p class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                            Jam Kerja Normal
+                                        </p>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">
+                                            {{ $user->normal_check_in ?? '08:00' }} – {{ $user->normal_check_out ?? '17:00' }} WIB
+                                        </p>
+                                    </div>
+                                @endif
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
-                                <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
-                            </div>
+                            <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white border border-slate-300 hover:border-sky-500 hover:text-sky-600 text-slate-600 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                Ubah Jadwal
+                            </button>
                         </div>
-                    </div>
+                    @endif
 
-                    {{-- Form Opsi Jadwal Roster --}}
-                    <div id="section_roster_schedule" class="{{ $activeScheduleType === 'roster' ? '' : 'hidden' }} p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-4">
+                    {{-- FORM EDIT (tersembunyi jika jadwal sudah diatur, muncul setelah klik "Ubah Jadwal") --}}
+                    <div id="schedule_edit_mode" class="{{ $scheduleAlreadySet ? 'hidden' : '' }} space-y-4">
+                        {{-- Pilihan Jenis Jadwal --}}
                         <div>
-                            <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
-                            <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
-                            
-                            <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
+                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all">
+                                <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
+                                <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
+                                <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
+                            </select>
+                        </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
-                                    <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
-                                    <div>
-                                        <span class="block text-xs font-bold text-slate-800">Shift Pagi</span>
-                                        <span class="text-[10px] text-slate-500">07:00 - 19:00 WIB</span>
-                                    </div>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
-                                    <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
-                                    <div>
-                                        <span class="block text-xs font-bold text-slate-800">Shift Malam</span>
-                                        <span class="text-[10px] text-slate-500">19:00 - 07:00 WIB</span>
-                                    </div>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-red-500 transition-all">
-                                    <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
-                                    <div>
-                                        <span class="block text-xs font-bold text-slate-800">OFF</span>
-                                        <span class="text-[10px] text-slate-500">OFF / Libur</span>
-                                    </div>
-                                </label>
+                        {{-- Form Opsi Jadwal Normal --}}
+                        <div id="section_normal_schedule" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Hari Kerja</label>
+                            @php
+                                $workDays = old('normal_work_days', $user->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+                            @endphp
+                            <div class="flex flex-wrap gap-3">
+                                @foreach(['Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu', 'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu', 'Sun' => 'Minggu'] as $key => $dayLabel)
+                                    <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+                                        <input type="checkbox" name="normal_work_days[]" value="{{ $key }}" {{ in_array($key, (array)$workDays) ? 'checked' : '' }} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                                        <span>{{ $dayLabel }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Masuk</label>
+                                    <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
+                                    <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                </div>
                             </div>
                         </div>
 
-                        {{-- BOX PRATINJAU HASIL ROTASI --}}
-                        <div id="roster_preview_box" class="p-3 bg-white border border-amber-300 rounded-xl shadow-sm text-xs space-y-2">
-                            <div class="font-bold text-amber-900 border-b border-slate-100 pb-1.5 flex items-center">
-                                <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
+                        {{-- Form Opsi Jadwal Roster --}}
+                        <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
+                                <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
+
+                                <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                                        <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
+                                        <div>
+                                            <span class="block text-xs font-bold text-slate-800">Shift Pagi</span>
+                                            <span class="text-[10px] text-slate-500">07:00 - 19:00 WIB</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
+                                        <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
+                                        <div>
+                                            <span class="block text-xs font-bold text-slate-800">Shift Malam</span>
+                                            <span class="text-[10px] text-slate-500">19:00 - 07:00 WIB</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-red-500 transition-all">
+                                        <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
+                                        <div>
+                                            <span class="block text-xs font-bold text-slate-800">OFF</span>
+                                            <span class="text-[10px] text-slate-500">OFF / Libur</span>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
-                                <div class="bg-slate-50 p-2 rounded-lg">
-                                    <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
-                                    <span id="preview_week_1" class="font-bold text-sky-600">Shift Pagi</span>
+
+                            {{-- BOX PRATINJAU HASIL ROTASI --}}
+                            <div id="roster_preview_box" class="p-3 bg-white border border-amber-300 rounded-xl shadow-sm text-xs space-y-2">
+                                <div class="font-bold text-amber-900 border-b border-slate-100 pb-1.5 flex items-center">
+                                    <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
                                 </div>
-                                <div class="bg-slate-50 p-2 rounded-lg">
-                                    <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
-                                    <span id="preview_week_2" class="font-bold text-indigo-600">Shift Malam</span>
-                                </div>
-                                <div class="bg-slate-50 p-2 rounded-lg">
-                                    <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
-                                    <span id="preview_week_3" class="font-bold text-emerald-600">Minggu Libur</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                        <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
+                                        <span id="preview_week_1" class="font-bold text-sky-600">Shift Pagi</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                        <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
+                                        <span id="preview_week_2" class="font-bold text-indigo-600">Shift Malam</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                        <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
+                                        <span id="preview_week_3" class="font-bold text-emerald-600">Minggu Libur</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -564,6 +617,17 @@
         }
         if (btnSendOtp) btnSendOtp.classList.remove('hidden');
         if (btnChange) btnChange.classList.add('hidden');
+    }
+
+    function showScheduleEditMode() {
+        const readMode = document.getElementById('schedule_read_mode');
+        const editMode = document.getElementById('schedule_edit_mode');
+        if (readMode) readMode.classList.add('hidden');
+        if (editMode) {
+            editMode.classList.remove('hidden');
+            // Langsung trigger toggle agar section yang sesuai langsung tampil
+            toggleScheduleOptions();
+        }
     }
 
     function toggleScheduleOptions() {
