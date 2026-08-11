@@ -56,6 +56,44 @@ class DashboardController extends Controller
             })
             ->first();
 
+        // Cek Peringatan Terlambat & Waktunya Pulang
+        $isLateNotCheckedIn = false;
+        $canCheckOutNow = false;
+
+        if (! empty($todaySchedule) && empty($todaySchedule['is_day_off'])) {
+            $scheduledInStr = $todaySchedule['scheduled_in'] ?? null;
+            $scheduledOutStr = $todaySchedule['scheduled_out'] ?? null;
+
+            if ($scheduledInStr && $scheduledInStr !== '--:--') {
+                try {
+                    $scheduledInTime = Carbon::parse($today.' '.$scheduledInStr, 'Asia/Jakarta');
+                    if ((! $todayAttendance || empty($todayAttendance->check_in)) && $now->gt($scheduledInTime)) {
+                        $isLateNotCheckedIn = true;
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+
+            if ($scheduledOutStr && $scheduledOutStr !== '--:--' && $todayAttendance && ! empty($todayAttendance->check_in) && empty($todayAttendance->check_out)) {
+                try {
+                    $scheduledInTime = Carbon::parse($today.' '.$scheduledInStr, 'Asia/Jakarta');
+                    $scheduledOutTime = Carbon::parse($today.' '.$scheduledOutStr, 'Asia/Jakarta');
+
+                    if ($scheduledOutTime->lt($scheduledInTime)) {
+                        $scheduledOutNextDay = $scheduledOutTime->copy()->addDay();
+                        if ($now->gte($scheduledOutNextDay) || ($now->lt($scheduledInTime) && $now->gte($scheduledOutTime))) {
+                            $canCheckOutNow = true;
+                        }
+                    } else {
+                        if ($now->gte($scheduledOutTime)) {
+                            $canCheckOutNow = true;
+                        }
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+        }
+
         // 5. Penentuan ID Cuti Tahunan secara Aman
         $cutiTahunanId = defined('App\Models\User\User::CUTI_TAHUNAN_ID')
             ? User::CUTI_TAHUNAN_ID
@@ -128,7 +166,9 @@ class DashboardController extends Controller
             'calendarDays',
             'selectedMonth',
             'selectedYear',
-            'currentCarbonDate'
+            'currentCarbonDate',
+            'isLateNotCheckedIn',
+            'canCheckOutNow'
         ));
     }
 }

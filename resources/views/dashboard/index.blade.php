@@ -135,6 +135,19 @@
                         Hari ini Anda tidak memiliki jadwal shift aktif.
                     @endif
                 </p>
+
+                {{-- TANDA DANGER TERLAMBAT ATAU INFO WAKTUNYA PULANG --}}
+                @if(isset($isLateNotCheckedIn) && $isLateNotCheckedIn)
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-500 animate-pulse"></i>
+                        <span><strong>Peringatan:</strong> Jam kerja Anda sudah dimulai ({{ $todaySchedule['scheduled_in'] ?? '--:--' }} WIB) dan Anda belum melakukan absen masuk (Terlambat).</span>
+                    </div>
+                @elseif(isset($canCheckOutNow) && $canCheckOutNow)
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-700">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        <span><strong>Informasi:</strong> Jam kerja telah berakhir ({{ $todaySchedule['scheduled_out'] ?? '--:--' }} WIB). Anda sudah boleh melakukan absen pulang.</span>
+                    </div>
+                @endif
             </div>
 
             @if(!is_null($user->schedule_type) && isset($todaySchedule['is_day_off']) && !$todaySchedule['is_day_off'])
