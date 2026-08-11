@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Mpr;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\Mpr\PengajuanMprDetail;
 use App\Models\User\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PengajuanMprController extends Controller
 {
@@ -37,10 +37,12 @@ class PengajuanMprController extends Controller
     // KIRIM WA NOTIFIKASI
     private function sendWhatsAppNotification(?string $targetPhone, string $message)
     {
-        if (!$targetPhone) return false;
+        if (! $targetPhone) {
+            return false;
+        }
         $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
         if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
-            $cleanPhone = '62' . substr($cleanPhone, 1);
+            $cleanPhone = '62'.substr($cleanPhone, 1);
         }
 
         try {
@@ -49,11 +51,13 @@ class PengajuanMprController extends Controller
             ])->post('https://api.fonnte.com/send', [
                 'target' => $cleanPhone,
                 'message' => $message,
-                'all' => 'true'
+                'all' => 'true',
             ]);
+
             return $response->successful();
         } catch (\Exception $e) {
-            Log::error("Gagal mengirim WA: " . $e->getMessage());
+            Log::error('Gagal mengirim WA: '.$e->getMessage());
+
             return false;
         }
     }
@@ -64,14 +68,14 @@ class PengajuanMprController extends Controller
         $request->validate([
             'keperluan_urgensi' => 'required|string',
             'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'items'             => 'required|array|min:1',
+            'items' => 'required|array|min:1',
             'items.*.nama_barang' => 'required|string',
-            'items.*.jumlah'    => 'required|numeric|min:1',
-            'items.*.satuan'    => 'required|string',
+            'items.*.jumlah' => 'required|numeric|min:1',
+            'items.*.satuan' => 'required|string',
         ]);
 
         $user = Auth::user();
-        
+
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
@@ -79,24 +83,24 @@ class PengajuanMprController extends Controller
 
         $roleName = strtolower($user->role->role_name ?? '');
         $statusSupervisor = 'pending';
-        $statusManager    = 'pending';
-        $statusAkhir      = 'pending';
-        $supervisorId     = null;
-        $managerId        = null;
+        $statusManager = 'pending';
+        $statusAkhir = 'pending';
+        $supervisorId = null;
+        $managerId = null;
 
         if ($roleName === 'manager') {
             $statusSupervisor = 'approved';
-            $statusManager    = 'approved';
-            $statusAkhir      = 'approved';
-            $managerId        = $user->id;
+            $statusManager = 'approved';
+            $statusAkhir = 'approved';
+            $managerId = $user->id;
         } elseif ($roleName === 'supervisor') {
             $statusSupervisor = 'approved';
-            $statusManager    = 'pending';
-            $statusAkhir      = 'pending';
-            $supervisorId     = $user->id;
+            $statusManager = 'pending';
+            $statusAkhir = 'pending';
+            $supervisorId = $user->id;
         }
 
-        $nomorMpr = 'MPR/' . date('Y/m/') . sprintf("%03d", PengajuanMpr::whereMonth('created_at', date('m'))->count() + 1);
+        $nomorMpr = 'MPR/'.date('Y/m/').sprintf('%03d', PengajuanMpr::whereMonth('created_at', date('m'))->count() + 1);
 
         DB::beginTransaction();
         try {
@@ -107,10 +111,10 @@ class PengajuanMprController extends Controller
                 'keperluan_urgensi' => $request->keperluan_urgensi,
                 'dokumen_pendukung' => $namaDokumen,
                 'status_supervisor' => $statusSupervisor,
-                'supervisor_id'     => $supervisorId,
-                'status_manager'    => $statusManager,
-                'manager_id'        => $managerId,
-                'status_akhir'      => $statusAkhir,
+                'supervisor_id' => $supervisorId,
+                'status_manager' => $statusManager,
+                'manager_id' => $managerId,
+                'status_akhir' => $statusAkhir,
             ]);
 
             foreach ($request->items as $item) {
@@ -128,7 +132,7 @@ class PengajuanMprController extends Controller
 
             if ($statusAkhir === 'pending') {
                 $targetAtasan = User::where('station_id', $user->station_id)
-                    ->whereHas('role', function($query) {
+                    ->whereHas('role', function ($query) {
                         $query->whereIn(DB::raw('LOWER(role_name)'), ['supervisor', 'manager']);
                     })
                     ->whereNotNull('phone_verified_at')
@@ -136,15 +140,15 @@ class PengajuanMprController extends Controller
 
                 $namaStation = $user->station->name ?? 'Pusat / Utama';
                 $templatePesan = "📢 *NOTIFIKASI PENGAJUAN MPR (Material Purchase Request)*\n\n"
-                    . "Halo Bapak/Ibu Atasan,\n"
-                    . "Terdapat pengajuan pembelian barang (MPR) baru yang membutuhkan persetujuan Anda.\n\n"
-                    . "▪ *Nomor MPR:* {$nomorMpr}\n"
-                    . "▪ *Nama Karyawan:* {$user->name}\n"
-                    . "▪ *Station:* {$namaStation}\n"
-                    . "▪ *Keperluan:* {$request->keperluan_urgensi}\n\n"
-                    . "Silakan kelola pengajuan ini melalui menu *Persetujuan MPR* pada website.\n"
-                    . "Link: " . url('/admin/persetujuan/mpr') . "\n\n"
-                    . "_Pesan otomatis sistem META AdhyaTirta Umbulan._";
+                    ."Halo Bapak/Ibu Atasan,\n"
+                    ."Terdapat pengajuan pembelian barang (MPR) baru yang membutuhkan persetujuan Anda.\n\n"
+                    ."▪ *Nomor MPR:* {$nomorMpr}\n"
+                    ."▪ *Nama Karyawan:* {$user->name}\n"
+                    ."▪ *Station:* {$namaStation}\n"
+                    ."▪ *Keperluan:* {$request->keperluan_urgensi}\n\n"
+                    ."Silakan kelola pengajuan ini melalui menu *Persetujuan MPR* pada website.\n"
+                    .'Link: '.url('/admin/persetujuan/mpr')."\n\n"
+                    .'_Pesan otomatis sistem META AdhyaTirta Umbulan._';
 
                 foreach ($targetAtasan as $atasan) {
                     if ($atasan->phone_number) {
@@ -156,7 +160,8 @@ class PengajuanMprController extends Controller
             return redirect()->route('mpr.riwayat')->with('success', 'Pengajuan MPR berhasil dikirim!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Gagal menyimpan pengajuan MPR: ' . $e->getMessage()])->withInput();
+
+            return back()->withErrors(['error' => 'Gagal menyimpan pengajuan MPR: '.$e->getMessage()])->withInput();
         }
     }
 
@@ -170,7 +175,7 @@ class PengajuanMprController extends Controller
 
         if ($roleName === 'supervisor') {
             $query->where('status_supervisor', 'pending')
-                ->whereHas('user', function($q) use ($atasan) {
+                ->whereHas('user', function ($q) use ($atasan) {
                     $q->where('station_id', $atasan->station_id);
                 });
         } elseif ($roleName === 'manager') {
@@ -183,15 +188,16 @@ class PengajuanMprController extends Controller
         }
 
         $daftarPengajuan = $query->get();
+
         return view('admin.persetujuan.mpr', compact('daftarPengajuan'));
     }
 
     // ATASAN: Memproses Aksi Setuju / Tolak
-    public function prosesPersetujuan(Request $request,int $id)
+    public function prosesPersetujuan(Request $request, int $id)
     {
         $request->validate([
             'tindakan' => 'required|in:approved,rejected',
-            'catatan_penolakan' => 'nullable|string'
+            'catatan_penolakan' => 'nullable|string',
         ]);
 
         $atasan = Auth::user();
@@ -202,16 +208,16 @@ class PengajuanMprController extends Controller
         if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
-                'supervisor_id'     => $tindakan === 'approved' ? $atasan->id : null,
-                'status_akhir'      => $tindakan === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
+                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
             ]);
         } elseif ($roleName === 'manager') {
             $pengajuan->update([
                 'status_manager' => $tindakan,
-                'manager_id'     => $tindakan === 'approved' ? $atasan->id : null,
-                'status_akhir'   => $tindakan,
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir' => $tindakan,
+                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
             ]);
         }
 
@@ -230,11 +236,11 @@ class PengajuanMprController extends Controller
 
         $data = [
             'mpr' => $mpr,
-            'title' => 'Cetak MPR - ' . $mpr->nomor_mpr
+            'title' => 'Cetak MPR - '.$mpr->nomor_mpr,
         ];
 
         $pdf = Pdf::loadView('mpr.cetak', $data)->setPaper('a4', 'portrait');
 
-        return $pdf->stream('MPR-' . str_replace('/', '-', $mpr->nomor_mpr) . '.pdf');
+        return $pdf->stream('MPR-'.str_replace('/', '-', $mpr->nomor_mpr).'.pdf');
     }
 }

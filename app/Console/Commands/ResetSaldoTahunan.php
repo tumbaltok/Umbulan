@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 class ResetSaldoTahunan extends Command
 {
     protected $signature = 'saldo:reset-tahunan';
+
     protected $description = 'Generate saldo cuti tahunan untuk tahun depan';
 
     public function handle()
@@ -27,16 +28,16 @@ class ResetSaldoTahunan extends Command
                 [
                     'user_id' => $user->id,
                     'jenis_cuti_id' => $jenisCutiTahunanId,
-                    'tahun' => $tahunDepan
+                    'tahun' => $tahunDepan,
                 ],
                 [
                     // Perbaikan 3: Masukkan kuota_awal sesuai blueprint migrasi
                     'kuota_awal' => 12,
-                    'sisa_saldo' => 12
+                    'sisa_saldo' => 12,
                 ]
             );
         }
 
-        $this->info('Saldo tahunan berhasil dibuat untuk tahun ' . $tahunDepan);
+        $this->info('Saldo tahunan berhasil dibuat untuk tahun '.$tahunDepan);
     }
 }

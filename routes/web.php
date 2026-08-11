@@ -1,21 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Absen\JadwalController;
+use App\Http\Controllers\Absen\KehadiranController;
+use App\Http\Controllers\Admin\AbsensiAdminController;
+use App\Http\Controllers\Admin\KaryawanController;
+use App\Http\Controllers\Admin\RecordController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\StationController;
+use App\Http\Controllers\Car\PengajuanCarController;
+use App\Http\Controllers\Cuti\PengajuanCutiController;
+use App\Http\Controllers\Mpr\PengajuanMprController;
+use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
-use App\Http\Controllers\Cuti\PengajuanCutiController;
-use App\Http\Controllers\Admin\StationController;
-use App\Http\Controllers\Admin\KaryawanController;
-use App\Http\Controllers\User\AccountController;
-use App\Http\Controllers\Admin\RecordController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use App\Http\Controllers\Car\PengajuanCarController;
-use App\Http\Controllers\Mpr\PengajuanMprController;
-use App\Http\Controllers\Absen\KehadiranController;
-use App\Http\Controllers\Absen\JadwalController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\AbsensiAdminController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 // Halaman Selamat Datang / Landing Page Utama
 Route::get('/', function () {
@@ -29,7 +29,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
 
-    Route::get('/login', function () { return view('auth.login'); })->name('login');
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
     Route::get('/forgot', [AuthController::class, 'showForgotForm'])->name('forgot');
@@ -67,13 +69,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
 
     // Verifikasi Email & Phone
-    Route::get('/email/verify', function () { return view('auth.verify-email'); })->name('verification.notice');
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
+
         return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
     })->middleware('signed')->name('verification.verify');
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
+
         return back()->with('message', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
     Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
@@ -125,20 +131,20 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Jalur Utama Persetujuan Cuti
     Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');
     Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
-    
+
     // Jalur Utama Persetujuan CAR
     Route::get('/admin/persetujuan/car', [PengajuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
     Route::post('/admin/persetujuan/car/proses/{id}', [PengajuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
-    
+
     // Jalur Utama Persetujuan MPR
     Route::get('/admin/persetujuan/mpr', [PengajuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
     Route::post('/admin/persetujuan/mpr/proses/{id}', [PengajuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
-    
+
     // Karyawan
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
     Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
     Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
-    
+
     // CRUD Stasiun Kerja
     Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
     Route::post('/admin/stations', [StationController::class, 'store'])->name('admin.stations.store');
@@ -149,15 +155,15 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     // Record Cuti
     Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
     Route::get('/admin/record/cuti/export', [RecordController::class, 'exportCuti'])->name('admin.record.cuti.export');
-    
+
     // Record CAR
     Route::get('/admin/record/car', [RecordController::class, 'car'])->name('admin.record.car');
     Route::get('/admin/record/car/export', [RecordController::class, 'exportCar'])->name('admin.record.car.export');
-    
+
     // Record MPR
     Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
     Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
 
-    // Rekap Absensi Harian 
+    // Rekap Absensi Harian
     Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
 });

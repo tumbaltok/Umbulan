@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Absen;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Absen\Kehadiran;
+use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class KehadiranController extends Controller
 {
@@ -26,9 +27,9 @@ class KehadiranController extends Controller
     {
         try {
             $request->validate([
-                'latitude'             => 'required',
-                'longitude'            => 'required',
-                'face_image'           => 'nullable|string', 
+                'latitude' => 'required',
+                'longitude' => 'required',
+                'face_image' => 'nullable|string',
                 'reason_out_of_radius' => 'nullable|string',
             ]);
 
@@ -39,15 +40,15 @@ class KehadiranController extends Controller
 
             // Cek apakah sudah absen masuk hari ini
             $attendance = Kehadiran::where('user_id', $user->id)
-                ->where(function($q) use ($today) {
+                ->where(function ($q) use ($today) {
                     $q->whereDate('date', $today)
-                      ->orWhereDate('created_at', $today);
+                        ->orWhereDate('created_at', $today);
                 })
                 ->first();
 
             if ($attendance && $attendance->check_in !== null) {
                 return response()->json([
-                    'message' => 'Anda sudah melakukan absen masuk hari ini!'
+                    'message' => 'Anda sudah melakukan absen masuk hari ini!',
                 ], 400);
             }
 
@@ -55,20 +56,20 @@ class KehadiranController extends Controller
             $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
             if (isset($schedule['is_day_off']) && $schedule['is_day_off']) {
                 return response()->json([
-                    'message' => 'Hari ini adalah jadwal libur (OFF) Anda.'
+                    'message' => 'Hari ini adalah jadwal libur (OFF) Anda.',
                 ], 400);
             }
 
             // Hitung Radius GPS Stasiun Kerja
             $station = $user->station ?? null;
             $isInRadius = true;
-            
-            if ($station && !empty($station->latitude) && !empty($station->longitude)) {
+
+            if ($station && ! empty($station->latitude) && ! empty($station->longitude)) {
                 $distance = $this->calculateDistance(
-                    (float)$request->latitude, (float)$request->longitude,
-                    (float)$station->latitude, (float)$station->longitude
+                    (float) $request->latitude, (float) $request->longitude,
+                    (float) $station->latitude, (float) $station->longitude
                 );
-                $radiusMeters = (float)($station->radius_meters ?? 100);
+                $radiusMeters = (float) ($station->radius_meters ?? 100);
                 $isInRadius = $distance <= $radiusMeters;
             } else {
                 $isInRadius = false;
@@ -77,10 +78,10 @@ class KehadiranController extends Controller
             // Tentukan Keterangan Terlambat / Tepat Waktu
             $isLate = false;
             $scheduledInStr = $schedule['scheduled_in'] ?? null;
-            
-            if (!empty($scheduledInStr) && $scheduledInStr !== '--:--') {
+
+            if (! empty($scheduledInStr) && $scheduledInStr !== '--:--') {
                 try {
-                    $scheduledIn = Carbon::parse($today . ' ' . $scheduledInStr, 'Asia/Jakarta');
+                    $scheduledIn = Carbon::parse($today.' '.$scheduledInStr, 'Asia/Jakarta');
                     if ($now->gt($scheduledIn)) {
                         $isLate = true;
                     }
@@ -91,9 +92,9 @@ class KehadiranController extends Controller
 
             // Jika Di Luar Radius atau Terlambat, Wajib Alasan
             $reason = $request->reason_out_of_radius ?? $request->reason;
-            if ((!$isInRadius || $isLate) && empty(trim((string)$reason))) {
+            if ((! $isInRadius || $isLate) && empty(trim((string) $reason))) {
                 return response()->json([
-                    'message' => 'Harap isi alasan berada di luar area atau alasan keterlambatan Anda!'
+                    'message' => 'Harap isi alasan berada di luar area atau alasan keterlambatan Anda!',
                 ], 422);
             }
 
@@ -109,30 +110,31 @@ class KehadiranController extends Controller
             $absensi = Kehadiran::updateOrCreate(
                 [
                     'user_id' => $user->id,
-                    'date'    => $today
+                    'date' => $today,
                 ],
                 [
-                    'shift_type'              => $shiftType,
-                    'scheduled_in'            => $scheduledInStr,
-                    'scheduled_out'           => $schedule['scheduled_out'] ?? null,
-                    'check_in'                => $waktuSekarang,
-                    'check_in_lat'            => (string)$request->latitude,
-                    'check_in_long'           => (string)$request->longitude,
-                    'is_in_radius_check_in'   => $isInRadius,
+                    'shift_type' => $shiftType,
+                    'scheduled_in' => $scheduledInStr,
+                    'scheduled_out' => $schedule['scheduled_out'] ?? null,
+                    'check_in' => $waktuSekarang,
+                    'check_in_lat' => (string) $request->latitude,
+                    'check_in_long' => (string) $request->longitude,
+                    'is_in_radius_check_in' => $isInRadius,
                     'reason_out_of_radius_in' => $reason,
-                    'face_photo_in'           => $facePath,
+                    'face_photo_in' => $facePath,
                 ]
             );
 
             return response()->json([
                 'message' => 'Berhasil melakukan absen masuk. Selamat bekerja!',
-                'data'    => $absensi
+                'data' => $absensi,
             ], 200);
 
         } catch (\Throwable $th) {
-            Log::error('Error CheckIn: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
+            Log::error('Error CheckIn: '.$th->getMessage().' File: '.$th->getFile().' Line: '.$th->getLine());
+
             return response()->json([
-                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage()
+                'message' => 'Terjadi kesalahan sistem: '.$th->getMessage(),
             ], 500);
         }
     }
@@ -144,9 +146,9 @@ class KehadiranController extends Controller
     {
         try {
             $request->validate([
-                'latitude'        => 'required',
-                'longitude'       => 'required',
-                'face_image'      => 'nullable|string',
+                'latitude' => 'required',
+                'longitude' => 'required',
+                'face_image' => 'nullable|string',
                 'reason_checkout' => 'nullable|string',
             ]);
 
@@ -156,21 +158,21 @@ class KehadiranController extends Controller
             $waktuSekarang = $now->format('H:i:s');
 
             $attendance = Kehadiran::where('user_id', $user->id)
-                ->where(function($q) use ($today) {
+                ->where(function ($q) use ($today) {
                     $q->whereDate('date', $today)
-                      ->orWhereDate('created_at', $today);
+                        ->orWhereDate('created_at', $today);
                 })
                 ->first();
 
-            if (!$attendance || $attendance->check_in === null) {
+            if (! $attendance || $attendance->check_in === null) {
                 return response()->json([
-                    'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.'
+                    'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.',
                 ], 400);
             }
 
             if ($attendance->check_out !== null) {
                 return response()->json([
-                    'message' => 'Anda sudah melakukan absen pulang hari ini!'
+                    'message' => 'Anda sudah melakukan absen pulang hari ini!',
                 ], 400);
             }
 
@@ -184,9 +186,9 @@ class KehadiranController extends Controller
 
             // Cek Pulang Awal
             $isEarly = false;
-            if (!empty($attendance->scheduled_out)) {
+            if (! empty($attendance->scheduled_out)) {
                 try {
-                    $scheduledOut = Carbon::parse($today . ' ' . $attendance->scheduled_out, 'Asia/Jakarta');
+                    $scheduledOut = Carbon::parse($today.' '.$attendance->scheduled_out, 'Asia/Jakarta');
                     if ($now->lt($scheduledOut)) {
                         $isEarly = true;
                     }
@@ -196,24 +198,25 @@ class KehadiranController extends Controller
             }
 
             $attendance->update([
-                'check_out'               => $waktuSekarang,
-                'check_out_lat'           => (string)$request->latitude,
-                'check_out_long'          => (string)$request->longitude,
-                'is_in_radius_check_out'  => true,
-                'is_early_checkout'       => $isEarly,
-                'reason_checkout'         => $reason,
-                'face_photo_out'          => $facePath,
+                'check_out' => $waktuSekarang,
+                'check_out_lat' => (string) $request->latitude,
+                'check_out_long' => (string) $request->longitude,
+                'is_in_radius_check_out' => true,
+                'is_early_checkout' => $isEarly,
+                'reason_checkout' => $reason,
+                'face_photo_out' => $facePath,
             ]);
 
             return response()->json([
                 'message' => 'Berhasil melakukan absen pulang. Hati-hati di jalan!',
-                'data'    => $attendance
+                'data' => $attendance,
             ], 200);
 
         } catch (\Throwable $th) {
-            Log::error('Error CheckOut: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
+            Log::error('Error CheckOut: '.$th->getMessage().' File: '.$th->getFile().' Line: '.$th->getLine());
+
             return response()->json([
-                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage()
+                'message' => 'Terjadi kesalahan sistem: '.$th->getMessage(),
             ], 500);
         }
     }
@@ -240,7 +243,7 @@ class KehadiranController extends Controller
                 $data = substr($base64String, strpos($base64String, ',') + 1);
                 $type = strtolower($type[1]);
 
-                if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                if (! in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
                     $type = 'jpg';
                 }
 
@@ -252,7 +255,7 @@ class KehadiranController extends Controller
                 return null;
             }
 
-            $fileName = $folder . '/' . uniqid() . '.' . $type;
+            $fileName = $folder.'/'.uniqid().'.'.$type;
             Storage::disk('public')->put($fileName, $data);
 
             return $fileName;
@@ -264,7 +267,7 @@ class KehadiranController extends Controller
     public function rekapHarian(Request $request)
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $karyawan = \App\Models\User\User::with(['station', 'role'])->orderBy('name', 'asc')->get();
+        $karyawan = User::with(['station', 'role'])->orderBy('name', 'asc')->get();
 
         $kehadiran = Kehadiran::whereDate('date', $tanggal)
             ->orWhereDate('created_at', $tanggal)
@@ -277,8 +280,8 @@ class KehadiranController extends Controller
         foreach ($karyawan as $user) {
             if (isset($kehadiran[$user->id]) && $kehadiran[$user->id]->check_in) {
                 $sudahAbsen[] = [
-                    'user'  => $user,
-                    'absen' => $kehadiran[$user->id]
+                    'user' => $user,
+                    'absen' => $kehadiran[$user->id],
                 ];
             } else {
                 $belumAbsen[] = $user;

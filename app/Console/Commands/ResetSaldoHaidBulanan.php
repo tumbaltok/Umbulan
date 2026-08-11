@@ -2,13 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
+use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class ResetSaldoHaidBulanan extends Command
 {
     protected $signature = 'saldo:reset-haid';
+
     protected $description = 'Reset kuota izin haid bulanan karyawan otomatis';
 
     public function handle()
@@ -16,12 +18,13 @@ class ResetSaldoHaidBulanan extends Command
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
 
-        $jenisCutiHaid = \App\Models\Cuti\JenisCuti::where('kode_cuti', 'HAID')
+        $jenisCutiHaid = JenisCuti::where('kode_cuti', 'HAID')
             ->orWhere('name_cuti', 'LIKE', '%Haid%')
             ->first();
 
-        if (!$jenisCutiHaid) {
+        if (! $jenisCutiHaid) {
             $this->error('Jenis cuti Haid tidak ditemukan!');
+
             return 1;
         }
 
@@ -31,6 +34,7 @@ class ResetSaldoHaidBulanan extends Command
             ->update(['sisa_saldo' => 2]);
 
         $this->info('Saldo haid bulanan berhasil di-reset!');
+
         return 0;
     }
 }

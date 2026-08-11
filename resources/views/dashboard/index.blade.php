@@ -16,8 +16,9 @@
                     Akun Anda saat ini belum memiliki jadwal kerja aktif. Silakan lakukan pengaturan jadwal kerja terlebih dahulu agar Anda dapat melakukan presensi/absensi harian.
                 </p>
                 <div class="mt-2">
-                    <a href="{{ url('/profile') }}" class="text-xs font-bold text-amber-800 underline hover:text-amber-900 transition-colors">
-                        Klik di sini untuk mengatur jadwal kerja Anda &rarr;
+                    <a href="{{ url('/profile?schedule_required=1#schedule_setting') }}" class="text-xs font-bold text-amber-800 underline hover:text-amber-900 transition-colors flex items-center space-x-1">
+                        <span>Klik di sini untuk mengatur jadwal kerja Anda</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
                 </div>
             </div>
@@ -87,11 +88,16 @@
                                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Jadwal Kerja Kosong
                             </span>
                         @elseif($user->schedule_type === 'roster')
-                            @if(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
+                            @php
+                                // Ambil jadwal aktual yang sudah memperhitungkan batas jam 07:00 WIB dini hari
+                                $activeSchedule = app(App\Services\ScheduleService::class)->getTodaySchedule($user);
+                            @endphp
+
+                            @if(isset($activeSchedule['is_day_off']) && $activeSchedule['is_day_off'])
                                 <span class="text-rose-600 flex items-center gap-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Sedang OFF (Libur)
                                 </span>
-                            @elseif(isset($todaySchedule['shift_name']) && str_contains(strtolower($todaySchedule['shift_name']), 'pagi'))
+                            @elseif(isset($activeSchedule['shift_type']) && $activeSchedule['shift_type'] === 'pagi')
                                 <span class="text-emerald-600 flex items-center gap-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full {{ $isWorkingNow ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span> 
                                     Shift Pagi <span class="{{ $isWorkingNow ? 'text-emerald-600' : 'text-rose-600' }}">({{ $isWorkingNow ? 'Sedang Bekerja' : 'Sedang OFF - Di Luar Jam Kerja' }})</span>

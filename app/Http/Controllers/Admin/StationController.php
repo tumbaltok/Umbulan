@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User\Station;
+use Illuminate\Http\Request;
 
 class StationController extends Controller
 {
@@ -41,22 +41,22 @@ class StationController extends Controller
         // Pengecekan jika input dikirim dari repeater JavaScript Blade ($request->has('stations'))
         if ($request->has('stations') && is_array($request->stations)) {
             $request->validate([
-                'stations'                 => 'required|array|min:1',
-                'stations.*.kode_stasiun'  => 'required|string|unique:stations,kode_stasiun',
-                'stations.*.name'          => 'required|string|max:255',
-                'stations.*.type'          => 'required|in:kantor,stasiun,rumah_meter',
-                'stations.*.latitude'      => 'required|numeric',
-                'stations.*.longitude'     => 'required|numeric',
+                'stations' => 'required|array|min:1',
+                'stations.*.kode_stasiun' => 'required|string|unique:stations,kode_stasiun',
+                'stations.*.name' => 'required|string|max:255',
+                'stations.*.type' => 'required|in:kantor,stasiun,rumah_meter',
+                'stations.*.latitude' => 'required|numeric',
+                'stations.*.longitude' => 'required|numeric',
                 'stations.*.radius_meters' => 'required|numeric|min:10',
             ]);
 
             foreach ($request->stations as $stasiunData) {
                 Station::create([
-                    'kode_stasiun'  => strtoupper($stasiunData['kode_stasiun']),
-                    'name'          => $stasiunData['name'],
-                    'type'          => strtolower($stasiunData['type']),
-                    'latitude'      => $stasiunData['latitude'],
-                    'longitude'     => $stasiunData['longitude'],
+                    'kode_stasiun' => strtoupper($stasiunData['kode_stasiun']),
+                    'name' => $stasiunData['name'],
+                    'type' => strtolower($stasiunData['type']),
+                    'latitude' => $stasiunData['latitude'],
+                    'longitude' => $stasiunData['longitude'],
                     'radius_meters' => $stasiunData['radius_meters'],
                 ]);
             }
@@ -66,12 +66,12 @@ class StationController extends Controller
 
         // Fallback jika input dikirim secara single item
         $request->validate([
-            'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun',
-            'name'          => 'required|string|max:255',
-            'type'          => 'required|in:kantor,stasiun,rumah_meter',
-            'maps_url'      => 'nullable|url',
-            'latitude'      => 'nullable|numeric',
-            'longitude'     => 'nullable|numeric',
+            'kode_stasiun' => 'required|string|unique:stations,kode_stasiun',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:kantor,stasiun,rumah_meter',
+            'maps_url' => 'nullable|url',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'radius_meters' => 'required|numeric|min:10',
         ]);
 
@@ -91,11 +91,11 @@ class StationController extends Controller
         }
 
         Station::create([
-            'kode_stasiun'  => strtoupper($request->kode_stasiun),
-            'name'          => $request->name,
-            'type'          => strtolower($request->type),
-            'latitude'      => $lat,
-            'longitude'     => $lng,
+            'kode_stasiun' => strtoupper($request->kode_stasiun),
+            'name' => $request->name,
+            'type' => strtolower($request->type),
+            'latitude' => $lat,
+            'longitude' => $lng,
             'radius_meters' => $request->radius_meters,
         ]);
 
@@ -108,27 +108,27 @@ class StationController extends Controller
         $station = Station::findOrFail($id);
 
         // Jika update dikirim via array 'stations[0]' dari form edit
-        $input = $request->has('stations') && isset($request->stations[0]) 
-            ? $request->stations[0] 
+        $input = $request->has('stations') && isset($request->stations[0])
+            ? $request->stations[0]
             : $request->all();
 
         $request->merge($input);
 
         $request->validate([
-            'kode_stasiun'  => 'required|string|unique:stations,kode_stasiun,' . $id,
-            'name'          => 'required|string|max:255',
-            'type'          => 'required|in:kantor,stasiun,rumah_meter',
-            'latitude'      => 'required|numeric',
-            'longitude'     => 'required|numeric',
+            'kode_stasiun' => 'required|string|unique:stations,kode_stasiun,'.$id,
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:kantor,stasiun,rumah_meter',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
             'radius_meters' => 'required|numeric|min:10',
         ]);
 
         $station->update([
-            'kode_stasiun'  => strtoupper($request->kode_stasiun),
-            'name'          => $request->name,
-            'type'          => strtolower($request->type),
-            'latitude'      => $request->latitude,
-            'longitude'     => $request->longitude,
+            'kode_stasiun' => strtoupper($request->kode_stasiun),
+            'name' => $request->name,
+            'type' => strtolower($request->type),
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
             'radius_meters' => $request->radius_meters,
         ]);
 
@@ -141,10 +141,11 @@ class StationController extends Controller
         $station = Station::withCount('users')->findOrFail($id);
 
         if ($station->users_count > 0) {
-            return redirect()->back()->with('error', 'Stasiun tidak dapat dihapus karena masih digunakan oleh ' . $station->users_count . ' karyawan!');
+            return redirect()->back()->with('error', 'Stasiun tidak dapat dihapus karena masih digunakan oleh '.$station->users_count.' karyawan!');
         }
 
         $station->delete();
+
         return redirect()->back()->with('success', 'Stasiun kerja berhasil dihapus!');
     }
 
@@ -154,23 +155,23 @@ class StationController extends Controller
         try {
             $stasiun = Station::with('users.role')->find($id);
 
-            if (!$stasiun) {
+            if (! $stasiun) {
                 return response()->json(['status' => 'error', 'message' => 'Stasiun tidak ditemukan.'], 404);
             }
 
-            $data = $stasiun->users->map(function($user) {
+            $data = $stasiun->users->map(function ($user) {
                 return [
-                    'id'            => $user->id,
-                    'name'          => $user->name,
-                    'nip'           => $user->nip ?? '-',
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'nip' => $user->nip ?? '-',
                     'profile_photo' => $user->profile_photo,
-                    'role_name'     => $user->role ? $user->role->role_name : 'Staff',
+                    'role_name' => $user->role ? $user->role->role_name : 'Staff',
                 ];
             });
 
             return response()->json($data, 200);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()], 500);
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem: '.$e->getMessage()], 500);
         }
     }
 }

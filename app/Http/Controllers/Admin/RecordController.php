@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Cuti\PengajuanCuti;
 use App\Models\Car\PengajuanCar;
+use App\Models\Cuti\PengajuanCuti;
 use App\Models\Mpr\PengajuanMpr;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class RecordController extends Controller
 {
@@ -47,16 +47,16 @@ class RecordController extends Controller
         $fileName = "Record_Cuti_Karyawan_META_{$namaBulan}_{$tahun}.csv";
 
         $headers = [
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$fileName}",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         $columns = ['Nama Karyawan', 'NIP', 'Station', 'Jenis Perizinan', 'Total Hari', 'Tanggal Mulai', 'Tanggal Selesai', 'Status'];
 
-        $callback = function() use($dataCuti, $columns) {
+        $callback = function () use ($dataCuti, $columns) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $columns, ';');
@@ -68,10 +68,10 @@ class RecordController extends Controller
                     $cuti->user->nip ?? '-',
                     $cuti->user->station->name ?? 'Pusat',
                     $perihal,
-                    ($cuti->total_hari ?? $cuti->durasi_hari) . ' Hari',
+                    ($cuti->total_hari ?? $cuti->durasi_hari).' Hari',
                     $cuti->tanggal_mulai,
                     $cuti->tanggal_selesai,
-                    strtoupper($cuti->status_akhir ?? 'PENDING')
+                    strtoupper($cuti->status_akhir ?? 'PENDING'),
                 ], ';');
             }
             fclose($file);
@@ -116,16 +116,16 @@ class RecordController extends Controller
         $fileName = "Record_CAR_Karyawan_META_{$namaBulan}_{$tahun}.csv";
 
         $headers = [
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$fileName}",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         $columns = ['Nama Karyawan', 'NIP', 'Station', 'Nominal Dana', 'Keperluan / Deskripsi', 'Tanggal Pengajuan', 'Status'];
 
-        $callback = function() use($dataCar, $columns) {
+        $callback = function () use ($dataCar, $columns) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $columns, ';');
@@ -138,10 +138,10 @@ class RecordController extends Controller
                     $car->user->name ?? '-',
                     $car->user->nip ?? '-',
                     $car->user->station->name ?? 'Pusat',
-                    'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                    'Rp '.number_format($totalNominal, 0, ',', '.'),
                     $keperluanBarang ?: '-',
                     $car->created_at ? $car->created_at->format('Y-m-d') : '-',
-                    strtoupper($car->status_akhir ?? 'PENDING')
+                    strtoupper($car->status_akhir ?? 'PENDING'),
                 ], ';');
             }
             fclose($file);
@@ -186,27 +186,27 @@ class RecordController extends Controller
         $fileName = "Record_MPR_Karyawan_META_{$namaBulan}_{$tahun}.csv";
 
         $headers = [
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$fileName}",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         $columns = ['No. MPR', 'Nama Karyawan', 'NIP', 'Station', 'Urgensi Keperluan', 'Rincian Material', 'Estimasi Total', 'Tanggal Pengajuan', 'Status'];
 
-        $callback = function() use($dataMpr, $columns) {
+        $callback = function () use ($dataMpr, $columns) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $columns, ';');
 
             foreach ($dataMpr as $mpr) {
-                $totalNominal = $mpr->items ? $mpr->items->sum(function($item) {
+                $totalNominal = $mpr->items ? $mpr->items->sum(function ($item) {
                     return $item->jumlah * $item->estimasi_harga;
                 }) : 0;
 
-                $rincianBarang = $mpr->items ? $mpr->items->map(function($item) {
-                    return $item->nama_barang . ' (' . $item->jumlah . ' ' . $item->satuan . ')';
+                $rincianBarang = $mpr->items ? $mpr->items->map(function ($item) {
+                    return $item->nama_barang.' ('.$item->jumlah.' '.$item->satuan.')';
                 })->implode(', ') : '-';
 
                 fputcsv($file, [
@@ -216,9 +216,9 @@ class RecordController extends Controller
                     $mpr->user->station->name ?? 'Pusat',
                     $mpr->keperluan_urgensi ?? '-',
                     $rincianBarang ?: '-',
-                    'Rp ' . number_format($totalNominal, 0, ',', '.'),
+                    'Rp '.number_format($totalNominal, 0, ',', '.'),
                     $mpr->tanggal_pengajuan ?? '-',
-                    strtoupper($mpr->status_akhir ?? 'PENDING')
+                    strtoupper($mpr->status_akhir ?? 'PENDING'),
                 ], ';');
             }
             fclose($file);

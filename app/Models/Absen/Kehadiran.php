@@ -2,10 +2,10 @@
 
 namespace App\Models\Absen;
 
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User\User;
 
 class Kehadiran extends Model
 {
@@ -41,7 +41,7 @@ class Kehadiran extends Model
         'longitude_masuk',
         'latitude_pulang',
         'longitude_pulang',
-        'keterangan'
+        'keterangan',
     ];
 
     public function user(): BelongsTo

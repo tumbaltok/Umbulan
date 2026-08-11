@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Absen;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class JadwalController extends Controller
 {
@@ -14,77 +14,125 @@ class JadwalController extends Controller
     public function setInitialShift(Request $request)
     {
         $request->validate([
-            'current_shift' => 'required|in:pagi,malam,libur',
+            'current_shift_choice' => ['required', 'in:pagi,malam,libur'],
         ]);
 
         $user = $request->user();
-        
-        // PERBAIKAN: Gunakan timezone Asia/Jakarta
-        $today = Carbon::today('Asia/Jakarta');
+        $now = Carbon::now('Asia/Jakarta');
 
-        $currentTuesday = $today->copy()->startOfWeek(Carbon::TUESDAY);
-        if ($today->lt($currentTuesday)) {
+        $currentTuesday = $now
+            ->copy()
+            ->startOfWeek(Carbon::TUESDAY)
+            ->setTime(7, 0, 0);
+
+        if (
+            $now->dayOfWeekIso === Carbon::TUESDAY &&
+            $now->lt($currentTuesday)
+        ) {
             $currentTuesday->subWeek();
         }
 
-        if ($request->current_shift === 'pagi') {
-            $rosterStartDate = $currentTuesday;
-        } elseif ($request->current_shift === 'malam') {
-            $rosterStartDate = $currentTuesday->copy()->subWeek();
-        } else {
-            $rosterStartDate = $currentTuesday->copy()->subWeeks(2);
+        if ($currentTuesday->gt($now)) {
+            $currentTuesday->subWeek();
+        }
+
+        $selectedShift = $request->input('current_shift_choice');
+
+        switch ($selectedShift) {
+            case 'pagi':
+                $rosterStartDate = $currentTuesday->copy();
+                break;
+            case 'malam':
+                $rosterStartDate = $currentTuesday->copy()->subWeek();
+                break;
+            case 'libur':
+                $rosterStartDate = $currentTuesday->copy()->subWeeks(2);
+                break;
+            default:
+                abort(422, 'Shift tidak valid.');
         }
 
         $user->update([
+            'schedule_type' => 'roster',
             'roster_start_date' => $rosterStartDate->format('Y-m-d'),
-            'schedule_type'     => 'roster', // Pastikan tipe otomatis terset ke roster
         ]);
 
-        return redirect()->back()->with('success', 'Shift berhasil dikonfirmasi! Rotasi shift Anda akan otomatis berganti setiap hari Selasa.');
-    }
-    
-    public function showInitialShiftForm()
-    {
-        return view('schedule.initial_shift');
+        return redirect()
+            ->back()
+            ->with('success', 'Shift berhasil dikonfirmasi. Rotasi otomatis setiap Selasa pukul 07:00 WIB.');
     }
 
-    /**
-     * Memperbarui Pengaturan Tipe Jadwal Kerja (Normal / Roster)
-     */
     public function updateSchedule(Request $request)
     {
         $request->validate([
-            'schedule_type'     => 'required|in:normal,roster',
-            'normal_work_days'  => 'nullable|array',
-            'normal_check_in'   => 'nullable|string',
-            'normal_check_out'  => 'nullable|string',
-            'roster_start_date' => 'nullable|date',
+            'schedule_type' => ['required', 'in:normal,roster'],
+            'normal_work_days' => ['nullable', 'array'],
+            'normal_check_in' => ['nullable', 'date_format:H:i'],
+            'normal_check_out' => ['nullable', 'date_format:H:i'],
+            'current_shift_choice' => ['nullable', 'in:pagi,malam,libur'],
+            'roster_start_date' => ['nullable', 'date_format:Y-m-d'],
         ]);
 
+        $user = $request->user();
         $updateData = [
             'schedule_type' => $request->schedule_type,
         ];
 
-        // Jika memilih tipe Normal, simpan detail hari & jam kerjanya
         if ($request->schedule_type === 'normal') {
-            if ($request->has('normal_work_days')) {
-                $updateData['normal_work_days'] = $request->normal_work_days;
-            }
+            $updateData['normal_work_days'] = $request->input('normal_work_days', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+
             if ($request->filled('normal_check_in')) {
                 $updateData['normal_check_in'] = $request->normal_check_in;
             }
             if ($request->filled('normal_check_out')) {
                 $updateData['normal_check_out'] = $request->normal_check_out;
             }
-        } 
-        // Jika memilih Roster dan ada input roster_start_date
-        elseif ($request->schedule_type === 'roster' && $request->filled('roster_start_date')) {
-            $updateData['roster_start_date'] = $request->roster_start_date;
+        } elseif ($request->schedule_type === 'roster') {
+            $selectedShift = $request->input('current_shift_choice');
+
+            if ($selectedShift) {
+                $now = Carbon::now('Asia/Jakarta');
+                $currentTuesday = $now
+                    ->copy()
+                    ->startOfWeek(Carbon::TUESDAY)
+                    ->setTime(7, 0, 0);
+
+                if (
+                    $now->dayOfWeekIso === Carbon::TUESDAY &&
+                    $now->lt($currentTuesday)
+                ) {
+                    $currentTuesday->subWeek();
+                }
+
+                if ($currentTuesday->gt($now)) {
+                    $currentTuesday->subWeek();
+                }
+
+                switch ($selectedShift) {
+                    case 'pagi':
+                        $rosterStartDate = $currentTuesday->copy();
+                        break;
+                    case 'malam':
+                        $rosterStartDate = $currentTuesday->copy()->subWeek();
+                        break;
+                    case 'libur':
+                        $rosterStartDate = $currentTuesday->copy()->subWeeks(2);
+                        break;
+                    default:
+                        abort(422, 'Shift roster tidak valid.');
+                }
+
+                $updateData['roster_start_date'] = $rosterStartDate->format('Y-m-d');
+            } elseif ($request->filled('roster_start_date')) {
+                $updateData['roster_start_date'] = Carbon::parse($request->roster_start_date, 'Asia/Jakarta')->format('Y-m-d');
+            }
         }
 
-        $request->user()->update($updateData);
+        $user->update($updateData);
 
-        return redirect()->back()->with('success', 'Jadwal kerja berhasil diperbarui.');
+        return redirect()
+            ->back()
+            ->with('success', 'Jadwal kerja berhasil diperbarui.');
     }
 
     /**

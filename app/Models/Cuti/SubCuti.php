@@ -18,7 +18,7 @@ class SubCuti extends Model
         'nama_sub_cuti',
         'durasi_default',
         'keterangan_opsional',
-        'apakah_wajib_dokumen'
+        'apakah_wajib_dokumen',
     ];
 
     protected $casts = [

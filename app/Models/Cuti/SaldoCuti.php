@@ -18,7 +18,7 @@ class SaldoCuti extends Model
         'kuota_awal',
         'bulan',
         'sisa_saldo',
-        'tahun'
+        'tahun',
     ];
 
     // Relasi dipindahkan ke sini

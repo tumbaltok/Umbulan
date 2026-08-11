@@ -79,7 +79,7 @@
                         <th class="p-4">Jam Masuk</th>
                         <th class="p-4">Jam Pulang</th>
                         <th class="p-4">Status & Lokasi</th>
-                        <th class="p-4">Foto Hadir</th>
+                        <th class="p-4">Foto Absensi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -217,15 +217,19 @@
                             <td class="p-4">
                                 <div class="flex items-center gap-2">
                                     @if(!empty($absen->face_photo_in))
-                                        <a href="{{ asset('storage/' . $absen->face_photo_in) }}" target="_blank" class="text-sky-600 hover:underline font-semibold flex items-center gap-1 text-[11px]">
+                                        <button type="button" 
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_in) }}', 'Foto Absen Masuk - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-sky-600 hover:text-sky-700 hover:bg-sky-50 px-2 py-1 rounded-lg font-semibold flex items-center gap-1 text-[11px] transition-colors cursor-pointer">
                                             <i class="fa-solid fa-image"></i> Masuk
-                                        </a>
+                                        </button>
                                     @endif
 
                                     @if(!empty($absen->face_photo_out))
-                                        <a href="{{ asset('storage/' . $absen->face_photo_out) }}" target="_blank" class="text-purple-600 hover:underline font-semibold flex items-center gap-1 text-[11px]">
+                                        <button type="button" 
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_out) }}', 'Foto Absen Pulang - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded-lg font-semibold flex items-center gap-1 text-[11px] transition-colors cursor-pointer">
                                             <i class="fa-solid fa-image"></i> Pulang
-                                        </a>
+                                        </button>
                                     @endif
 
                                     @if(empty($absen->face_photo_in) && empty($absen->face_photo_out))
@@ -303,4 +307,76 @@
     </div>
 
 </div>
+
+<!-- MODAL POPUP LIGHTBOX FOTO ABSENSI -->
+<div id="photoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+    <div id="photoModalCard" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 transform transition-all duration-300 scale-95 opacity-0">
+        <!-- HEADER MODAL -->
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <h3 id="photoModalTitle" class="text-xs font-bold text-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-image text-sky-600"></i>
+                <span>Foto Absensi</span>
+            </h3>
+            <button onclick="closePhotoModal()" class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-rose-100 hover:text-rose-600 text-slate-500 flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <!-- BODY MODAL (FOTO) -->
+        <div class="p-4 flex items-center justify-center bg-slate-900/5 min-h-[250px]">
+            <img id="photoModalImage" src="" alt="Foto Absensi" class="max-h-[70vh] w-auto rounded-xl object-contain shadow-md">
+        </div>
+        <!-- FOOTER MODAL -->
+        <div class="p-3 border-t border-slate-100 bg-white flex justify-end">
+            <button onclick="closePhotoModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPhotoModal(imageUrl, titleText) {
+        const modal = document.getElementById('photoModal');
+        const modalCard = document.getElementById('photoModalCard');
+        const img = document.getElementById('photoModalImage');
+        const title = document.getElementById('photoModalTitle');
+
+        if (!modal || !modalCard || !img || !title) return;
+
+        img.src = imageUrl;
+        title.querySelector('span').innerText = titleText;
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalCard.classList.remove('scale-95', 'opacity-0');
+            modalCard.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closePhotoModal() {
+        const modal = document.getElementById('photoModal');
+        const modalCard = document.getElementById('photoModalCard');
+        if (!modal || !modalCard) return;
+
+        modalCard.classList.remove('scale-100', 'opacity-100');
+        modalCard.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('photoModalImage').src = '';
+        }, 200);
+    }
+
+    document.getElementById('photoModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePhotoModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePhotoModal();
+        }
+    });
+</script>
 @endsection

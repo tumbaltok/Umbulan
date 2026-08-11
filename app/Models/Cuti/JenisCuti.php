@@ -10,7 +10,7 @@ class JenisCuti extends Model
         'keterangan' => 'array',
     ];
 
-    public function subCutis() 
+    public function subCutis()
     {
         return $this->hasMany(SubCuti::class, 'jenis_cuti_id');
     }

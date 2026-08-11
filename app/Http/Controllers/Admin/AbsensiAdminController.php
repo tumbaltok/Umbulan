@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User\User;
 use App\Models\Absen\Kehadiran;
+use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AbsensiAdminController extends Controller
 {
@@ -48,7 +48,7 @@ class AbsensiAdminController extends Controller
             // Kelompokkan Sudah Absen vs Belum Absen
             if ($dataAbsensi->has($user->id)) {
                 $sudahAbsen[] = [
-                    'user'  => $user,
+                    'user' => $user,
                     'absen' => $dataAbsensi->get($user->id),
                 ];
             } else {

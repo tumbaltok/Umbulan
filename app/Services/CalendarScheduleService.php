@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\User\User;
 use App\Models\Cuti\PengajuanCuti;
-use App\Services\ScheduleService;
+use App\Models\User\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class CalendarScheduleService
@@ -28,32 +27,32 @@ class CalendarScheduleService
             try {
                 // Endpoint resmi Nager.Date API untuk Indonesia (ID)
                 $response = Http::timeout(5)->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/ID");
-                
+
                 if ($response->successful()) {
                     $holidays = [];
                     foreach ($response->json() as $holiday) {
                         // Tentukan nama libur (prioritaskan nama lokal/localName)
                         $holidayName = $holiday['localName'] ?? $holiday['name'];
                         $formattedDate = Carbon::parse($holiday['date'])->format('Y-m-d');
-                        
+
                         $holidays[$formattedDate] = $holidayName;
                     }
 
-                    if (!empty($holidays)) {
+                    if (! empty($holidays)) {
                         return $holidays;
                     }
                 }
             } catch (\Exception $e) {
-                Log::warning("Gagal mengambil data libur dari Nager API: " . $e->getMessage());
+                Log::warning('Gagal mengambil data libur dari Nager API: '.$e->getMessage());
             }
 
             // Fallback Data Libur Standar (Jika API Offline)
             return [
-                "{$year}-01-01" => "Tahun Baru Masehi",
-                "{$year}-05-01" => "Hari Buruh Internasional",
-                "{$year}-06-01" => "Hari Lahir Pancasila",
-                "{$year}-08-17" => "Hari Kemerdekaan RI",
-                "{$year}-12-25" => "Hari Raya Natal",
+                "{$year}-01-01" => 'Tahun Baru Masehi',
+                "{$year}-05-01" => 'Hari Buruh Internasional',
+                "{$year}-06-01" => 'Hari Lahir Pancasila',
+                "{$year}-08-17" => 'Hari Kemerdekaan RI',
+                "{$year}-12-25" => 'Hari Raya Natal',
             ];
         });
     }
@@ -72,11 +71,11 @@ class CalendarScheduleService
             ->where('status_manager', 'approved')
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('tanggal_mulai', [$startDate, $endDate])
-                      ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])
-                      ->orWhere(function ($subQuery) use ($startDate, $endDate) {
-                          $subQuery->where('tanggal_mulai', '<=', $startDate)
-                                   ->where('tanggal_selesai', '>=', $endDate);
-                      });
+                    ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])
+                    ->orWhere(function ($subQuery) use ($startDate, $endDate) {
+                        $subQuery->where('tanggal_mulai', '<=', $startDate)
+                            ->where('tanggal_selesai', '>=', $endDate);
+                    });
             })
             ->get();
 
@@ -86,7 +85,7 @@ class CalendarScheduleService
         while ($currentDate->lte($endDate)) {
             $dateString = $currentDate->format('Y-m-d');
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
-            
+
             // 1. Cek Apakah Ada Cuti pada Tanggal Ini
             $leaveInfo = null;
             foreach ($approvedLeaves as $leave) {
@@ -97,8 +96,8 @@ class CalendarScheduleService
             }
 
             // Determine Status & Box Color (Style GitHub)
-            $statusType = 'normal_work'; 
-            $colorClass = 'bg-emerald-500 hover:bg-emerald-600'; 
+            $statusType = 'normal_work';
+            $colorClass = 'bg-emerald-500 hover:bg-emerald-600';
             $titleText = 'Jadwal Masuk Kerja';
             $descriptionText = '';
 
@@ -107,7 +106,7 @@ class CalendarScheduleService
                 $statusType = 'cuti';
                 $colorClass = 'bg-amber-400 hover:bg-amber-500';
                 $titleText = 'Sedang Cuti';
-                $descriptionText = 'Pengajuan Cuti Disetujui: ' . ($leaveInfo->alasan_cuti ?? 'Izin Cuti');
+                $descriptionText = 'Pengajuan Cuti Disetujui: '.($leaveInfo->alasan_cuti ?? 'Izin Cuti');
             } elseif ($user->schedule_type === 'normal') {
                 // JADWAL NORMAL
                 $isNationalHoliday = isset($holidays[$dateString]);
@@ -115,7 +114,7 @@ class CalendarScheduleService
                     // LIBUR -> MERAH
                     $statusType = 'libur';
                     $colorClass = 'bg-rose-500 hover:bg-rose-600';
-                    $titleText = $isNationalHoliday ? 'Libur Nasional: ' . $holidays[$dateString] : 'Libur Akhir Pekan';
+                    $titleText = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : 'Libur Akhir Pekan';
                     $descriptionText = $isNationalHoliday ? $holidays[$dateString] : 'Hari Libur Kerja Normal';
                 } else {
                     $descriptionText = "Masuk Kerja Normal ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";

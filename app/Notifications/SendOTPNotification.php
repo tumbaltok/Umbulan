@@ -28,7 +28,7 @@ class SendOTPNotification extends Notification
             ->subject('Kode OTP Anda')
             ->greeting('Halo!')
             ->line('Berikut adalah kode OTP untuk verifikasi akun Anda:')
-            ->line('**' . $this->otp . '**')
+            ->line('**'.$this->otp.'**')
             ->line('Kode ini hanya berlaku selama 5 menit.')
             ->line('Jangan bagikan kode ini kepada siapa pun.');
     }

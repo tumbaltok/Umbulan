@@ -17,17 +17,17 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('alasan_pembelian')->nullable();
             $table->string('receiving_account')->nullable();
-            
+
             // Status Persetujuan Bertingkat & ID Approver
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->enum('status_manager', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('catatan_penolakan')->nullable();
-            
+
             $table->timestamps();
         });
 

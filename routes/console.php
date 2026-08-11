@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\User\User;
+use Carbon\Carbon;
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Schedule;
 
 // Bawaan Laravel: Menampilkan quotes inspiratif
 Artisan::command('inspire', function () {
@@ -34,7 +34,7 @@ Schedule::call(function () {
 
     foreach ($pengajuanPending as $pengajuan) {
         $user = $pengajuan->user;
-        if (!$user) {
+        if (! $user) {
             continue;
         }
 
@@ -47,14 +47,14 @@ Schedule::call(function () {
             $targetRole = 'manager';
         }
 
-        if (!$targetRole) {
+        if (! $targetRole) {
             continue;
         }
 
         // Cari atasan yang sesuai dengan targetRole di station yang sama
         $targetAtasan = User::where('station_id', $user->station_id)
-            ->whereHas('role', function($query) use ($targetRole) {
-                $query->where(DB::raw('LOWER(role_name)'), 'LIKE', '%' . strtolower($targetRole) . '%');
+            ->whereHas('role', function ($query) use ($targetRole) {
+                $query->where(DB::raw('LOWER(role_name)'), 'LIKE', '%'.strtolower($targetRole).'%');
             })
             ->whereNotNull('phone_verified_at')
             ->get();
@@ -64,28 +64,28 @@ Schedule::call(function () {
 
         // Template Pesan WhatsApp
         $labelAtasan = strtoupper($targetRole);
-        $templatePesan = "⏳ *PENGINGAT: PENGAJUAN " . strtoupper($perihal) . " PERLU PERSETUJUAN {$labelAtasan}*\n\n"
-            . "Halo Bapak/Ibu {$labelAtasan},\n"
-            . "Mohon segera tinjau dokumen pengajuan berikut yang menunggu persetujuan Anda.\n\n"
-            . "▪ *Nama Karyawan:* {$user->name}\n"
-            . "▪ *NIP:* " . ($user->nip ?? '-') . "\n"
-            . "▪ *Station:* {$namaStation}\n"
-            . "▪ *Tanggal:* {$pengajuan->tanggal_mulai} s/d {$pengajuan->tanggal_selesai} ({$pengajuan->total_hari} Hari)\n"
-            . "▪ *Alasan:* " . ($pengajuan->alasan_cuti ?? '-') . "\n\n"
-            . "Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
-            . "Link: " . url('/admin/persetujuan/cuti') . "\n\n"
-            . "_Pesan pengingat otomatis sistem Tirta Umbulan._";
+        $templatePesan = '⏳ *PENGINGAT: PENGAJUAN '.strtoupper($perihal)." PERLU PERSETUJUAN {$labelAtasan}*\n\n"
+            ."Halo Bapak/Ibu {$labelAtasan},\n"
+            ."Mohon segera tinjau dokumen pengajuan berikut yang menunggu persetujuan Anda.\n\n"
+            ."▪ *Nama Karyawan:* {$user->name}\n"
+            .'▪ *NIP:* '.($user->nip ?? '-')."\n"
+            ."▪ *Station:* {$namaStation}\n"
+            ."▪ *Tanggal:* {$pengajuan->tanggal_mulai} s/d {$pengajuan->tanggal_selesai} ({$pengajuan->total_hari} Hari)\n"
+            .'▪ *Alasan:* '.($pengajuan->alasan_cuti ?? '-')."\n\n"
+            ."Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
+            .'Link: '.url('/admin/persetujuan/cuti')."\n\n"
+            .'_Pesan pengingat otomatis sistem Tirta Umbulan._';
 
         // Kirim ke nomor HP masing-masing atasan
         foreach ($targetAtasan as $atasan) {
             $targetPhone = $atasan->phone_number;
-            if (!$targetPhone) {
+            if (! $targetPhone) {
                 continue;
             }
 
             $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
             if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
-                $cleanPhone = '62' . substr($cleanPhone, 1);
+                $cleanPhone = '62'.substr($cleanPhone, 1);
             }
 
             try {
@@ -94,36 +94,36 @@ Schedule::call(function () {
                 ])->post('https://api.fonnte.com/send', [
                     'target' => $cleanPhone,
                     'message' => $templatePesan,
-                    'all' => 'true'
+                    'all' => 'true',
                 ]);
-            } catch (\Exception $e) {
-                Log::error("Gagal mengirim WA scheduler berjenjang: " . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Gagal mengirim WA scheduler berjenjang: '.$e->getMessage());
             }
         }
     }
 })
-->everyTenMinutes()
-->timezone('Asia/Jakarta')
-->when(function () {
-    // --- PENGECEKAN JAM KERJA DINAMIS DARI DATABASE ---
-    $now = Carbon::now('Asia/Jakarta');
+    ->everyTenMinutes()
+    ->timezone('Asia/Jakarta')
+    ->when(function () {
+        // --- PENGECEKAN JAM KERJA DINAMIS DARI DATABASE ---
+        $now = Carbon::now('Asia/Jakarta');
 
-    // Ambil setting jam kerja dari database (Contoh: tabel/pengaturan jadwal kerja)
-    // Silakan sesuaikan nama tabel/model pencarian sesuai aplikasi Anda
-    $scheduleSetting = DB::table('settings')->where('key', 'jam_kerja')->first();
+        // Ambil setting jam kerja dari database (Contoh: tabel/pengaturan jadwal kerja)
+        // Silakan sesuaikan nama tabel/model pencarian sesuai aplikasi Anda
+        $scheduleSetting = DB::table('settings')->where('key', 'jam_kerja')->first();
 
-    // Nilai Fallback/Default jika setting database belum diisi
-    $jamMasuk  = '08:00';
-    $jamPulang = '17:00';
+        // Nilai Fallback/Default jika setting database belum diisi
+        $jamMasuk = '08:00';
+        $jamPulang = '17:00';
 
-    if ($scheduleSetting && isset($scheduleSetting->jam_masuk, $scheduleSetting->jam_pulang)) {
-        $jamMasuk  = $scheduleSetting->jam_masuk;
-        $jamPulang = $scheduleSetting->jam_pulang;
-    }
+        if ($scheduleSetting && isset($scheduleSetting->jam_masuk, $scheduleSetting->jam_pulang)) {
+            $jamMasuk = $scheduleSetting->jam_masuk;
+            $jamPulang = $scheduleSetting->jam_pulang;
+        }
 
-    $startWork = Carbon::createFromTimeString($jamMasuk, 'Asia/Jakarta');
-    $endWork   = Carbon::createFromTimeString($jamPulang, 'Asia/Jakarta');
+        $startWork = Carbon::createFromTimeString($jamMasuk, 'Asia/Jakarta');
+        $endWork = Carbon::createFromTimeString($jamPulang, 'Asia/Jakarta');
 
-    // Kembalikan 'true' HANYA jika waktu sekarang berada di antara Jam Masuk & Jam Pulang
-    return $now->between($startWork, $endWork);
-});
+        // Kembalikan 'true' HANYA jika waktu sekarang berada di antara Jam Masuk & Jam Pulang
+        return $now->between($startWork, $endWork);
+    });

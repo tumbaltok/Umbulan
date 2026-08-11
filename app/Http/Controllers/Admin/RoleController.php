@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User\Role;
 use App\Models\User\Jobdesk;
+use App\Models\User\Role;
+use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
@@ -21,9 +21,9 @@ class RoleController extends Controller
     {
         if ($request->has('roles')) {
             $request->validate([
-                'roles.*.role_name'   => 'required|string|max:255',
-                'roles.*.divisi'      => 'required|string|max:255',
-                'roles.*.level'       => 'required|integer',
+                'roles.*.role_name' => 'required|string|max:255',
+                'roles.*.divisi' => 'required|string|max:255',
+                'roles.*.level' => 'required|integer',
                 'roles.*.description' => 'nullable|string',
             ]);
 
@@ -32,9 +32,9 @@ class RoleController extends Controller
             }
         } else {
             $request->validate([
-                'role_name'   => 'required|string|max:255',
-                'divisi'      => 'required|string|max:255',
-                'level'       => 'required|integer',
+                'role_name' => 'required|string|max:255',
+                'divisi' => 'required|string|max:255',
+                'level' => 'required|integer',
                 'description' => 'nullable|string',
             ]);
 
@@ -75,29 +75,29 @@ class RoleController extends Controller
     {
         if ($request->has('jobdesks')) {
             $request->validate([
-                'jobdesks.*.job_title'   => 'required|string|max:255|unique:jobdesks,job_title',
+                'jobdesks.*.job_title' => 'required|string|max:255|unique:jobdesks,job_title',
                 'jobdesks.*.description' => 'nullable|string',
             ], [
                 'jobdesks.*.job_title.required' => 'Nama Jobdesk / Bidang Tugas wajib diisi.',
-                'jobdesks.*.job_title.unique'   => 'Nama Jobdesk tersebut sudah ada.',
+                'jobdesks.*.job_title.unique' => 'Nama Jobdesk tersebut sudah ada.',
             ]);
 
             foreach ($request->jobdesks as $jobdeskData) {
-                if (!empty($jobdeskData['job_title'])) {
+                if (! empty($jobdeskData['job_title'])) {
                     Jobdesk::create([
-                        'job_title'   => $jobdeskData['job_title'],
+                        'job_title' => $jobdeskData['job_title'],
                         'description' => $jobdeskData['description'] ?? null,
                     ]);
                 }
             }
         } else {
             $request->validate([
-                'job_title'   => 'required|string|max:255|unique:jobdesks,job_title',
+                'job_title' => 'required|string|max:255|unique:jobdesks,job_title',
                 'description' => 'nullable|string',
             ]);
 
             Jobdesk::create([
-                'job_title'   => $request->job_title,
+                'job_title' => $request->job_title,
                 'description' => $request->description,
             ]);
         }
@@ -109,16 +109,16 @@ class RoleController extends Controller
     public function updateJobdesk(Request $request, $id)
     {
         $request->validate([
-            'job_title'   => 'required|string|max:255|unique:jobdesks,job_title,' . $id,
+            'job_title' => 'required|string|max:255|unique:jobdesks,job_title,'.$id,
             'description' => 'nullable|string',
         ], [
             'job_title.required' => 'Nama Jobdesk wajib diisi.',
-            'job_title.unique'   => 'Nama Jobdesk tersebut sudah digunakan.',
+            'job_title.unique' => 'Nama Jobdesk tersebut sudah digunakan.',
         ]);
 
         $jobdesk = Jobdesk::findOrFail($id);
         $jobdesk->update([
-            'job_title'   => $request->job_title,
+            'job_title' => $request->job_title,
             'description' => $request->description,
         ]);
 

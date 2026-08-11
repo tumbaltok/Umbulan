@@ -19,7 +19,7 @@ class CutiDokumenController extends Controller
 
         return view('cuti.pembungkus_pdf', [
             'id' => $id,
-            'title' => 'Surat Cuti - ' . $pengajuan->user->name
+            'title' => 'Surat Cuti - '.$pengajuan->user->name,
         ]);
     }
 
@@ -35,8 +35,6 @@ class CutiDokumenController extends Controller
         $pdf = Pdf::loadView('cuti.cetak', compact('pengajuan'));
         $pdf->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Surat_Cuti_' . str_replace(' ', '_', $pengajuan->user->name) . '.pdf');
+        return $pdf->stream('Surat_Cuti_'.str_replace(' ', '_', $pengajuan->user->name).'.pdf');
     }
-
-
 }

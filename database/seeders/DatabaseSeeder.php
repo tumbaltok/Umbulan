@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User\User;
-use App\Models\User\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\User\Gender;
 use App\Models\Cuti\JenisCuti;
-use App\Models\User\Station;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\Cuti\SubCuti;
+use App\Models\User\Gender;
+use App\Models\User\Role;
+use App\Models\User\Station;
+use App\Models\User\User;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
@@ -39,24 +39,24 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // DATA MASTER ROLES (Hanya Role Admin & Staff/Lainnya jika dibutuhkan)
         // ==========================================
-        $roleAdmin   = Role::create(['role_name' => 'Admin', 'divisi' => 'Manajemen', 'level' => 1, 'description' => 'Akses penuh ke seluruh sistem ERP']);
+        $roleAdmin = Role::create(['role_name' => 'Admin', 'divisi' => 'Manajemen', 'level' => 1, 'description' => 'Akses penuh ke seluruh sistem ERP']);
         $roleManager = Role::create(['role_name' => 'Manager', 'divisi' => 'Manajemen', 'level' => 2, 'description' => 'Persetujuan tingkat manajerial']);
-        $roleHRD     = Role::create(['role_name' => 'HRD', 'divisi' => 'Manajemen', 'level' => 3, 'description' => 'Pengelolaan kepegawaian dan data cuti']);
-        $roleSpv     = Role::create(['role_name' => 'Supervisor', 'divisi' => 'Operasional', 'level' => 3, 'description' => 'Persetujuan dan pengawasan tingkat stasiun/sektor']);
-        $roleStaff   = Role::create(['role_name' => 'Staff', 'divisi' => 'Operasional', 'level' => 4, 'description' => 'Karyawan pelaksana / operator stasiun']);
+        $roleHRD = Role::create(['role_name' => 'HRD', 'divisi' => 'Manajemen', 'level' => 3, 'description' => 'Pengelolaan kepegawaian dan data cuti']);
+        $roleSpv = Role::create(['role_name' => 'Supervisor', 'divisi' => 'Operasional', 'level' => 3, 'description' => 'Persetujuan dan pengawasan tingkat stasiun/sektor']);
+        $roleStaff = Role::create(['role_name' => 'Staff', 'divisi' => 'Operasional', 'level' => 4, 'description' => 'Karyawan pelaksana / operator stasiun']);
 
         // DATA MASTER GENDERS
-        $pria   = Gender::create(['name' => 'Pria']);
+        $pria = Gender::create(['name' => 'Pria']);
         $wanita = Gender::create(['name' => 'Wanita']);
 
         // DATA MASTER STATIONS
         $stasiunUmbulan = Station::updateOrCreate(
             ['kode_stasiun' => 'UMBULAN'],
             [
-                'name'          => 'Stasiun Umbulan',
-                'type'          => 'stasiun',
-                'latitude'      => -7.7572565,
-                'longitude'     => 112.9314949,
+                'name' => 'Stasiun Umbulan',
+                'type' => 'stasiun',
+                'latitude' => -7.7572565,
+                'longitude' => 112.9314949,
                 'radius_meters' => 1000,
             ]
         );
@@ -67,11 +67,11 @@ class DatabaseSeeder extends Seeder
 
         // 1. Ijin Meninggalkan Pekerjaan
         $ijinMeninggalkanPekerjaan = JenisCuti::create([
-            'kode_cuti'          => 'IMP',
-            'name_cuti'          => 'Ijin Meninggalkan Pekerjaan',
-            'kuota_default'      => 12,
+            'kode_cuti' => 'IMP',
+            'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
+            'kuota_default' => 12,
             'butuh_surat_dokter' => false,
-            'keterangan'         => null
+            'keterangan' => null,
         ]);
 
         $dataSubCuti = [
@@ -92,29 +92,29 @@ class DatabaseSeeder extends Seeder
 
         foreach ($dataSubCuti as $sub) {
             SubCuti::create([
-                'jenis_cuti_id'       => $ijinMeninggalkanPekerjaan->id,
-                'nama_sub_cuti'       => $sub['nama'],
-                'durasi_default'      => $sub['durasi'],
-                'keterangan_opsional' => $sub['ket']
+                'jenis_cuti_id' => $ijinMeninggalkanPekerjaan->id,
+                'nama_sub_cuti' => $sub['nama'],
+                'durasi_default' => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket'],
             ]);
         }
 
         // 2. Cuti Family Visit
         $cutiFamilyVisit = JenisCuti::create([
-            'kode_cuti'          => 'CFV',
-            'name_cuti'          => 'Cuti Family Visit/ Penugasan Sementara per 3 bulan',
-            'kuota_default'      => 0,
+            'kode_cuti' => 'CFV',
+            'name_cuti' => 'Cuti Family Visit/ Penugasan Sementara per 3 bulan',
+            'kuota_default' => 0,
             'butuh_surat_dokter' => false,
-            'keterangan'         => null
+            'keterangan' => null,
         ]);
 
         // 3. Cuti Melahirkan
         $cutiMelahirkan = JenisCuti::create([
-            'kode_cuti'          => 'CM',
-            'name_cuti'          => 'Cuti Melahirkan',
-            'kuota_default'      => 45,
+            'kode_cuti' => 'CM',
+            'name_cuti' => 'Cuti Melahirkan',
+            'kuota_default' => 45,
             'butuh_surat_dokter' => true,
-            'keterangan'         => null
+            'keterangan' => null,
         ]);
 
         $subMelahirkan = [
@@ -124,20 +124,20 @@ class DatabaseSeeder extends Seeder
 
         foreach ($subMelahirkan as $sub) {
             SubCuti::create([
-                'jenis_cuti_id'       => $cutiMelahirkan->id,
-                'nama_sub_cuti'       => $sub['nama'],
-                'durasi_default'      => $sub['durasi'],
-                'keterangan_opsional' => $sub['ket']
+                'jenis_cuti_id' => $cutiMelahirkan->id,
+                'nama_sub_cuti' => $sub['nama'],
+                'durasi_default' => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket'],
             ]);
         }
 
         // 4. Cuti Tahunan Utama
         $cutiTahunan = JenisCuti::create([
-            'kode_cuti'          => 'CT',
-            'name_cuti'          => 'Cuti',
-            'kuota_default'      => 12,
+            'kode_cuti' => 'CT',
+            'name_cuti' => 'Cuti',
+            'kuota_default' => 12,
             'butuh_surat_dokter' => false,
-            'keterangan'         => null
+            'keterangan' => null,
         ]);
 
         // ==========================================
@@ -145,23 +145,23 @@ class DatabaseSeeder extends Seeder
         // ==========================================
 
         $admin = User::create([
-            'nip'               => '000',
-            'name'              => 'Admin Sistem',
-            'email'             => 'admin@meta.com',
+            'nip' => '000',
+            'name' => 'Admin Sistem',
+            'email' => 'admin@meta.com',
             'email_verified_at' => now(),
-            'role_id'           => $roleAdmin->id,
-            'gender_id'         => $pria->id,
-            'station_id'        => $stasiunUmbulan->id,
-            'sektor'            => 'Operasional',
-            'job_title'         => '',
+            'role_id' => $roleAdmin->id,
+            'gender_id' => $pria->id,
+            'station_id' => $stasiunUmbulan->id,
+            'sektor' => 'Operasional',
+            'job_title' => '',
             // 'schedule_type'     => '',
             // 'roster_start_date' => now(),
-            'normal_work_days'  => '',
-            'normal_check_in'   => '',
-            'normal_check_out'  => '',
-            'phone_number'      => '081234567890',
+            'normal_work_days' => '',
+            'normal_check_in' => '',
+            'normal_check_out' => '',
+            'phone_number' => '081234567890',
             'phone_verified_at' => now(),
-            'password'          => Hash::make('Admin123.'),
+            'password' => Hash::make('Admin123.'),
         ]);
 
         // ==========================================
@@ -181,10 +181,10 @@ class DatabaseSeeder extends Seeder
             }
 
             SaldoCuti::create([
-                'user_id'       => $admin->id,
+                'user_id' => $admin->id,
                 'jenis_cuti_id' => $cutiData['id'],
-                'sisa_saldo'    => $cutiData['saldo'],
-                'tahun'         => 2026
+                'sisa_saldo' => $cutiData['saldo'],
+                'tahun' => 2026,
             ]);
         }
     }

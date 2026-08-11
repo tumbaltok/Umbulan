@@ -2,22 +2,19 @@
 
 namespace App\Models\User;
 
+use App\Models\Absen\Kehadiran;
+use App\Models\Cuti\JenisCuti;
+use App\Models\Cuti\PengajuanCuti;
+use App\Models\Cuti\SaldoCuti;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User\Station;
-use App\Models\User\Role;
-use App\Models\User\Gender;
-use App\Models\Cuti\JenisCuti;
-use App\Models\Cuti\SaldoCuti;
-use App\Models\Cuti\PengajuanCuti;
-use App\Models\Absen\Kehadiran;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -56,9 +53,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'normal_work_days'  => 'array',
-            'face_descriptor'   => 'array',
+            'password' => 'hashed',
+            'normal_work_days' => 'array',
+            'face_descriptor' => 'array',
             'roster_start_date' => 'date',
         ];
     }
@@ -84,26 +81,30 @@ class User extends Authenticatable implements MustVerifyEmail
                 }
 
                 SaldoCuti::create([
-                    'user_id'       => $user->id,
+                    'user_id' => $user->id,
                     'jenis_cuti_id' => $cuti->id,
-                    'tahun'         => now()->year,
-                    'kuota_awal'    => $saldoAwal,
-                    'sisa_saldo'    => $saldoAwal,
+                    'tahun' => now()->year,
+                    'kuota_awal' => $saldoAwal,
+                    'sisa_saldo' => $saldoAwal,
                 ]);
             }
         });
     }
 
     protected $attributes = [
-        'schedule_type' => null, 
+        'schedule_type' => null,
     ];
 
     const CUTI_TAHUNAN_ID = 4;
+
     const CUTI_HAID_ID = 5;
 
     const JOB_OPERATOR = 'Operator';
+
     const JOB_MAINTENANCE = 'Maintenance';
+
     const JOB_HSE = 'HSE';
+
     const JOB_DOKUMENTASI = 'Dokumentasi';
 
     // --- RELASI MODEL ---
@@ -131,25 +132,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function cuti_aktif(): HasMany
     {
         return $this->hasMany(PengajuanCuti::class, 'user_id')
-                    ->where('status_manager', 'approved')
-                    ->whereDate('tanggal_mulai', '<=', now())
-                    ->whereDate('tanggal_selesai', '>=', now());
+            ->where('status_manager', 'approved')
+            ->whereDate('tanggal_mulai', '<=', now())
+            ->whereDate('tanggal_selesai', '>=', now());
     }
 
     public function saldo_cuti_tahunan(int $jenisCutiId): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
-                    ->where('jenis_cuti_id', $jenisCutiId)
-                    ->whereNull('bulan')
-                    ->where('tahun', date('Y'));
+            ->where('jenis_cuti_id', $jenisCutiId)
+            ->whereNull('bulan')
+            ->where('tahun', date('Y'));
     }
 
     public function saldo_cuti_haid(): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
-                    ->where('jenis_cuti_id', self::CUTI_HAID_ID)
-                    ->where('bulan', date('n'))
-                    ->where('tahun', date('Y'));
+            ->where('jenis_cuti_id', self::CUTI_HAID_ID)
+            ->where('bulan', date('n'))
+            ->where('tahun', date('Y'));
     }
 
     public function attendances(): HasMany

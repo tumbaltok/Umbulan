@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Car\PengajuanCar;
-use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PengajuanCarController extends Controller
@@ -42,7 +42,7 @@ class PengajuanCarController extends Controller
             'items.*.nama_barang' => 'required|string|max:255',
             'items.*.jumlah' => 'required|integer|min:1',
             'items.*.estimasi_harga' => 'required|numeric|min:0',
-            'items.*.dokumen_pendukung' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048'
+            'items.*.dokumen_pendukung' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $user = Auth::user();
@@ -90,19 +90,19 @@ class PengajuanCarController extends Controller
 
         if (strtolower($roleName) === 'supervisor') {
             $query->where('status_supervisor', 'pending')
-                ->whereHas('user', function($q) use ($atasan) {
+                ->whereHas('user', function ($q) use ($atasan) {
                     $q->where('station_id', $atasan->station_id);
                 });
         } elseif (strtolower($roleName) === 'manager') {
             $query->where('status_supervisor', 'approved')
                 ->where('status_manager', 'pending');
         } else {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('status_supervisor', 'pending')
-                ->orWhere('status_manager', 'pending');
+                    ->orWhere('status_manager', 'pending');
             })
-            ->where('status_supervisor', '!=', 'rejected')
-            ->where('status_manager', '!=', 'rejected');
+                ->where('status_supervisor', '!=', 'rejected')
+                ->where('status_manager', '!=', 'rejected');
         }
 
         // Eksekusi query terlebih dahulu
@@ -120,7 +120,7 @@ class PengajuanCarController extends Controller
     {
         $request->validate([
             'aksi' => 'required|in:approved,rejected',
-            'catatan_penolakan' => 'required_if:aksi,rejected|string|nullable'
+            'catatan_penolakan' => 'required_if:aksi,rejected|string|nullable',
         ]);
 
         $atasan = Auth::user();
@@ -132,13 +132,14 @@ class PengajuanCarController extends Controller
         if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $aksi,
-                'supervisor_id'     => $aksi === 'approved' ? $atasan->id : null,
-                'status_akhir'      => $aksi === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null
+                'supervisor_id' => $aksi === 'approved' ? $atasan->id : null,
+                'status_akhir' => $aksi === 'rejected' ? 'rejected' : 'pending',
+                'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null,
             ]);
+
             return redirect()->back()->with('success', 'Status pengajuan CAR berhasil diperbarui');
 
-        // 2. Logika untuk Manager (Simpan ID Manager)
+            // 2. Logika untuk Manager (Simpan ID Manager)
         } elseif ($roleName === 'manager') {
             if ($pengajuan->status_supervisor === 'rejected') {
                 return redirect()->back()->with('error', 'Pengajuan sudah ditolak oleh Supervisor.');
@@ -151,16 +152,18 @@ class PengajuanCarController extends Controller
             try {
                 $pengajuan->update([
                     'status_manager' => $aksi,
-                    'manager_id'     => $aksi === 'approved' ? $atasan->id : null,
-                    'status_akhir'   => $aksi,
-                    'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null
+                    'manager_id' => $aksi === 'approved' ? $atasan->id : null,
+                    'status_akhir' => $aksi,
+                    'catatan_penolakan' => $aksi === 'rejected' ? $request->catatan_penolakan : null,
                 ]);
 
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+
+                return redirect()->back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
             }
+
             return redirect()->back()->with('success', 'Status pengajuan CAR berhasil diperbarui');
 
         } else {
@@ -180,13 +183,13 @@ class PengajuanCarController extends Controller
 
         $data = [
             'id' => $id,
-            'title' => 'Formulir CAR - ' . $car->user->name,
-            'car' => $car
+            'title' => 'Formulir CAR - '.$car->user->name,
+            'car' => $car,
         ];
 
         $pdf = Pdf::loadView('car.cetak', $data)
-                    ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'portrait');
 
-        return $pdf->stream('CAR-' . $car->id . '.pdf');
+        return $pdf->stream('CAR-'.$car->id.'.pdf');
     }
 }

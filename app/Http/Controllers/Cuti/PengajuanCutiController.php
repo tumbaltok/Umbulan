@@ -3,27 +3,28 @@
 namespace App\Http\Controllers\Cuti;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\Cuti\SaldoCuti;
-use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SubCuti;
 use App\Models\User\User;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use App\Services\CalendarScheduleService;
+use App\Services\ScheduleService;
+use App\Traits\CutiHelperTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Traits\CutiHelperTrait;
-use App\Services\ScheduleService;
-use App\Services\CalendarScheduleService;
 
 class PengajuanCutiController extends Controller
 {
     use CutiHelperTrait;
 
     protected ScheduleService $scheduleService;
+
     protected CalendarScheduleService $calendarScheduleService;
 
     public function __construct(ScheduleService $scheduleService, CalendarScheduleService $calendarScheduleService)
@@ -36,7 +37,7 @@ class PengajuanCutiController extends Controller
     {
         $totalHariKerja = 0;
         $currentDate = $tanggalMulai->copy();
-        
+
         $holidays = $this->calendarScheduleService->getNationalHolidays($tanggalMulai->year);
 
         while ($currentDate->lte($tanggalSelesai)) {
@@ -45,11 +46,11 @@ class PengajuanCutiController extends Controller
 
             if ($user->schedule_type === 'normal') {
                 $isNationalHoliday = isset($holidays[$dateString]);
-                if (!$daySchedule['is_day_off'] && !$isNationalHoliday) {
+                if (! $daySchedule['is_day_off'] && ! $isNationalHoliday) {
                     $totalHariKerja++;
                 }
             } else {
-                if (!$daySchedule['is_day_off']) {
+                if (! $daySchedule['is_day_off']) {
                     $totalHariKerja++;
                 }
             }
@@ -62,11 +63,13 @@ class PengajuanCutiController extends Controller
 
     private function sendWhatsAppNotification(?string $targetPhone, string $message)
     {
-        if (!$targetPhone) return false;
+        if (! $targetPhone) {
+            return false;
+        }
 
         $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
         if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
-            $cleanPhone = '62' . substr($cleanPhone, 1);
+            $cleanPhone = '62'.substr($cleanPhone, 1);
         }
 
         try {
@@ -75,12 +78,13 @@ class PengajuanCutiController extends Controller
             ])->post('https://api.fonnte.com/send', [
                 'target' => $cleanPhone,
                 'message' => $message,
-                'all' => 'true'
+                'all' => 'true',
             ]);
 
             return $response->successful();
         } catch (\Exception $e) {
-            Log::error("Gagal mengirim WA: " . $e->getMessage());
+            Log::error('Gagal mengirim WA: '.$e->getMessage());
+
             return false;
         }
     }
@@ -113,7 +117,7 @@ class PengajuanCutiController extends Controller
         $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';
         $request->validate([
             'jenis_cuti_id' => 'required|exists:jenis_cutis,id',
-            'sub_cuti_id'   => 'nullable|exists:sub_cutis,id',
+            'sub_cuti_id' => 'nullable|exists:sub_cutis,id',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'alasan_cuti' => 'nullable|string',
@@ -127,9 +131,9 @@ class PengajuanCutiController extends Controller
         }
 
         $request->validate([
-            'dokumen_pendukung' => $aturanDokumen
+            'dokumen_pendukung' => $aturanDokumen,
         ], [
-            'dokumen_pendukung.required' => 'Dokumen pendukung wajib diunggah untuk jenis cuti yang Anda pilih.'
+            'dokumen_pendukung.required' => 'Dokumen pendukung wajib diunggah untuk jenis cuti yang Anda pilih.',
         ]);
 
         $user = Auth::user();
@@ -161,7 +165,7 @@ class PengajuanCutiController extends Controller
                     ->sum('total_hari');
 
                 if (($totalHaidBulanIni + $totalHari) > 2) {
-                    return back()->withErrors(['error' => "Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan."])->withInput();
+                    return back()->withErrors(['error' => 'Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan.'])->withInput();
                 }
             }
         }
@@ -173,7 +177,7 @@ class PengajuanCutiController extends Controller
                 ->where('tahun', $tahunSekarang)
                 ->first();
 
-            if (!$saldo) {
+            if (! $saldo) {
                 return redirect()->back()->withErrors(['error' => 'Sisa kuota cuti Anda belum diatur oleh admin.'])->withInput();
             }
 
@@ -192,17 +196,17 @@ class PengajuanCutiController extends Controller
                 $query->where(function ($q) use ($tanggalMulaiBaru) {
                     $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
                 })
-                ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
-                    $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
-                })
-                ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
-                    $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
-                });
+                    ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
+                        $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
+                    })
+                    ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                        $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
+                    });
             })
             ->first();
 
         if ($cutiBentrok) {
-            return back()->withErrors(['error' => "Ditolak! Terdapat pengajuan yang berstatus sama di tanggal tersebut."])->withInput();
+            return back()->withErrors(['error' => 'Ditolak! Terdapat pengajuan yang berstatus sama di tanggal tersebut.'])->withInput();
         }
 
         $namaDokumen = null;
@@ -212,13 +216,13 @@ class PengajuanCutiController extends Controller
 
         $roleName = strtolower($user->role->role_name ?? '');
         $statusSupervisor = 'pending';
-        $statusManager    = 'pending';
-        $statusAkhir      = 'pending';
+        $statusManager = 'pending';
+        $statusAkhir = 'pending';
 
         if (in_array($roleName, ['manager', 'hrd', 'full akses'])) {
             $statusSupervisor = 'approved';
-            $statusManager    = 'approved';
-            $statusAkhir      = 'approved';
+            $statusManager = 'approved';
+            $statusAkhir = 'approved';
         } elseif ($roleName === 'supervisor') {
             $statusSupervisor = 'approved';
         }
@@ -249,7 +253,8 @@ class PengajuanCutiController extends Controller
             return redirect()->route('cuti.riwayat')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()])->withInput();
+
+            return back()->withErrors(['error' => 'Terjadi kesalahan sistem: '.$e->getMessage()])->withInput();
         }
     }
 
@@ -291,6 +296,7 @@ class PengajuanCutiController extends Controller
         }
 
         $daftarPengajuan = $query->get();
+
         return view('admin.persetujuan.cuti', compact('daftarPengajuan'));
     }
 
@@ -298,7 +304,7 @@ class PengajuanCutiController extends Controller
     {
         $request->validate([
             'tindakan' => 'required|in:approved,rejected',
-            'catatan_penolakan' => 'nullable|string'
+            'catatan_penolakan' => 'nullable|string',
         ]);
 
         $atasan = Auth::user();
@@ -309,19 +315,20 @@ class PengajuanCutiController extends Controller
         if ($roleName === 'supervisor') {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
-                'supervisor_id'     => $tindakan === 'approved' ? $atasan->id : null,
-                'status_akhir'      => $tindakan === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
+                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
+                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
             ]);
+
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
         } elseif (in_array($roleName, ['manager', 'hrd', 'full akses'])) {
             DB::beginTransaction();
             try {
                 $pengajuan->update([
-                    'status_manager'    => $tindakan,
-                    'manager_id'        => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_akhir'      => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                    'status_manager' => $tindakan,
+                    'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
+                    'status_akhir' => $tindakan,
+                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
                 ]);
 
                 if ($tindakan === 'approved') {
@@ -332,8 +339,10 @@ class PengajuanCutiController extends Controller
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Gagal memproses: ' . $e->getMessage());
+
+                return redirect()->back()->with('error', 'Gagal memproses: '.$e->getMessage());
             }
+
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
         }
 
@@ -343,7 +352,7 @@ class PengajuanCutiController extends Controller
     public function detailCutiJSON(int $id)
     {
         $cuti = PengajuanCuti::with(['jenisCuti', 'subCuti'])->findOrFail($id);
-        
+
         return response()->json([
             'name_cuti' => $cuti->jenisCuti->name_cuti ?? '-',
             'nama_sub_cuti' => $cuti->subCuti->nama_sub_cuti ?? null,
@@ -355,7 +364,7 @@ class PengajuanCutiController extends Controller
             'status_manager' => $cuti->status_manager,
             'status_akhir' => $cuti->status_akhir,
             'catatan_penolakan' => $cuti->catatan_penolakan,
-            'dokumen_pendukung' => $cuti->dokumen_pendukung
+            'dokumen_pendukung' => $cuti->dokumen_pendukung,
         ]);
     }
 
@@ -369,17 +378,19 @@ class PengajuanCutiController extends Controller
 
         $data = [
             'id' => $id,
-            'title' => 'Surat Cuti - ' . $pengajuan->user->name,
-            'pengajuan' => $pengajuan
+            'title' => 'Surat Cuti - '.$pengajuan->user->name,
+            'pengajuan' => $pengajuan,
         ];
 
         $pdf = Pdf::loadView('cuti.cetak', $data)->setPaper('a4', 'portrait');
-        return $pdf->stream('Surat-Cuti-' . $pengajuan->id . '.pdf');
+
+        return $pdf->stream('Surat-Cuti-'.$pengajuan->id.'.pdf');
     }
 
     public function handleSubCuti(int $id)
     {
         $jenis = JenisCuti::with('subCutis')->findOrFail($id);
+
         return response()->json($jenis->subCutis);
     }
 }

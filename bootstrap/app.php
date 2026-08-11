@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CekAtasan;
+use App\Http\Middleware\EnsurePhoneIsVerified;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,8 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'atasan' => \App\Http\Middleware\CekAtasan::class,
-            'phone.verified' => \App\Http\Middleware\EnsurePhoneIsVerified::class, 
+            'atasan' => CekAtasan::class,
+            'phone.verified' => EnsurePhoneIsVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -74,7 +74,7 @@
                         @error('name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Jenis Kelamin (Database Select) --}}
+                    {{-- Jenis Kelamin --}}
                     <div>
                         <label for="gender_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Kelamin</label>
                         <select id="gender_id" name="gender_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('gender_id') ? 'border-rose-500' : 'border-slate-200' }}">
@@ -96,7 +96,7 @@
                         @error('gender_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Sektor Kerja (Database Select) --}}
+                    {{-- Sektor Kerja --}}
                     <div>
                         <label for="sektor" class="block text-sm font-semibold text-slate-700 mb-1.5">Sektor Kerja</label>
                         <select id="sektor" name="sektor" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('sektor') ? 'border-rose-500' : 'border-slate-200' }}">
@@ -121,7 +121,7 @@
                         @error('sektor') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Penempatan Kerja / Stasiun (Database Select) --}}
+                    {{-- Penempatan Kerja / Stasiun --}}
                     <div>
                         <label for="station_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Penempatan Kerja</label>
                         <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200' }}">
@@ -140,7 +140,7 @@
                         @error('station_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Jabatan / Role (Database Select) --}}
+                    {{-- Jabatan / Role --}}
                     <div>
                         <label for="role_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jabatan / Peran</label>
                         
@@ -174,7 +174,7 @@
                         @endif
                     </div>
 
-                    {{-- Jobdesk / Bidang Tugas --}}
+                    {{-- Jobdesk --}}
                     <div>
                         <label for="jobdesk" class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Bidang Tugas</label>
                         <select id="jobdesk" name="jobdesk" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('jobdesk') ? 'border-rose-500' : 'border-slate-200' }}">
@@ -200,7 +200,7 @@
                         @error('jobdesk') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Alamat Email (LOCKED / TIDAK BISA DIUBAH) --}}
+                    {{-- Alamat Email --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
@@ -222,13 +222,12 @@
                                 class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
                                 readonly 
                                 disabled>
-                            {{-- Hidden input agar nilai email tetap terkirim di form submit jika dibutuhkan controller --}}
                             <input type="hidden" name="email" value="{{ $user->email }}">
                         </div>
                         <p class="text-[10px] text-slate-400 mt-1">* Email akun tidak dapat diubah.</p>
                     </div>
 
-                    {{-- No. Telephone (BISA DIUBAH) --}}
+                    {{-- No. Telephone --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-sm font-semibold text-slate-700">No. Telephone</label>
@@ -253,7 +252,7 @@
                                     name="phone_number"
                                     id="phone_number"
                                     value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $user->phone_verified_at ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed select-none' : 'border-slate-200' }}"
+                                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 transition-all {{ $user->phone_verified_at ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed select-none' : 'border-slate-200' }}"
                                     placeholder="Contoh: 08123456789"
                                     {{ $user->phone_verified_at ? 'readonly' : '' }}>
                             </div>
@@ -293,7 +292,7 @@
             <hr class="border-slate-100">
 
             {{-- PENGATURAN JADWAL KERJA --}}
-            <div>
+            <div id="schedule_setting" class="p-4 rounded-2xl transition-all duration-300">
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Pengaturan Jadwal Kerja</h3>
                 <p class="text-xs text-slate-400 mb-4">Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster).</p>
 
@@ -301,20 +300,13 @@
                     $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
                     
                     $currentDbShift = 'pagi';
-                    if ($user->roster_start_date) {
-                        $anchorDate = \Carbon\Carbon::parse($user->roster_start_date)->startOfDay();
-                        $today = \Carbon\Carbon::now()->startOfDay();
-
-                        $diffDays = $anchorDate->diffInDays($today, false);
-                        $weeksDiff = floor($diffDays / 7);
-                        $cycle = (($weeksDiff % 3) + 3) % 3;
-
-                        if ($cycle == 0) {
+                    if ($user->schedule_type === 'roster') {
+                        try {
+                            $scheduleService = app(App\Services\ScheduleService::class);
+                            $todaySchedule = $scheduleService->getTodaySchedule($user);
+                            $currentDbShift = $todaySchedule['shift_type'] ?? 'pagi';
+                        } catch (\Exception $e) {
                             $currentDbShift = 'pagi';
-                        } elseif ($cycle == 1) {
-                            $currentDbShift = 'malam';
-                        } else {
-                            $currentDbShift = 'libur';
                         }
                     }
                     $selectedRosterShift = old('current_shift_choice', $currentDbShift);
@@ -324,7 +316,7 @@
                     {{-- Pilihan Jenis Jadwal --}}
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
-                        <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500">
+                        <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all">
                             <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
                             <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
                             <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
@@ -349,11 +341,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Masuk</label>
-                                <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '07:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
-                                <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '16:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
                             </div>
                         </div>
                     </div>
@@ -361,8 +353,8 @@
                     {{-- Form Opsi Jadwal Roster --}}
                     <div id="section_roster_schedule" class="{{ $activeScheduleType === 'roster' ? '' : 'hidden' }} p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Hari Ini</label>
-                            <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa.</p>
+                            <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
+                            <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
                             
                             <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
 
@@ -402,7 +394,7 @@
                                     <span id="preview_week_1" class="font-bold text-sky-600">Shift Pagi</span>
                                 </div>
                                 <div class="bg-slate-50 p-2 rounded-lg">
-                                    <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN:</span>
+                                    <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
                                     <span id="preview_week_2" class="font-bold text-indigo-600">Shift Malam</span>
                                 </div>
                                 <div class="bg-slate-50 p-2 rounded-lg">
@@ -522,7 +514,6 @@
                 @method('PUT')
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
-                <input type="hidden" name="schedule_type" value="{{ $user->schedule_type ?? 'normal' }}">
 
                 <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors bg-slate-50/50">
                     <input type="file" name="signature" id="signature_input" accept="image/png,image/jpeg,image/jpg" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" required/>
@@ -555,7 +546,6 @@
 
 @push('scripts')
 <script>
-    // FUNGSI GANTI NOMOR TELEPON
     function enableEditPhone() {
         const phoneInput = document.getElementById('phone_number');
         const phoneBadge = document.getElementById('phone-badge');
@@ -592,36 +582,47 @@
         }
     }
 
+    // HITUNG ANCHOR DENGAN MENYESUAIKAN PERSYARATAN JAM 07:00 WIB
     function calculateRosterAnchor(selectedShift) {
         const now = new Date();
-        const dayOfWeek = now.getDay();
-        
-        let diffToTuesday = 2 - dayOfWeek;
-        if (dayOfWeek < 2) {
-            diffToTuesday -= 7;
-        }
-        
-        const currentTuesday = new Date(now);
-        currentTuesday.setDate(now.getDate() + diffToTuesday);
+        const day = now.getDay(); // 0: Sun, 1: Mon, 2: Tue, ...
 
-        let anchorDate = new Date(currentTuesday);
+        let daysSinceTuesday = (day - 2 + 7) % 7;
+        let currentTuesday = new Date(now);
+        currentTuesday.setDate(now.getDate() - daysSinceTuesday);
+        currentTuesday.setHours(7, 0, 0, 0);
+
+        if (day === 2 && now.getHours() < 7) {
+            currentTuesday.setDate(currentTuesday.getDate() - 7);
+        }
 
         if (selectedShift === 'malam') {
-            anchorDate.setDate(anchorDate.getDate() - 7);
+            currentTuesday.setDate(currentTuesday.getDate() - 7);
         } else if (selectedShift === 'libur') {
-            anchorDate.setDate(anchorDate.getDate() - 14);
+            currentTuesday.setDate(currentTuesday.getDate() - 14);
         }
 
-        const year = anchorDate.getFullYear();
-        const month = String(anchorDate.getMonth() + 1).padStart(2, '0');
-        const day = String(anchorDate.getDate()).padStart(2, '0');
-        
-        document.getElementById('roster_start_date_input').value = `${year}-${month}-${day}`;
+        const year = currentTuesday.getFullYear();
+        const month = String(currentTuesday.getMonth() + 1).padStart(2, '0');
+        const date = String(currentTuesday.getDate()).padStart(2, '0');
 
+        const input = document.getElementById('roster_start_date_input');
+        if (input) {
+            input.value = `${year}-${month}-${date}`;
+        }
+
+        if (typeof updateRosterPreviewUI === 'function') {
+            updateRosterPreviewUI(selectedShift);
+        }
+    }
+
+    function updateRosterPreviewUI(selectedShift) {
         const previewBox = document.getElementById('roster_preview_box');
         const w1 = document.getElementById('preview_week_1');
         const w2 = document.getElementById('preview_week_2');
         const w3 = document.getElementById('preview_week_3');
+
+        if (!previewBox || !w1 || !w2 || !w3) return;
 
         previewBox.classList.remove('hidden');
 
@@ -643,26 +644,45 @@
     document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Cek apakah diakses dengan query phone_required=1 atau hash #phone_number
+        if (urlParams.get('schedule_required') === '1' || window.location.hash === '#schedule_setting') {
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+
+            setTimeout(function () {
+                const scheduleSection = document.getElementById("schedule_setting");
+                const scheduleSelect = document.getElementById("schedule_type");
+
+                if (scheduleSection) {
+                    scheduleSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+
+                    scheduleSection.classList.add("ring-4", "ring-amber-400", "bg-amber-50/40", "border-amber-300");
+                    if (scheduleSelect) scheduleSelect.focus();
+
+                    setTimeout(() => {
+                        scheduleSection.classList.remove("ring-4", "ring-amber-400", "bg-amber-50/40", "border-amber-300");
+                    }, 3500);
+                }
+            }, 300);
+        }
+
         if (urlParams.get('phone_required') === '1' || window.location.hash === '#phone_number') {
-            
-            // Hilangkan hash dari URL sementara agar browser tidak melakukan auto-scroll bawaan
-            if (window.location.hash) {
-                history.replaceState(null, null, window.location.pathname + window.location.search);
-            }
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
 
             setTimeout(function () {
                 const phoneInput = document.getElementById("phone_number");
 
                 if (phoneInput) {
-                    // Scroll posisi input telepon TEPAT di tengah layar
                     phoneInput.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center',
                         inline: 'nearest'
                     });
 
-                    // HANYA berikan efek highlight merah JIKA nomor telepon BELUM terverifikasi (tidak readonly)
                     if (!phoneInput.readOnly) {
                         phoneInput.focus();
                         phoneInput.classList.add("ring-4", "ring-rose-400", "border-rose-500", "animate-pulse");
@@ -679,7 +699,7 @@
 
         const selectedRadio = document.querySelector('input[name="current_shift_choice"]:checked');
         if (selectedRadio) {
-            calculateRosterAnchor(selectedRadio.value);
+            updateRosterPreviewUI(selectedRadio.value);
         }
 
         const modalPhoto = document.getElementById("photoModal");
@@ -753,7 +773,6 @@
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        // LOGIKA KIRIM OTP (MEMILIKI TIMER COOLDOWN)
         if (btnSendOtp) {
             btnSendOtp.addEventListener("click", function () {
                 phoneError.classList.add("hidden");
@@ -793,7 +812,6 @@
             });
         }
 
-        // LOGIKA VERIFIKASI OTP (TANPA COOLDOWN BILA KODE SALAH)
         if (btnVerifyOtp) {
             btnVerifyOtp.addEventListener("click", function () {
                 otpMessage.innerText = "";
@@ -847,7 +865,6 @@
             });
         }
 
-        // TIMER KHUSUS MINTA/KIRIM KODE OTP
         function startSendOtpCooldown(duration) {
             let timeLeft = duration;
             btnSendOtp.disabled = true;

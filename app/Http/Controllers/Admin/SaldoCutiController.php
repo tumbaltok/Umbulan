@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\User\User;
-use App\Models\Cuti\JenisCuti;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SaldoCutiController extends Controller
@@ -27,7 +27,7 @@ class SaldoCutiController extends Controller
 
     public function generateSaldoMassal(Request $request)
     {
-        /** @var \App\Models\User\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         if ($user) {
@@ -37,7 +37,7 @@ class SaldoCutiController extends Controller
         // PERBAIKAN: Gunakan $user (bukan $operator)
         $roleName = strtolower($user->role->role_name ?? '');
 
-        if (!in_array($roleName, ['manager', 'admin', 'hrd', 'full akses'])) {
+        if (! in_array($roleName, ['manager', 'admin', 'hrd', 'full akses'])) {
             return redirect()->back()->with('error', 'Akses ditolak! Hanya manager atau admin yang bisa generate saldo.');
         }
 
@@ -60,12 +60,12 @@ class SaldoCutiController extends Controller
                     ->where('tahun', $tahunTarget)
                     ->exists();
 
-                if (!$cekSaldo) {
+                if (! $cekSaldo) {
                     SaldoCuti::create([
-                        'user_id'       => $u->id,
+                        'user_id' => $u->id,
                         'jenis_cuti_id' => $jc->id,
-                        'tahun'         => $tahunTarget,
-                        'sisa_saldo'    => $jc->kuota_default ?? 12,
+                        'tahun' => $tahunTarget,
+                        'sisa_saldo' => $jc->kuota_default ?? 12,
                     ]);
                     $karyawanLolos++;
                 }

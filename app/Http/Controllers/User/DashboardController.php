@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Absen\Kehadiran;
+use App\Models\Car\PengajuanCar;
+use App\Models\Cuti\JenisCuti;
+use App\Models\Cuti\SaldoCuti;
+use App\Models\User\Station;
+use App\Models\User\User;
+use App\Services\CalendarScheduleService;
+use App\Services\ScheduleService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\User\User;
-use App\Models\User\Station;
-use App\Models\Car\PengajuanCar;
-use App\Models\Absen\Kehadiran;
-use App\Models\Cuti\SaldoCuti;
-use App\Models\Cuti\JenisCuti;
-use App\Services\ScheduleService;
-use App\Services\CalendarScheduleService;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     protected ScheduleService $scheduleService;
+
     protected CalendarScheduleService $calendarService;
 
     public function __construct(ScheduleService $scheduleService, CalendarScheduleService $calendarService)
@@ -30,7 +31,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         // Pastikan Timezone Asia/Jakarta
         $now = Carbon::now('Asia/Jakarta');
         $tahunSekarang = $now->year;
@@ -49,20 +50,20 @@ class DashboardController extends Controller
 
         // 4. Ambil Transaksi Absensi Hari Ini
         $todayAttendance = Kehadiran::where('user_id', $user->id)
-            ->where(function($q) use ($today) {
+            ->where(function ($q) use ($today) {
                 $q->whereDate('created_at', $today)
-                  ->orWhere('date', $today);
+                    ->orWhere('date', $today);
             })
             ->first();
 
         // 5. Penentuan ID Cuti Tahunan secara Aman
-        $cutiTahunanId = defined('App\Models\User\User::CUTI_TAHUNAN_ID') 
-            ? User::CUTI_TAHUNAN_ID 
+        $cutiTahunanId = defined('App\Models\User\User::CUTI_TAHUNAN_ID')
+            ? User::CUTI_TAHUNAN_ID
             : optional(JenisCuti::where('name_cuti', 'LIKE', '%Tahunan%')->orWhere('name_cuti', 'Cuti')->first())->id;
 
         // Data Saldo Cuti
         $saldoTahunan = SaldoCuti::where('user_id', $user->id)
-            ->when($cutiTahunanId, function($q) use ($cutiTahunanId) {
+            ->when($cutiTahunanId, function ($q) use ($cutiTahunanId) {
                 $q->where('jenis_cuti_id', $cutiTahunanId);
             })
             ->where('tahun', $tahunSekarang)
@@ -73,7 +74,7 @@ class DashboardController extends Controller
         // 6. Total Cuti Diambil & Pending
         $totalCutiDiambil = (int) DB::table('pengajuan_cutis')
             ->where('user_id', $user->id)
-            ->when($cutiTahunanId, function($q) use ($cutiTahunanId) {
+            ->when($cutiTahunanId, function ($q) use ($cutiTahunanId) {
                 $q->where('jenis_cuti_id', $cutiTahunanId);
             })
             ->where('status_akhir', 'approved')
@@ -92,7 +93,7 @@ class DashboardController extends Controller
             ->where('status_akhir', 'pending')
             ->count();
 
-        $totalPending = $pendingCuti + $pendingCar;  
+        $totalPending = $pendingCuti + $pendingCar;
 
         // 7. Hitung Sisa Kuota Real-Time
         $sisaKuota = $saldoTahunan->sisa_saldo ?? max(0, $kuotaTahunan - $totalCutiDiambil);

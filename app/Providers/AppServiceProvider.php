@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Cuti\PengajuanCuti;
 use App\Models\Car\PengajuanCar;
+use App\Models\Cuti\PengajuanCuti;
 use App\Models\Mpr\PengajuanMpr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,18 +35,18 @@ class AppServiceProvider extends ServiceProvider
 
                 if ($roleName === 'manager') {
                     $jumlahCuti = PengajuanCuti::where('status_supervisor', 'approved')
-                                                ->where('status_manager', 'pending')
-                                                ->count();
+                        ->where('status_manager', 'pending')
+                        ->count();
 
                     $jumlahCar = PengajuanCar::where('status_supervisor', 'approved')
-                                               ->where('status_manager', 'pending')
-                                               ->count();
+                        ->where('status_manager', 'pending')
+                        ->count();
 
                     // Jika ada model MPR
                     if (class_exists('App\Models\PengajuanMpr')) {
                         $jumlahMpr = PengajuanMpr::where('status_supervisor', 'approved')
-                                                 ->where('status_manager', 'pending')
-                                                 ->count();
+                            ->where('status_manager', 'pending')
+                            ->count();
                     }
 
                 } elseif ($roleName === 'supervisor') {
@@ -58,23 +58,23 @@ class AppServiceProvider extends ServiceProvider
                     }
 
                 } elseif ($roleName === 'admin') {
-                    $jumlahCuti = PengajuanCuti::where(function($q) {
+                    $jumlahCuti = PengajuanCuti::where(function ($q) {
                         $q->where('status_supervisor', 'pending')
-                          ->orWhere('status_manager', 'pending')
-                          ->orWhere('status_akhir', 'pending');
+                            ->orWhere('status_manager', 'pending')
+                            ->orWhere('status_akhir', 'pending');
                     })->count();
 
-                    $jumlahCar = PengajuanCar::where(function($q) {
+                    $jumlahCar = PengajuanCar::where(function ($q) {
                         $q->where('status_supervisor', 'pending')
-                          ->orWhere('status_manager', 'pending')
-                          ->orWhere('status_akhir', 'pending');
+                            ->orWhere('status_manager', 'pending')
+                            ->orWhere('status_akhir', 'pending');
                     })->count();
 
                     if (class_exists('App\Models\PengajuanMpr')) {
-                        $jumlahMpr = PengajuanMpr::where(function($q) {
+                        $jumlahMpr = PengajuanMpr::where(function ($q) {
                             $q->where('status_supervisor', 'pending')
-                              ->orWhere('status_manager', 'pending')
-                              ->orWhere('status_akhir', 'pending');
+                                ->orWhere('status_manager', 'pending')
+                                ->orWhere('status_akhir', 'pending');
                         })->count();
                     }
                 }
@@ -82,8 +82,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with([
                 'jumlahSaranCuti' => $jumlahCuti,
-                'jumlahSaranCar'  => $jumlahCar,
-                'jumlahSaranMpr'  => $jumlahMpr
+                'jumlahSaranCar' => $jumlahCar,
+                'jumlahSaranMpr' => $jumlahMpr,
             ]);
         });
     }

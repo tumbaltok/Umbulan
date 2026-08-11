@@ -22,11 +22,11 @@ class Station extends Model
     public function supervisors(): BelongsToMany
     {
         return $this->belongsToMany(
-            User::class,               
-            'station_supervisor',      
-            'station_id',              
-            'supervisor_id'            
-        )->withTimestamps();           
+            User::class,
+            'station_supervisor',
+            'station_id',
+            'supervisor_id'
+        )->withTimestamps();
     }
 
     public function users(): HasMany

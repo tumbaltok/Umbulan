@@ -2,9 +2,9 @@
 
 namespace App\Models\Car;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class PengajuanCar extends Model
 {
@@ -19,7 +19,7 @@ class PengajuanCar extends Model
         'status_manager',
         'manager_id',
         'status_akhir',
-        'catatan_penolakan'
+        'catatan_penolakan',
     ];
 
     public function user()

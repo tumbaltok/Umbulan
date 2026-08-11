@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Cuti;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Cuti\PengajuanCuti;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use App\Traits\CutiHelperTrait;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CutiPersetujuanController extends Controller
 {
@@ -33,6 +33,7 @@ class CutiPersetujuanController extends Controller
         }
 
         $daftarPengajuan = $query->get();
+
         return view('admin.persetujuan', compact('daftarPengajuan'));
     }
 
@@ -41,7 +42,7 @@ class CutiPersetujuanController extends Controller
     {
         $request->validate([
             'tindakan' => 'required|in:approved,rejected',
-            'catatan_penolakan' => 'nullable|string'
+            'catatan_penolakan' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -52,7 +53,7 @@ class CutiPersetujuanController extends Controller
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
             ]);
         } elseif ($user->role_id == 2) { // Manager
             if ($pengajuan->status_supervisor === 'rejected') {
@@ -62,7 +63,7 @@ class CutiPersetujuanController extends Controller
             $pengajuan->update([
                 'status_manager' => $tindakan,
                 'status_akhir' => $tindakan,
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null
+                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
             ]);
 
             if ($tindakan === 'approved') {

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->date('tanggal_pengajuan');
             $table->text('keperluan_urgensi');
             $table->string('dokumen_pendukung')->nullable();
-            
+
             // Status Persetujuan Bertingkat & ID Approver (Untuk TTD Otomatis)
             $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('catatan_penolakan')->nullable();
-            
+
             $table->timestamps();
         });
 

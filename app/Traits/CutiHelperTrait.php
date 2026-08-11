@@ -2,10 +2,10 @@
 
 namespace App\Traits;
 
-use App\Models\Cuti\SubCuti;
-use App\Models\Cuti\SaldoCuti;
 use App\Models\Absen\Kehadiran;
 use App\Models\Cuti\PengajuanCuti;
+use App\Models\Cuti\SaldoCuti;
+use App\Models\Cuti\SubCuti;
 use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +48,7 @@ trait CutiHelperTrait
             ->where('tahun', $tahun)
             ->first();
 
-        $sisaSaldoDatabase = $saldo ? (int)$saldo->sisa_saldo : 0;
+        $sisaSaldoDatabase = $saldo ? (int) $saldo->sisa_saldo : 0;
 
         // Menangani pencarian antrean pending saat sub_cuti_id null maupun berisi ID
         $queryPending = DB::table('pengajuan_cutis')
@@ -68,7 +68,7 @@ trait CutiHelperTrait
         if ($saldoEfektif <= 0 || $saldoEfektif < $totalHari) {
             throw new \Exception(
                 $saldoEfektif <= 0
-                    ? "Maaf, sisa kuota jatah cuti Anda sudah habis (0 hari) atau seluruhnya sedang dalam antrean persetujuan."
+                    ? 'Maaf, sisa kuota jatah cuti Anda sudah habis (0 hari) atau seluruhnya sedang dalam antrean persetujuan.'
                     : "Sisa kuota jatah cuti Anda tidak mencukupi. Sisa efektif saat ini: {$saldoEfektif} hari, sedangkan Anda mengajukan {$totalHari} hari."
             );
         }
@@ -90,7 +90,7 @@ trait CutiHelperTrait
     public function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan)
     {
         $apakahMemotongSaldo = $this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id);
-        
+
         if ($apakahMemotongSaldo) {
             $this->potongSaldoDatabase($pengajuan);
             $pengajuan->update(['is_cut_saldo' => true]);
@@ -103,12 +103,12 @@ trait CutiHelperTrait
             Kehadiran::updateOrCreate(
                 [
                     'user_id' => $pengajuan->user_id,
-                    'date'    => $date->format('Y-m-d')
+                    'date' => $date->format('Y-m-d'),
                 ],
                 [
-                    'shift_type'       => 'Cuti',
+                    'shift_type' => 'Cuti',
                     'status_kehadiran' => 'Cuti',
-                    'keterangan'       => 'Izin Cuti Disetujui'
+                    'keterangan' => 'Izin Cuti Disetujui',
                 ]
             );
         }
