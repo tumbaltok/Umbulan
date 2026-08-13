@@ -86,11 +86,11 @@
                                     </span>
                                 @elseif(($role->level ?? 3) == 2)
                                     <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-eye text-[10px]"></i> Only Read (Monitoring)
+                                        <i class="fa-solid fa-eye text-[10px]"></i> Only Read
                                     </span>
                                 @else
                                     <span class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-user text-[10px]"></i> User Biasa
+                                        <i class="fa-solid fa-user text-[10px]"></i> User
                                     </span>
                                 @endif
                             </td>
@@ -455,7 +455,7 @@
                     <select name="roles[${roleIndex}][level]" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:border-sky-500 transition-colors cursor-pointer">
                         <option value="1" ${levelVal == 1 ? 'selected' : ''}>Level 1: Full Akses (Dapat Mengelola & Mengedit Data Admin)</option>
                         <option value="2" ${levelVal == 2 ? 'selected' : ''}>Level 2: Only Read (Monitoring Fitur Admin, Penggunaan App Normal)</option>
-                        <option value="3" ${levelVal == 3 ? 'selected' : ''}>Level 3: User Biasa (Staff Khusus Antarmuka Karyawan)</option>
+                        <option value="3" ${levelVal == 3 ? 'selected' : ''}>Level 3: User (Staff Khusus Antarmuka Karyawan)</option>
                     </select>
                 </div>
 
