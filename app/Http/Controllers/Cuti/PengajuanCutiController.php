@@ -109,7 +109,7 @@ class PengajuanCutiController extends Controller
 
         $sisaSaldo = $saldoTahunan ? $saldoTahunan->sisa_saldo : 0;
 
-        return view('cuti.create', compact('jenisCuti', 'sisaSaldo'));
+        return view('cuti.cuticreate', compact('jenisCuti', 'sisaSaldo'));
     }
 
     public function storeWeb(Request $request)
@@ -268,7 +268,7 @@ class PengajuanCutiController extends Controller
             ->orderBy('pengajuan_cutis.created_at', 'desc')
             ->get();
 
-        return view('cuti.riwayat', compact('pengajuanCuti'));
+        return view('cuti.cutiriwayat', compact('pengajuanCuti'));
     }
 
     public function listPengajuan()
@@ -297,7 +297,7 @@ class PengajuanCutiController extends Controller
 
         $daftarPengajuan = $query->get();
 
-        return view('admin.persetujuan.cuti', compact('daftarPengajuan'));
+        return view('admin.persetujuan.persetujuancuti', compact('daftarPengajuan'));
     }
 
     public function prosesPersetujuan(Request $request, int $id)

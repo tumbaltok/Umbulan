@@ -15,7 +15,7 @@ class StationController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('admin.daftar.stations.index', compact('daftarStasiun'));
+        return view('admin.daftar.stationsindex', compact('daftarStasiun'));
     }
 
     private function parseGoogleMapsUrl(string $url): ?array

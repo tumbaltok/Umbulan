@@ -25,13 +25,13 @@ class PengajuanMprController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('mpr.riwayat', compact('riwayatMpr'));
+        return view('mpr.mprriwayat', compact('riwayatMpr'));
     }
 
     // KARYAWAN: Tampilan Form Pengajuan MPR
     public function create()
     {
-        return view('mpr.create');
+        return view('mpr.mprcreate');
     }
 
     // KIRIM WA NOTIFIKASI
@@ -189,7 +189,7 @@ class PengajuanMprController extends Controller
 
         $daftarPengajuan = $query->get();
 
-        return view('admin.persetujuan.mpr', compact('daftarPengajuan'));
+        return view('admin.persetujuan.persetujuanmpr', compact('daftarPengajuan'));
     }
 
     // ATASAN: Memproses Aksi Setuju / Tolak

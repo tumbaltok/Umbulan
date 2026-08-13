@@ -58,6 +58,6 @@ class AbsensiAdminController extends Controller
 
         $karyawan = $karyawanWajibHadir;
 
-        return view('admin.record.absensi', compact('tanggal', 'karyawan', 'sudahAbsen', 'belumAbsen'));
+        return view('admin.record.recordabsensi', compact('tanggal', 'karyawan', 'sudahAbsen', 'belumAbsen'));
     }
 }

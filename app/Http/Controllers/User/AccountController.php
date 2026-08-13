@@ -31,7 +31,7 @@ class AccountController extends Controller
             ->orderBy('level', 'asc')
             ->get();
 
-        return view('profile.index', compact(
+        return view('pengaturan.index', compact(
             'user',
             'daftarJobdesk',
             'daftarStasiun',

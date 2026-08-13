@@ -152,7 +152,7 @@ class DashboardController extends Controller
 
         $currentCarbonDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1, 'Asia/Jakarta');
 
-        return view('dashboard.index', compact(
+        return view('dashboard.dashboardindex', compact(
             'user',
             'daftarStasiun',
             'kuotaTahunan',

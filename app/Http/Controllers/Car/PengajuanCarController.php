@@ -22,13 +22,13 @@ class PengajuanCarController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('car.riwayat', compact('riwayatCar'));
+        return view('car.carriwayat', compact('riwayatCar'));
     }
 
     // KARYAWAN: Menampilkan form pengajuan CAR baru
     public function create()
     {
-        return view('car.create');
+        return view('car.carcreate');
     }
 
     // KARYAWAN: Mengirim form pengajuan CAR baru (Multi-Item)
@@ -110,7 +110,7 @@ class PengajuanCarController extends Controller
 
         // Return response view secara terpisah
         return response()
-            ->view('admin.persetujuan.car', compact('daftarPengajuan', 'roleName'))
+            ->view('admin.persetujuan.persetujuanCar', compact('daftarPengajuan', 'roleName'))
             ->header('Content-Type', 'text/html')
             ->header('X-Content-Type-Options', 'nosniff');
     }

@@ -28,7 +28,7 @@ class RecordController extends Controller
 
         $daftarCuti = $query->orderBy('tanggal_mulai', 'desc')->get();
 
-        return view('admin.record.cuti', compact('daftarCuti'));
+        return view('admin.record.recordcuti', compact('daftarCuti'));
     }
 
     public function exportCuti(Request $request)
@@ -97,7 +97,7 @@ class RecordController extends Controller
 
         $daftarCar = $query->orderBy('created_at', 'desc')->get();
 
-        return view('admin.record.car', compact('daftarCar'));
+        return view('admin.record.recordcar', compact('daftarCar'));
     }
 
     public function exportCar(Request $request)
@@ -167,7 +167,7 @@ class RecordController extends Controller
 
         $daftarMpr = $query->orderBy('tanggal_pengajuan', 'desc')->get();
 
-        return view('admin.record.mpr', compact('daftarMpr'));
+        return view('admin.record.recordmpr', compact('daftarMpr'));
     }
 
     public function exportMpr(Request $request)

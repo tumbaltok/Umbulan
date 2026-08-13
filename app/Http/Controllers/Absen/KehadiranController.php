@@ -288,6 +288,6 @@ class KehadiranController extends Controller
             }
         }
 
-        return view('admin.record.absensi', compact('tanggal', 'sudahAbsen', 'belumAbsen', 'karyawan'));
+        return view('admin.record.recordabsensi', compact('tanggal', 'sudahAbsen', 'belumAbsen', 'karyawan'));
     }
 }

@@ -34,7 +34,7 @@ class CutiPersetujuanController extends Controller
 
         $daftarPengajuan = $query->get();
 
-        return view('admin.persetujuan', compact('daftarPengajuan'));
+        return view('admin.persetujuan.persetujuancuti', compact('daftarPengajuan'));
     }
 
     // Memproses Aksi Penyetujuan Bertingkat (Web View)

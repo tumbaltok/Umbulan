@@ -22,7 +22,7 @@ class SaldoCutiController extends Controller
             ->where('tahun', $tahunSekarang)
             ->get();
 
-        return view('saldo.index', compact('saldo', 'tahunSekarang'));
+        return view('saldo.saldoindex', compact('saldo', 'tahunSekarang'));
     }
 
     public function generateSaldoMassal(Request $request)
