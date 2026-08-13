@@ -305,7 +305,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition duration-300">
                     <div class="h-48 overflow-hidden relative">
-                        <img src="{{ asset('images/pdam.webp') }}" alt="Layanan Pasuruan & Sidoarjo" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://placehold.co/600x192/0284c7/ffffff?text=Kota+%26+Kab.+Pasuruan'">
+                        <img src="{{ asset('images/umbulan.jpg') }}" alt="Layanan Pasuruan & Sidoarjo" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://placehold.co/600x192/0284c7/ffffff?text=Kota+%26+Kab.+Pasuruan'">
                     </div>
                     <div class="p-6 space-y-3">
                         <h4 class="font-bold text-slate-800 text-base">Kota & Kab. Pasuruan</h4>
@@ -319,7 +319,7 @@
 
                 <div class="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition duration-300">
                     <div class="h-48 overflow-hidden relative">
-                        <img src="{{ asset('images/umbulan.jpg') }}" alt="Layanan Surabaya & Sidoarjo" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://placehold.co/600x192/0284c7/ffffff?text=Surabaya+%26+Sidoarjo'">
+                        <img src="{{ asset('images/pdam.webp') }}" alt="Layanan Surabaya & Sidoarjo" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://placehold.co/600x192/0284c7/ffffff?text=Surabaya+%26+Sidoarjo'">
                     </div>
                     <div class="p-6 space-y-3">
                         <h4 class="font-bold text-slate-800 text-base">Kota Surabaya & Sidoarjo</h4>
