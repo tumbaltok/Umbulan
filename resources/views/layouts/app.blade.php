@@ -161,7 +161,7 @@
                             <div class="w-9 h-9 flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-calendar-check text-base text-center"></i>
                             </div>
-                            <span class="hide-on-collapse">Fasilitas Cuti</span>
+                            <span class="hide-on-collapse">Fasilitas CUTI</span>
                         </div>
                         <div class="flex items-center space-x-2 hide-on-collapse">
                             @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
@@ -173,15 +173,15 @@
 
                     <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
                         <a href="/cuti/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('cuti/ajukan') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                            <span class="hide-on-collapse">Ajukan Cuti</span>
+                            <span class="hide-on-collapse">Ajukan CUTI</span>
                         </a>
                         <a href="/cuti/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('cuti/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                            <span class="hide-on-collapse">Riwayat Cuti</span>
+                            <span class="hide-on-collapse">Riwayat CUTI</span>
                         </a>
 
                         @if($hasAccess)
                             <a href="{{ route('admin.persetujuan.cuti') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Persetujuan Cuti</span>
+                                <span class="hide-on-collapse">Persetujuan CUTI</span>
                                 @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
                                     <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
                                         {{ $jumlahSaranCuti }}
@@ -330,7 +330,7 @@
                                 </button>
                                 <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
                                     <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/cuti*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Cuti</span>
+                                        <span class="hide-on-collapse">CUTI</span>
                                     </a>
                                     <a href="{{ route('admin.record.car') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
                                         <span class="hide-on-collapse">CAR</span>

@@ -28,6 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'gender_id',
         'station_id',
+        'supervisor_id', // Ditambahkan
+        'manager_id',    // Ditambahkan
         'sektor',
         'job_title',
         'jobdesk',
@@ -122,6 +124,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function gender(): BelongsTo
     {
         return $this->belongsTo(Gender::class, 'gender_id', 'id');
+    }
+
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'supervisor_id', 'id');
+    }
+
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manager_id', 'id');
     }
 
     public function stations(): BelongsToMany

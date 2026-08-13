@@ -1,178 +1,254 @@
 @extends('layouts.app')
-@section('title', 'Daftar Karyawan')
+@section('title', 'Daftar Karyawan & Skema Organisasi')
+
+@push('styles')
+<!-- SweetAlert2 CDN CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .mermaid-container {
+        background: #f8fafc;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        width: 100%;
+        overflow-x: auto;
+        min-height: 250px;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="max-w-7xl auto mt-8 px-4">
+<div class="max-w-7xl mx-auto mt-8 px-4 space-y-6">
+
     @if(session('error'))
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
             <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
             {{ session('error') }}
         </div>
     @endif
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-sky-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200/80">
-                        {{ isset($daftarKaryawan) ? count($daftarKaryawan) : 0 }} Karyawan
-                    </span>
-                </div>
-                <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
-            </div>
-            <div class="relative w-full md:w-80">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                </span>
-                <input type="text" id="searchKaryawanInput" placeholder="Cari nama karyawan..."
-                    class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 placeholder-slate-400">
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse" id="karyawanTable">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
-                            Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                        </th>
-                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="1">
-                            Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                        </th>
-                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
-                            Jobdesk <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                        </th>
-                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="3">
-                            Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                        </th>
-                        <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
-                        <th class="px-6 py-4 text-center w-28">Edit Saldo Cuti</th>
-                        <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
-                            Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
-                    @forelse($daftarKaryawan as $karyawan)
-                        @php
-                            $cutiUtama = $karyawan->saldoCuti ? $karyawan->saldoCuti->filter(function($s) {
-                                $namaCuti = strtolower(optional($s->jenisCuti)->name_cuti ?? '');
-                                return $namaCuti === 'cuti' || $namaCuti === 'cuti tahunan' || optional($s->jenisCuti)->kuota_default == 12;
-                            })->first() : null;
-                            $sisaCutiVal = $cutiUtama ? $cutiUtama->sisa_saldo : ($karyawan->sisaCutiUtama ?? 12);
-                            $saldoIdVal = $cutiUtama ? $cutiUtama->id : 0;
-                            $namaCutiText = optional(optional($cutiUtama)->jenisCuti)->name_cuti ?? 'Cuti Utama';
-                        @endphp
-                        <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
-                            <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
-                                <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
-                                    <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
-                                        @if($karyawan->profile_photo)
-                                            <img src="{{ asset('storage/' . $karyawan->profile_photo) }}" alt="Foto" class="w-full h-full object-cover">
-                                        @else
-                                            {{ strtoupper(substr($karyawan->name, 0, 2)) }}
-                                        @endif
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors target-search-name">{{ $karyawan->name }}</span>
-                                        <span class="text-xs text-slate-400">NIP: {{ $karyawan->nip ?? '-' }}</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="px-6 py-4">
-                                @php
-                                    $roleName = $karyawan->role->role_name ?? 'Tidak Ada Role';
-                                @endphp
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block
-                                    {{ strtolower($roleName) == 'manager' ? 'bg-purple-50 text-purple-700 border border-purple-100' : (strtolower($roleName) == 'supervisor' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-700 border border-slate-200/50') }}">
-                                    {{ $roleName }}
-                                </span>
-                            </td>
-
-                            <td class="px-6 py-4 text-sm font-medium">
-                                @if($karyawan->job_title == 'Operator' || $karyawan->job_title == '1')
-                                    <span class="text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded-md text-xs border border-sky-100">Operator</span>
-                                @elseif($karyawan->job_title == 'Maintenance' || $karyawan->job_title == '2')
-                                    <span class="text-amber-600 bg-amber-50/50 px-2 py-0.5 rounded-md text-xs border border-amber-100">Maintenance</span>
-                                @elseif($karyawan->job_title == 'HSE' || $karyawan->job_title == '3')
-                                    <span class="text-rose-600 bg-rose-50/50 px-2 py-0.5 rounded-md text-xs border border-rose-100">Safety (HSE)</span>
-                                @elseif($karyawan->job_title == 'Dokumentasi' || $karyawan->job_title == '4')
-                                    <span class="text-teal-600 bg-teal-50/50 px-2 py-0.5 rounded-md text-xs border border-teal-100">Documenter</span>
-                                @else
-                                    <span class="text-slate-400 italic text-xs">Belum Memilih</span>
-                                @endif
-                            </td>
-
-                            <td class="px-6 py-4 text-center">
-                                @if(($karyawan->station && !empty($karyawan->station->name)))
-                                    <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
-                                        <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
-                                        {{ $karyawan->station->name }}
-                                    </span>
-                                @else
-                                    <span class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-xl italic border border-rose-100">
-                                        ⚠️ Stasiun Belum Diatur
-                                    </span>
-                                @endif
-                            </td>
-
-                            <td class="px-6 py-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $sisaCutiVal }} Hari</span>
-                            </td>
-
-                            <td class="px-6 py-4 text-center">
-                                <button type="button" 
-                                    data-id="{{ $saldoIdVal }}"
-                                    data-nama="{{ $namaCutiText }}"
-                                    data-saldo="{{ $sisaCutiVal }}"
-                                    onclick="bukaModalEditSaldoBtn(this)" 
-                                    class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
-                            </td>
-
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
-                                    @php $cuti = $karyawan->cuti_aktif->first(); @endphp
-                                    <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold" title="{{ $cuti->alasan_cuti }}">
-                                        <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
-                                        On Leave (Cuti)
-                                    </span>
-                                @else
-                                    @php
-                                        $statusDetail = $karyawan->status_detail ?? [
-                                            'badge_class' => 'bg-slate-50 text-slate-600 border-slate-200',
-                                            'dot_class' => 'bg-slate-400',
-                                            'is_on' => false,
-                                            'label' => 'Standby'
-                                        ];
-                                    @endphp
-                                    <span class="inline-flex items-center text-xs {{ $statusDetail['badge_class'] }} border px-2.5 py-1 rounded-full font-bold">
-                                        <span class="w-1.5 h-1.5 {{ $statusDetail['dot_class'] }} rounded-full mr-1.5 {{ $statusDetail['is_on'] ? 'animate-pulse' : '' }}"></span>
-                                        {{ $statusDetail['label'] }}
-                                    </span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr id="emptyRow">
-                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">
-                                <i class="fa-solid fa-users text-3xl mb-2 block text-slate-200"></i>
-                                Belum ada data karyawan terdaftar di database.
-                            </td>
-                        </tr>
-                    @endforelse
-                    <tr id="noResultRow" class="hidden">
-                        <td colspan="7" class="px-6 py-10 text-center text-slate-400">
-                            <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
-                            Karyawan dengan nama tersebut tidak ditemukan.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    {{-- NAVIGASI TAB UTAMA --}}
+    <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 rounded-2xl shadow-xs">
+        <div class="flex space-x-2">
+            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs">
+                <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
+            </button>
+            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+                <i class="fa-solid fa-sitemap mr-1.5 text-indigo-500"></i> Pohon Organisasi Karyawan
+            </button>
         </div>
     </div>
+
+    {{-- TAB 1: TABEL DAFTAR KARYAWAN --}}
+    <div id="tab-karyawan-tabel" class="tab-content">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-sky-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200/80">
+                            {{ isset($daftarKaryawan) ? count($daftarKaryawan) : 0 }} Karyawan
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
+                </div>
+                <div class="relative w-full md:w-80">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </span>
+                    <input type="text" id="searchKaryawanInput" placeholder="Cari nama karyawan..."
+                        class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 placeholder-slate-400">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="karyawanTable">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
+                                Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                            </th>
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="1">
+                                Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                            </th>
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
+                                Jobdesk <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                            </th>
+                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="3">
+                                Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                            </th>
+                            <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
+                            <th class="px-6 py-4 text-center w-28">Edit Saldo Cuti</th>
+                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
+                                Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
+                        @forelse($daftarKaryawan as $karyawan)
+                            @php
+                                $cutiUtama = $karyawan->saldoCuti ? $karyawan->saldoCuti->filter(function($s) {
+                                    $namaCuti = strtolower(optional($s->jenisCuti)->name_cuti ?? '');
+                                    return $namaCuti === 'cuti' || $namaCuti === 'cuti tahunan' || optional($s->jenisCuti)->kuota_default == 12;
+                                })->first() : null;
+                                $sisaCutiVal = $cutiUtama ? $cutiUtama->sisa_saldo : ($karyawan->sisaCutiUtama ?? 12);
+                                $saldoIdVal = $cutiUtama ? $cutiUtama->id : 0;
+                                $namaCutiText = optional(optional($cutiUtama)->jenisCuti)->name_cuti ?? 'Cuti Utama';
+                            @endphp
+                            <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
+                                <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
+                                    <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
+                                        <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
+                                            @if($karyawan->profile_photo)
+                                                <img src="{{ asset('storage/' . $karyawan->profile_photo) }}" alt="Foto" class="w-full h-full object-cover">
+                                            @else
+                                                {{ strtoupper(substr($karyawan->name, 0, 2)) }}
+                                            @endif
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors target-search-name">{{ $karyawan->name }}</span>
+                                            <span class="text-xs text-slate-400">NIP: {{ $karyawan->nip ?? '-' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    @php
+                                        $roleName = $karyawan->role->role_name ?? 'Tidak Ada Role';
+                                    @endphp
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block
+                                        {{ strtolower($roleName) == 'manager' ? 'bg-purple-50 text-purple-700 border border-purple-100' : (strtolower($roleName) == 'supervisor' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-700 border border-slate-200/50') }}">
+                                        {{ $roleName }}
+                                    </span>
+                                </td>
+
+                                <td class="px-6 py-4 text-sm font-medium">
+                                    @if($karyawan->job_title == 'Operator' || $karyawan->job_title == '1')
+                                        <span class="text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded-md text-xs border border-sky-100">Operator</span>
+                                    @elseif($karyawan->job_title == 'Maintenance' || $karyawan->job_title == '2')
+                                        <span class="text-amber-600 bg-amber-50/50 px-2 py-0.5 rounded-md text-xs border border-amber-100">Maintenance</span>
+                                    @elseif($karyawan->job_title == 'HSE' || $karyawan->job_title == '3')
+                                        <span class="text-rose-600 bg-rose-50/50 px-2 py-0.5 rounded-md text-xs border border-rose-100">Safety (HSE)</span>
+                                    @elseif($karyawan->job_title == 'Dokumentasi' || $karyawan->job_title == '4')
+                                        <span class="text-teal-600 bg-teal-50/50 px-2 py-0.5 rounded-md text-xs border border-teal-100">Documenter</span>
+                                    @else
+                                        <span class="text-slate-400 italic text-xs">Belum Memilih</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-center">
+                                    @if(($karyawan->station && !empty($karyawan->station->name)))
+                                        <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
+                                            <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
+                                            {{ $karyawan->station->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-xl italic border border-rose-100">
+                                            ⚠️ Stasiun Belum Diatur
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $sisaCutiVal }} Hari</span>
+                                </td>
+
+                                <td class="px-6 py-4 text-center">
+                                    <button type="button" 
+                                        data-id="{{ $saldoIdVal }}"
+                                        data-nama="{{ $namaCutiText }}"
+                                        data-saldo="{{ $sisaCutiVal }}"
+                                        onclick="bukaModalEditSaldoBtn(this)" 
+                                        class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </button>
+                                </td>
+
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
+                                        @php $cuti = $karyawan->cuti_aktif->first(); @endphp
+                                        <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold" title="{{ $cuti->alasan_cuti }}">
+                                            <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
+                                            On Leave (Cuti)
+                                        </span>
+                                    @else
+                                        @php
+                                            $statusDetail = $karyawan->status_detail ?? [
+                                                'badge_class' => 'bg-slate-50 text-slate-600 border-slate-200',
+                                                'dot_class' => 'bg-slate-400',
+                                                'is_on' => false,
+                                                'label' => 'Standby'
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex items-center text-xs {{ $statusDetail['badge_class'] }} border px-2.5 py-1 rounded-full font-bold">
+                                            <span class="w-1.5 h-1.5 {{ $statusDetail['dot_class'] }} rounded-full mr-1.5 {{ $statusDetail['is_on'] ? 'animate-pulse' : '' }}"></span>
+                                            {{ $statusDetail['label'] }}
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr id="emptyRow">
+                                <td colspan="7" class="px-6 py-10 text-center text-slate-400">
+                                    <i class="fa-solid fa-users text-3xl mb-2 block text-slate-200"></i>
+                                    Belum ada data karyawan terdaftar di database.
+                                </td>
+                            </tr>
+                        @endforelse
+                        <tr id="noResultRow" class="hidden">
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
+                                Karyawan dengan nama tersebut tidak ditemukan.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- TAB 2: POHON ORGANISASI KARYAWAN --}}
+    <div id="tab-karyawan-pohon" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+            
+            {{-- HEADER & FILTER BAR --}}
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Skema Pohon Organisasi Karyawan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi hubungan atasan-bawahan berdasarkan struktur riil karyawan.</p>
+                </div>
+
+                {{-- OPSI FILTER POHON --}}
+                <div class="flex items-center gap-2 flex-wrap">
+                    {{-- Filter Stasiun --}}
+                    <select id="filterOrgStation" onchange="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <option value="ALL">Semua Stasiun Kerja</option>
+                        @foreach($daftarStasiun as $st)
+                            <option value="{{ $st->id }}">{{ $st->name }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Filter Sektor --}}
+                    <select id="filterOrgSektor" onchange="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <option value="ALL">Semua Divisi / Sektor</option>
+                        <option value="manajemen">Manajemen</option>
+                        <option value="operasional">Operasional</option>
+                    </select>
+
+                    <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors">
+                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Pohon
+                    </button>
+                </div>
+            </div>
+
+            {{-- WADAH RENDER DIAGRAM MERMAID --}}
+            <div class="mermaid-container flex justify-center py-4">
+                <div id="karyawanOrgDiagram" class="w-full flex justify-center min-h-[200px]"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {{-- MODAL POPUP DETAIL KARYAWAN --}}
@@ -306,6 +382,9 @@
 @endsection
 
 @push('scripts')
+<!-- Mermaid.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @if(session('success'))
@@ -328,6 +407,102 @@
 
 <script>
     let activeKaryawanId = null;
+
+    // Data Karyawan dari Laravel Controller
+    const rawKaryawanData = JSON.parse(`{!! json_encode($daftarKaryawan) !!}`);
+
+    // Inisialisasi Mermaid.js
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        securityLevel: 'loose'
+    });
+
+    let kRenderCounter = 0;
+
+    async function renderKaryawanOrgChart() {
+        const diagramContainer = document.getElementById('karyawanOrgDiagram');
+        if (!diagramContainer) return;
+
+        diagramContainer.innerHTML = '';
+
+        const filterStation = document.getElementById('filterOrgStation').value;
+        const filterSektor  = document.getElementById('filterOrgSektor').value.toLowerCase();
+
+        // Filter karyawan
+        const filteredList = rawKaryawanData.filter(u => {
+            const matchStation = (filterStation === 'ALL') || (u.station_id == filterStation);
+            const matchSektor  = (filterSektor === 'ALL') || ((u.sektor || '').toLowerCase() === filterSektor);
+            return matchStation && matchSektor;
+        });
+
+        if (filteredList.length === 0) {
+            diagramContainer.innerHTML = `
+                <div class="text-center py-10 text-slate-400 text-xs font-medium">
+                    <i class="fa-solid fa-users-slash text-3xl mb-2 block text-slate-200"></i>
+                    Tidak ada karyawan yang cocok dengan kriteria filter.
+                </div>
+            `;
+            return;
+        }
+
+        let graphDef = 'graph TD\n';
+        graphDef += '    COMPANY["🏢 Perusahaan / Direksi"]\n';
+
+        filteredList.forEach(u => {
+            const cleanName = (u.name || '').replace(/["'()]/g, '');
+            const cleanRole = (u.role ? u.role.role_name : 'Staff').replace(/["'()]/g, '');
+            const cleanStation = (u.station ? u.station.name : 'No Station').replace(/["'()]/g, '');
+
+            const nodeId = `U${u.id}`;
+            const nodeLabel = `"${cleanName}<br><b>${cleanRole}</b><br><i>📍 ${cleanStation}</i>"`;
+
+            // Hubungkan ke Supervisor / Manager jika ada di daftar, atau ke Perusahaan
+            if (u.supervisor_id && filteredList.some(emp => emp.id == u.supervisor_id)) {
+                graphDef += `    U${u.supervisor_id} --> ${nodeId}[${nodeLabel}]\n`;
+            } else if (u.manager_id && filteredList.some(emp => emp.id == u.manager_id)) {
+                graphDef += `    U${u.manager_id} --> ${nodeId}[${nodeLabel}]\n`;
+            } else {
+                graphDef += `    COMPANY --> ${nodeId}[${nodeLabel}]\n`;
+            }
+        });
+
+        try {
+            kRenderCounter++;
+            const elementId = `karyawanSvg_${kRenderCounter}`;
+            const { svg } = await mermaid.render(elementId, graphDef);
+            diagramContainer.innerHTML = svg;
+        } catch (err) {
+            console.error('Org-Chart Render Error:', err);
+            diagramContainer.innerHTML = `
+                <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                    Gagal merender skema karyawan.
+                </div>
+            `;
+        }
+    }
+
+    // Switch Tab Function
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
+            btn.classList.add('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        });
+
+        document.getElementById(tabId).classList.remove('hidden');
+        
+        const activeBtn = document.getElementById('btn-' + tabId);
+        activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+
+        if (tabId === 'tab-karyawan-pohon') {
+            setTimeout(() => {
+                renderKaryawanOrgChart();
+            }, 50);
+        }
+    }
 
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("searchKaryawanInput");

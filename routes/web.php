@@ -166,4 +166,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
 
     // Rekap Absensi Harian
     Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
+
+    // Update Hierarchy Matrix
+    Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');
 });

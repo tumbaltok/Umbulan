@@ -1,222 +1,274 @@
 @extends('layouts.app')
-@section('title', 'Manajemen Role Jabatan')
+@section('title', 'Manajemen Role & Skema Hirarki Jabatan')
 
 @push('styles')
 <!-- SweetAlert2 CDN CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    /* Styling khusus diagram Mermaid */
+    .mermaid-container {
+        background: #f8fafc;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        width: 100%;
+        overflow-x: auto;
+        min-height: 220px;
+    }
+</style>
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto mt-8 px-4 space-y-8">
+<div class="max-w-6xl mx-auto mt-8 px-4 space-y-6">
 
-    {{-- TABEL 1: DAFTAR ROLE & DIVISI JABATAN --}}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h2 class="text-xl font-bold text-slate-800">Daftar Role & Divisi Jabatan</h2>
-                <p class="text-sm text-slate-500 mt-0.5">Kelola tingkat hak akses dan hirarki wewenang jabatan.</p>
-            </div>
-
-            <div class="flex items-center gap-3 flex-wrap">
-                <div class="relative min-w-[150px]">
-                    <select id="filterSektor" onchange="filterTabelSektor()" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-sky-500 appearance-none cursor-pointer shadow-xs">
-                        <option value="ALL">Semua Sektor</option>
-                        <option value="MANAJEMEN">Manajemen</option>
-                        <option value="OPERASIONAL">Operasional</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-filter text-[10px]"></i>
-                    </div>
-                </div>
-
-                @if(Auth::user()->role && Auth::user()->role->level == 1)
-                <button type="button" onclick="bukaModalTambahRole()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0">
-                    <i class="fa-solid fa-plus"></i> Tambah Role Baru
-                </button>
-                @endif
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse" id="tabelRole">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                        <th class="px-6 py-4 text-center">Divisi</th>
-                        <th class="px-6 py-4 text-center">Role / Jabatan</th>
-                        <th class="px-6 py-4 text-center">Hak Akses</th>
-                        <th class="px-6 py-4 text-center">Wewenang / Deskripsi</th>
-                        <th class="px-6 py-4 text-center whitespace-nowrap min-w-[130px]">Total Staf</th>
-                        @if(Auth::user()->role && Auth::user()->role->level == 1)
-                        <th class="px-6 py-4 text-center w-28">Aksi</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
-                    @forelse($daftarRole as $role)
-                        @php 
-                            $divisiRaw = trim($role->divisi ?? 'Operasional');
-                            $divisiFormatted = strtoupper($divisiRaw); 
-                        @endphp
-                        <tr class="role-row hover:bg-slate-50/80 transition-colors" data-divisi="{{ $divisiFormatted }}">
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                @if($divisiFormatted === 'MANAJEMEN')
-                                    <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-xs inline-flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                        {{ $divisiRaw }}
-                                    </span>
-                                @elseif($divisiFormatted === 'OPERASIONAL')
-                                    <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs inline-flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        {{ $divisiRaw }}
-                                    </span>
-                                @else
-                                    <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 shadow-xs inline-flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                        {{ $divisiRaw }}
-                                    </span>
-                                @endif
-                            </td>
-
-                            <td class="px-6 py-4 text-center font-bold text-slate-800 whitespace-nowrap">{{ $role->role_name }}</td>
-
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                @if(($role->level ?? 3) == 1)
-                                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-100 inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-shield-halved text-[10px]"></i> Full Akses
-                                    </span>
-                                @elseif(($role->level ?? 3) == 2)
-                                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-eye text-[10px]"></i> Only Read
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-user text-[10px]"></i> User
-                                    </span>
-                                @endif
-                            </td>
-
-                            <td class="px-6 py-4 text-center text-xs leading-relaxed max-w-xs text-slate-500">
-                                {{ $role->description ?? '-' }}
-                            </td>
-
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100/80">
-                                    <i class="fa-solid fa-users text-[10px] mr-1.5 text-sky-500"></i>
-                                    {{ $role->users_count }} Orang
-                                </span>
-                            </td>
-
-                            @if(Auth::user()->role && Auth::user()->role->level == 1)
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <button type="button" 
-                                            data-role='@json($role)'
-                                            onclick="bukaModalEditRole(this)"
-                                            class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs transition-colors" 
-                                            title="Edit Role">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-
-                                    <form id="form-delete-role-{{ $role->id }}" action="{{ route('admin.role.destroy', $role->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" 
-                                                onclick="konfirmasiHapus('form-delete-role-{{ $role->id }}', 'Role Jabatan: {{ $role->role_name }}')"
-                                                class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs transition-colors" 
-                                                title="Hapus Role">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                            @endif
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-slate-400">Belum ada data role yang tersimpan.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    {{-- NAVIGASI TAB UTAMA (URUTAN PALING KIRI: SKEMA POHON & MATRIKS ATASAN) --}}
+    <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 rounded-2xl shadow-xs">
+        <div class="flex space-x-2">
+            <button type="button" onclick="switchTab('tab-hierarchy')" id="btn-tab-hierarchy" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs">
+                <i class="fa-solid fa-sitemap mr-1.5"></i> Skema Pohon & Matriks Atasan
+            </button>
+            <button type="button" onclick="switchTab('tab-roles')" id="btn-tab-roles" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+                <i class="fa-solid fa-user-shield mr-1.5 text-indigo-500"></i> Daftar Role Jabatan
+            </button>
+            <button type="button" onclick="switchTab('tab-jobdesks')" id="btn-tab-jobdesks" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+                <i class="fa-solid fa-list-check mr-1.5 text-emerald-500"></i> Daftar Jobdesk
+            </button>
         </div>
     </div>
 
-    {{-- TABEL 2: DAFTAR JOBDESK --}}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-indigo-50/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-bold text-slate-800">Daftar Jobdesk</h2>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200/80">
-                        {{ isset($daftarJobdesk) ? count($daftarJobdesk) : 0 }} Jobdesk
-                    </span>
+    {{-- TAB 1 (PALING KIRI): SKEMA POHON HIRARKI & MATRIKS RELASI ATASAN --}}
+    <div id="tab-hierarchy" class="tab-content space-y-6">
+
+        {{-- DIAGRAM VISUAL POHON ORGANISASI JABATAN --}}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Visualisasi Skema Pohon Jabatan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Diagram hirarki struktur komando yang dirender otomatis dari database.</p>
                 </div>
-                <p class="text-sm text-slate-500 mt-0.5">Daftar bidang tugas yang tersedia untuk dipilih karyawan saat registrasi.</p>
+                <button type="button" onclick="renderMermaidDiagram()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Diagram
+                </button>
             </div>
-            @if(Auth::user()->role && Auth::user()->role->level == 1)
-            <button type="button" onclick="bukaModalTambahJobdesk()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0">
-                <i class="fa-solid fa-plus"></i> Tambah Jobdesk Baru
-            </button>
-            @endif
+
+            <div class="mermaid-container flex justify-center py-4">
+                <div id="mermaidDiagram" class="w-full flex justify-center min-h-[180px]"></div>
+            </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                        <th class="px-6 py-4 w-16 text-center">No</th>
-                        <th class="px-6 py-4">Nama Jobdesk / Bidang Tugas</th>
-                        <th class="px-6 py-4">Deskripsi Rincian Tugas</th>
-                        @if(Auth::user()->role && Auth::user()->role->level == 1)
-                        <th class="px-6 py-4 text-center w-28">Aksi</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
-                    @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
-                        @php
-                            $colorPalettes = [
-                                ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-100', 'icon' => 'text-indigo-500'],
-                                ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-100', 'icon' => 'text-emerald-500'],
-                                ['bg' => 'bg-sky-50', 'text' => 'text-sky-700', 'border' => 'border-sky-100', 'icon' => 'text-sky-500'],
-                                ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-100', 'icon' => 'text-amber-500'],
-                                ['bg' => 'bg-purple-50', 'text' => 'text-purple-700', 'border' => 'border-purple-100', 'icon' => 'text-purple-500'],
-                                ['bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-100', 'icon' => 'text-rose-500'],
-                            ];
-                        @endphp
-                        @foreach($daftarJobdesk as $index => $jd)
-                            @php
-                                $color = $colorPalettes[$index % count($colorPalettes)];
+        {{-- FORM MATRIKS CUSTOM RELASI ATASAN & DYNAMIC APPROVAL RULES --}}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Pengaturan Atasan & Dynamic Approval Scope
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando dan validasi batas wilayah/sektor untuk alur persetujuan Cuti, CAR, dan MPR.</p>
+            </div>
+
+            <form action="{{ route('admin.role.hierarchy.update') }}" method="POST">
+                @csrf
+                <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
+                                <th class="p-3.5">Role / Jabatan</th>
+                                <th class="p-3.5">Atasan Langsung (Parent Role)</th>
+                                <th class="p-3.5 text-center">Wajib Stasiun Sama?</th>
+                                <th class="p-3.5 text-center">Wajib Sektor Sama?</th>
+                                <th class="p-3.5 text-center">Wajib Jobdesk Sama?</th>
+                                <th class="p-3.5 text-center">Level Approval</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            @foreach($daftarRole as $idx => $r)
+                                @php
+                                    $rules = $r->approval_rules ?? [];
+                                    $reqStation = $rules['require_same_station'] ?? true;
+                                    $reqSektor  = $rules['require_same_sektor'] ?? true;
+                                    $reqJobdesk = $rules['require_same_jobdesk'] ?? false;
+                                    $appLevels  = $rules['approval_levels'] ?? (str_contains(strtolower($r->role_name), 'staff') ? 2 : 1);
+                                @endphp
+                                <tr class="hover:bg-slate-50/60 transition-colors">
+                                    <td class="p-3 font-bold text-slate-800">
+                                        <input type="hidden" name="hierarchy[{{ $idx }}][role_id]" value="{{ $r->id }}">
+                                        {{ $r->role_name }}
+                                        <span class="block text-[10px] text-slate-400 font-normal">Divisi: {{ $r->divisi }}</span>
+                                    </td>
+
+                                    <td class="p-3">
+                                        <select name="hierarchy[{{ $idx }}][parent_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
+                                            <option value="">-- Top Level (Tidak Ada Atasan) --</option>
+                                            @foreach($daftarRole as $parentCandidate)
+                                                @if($parentCandidate->id != $r->id)
+                                                    <option value="{{ $parentCandidate->id }}" {{ $r->parent_role_id == $parentCandidate->id ? 'selected' : '' }}>
+                                                        {{ $parentCandidate->role_name }} ({{ $parentCandidate->divisi }})
+                                                    </option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" name="hierarchy[{{ $idx }}][require_same_station]" value="1" {{ $reqStation ? 'checked' : '' }} class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" name="hierarchy[{{ $idx }}][require_same_sektor]" value="1" {{ $reqSektor ? 'checked' : '' }} class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" name="hierarchy[{{ $idx }}][require_same_jobdesk]" value="1" {{ $reqJobdesk ? 'checked' : '' }} class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <select name="hierarchy[{{ $idx }}][approval_levels]" class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
+                                            <option value="1" {{ $appLevels == 1 ? 'selected' : '' }}>1 Level (Atasan Saja)</option>
+                                            <option value="2" {{ $appLevels == 2 ? 'selected' : '' }}>2 Level (Atasan + Manager)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Seluruh Matriks Hirarki
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- TAB 2: DAFTAR ROLE & DIVISI JABATAN --}}
+    <div id="tab-roles" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Daftar Role & Divisi Jabatan</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Kelola tingkat hak akses dan hirarki wewenang jabatan.</p>
+                </div>
+
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="relative min-w-[150px]">
+                        <select id="filterSektor" onchange="filterTabelSektor()" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-sky-500 appearance-none cursor-pointer shadow-xs">
+                            <option value="ALL">Semua Sektor</option>
+                            <option value="MANAJEMEN">Manajemen</option>
+                            <option value="OPERASIONAL">Operasional</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-filter text-[10px]"></i>
+                        </div>
+                    </div>
+
+                    @if(Auth::user()->role && Auth::user()->role->level == 1)
+                    <button type="button" onclick="bukaModalTambahRole()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0">
+                        <i class="fa-solid fa-plus"></i> Tambah Role Baru
+                    </button>
+                    @endif
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="tabelRole">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                            <th class="px-6 py-4 text-center">Divisi</th>
+                            <th class="px-6 py-4 text-center">Role / Jabatan</th>
+                            <th class="px-6 py-4 text-center">Atasan Langsung</th>
+                            <th class="px-6 py-4 text-center">Hak Akses</th>
+                            <th class="px-6 py-4 text-center">Deskripsi Wewenang</th>
+                            <th class="px-6 py-4 text-center whitespace-nowrap min-w-[130px]">Total Staf</th>
+                            @if(Auth::user()->role && Auth::user()->role->level == 1)
+                            <th class="px-6 py-4 text-center w-28">Aksi</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+                        @forelse($daftarRole as $role)
+                            @php 
+                                $divisiRaw = trim($role->divisi ?? 'Operasional');
+                                $divisiFormatted = strtoupper($divisiRaw); 
                             @endphp
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-6 py-4 text-center font-bold text-slate-400 text-xs">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">
-                                    <span class="px-3 py-1 rounded-lg text-xs font-bold {{ $color['bg'] }} {{ $color['text'] }} border {{ $color['border'] }} inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-briefcase {{ $color['icon'] }}"></i>
-                                        {{ $jd->job_title }}
+                            <tr class="role-row hover:bg-slate-50/80 transition-colors" data-divisi="{{ $divisiFormatted }}">
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    @if($divisiFormatted === 'MANAJEMEN')
+                                        <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-xs inline-flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                            {{ $divisiRaw }}
+                                        </span>
+                                    @elseif($divisiFormatted === 'OPERASIONAL')
+                                        <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs inline-flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            {{ $divisiRaw }}
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 shadow-xs inline-flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            {{ $divisiRaw }}
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-center font-bold text-slate-800 whitespace-nowrap">{{ $role->role_name }}</td>
+
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    @if($role->parentRole)
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-100 inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-turn-up text-[10px]"></i> {{ $role->parentRole->role_name }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-400 italic">Top Level (Puncak)</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    @if(($role->level ?? 3) == 1)
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-100 inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-shield-halved text-[10px]"></i> Full Akses
+                                        </span>
+                                    @elseif(($role->level ?? 3) == 2)
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-eye text-[10px]"></i> Only Read
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-user text-[10px]"></i> User
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-center text-xs leading-relaxed max-w-xs text-slate-500">
+                                    {{ $role->description ?? '-' }}
+                                </td>
+
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100/80">
+                                        <i class="fa-solid fa-users text-[10px] mr-1.5 text-sky-500"></i>
+                                        {{ $role->users_count }} Orang
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-xs text-slate-500 leading-relaxed">
-                                    {{ $jd->description ?? 'Tidak ada rincian keterangan tugas.' }}
-                                </td>
+
                                 @if(Auth::user()->role && Auth::user()->role->level == 1)
                                 <td class="px-6 py-4 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center space-x-2">
                                         <button type="button" 
-                                                data-jobdesk='@json($jd)'
-                                                onclick="bukaModalEditJobdesk(this)"
+                                                data-role='@json($role)'
+                                                onclick="bukaModalEditRole(this)"
                                                 class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs transition-colors" 
-                                                title="Edit Jobdesk">
+                                                title="Edit Role">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </button>
 
-                                        <form id="form-delete-jobdesk-{{ $jd->id }}" action="{{ route('admin.jobdesk.destroy', $jd->id) }}" method="POST" class="inline">
+                                        <form id="form-delete-role-{{ $role->id }}" action="{{ route('admin.role.destroy', $role->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="button" 
-                                                    onclick="konfirmasiHapus('form-delete-jobdesk-{{ $jd->id }}', 'Jobdesk: {{ $jd->job_title }}')"
+                                                    onclick="konfirmasiHapus('form-delete-role-{{ $role->id }}', 'Role Jabatan: {{ $role->role_name }}')"
                                                     class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs transition-colors" 
-                                                    title="Hapus Jobdesk">
+                                                    title="Hapus Role">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -224,17 +276,113 @@
                                 </td>
                                 @endif
                             </tr>
-                        @endforeach
-                    @else
-                        <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-slate-400">
-                                <i class="fa-solid fa-list-check text-3xl mb-2 block text-slate-200"></i>
-                                Belum ada kategori jobdesk yang terdaftar di database.
-                            </td>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-10 text-center text-slate-400">Belum ada data role yang tersimpan.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- TAB 3: DAFTAR JOBDESK --}}
+    <div id="tab-jobdesks" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-indigo-50/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-bold text-slate-800">Daftar Jobdesk</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200/80">
+                            {{ isset($daftarJobdesk) ? count($daftarJobdesk) : 0 }} Jobdesk
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-0.5">Daftar bidang tugas yang tersedia untuk dipilih karyawan saat registrasi.</p>
+                </div>
+                @if(Auth::user()->role && Auth::user()->role->level == 1)
+                <button type="button" onclick="bukaModalTambahJobdesk()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0">
+                    <i class="fa-solid fa-plus"></i> Tambah Jobdesk Baru
+                </button>
+                @endif
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                            <th class="px-6 py-4 w-16 text-center">No</th>
+                            <th class="px-6 py-4">Nama Jobdesk / Bidang Tugas</th>
+                            <th class="px-6 py-4">Deskripsi Rincian Tugas</th>
+                            @if(Auth::user()->role && Auth::user()->role->level == 1)
+                            <th class="px-6 py-4 text-center w-28">Aksi</th>
+                            @endif
                         </tr>
-                    @endif
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+                        @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
+                            @php
+                                $colorPalettes = [
+                                    ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-100', 'icon' => 'text-indigo-500'],
+                                    ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-100', 'icon' => 'text-emerald-500'],
+                                    ['bg' => 'bg-sky-50', 'text' => 'text-sky-700', 'border' => 'border-sky-100', 'icon' => 'text-sky-500'],
+                                    ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-100', 'icon' => 'text-amber-500'],
+                                    ['bg' => 'bg-purple-50', 'text' => 'text-purple-700', 'border' => 'border-purple-100', 'icon' => 'text-purple-500'],
+                                    ['bg' => 'bg-rose-50', 'text' => 'text-rose-700', 'border' => 'border-rose-100', 'icon' => 'text-rose-500'],
+                                ];
+                            @endphp
+                            @foreach($daftarJobdesk as $index => $jd)
+                                @php
+                                    $color = $colorPalettes[$index % count($colorPalettes)];
+                                @endphp
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4 text-center font-bold text-slate-400 text-xs">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">
+                                        <span class="px-3 py-1 rounded-lg text-xs font-bold {{ $color['bg'] }} {{ $color['text'] }} border {{ $color['border'] }} inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-briefcase {{ $color['icon'] }}"></i>
+                                            {{ $jd->job_title }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-slate-500 leading-relaxed">
+                                        {{ $jd->description ?? 'Tidak ada rincian keterangan tugas.' }}
+                                    </td>
+                                    @if(Auth::user()->role && Auth::user()->role->level == 1)
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <button type="button" 
+                                                    data-jobdesk='@json($jd)'
+                                                    onclick="bukaModalEditJobdesk(this)"
+                                                    class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs transition-colors" 
+                                                    title="Edit Jobdesk">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+
+                                            <form id="form-delete-jobdesk-{{ $jd->id }}" action="{{ route('admin.jobdesk.destroy', $jd->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" 
+                                                        onclick="konfirmasiHapus('form-delete-jobdesk-{{ $jd->id }}', 'Jobdesk: {{ $jd->job_title }}')"
+                                                        class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs transition-colors" 
+                                                        title="Hapus Jobdesk">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="4" class="px-6 py-10 text-center text-slate-400">
+                                    <i class="fa-solid fa-list-check text-3xl mb-2 block text-slate-200"></i>
+                                    Belum ada kategori jobdesk yang terdaftar di database.
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -336,6 +484,8 @@
 @endsection
 
 @push('scripts')
+<!-- Mermaid.js CDN for Diagram Tree -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <!-- SweetAlert2 JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -347,8 +497,92 @@
     const sessionError     = JSON.parse(`{!! json_encode(session('error')) !!}`);
     const validationErrors = JSON.parse(`{!! json_encode($errors->all()) !!}`);
 
-    // SweetAlert2 Toast Handler
+    const rawRolesData = JSON.parse('@json($daftarRole)');
+
+    // INISIALISASI MERMAID API
+    mermaid.initialize({ 
+        startOnLoad: false, 
+        theme: 'default',
+        securityLevel: 'loose'
+    });
+
+    let renderCounter = 0;
+
+    async function renderMermaidDiagram() {
+        const diagramContainer = document.getElementById('mermaidDiagram');
+        if (!diagramContainer) return;
+
+        // Reset wadah diagram
+        diagramContainer.innerHTML = '';
+
+        // Rakit sintaks diagram Mermaid secara dinamis dari JSON Data
+        let graphDefinition = 'graph TD\n';
+        graphDefinition += '    COMPANY["🏢 Perusahaan / Direksi"]\n';
+
+        if (rawRolesData && rawRolesData.length > 0) {
+            rawRolesData.forEach(r => {
+                const cleanRoleName = (r.role_name || '').replace(/["'()]/g, '');
+                const cleanDivisi = (r.divisi || 'Operasional').replace(/["'()]/g, '');
+
+                const nodeId = `R${r.id}`;
+                const nodeLabel = `"${cleanRoleName}<br><i>(${cleanDivisi})</i>"`;
+
+                if (!r.parent_role_id) {
+                    graphDefinition += `    COMPANY --> ${nodeId}[${nodeLabel}]\n`;
+                } else {
+                    const parentNodeId = `R${r.parent_role_id}`;
+                    graphDefinition += `    ${parentNodeId} --> ${nodeId}[${nodeLabel}]\n`;
+                }
+            });
+        }
+
+        try {
+            renderCounter++;
+            const elementId = `mermaidSvg_${renderCounter}`;
+            // Render SVG async murni tanpa menyentuh DOM statis Blade
+            const { svg } = await mermaid.render(elementId, graphDefinition);
+            diagramContainer.innerHTML = svg;
+        } catch (error) {
+            console.error('Mermaid Render Error:', error);
+            diagramContainer.innerHTML = `
+                <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                    Gagal merender skema. Klik tombol "Refresh Diagram" di atas.
+                </div>
+            `;
+        }
+    }
+
+    // SWITCH TAB HANDLER
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
+            btn.classList.add('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        });
+
+        document.getElementById(tabId).classList.remove('hidden');
+        
+        const activeBtn = document.getElementById('btn-' + tabId);
+        activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+
+        // Picu render diagram HANYA saat tab skema dalam posisi terlihat (visible)
+        if (tabId === 'tab-hierarchy') {
+            setTimeout(() => {
+                renderMermaidDiagram();
+            }, 50);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        const activeTabSession = JSON.parse(`{!! json_encode(session('active_tab')) !!}`);
+        if (activeTabSession) {
+            switchTab(activeTabSession);
+        } else {
+            switchTab('tab-hierarchy');
+        }
+
         if (sessionSuccess) {
             Swal.fire({
                 icon: 'success',
@@ -359,7 +593,6 @@
                 timerProgressBar: true
             });
         }
-
         if (sessionError) {
             Swal.fire({
                 icon: 'error',
@@ -368,10 +601,8 @@
                 confirmColor: '#e11d48'
             });
         }
-
         if (validationErrors && validationErrors.length > 0) {
             let errorListHtml = validationErrors.map(err => `• ${err}`).join('<br>');
-
             Swal.fire({
                 icon: 'warning',
                 title: 'Validasi Gagal!',
@@ -381,7 +612,6 @@
         }
     });
 
-    // POPUP KONFIRMASI HAPUS
     function konfirmasiHapus(formId, itemLabel) {
         Swal.fire({
             title: 'Apakah Anda Yakin?',

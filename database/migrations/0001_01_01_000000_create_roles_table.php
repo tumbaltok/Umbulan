@@ -17,8 +17,12 @@ return new class extends Migration
             $table->string('divisi')->default('Operasional');
             $table->integer('level')->default(1);
             $table->text('description')->nullable();
+            $table->foreignId('parent_role_id')
+                ->nullable()
+                ->constrained('roles')
+                ->nullOnDelete();
+            $table->json('approval_rules')->nullable();
             $table->timestamps();
-
             $table->unique(['role_name', 'divisi']);
         });
     }

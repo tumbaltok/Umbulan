@@ -11,7 +11,8 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $daftarRole = Role::withCount('users')->get();
+        // Ambil role lengkap dengan atasan langsung & jumlah user
+        $daftarRole = Role::with(['parentRole', 'childRoles'])->withCount('users')->get();
         $daftarJobdesk = Jobdesk::all();
 
         return view('admin.daftar.roleindex', compact('daftarRole', 'daftarJobdesk'));
@@ -25,6 +26,7 @@ class RoleController extends Controller
                 'roles.*.divisi' => 'required|string|max:255',
                 'roles.*.level' => 'required|integer',
                 'roles.*.description' => 'nullable|string',
+                'roles.*.parent_role_id' => 'nullable|exists:roles,id',
             ]);
 
             foreach ($request->roles as $roleData) {
@@ -36,6 +38,7 @@ class RoleController extends Controller
                 'divisi' => 'required|string|max:255',
                 'level' => 'required|integer',
                 'description' => 'nullable|string',
+                'parent_role_id' => 'nullable|exists:roles,id',
             ]);
 
             Role::create($request->all());
@@ -44,7 +47,7 @@ class RoleController extends Controller
         return redirect()->back()->with('success', 'Data Role berhasil ditambahkan!');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $role = Role::findOrFail($id);
 
@@ -58,7 +61,7 @@ class RoleController extends Controller
         return redirect()->back()->with('success', 'Data Role berhasil diperbarui!');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $role = Role::findOrFail($id);
 
@@ -66,9 +69,51 @@ class RoleController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus! Role masih digunakan oleh karyawan.');
         }
 
+        // Putus hubungan bawahan jika role ini dihapus
+        Role::where('parent_role_id', $id)->update(['parent_role_id' => null]);
+
         $role->delete();
 
         return redirect()->back()->with('success', 'Role berhasil dihapus!');
+    }
+
+    // === METODE BARU: UPDATE SKEMA HIRARKI & ATURAN APPROVAL DINAMIS ===
+    public function updateHierarchyMatrix(Request $request)
+    {
+        $request->validate([
+            'hierarchy' => 'required|array',
+            'hierarchy.*.role_id' => 'required|exists:roles,id',
+            'hierarchy.*.parent_role_id' => 'nullable|exists:roles,id',
+            'hierarchy.*.require_same_station' => 'nullable|boolean',
+            'hierarchy.*.require_same_sektor' => 'nullable|boolean',
+            'hierarchy.*.require_same_jobdesk' => 'nullable|boolean',
+            'hierarchy.*.approval_levels' => 'required|integer|in:1,2',
+        ]);
+
+        foreach ($request->hierarchy as $item) {
+            $role = Role::findOrFail($item['role_id']);
+
+            // Mencegah siklus (Role tidak boleh menjadi parent bagi dirinya sendiri)
+            $parentId = (!empty($item['parent_role_id']) && $item['parent_role_id'] != $item['role_id']) 
+                ? $item['parent_role_id'] 
+                : null;
+
+            $approvalRules = [
+                'require_same_station' => isset($item['require_same_station']) && $item['require_same_station'] == 1,
+                'require_same_sektor'  => isset($item['require_same_sektor']) && $item['require_same_sektor'] == 1,
+                'require_same_jobdesk' => isset($item['require_same_jobdesk']) && $item['require_same_jobdesk'] == 1,
+                'approval_levels'      => (int) ($item['approval_levels'] ?? 1),
+            ];
+
+            $role->update([
+                'parent_role_id' => $parentId,
+                'approval_rules' => $approvalRules,
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', 'Skema hirarki dan aturan persetujuan berhasil diperbarui!')
+            ->with('active_tab', 'tab-hierarchy');
     }
 
     public function storeJobdesk(Request $request)
@@ -102,11 +147,12 @@ class RoleController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Kategori Jobdesk berhasil ditambahkan!');
+        return redirect()->back()
+            ->with('success', 'Kategori Jobdesk berhasil ditambahkan!')
+            ->with('active_tab', 'tab-jobdesks');
     }
 
-    // === METHOD PERBAIKAN (UPDATE JOBDESK) ===
-    public function updateJobdesk(Request $request, $id)
+    public function updateJobdesk(Request $request, int $id)
     {
         $request->validate([
             'job_title' => 'required|string|max:255|unique:jobdesks,job_title,'.$id,
@@ -122,14 +168,18 @@ class RoleController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->back()->with('success', 'Data Jobdesk berhasil diperbarui!');
+        return redirect()->back()
+            ->with('success', 'Data Jobdesk berhasil diperbarui!')
+            ->with('active_tab', 'tab-jobdesks');
     }
 
-    public function destroyJobdesk($id)
+    public function destroyJobdesk(int $id)
     {
         $jobdesk = Jobdesk::findOrFail($id);
         $jobdesk->delete();
 
-        return redirect()->back()->with('success', 'Jobdesk berhasil dihapus!');
+        return redirect()->back()
+            ->with('success', 'Jobdesk berhasil dihapus!')
+            ->with('active_tab', 'tab-jobdesks');
     }
 }

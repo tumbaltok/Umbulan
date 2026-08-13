@@ -214,16 +214,17 @@ class PengajuanCutiController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public');
         }
 
-        $roleName = strtolower($user->role->role_name ?? '');
+        // PERBAIKAN: Menggunakan level hirarki role untuk auto-approval pemohon bernilai manajerial
+        $roleLevel = $user->role->level ?? 4;
         $statusSupervisor = 'pending';
         $statusManager = 'pending';
         $statusAkhir = 'pending';
 
-        if (in_array($roleName, ['manager', 'hrd', 'full akses'])) {
+        if (in_array($roleLevel, [1, 2])) {
             $statusSupervisor = 'approved';
             $statusManager = 'approved';
             $statusAkhir = 'approved';
-        } elseif ($roleName === 'supervisor') {
+        } elseif ($roleLevel == 3) {
             $statusSupervisor = 'approved';
         }
 
@@ -274,7 +275,8 @@ class PengajuanCutiController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
+        // Mengambil level hirarki role (Default 4 = Staff jika null)
+        $roleLevel = $atasan->role->level ?? 4; 
 
         $query = DB::table('pengajuan_cutis')
             ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
@@ -289,10 +291,19 @@ class PengajuanCutiController extends Controller
             )
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
-        if ($roleName === 'supervisor') {
-            $query->where('pengajuan_cutis.status_supervisor', 'pending')->where('users.station_id', $atasan->station_id);
-        } elseif (in_array($roleName, ['manager', 'full akses'])) {
-            $query->where('pengajuan_cutis.status_manager', 'pending')->where('pengajuan_cutis.status_supervisor', 'approved');
+        // LEVEL 3 = Pengawas / Supervisor (Hanya station terkait)
+        if ($roleLevel == 3) {
+            $query->where('pengajuan_cutis.status_supervisor', 'pending')
+                ->where('users.station_id', $atasan->station_id);
+        } 
+        // LEVEL 2 = Manager / Kepala Divisi (Menunggu persetujuan final setelah disetujui Level 3)
+        elseif ($roleLevel == 2) {
+            $query->where('pengajuan_cutis.status_manager', 'pending')
+                ->where('pengajuan_cutis.status_supervisor', 'approved');
+        } 
+        // LEVEL 1 = Admin / Direksi / Full Akses (Menampilkan antrean pending)
+        else {
+            $query->where('pengajuan_cutis.status_akhir', 'pending');
         }
 
         $daftarPengajuan = $query->get();
@@ -310,9 +321,10 @@ class PengajuanCutiController extends Controller
         $atasan = Auth::user();
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
-        $roleName = $atasan->role ? strtolower($atasan->role->role_name) : '';
+        $roleLevel = $atasan->role->level ?? 4;
 
-        if ($roleName === 'supervisor') {
+        // TAHAP 1: Persetujuan Pengawas Lapangan (Level 3)
+        if ($roleLevel == 3) {
             $pengajuan->update([
                 'status_supervisor' => $tindakan,
                 'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
@@ -321,10 +333,14 @@ class PengajuanCutiController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
-        } elseif (in_array($roleName, ['manager', 'hrd', 'full akses'])) {
+        } 
+        // TAHAP 2: Persetujuan Final / Manajemen (Level 1 & 2)
+        elseif (in_array($roleLevel, [1, 2])) {
             DB::beginTransaction();
             try {
                 $pengajuan->update([
+                    // Jika disetujui langsung oleh Level 1/2, otomatis setujui status_supervisor jika masih pending
+                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? 'approved' : $pengajuan->status_supervisor,
                     'status_manager' => $tindakan,
                     'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
                     'status_akhir' => $tindakan,
@@ -346,7 +362,7 @@ class PengajuanCutiController extends Controller
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
         }
 
-        return redirect()->back()->with('error', 'Akses ditolak.');
+        return redirect()->back()->with('error', 'Akses ditolak. Level akun Anda tidak mencukupi.');
     }
 
     public function detailCutiJSON(int $id)

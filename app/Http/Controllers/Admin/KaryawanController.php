@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
+use App\Models\User\Jobdesk;
+use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
@@ -32,6 +34,8 @@ class KaryawanController extends Controller
         $query = User::with([
             'role',
             'station',
+            'supervisor',
+            'manager',
             'saldoCuti' => function ($q) use ($jenisCutiId) {
                 if ($jenisCutiId) {
                     $q->where('jenis_cuti_id', $jenisCutiId);
@@ -88,8 +92,11 @@ class KaryawanController extends Controller
             return $karyawan;
         });
 
-        // PERBAIKAN: Menggunakan 'daftarKaryawan' agar cocok dengan nama variabel di atas
-        return view('admin.daftar.karyawanindex', compact('daftarKaryawan'));
+        // Ambil data pendukung filter pohon organisasi
+        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
+
+        return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk'));
     }
 
     public function showDetail(int $id): JsonResponse
