@@ -65,16 +65,14 @@ class AuthController extends Controller
         // LOGIKA PENENTUAN ATASAN LANGSUNG BERJENJANG (LINIER)
         // -------------------------------------------------------------
         if (str_contains($roleName, 'staff')) {
-            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Job Title/Jobdesk SAMA)
+            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Job Title SAMA)
+            // Perbaikan: Hanya menggunakan 'job_title' untuk menghindari error "Column not found"
             $supervisor = User::whereHas('role', function ($q) {
                 $q->where('role_name', 'LIKE', '%Supervisor%');
             })
                 ->where('sektor', $sektorInput)
                 ->where('station_id', $request->station_id)
-                ->where(function ($q) use ($request) {
-                    $q->where('job_title', $request->jobdesk)
-                        ->orWhere('jobdesk', $request->jobdesk);
-                })
+                ->where('job_title', $request->jobdesk)
                 ->first();
 
             // Fallback: Jika tidak ada Supervisor dengan jobdesk yang sama, cari Supervisor di Sektor & Tempat Kerja yang sama
@@ -99,7 +97,7 @@ class AuthController extends Controller
             $managerId = $manager ? $manager->id : null;
 
         } elseif (str_contains($roleName, 'supervisor')) {
-            // 2. UNTUK SUPERVISOR: Penentuan Manager BEBAS (Tidak butuh linier jobdesk, cukup Sektor)
+            // 2. UNTUK SUPERVISOR: Penentuan Manager cukup berdasarkan Sektor
             $manager = User::whereHas('role', function ($q) {
                 $q->where('role_name', 'LIKE', '%Manager%');
             })
@@ -110,7 +108,7 @@ class AuthController extends Controller
             $managerId = $manager ? $manager->id : null;
         }
 
-        // 1. Buat User Baru (Disimpan ke kolom 'job_title' agar sesuai struktur DB)
+        // 1. Buat User Baru
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
@@ -119,7 +117,7 @@ class AuthController extends Controller
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
             'sektor' => $sektorInput,
-            'job_title' => $request->jobdesk, // PERBAIKAN: Disimpan ke kolom job_title
+            'job_title' => $request->jobdesk, 
             'supervisor_id' => $supervisorId,
             'manager_id' => $managerId,
             'password' => Hash::make($request->password),
@@ -143,13 +141,10 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Tangkap status centang checkbox 'remember' (menghasilkan boolean true/false)
         $remember = $request->boolean('remember');
 
-        // Masukkan $remember sebagai parameter kedua pada Auth::attempt
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-
             return redirect()->intended('/dashboard');
         }
 
@@ -158,11 +153,13 @@ class AuthController extends Controller
         ])->withInput($request->only('email'));
     }
 
-    // 1. KIRIM OTP KE EMAIL (AJAX)
+    /**
+     * 1. KIRIM OTP KE EMAIL (AJAX)
+     */
     public function sendOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        $userExists = DB::table('users')->where('email', $request->email)->exists();
+        $userExists = User::where('email', $request->email)->exists();
 
         if (! $userExists) {
             return response()->json(['status' => 'error', 'message' => 'Email tidak terdaftar.'], 404);
@@ -186,7 +183,9 @@ class AuthController extends Controller
         }
     }
 
-    // 2. VERIFIKASI OTP SAJA
+    /**
+     * 2. VERIFIKASI OTP EMAIL
+     */
     public function verifyOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required']);
@@ -208,7 +207,9 @@ class AuthController extends Controller
         return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
     }
 
-    // 3. SIMPAN PASSWORD BARU PILIHAN USER
+    /**
+     * 3. SIMPAN PASSWORD BARU
+     */
     public function forgotWeb(Request $request)
     {
         $request->validate([
@@ -217,12 +218,19 @@ class AuthController extends Controller
         ]);
 
         if (session('otp_verified_for') !== $request->email) {
-            return redirect()->back()->withErrors(['email' => 'Aksi tidak valid atau verifikasi OTP gagal.']);
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Aksi tidak valid atau verifikasi OTP gagal.'
+            ], 422);
         }
 
-        DB::table('users')->where('email', $request->email)->update([
-            'password' => Hash::make($request->password),
-        ]);
+        // Perbaikan: Menggunakan Eloquent agar updated_at terupdate
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $user->update([
+                'password' => Hash::make($request->password),
+            ]);
+        }
 
         session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified_for']);
 
@@ -232,7 +240,9 @@ class AuthController extends Controller
         ]);
     }
 
-    // 1. Fungsi untuk mengirim OTP via Fonnte (WhatsApp)
+    /**
+     * 1. Fungsi untuk mengirim OTP via Fonnte (WhatsApp)
+     */
     public function sendOtpPhone(Request $request)
     {
         $request->validate([
@@ -250,7 +260,8 @@ class AuthController extends Controller
 
         $message = "Kode verifikasi (OTP) Anda adalah: *{$otp}*.\nJangan bagikan kode ini kepada siapapun. Kode berlaku selama 5 menit.";
 
-        $fonnteToken = config('services.fonnte.token') ?? env('FONNTE_TOKEN');
+        // Perbaikan: Hanya gunakan config(). Pastikan 'fonnte.token' sudah ada di config/services.php
+        $fonnteToken = config('services.fonnte.token');
 
         $response = Http::withHeaders([
             'Authorization' => $fonnteToken,
@@ -272,7 +283,9 @@ class AuthController extends Controller
         return response()->json(['success' => false, 'message' => 'Gagal terhubung ke server WhatsApp. Coba lagi nanti.'], 500);
     }
 
-    // 2. Fungsi untuk mencocokkan OTP yang diinput user via HP
+    /**
+     * 2. Fungsi untuk mencocokkan OTP via HP
+     */
     public function verifyOtpPhone(Request $request)
     {
         $request->validate([
