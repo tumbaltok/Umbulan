@@ -503,6 +503,7 @@
         });
     }
 
+    // FUNGSI UNTUK METODE 1: PARSE GOOGLE MAPS URL
     function autoParseMapsUrlRow(input, index) {
         const url = input.value;
         if (!url) return;
@@ -532,6 +533,73 @@
             document.getElementById(`input_latitude_${index}`).value = lat;
             document.getElementById(`input_longitude_${index}`).value = lng;
         }
+    }
+
+    // FUNGSI UNTUK METODE 2: GEOLOCATION GPS SAAT INI + KALIBRASI
+    function dapatkanLokasiSaatIni(index) {
+        const btn = document.getElementById(`btn_gps_${index}`);
+        const originalText = btn.innerHTML;
+
+        if (!navigator.geolocation) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Tidak Didukung',
+                text: 'Browser Anda tidak mendukung Geolocation GPS.',
+                confirmColor: '#e11d48'
+            });
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mendapatkan GPS...`;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude.toFixed(8);
+                const lng = position.coords.longitude.toFixed(8);
+
+                document.getElementById(`input_latitude_${index}`).value = lat;
+                document.getElementById(`input_longitude_${index}`).value = lng;
+                document.getElementById(`input_maps_url_${index}`).value = `https://www.google.com/maps?q=${lat},${lng}`;
+
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'GPS Berhasil Diambil!',
+                    text: `Koordinat lokasi saat ini (${lat}, ${lng}) berhasil dimasukkan. Anda bisa menyesuaikan angkanya secara manual untuk kalibrasi.`,
+                    timer: 2500,
+                    timerProgressBar: true,
+                    confirmColor: '#0284c7'
+                });
+            },
+            function(error) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                let msg = 'Gagal mengambil lokasi GPS saat ini.';
+                if (error.code === error.PERMISSION_DENIED) {
+                    msg = 'Izin akses lokasi ditolak oleh browser. Harap izinkan akses lokasi di pengaturan browser Anda.';
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    msg = 'Informasi lokasi perangkat tidak tersedia.';
+                } else if (error.code === error.TIMEOUT) {
+                    msg = 'Permintaan waktu pengambilan lokasi GPS habis (timeout).';
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Akses GPS',
+                    text: msg,
+                    confirmColor: '#e11d48'
+                });
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
     }
 
     function tambahBarisStasiun(stasiunData = null) {
@@ -594,21 +662,36 @@
                     </div>
                 </div>
 
+                {{-- DUA METODE PENENTUAN LOKASI --}}
                 <div class="p-3 bg-sky-50/50 border border-sky-100 rounded-xl space-y-2">
-                    <label class="block text-xs font-bold text-sky-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-link"></i> Tempel (Paste) Link Google Maps
-                    </label>
-                    <input type="url" value="${mapsUrlVal}" oninput="autoParseMapsUrlRow(this, ${curIdx})" placeholder="https://www.google.com/maps/place/.../@-7.182341,113.241512,17z/..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
-                    <p class="text-[10px] text-slate-500 leading-relaxed">* Tempelkan link lokasi dari Google Maps untuk mengekstrak latitude & longitude secara otomatis.</p>
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-sky-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-map-pin"></i> Tempel Link Google Maps
+                        </label>
+                        <button type="button" 
+                                id="btn_gps_${curIdx}"
+                                onclick="dapatkanLokasiSaatIni(${curIdx})" 
+                                class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition-colors flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-crosshairs"></i> Ambil Lokasi Saat Ini (GPS)
+                        </button>
+                    </div>
+                    <input type="url" 
+                           id="input_maps_url_${curIdx}"
+                           value="${mapsUrlVal}" 
+                           oninput="autoParseMapsUrlRow(this, ${curIdx})" 
+                           placeholder="https://www.google.com/maps/place/.../@-7.182341,113.241512,17z/..." 
+                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                    <p class="text-[10px] text-slate-500 leading-relaxed">* Gunakan link Google Maps atau tekan tombol hijau "Ambil Lokasi Saat Ini" untuk mengisi koordinat secara otomatis.</p>
                 </div>
 
+                {{-- INPUT KOORDINAT DAN KALIBRASI PRESISI --}}
                 <div class="grid grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude (Kalibrasi)</label>
                         <input type="text" name="stations[${curIdx}][latitude]" id="input_latitude_${curIdx}" value="${latVal}" required placeholder="-7.123456" class="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl text-xs focus:outline-none focus:border-sky-500 font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude (Kalibrasi)</label>
                         <input type="text" name="stations[${curIdx}][longitude]" id="input_longitude_${curIdx}" value="${lngVal}" required placeholder="112.654321" class="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl text-xs focus:outline-none focus:border-sky-500 font-mono">
                     </div>
                     <div>

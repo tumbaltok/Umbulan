@@ -23,15 +23,15 @@ class StationController extends Controller
         if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
-
         if (preg_match('/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
-
         if (preg_match('/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
-
+        if (preg_match('/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/', $url, $matches)) {
+            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
+        }
         return null;
     }
 
