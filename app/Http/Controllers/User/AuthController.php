@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -22,7 +25,6 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
-        // Hanya tampilkan lokasi bertipe 'kantor' atau 'stasiun' (Rumah Meter disembunyikan)
         $daftarStasiun = Station::whereIn('type', ['kantor', 'stasiun'])
             ->orderBy('type', 'asc')
             ->orderBy('name', 'asc')
@@ -51,7 +53,7 @@ class AuthController extends Controller
             'station_id' => 'required|exists:stations,id',
             'sektor' => 'required|in:manajemen,operasional',
             'jobdesk' => 'required|string|max:100',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
         $sektorInput = strtolower($request->sektor);
@@ -65,8 +67,6 @@ class AuthController extends Controller
         // LOGIKA PENENTUAN ATASAN LANGSUNG BERJENJANG (LINIER)
         // -------------------------------------------------------------
         if (str_contains($roleName, 'staff')) {
-            // 1. CARI SUPERVISOR LINIER (Sektor + Tempat Kerja + Job Title SAMA)
-            // Perbaikan: Hanya menggunakan 'job_title' untuk menghindari error "Column not found"
             $supervisor = User::whereHas('role', function ($q) {
                 $q->where('role_name', 'LIKE', '%Supervisor%');
             })
@@ -75,7 +75,6 @@ class AuthController extends Controller
                 ->where('job_title', $request->jobdesk)
                 ->first();
 
-            // Fallback: Jika tidak ada Supervisor dengan jobdesk yang sama, cari Supervisor di Sektor & Tempat Kerja yang sama
             if (! $supervisor) {
                 $supervisor = User::whereHas('role', function ($q) {
                     $q->where('role_name', 'LIKE', '%Supervisor%');
@@ -87,7 +86,6 @@ class AuthController extends Controller
 
             $supervisorId = $supervisor ? $supervisor->id : null;
 
-            // Cari Manager Linier berdasarkan Sektor
             $manager = User::whereHas('role', function ($q) {
                 $q->where('role_name', 'LIKE', '%Manager%');
             })
@@ -97,7 +95,6 @@ class AuthController extends Controller
             $managerId = $manager ? $manager->id : null;
 
         } elseif (str_contains($roleName, 'supervisor')) {
-            // 2. UNTUK SUPERVISOR: Penentuan Manager cukup berdasarkan Sektor
             $manager = User::whereHas('role', function ($q) {
                 $q->where('role_name', 'LIKE', '%Manager%');
             })
@@ -117,18 +114,20 @@ class AuthController extends Controller
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
             'sektor' => $sektorInput,
-            'job_title' => $request->jobdesk, 
+            'job_title' => $request->jobdesk,
             'supervisor_id' => $supervisorId,
             'manager_id' => $managerId,
             'password' => Hash::make($request->password),
         ]);
 
-        // 2. OTOMATIS LOGIN-KAN USER
-        Auth::login($user);
-        $request->session()->regenerate();
+        // Audit Log Registrasi
+        Log::info("User baru berhasil terdaftar: ID {$user->id}, Email: {$user->email}, IP: {$request->ip()}");
 
-        // 3. DIRECT LANGSUNG KE DASHBOARD
-        return redirect()->intended('/dashboard')->with('success', 'Pendaftaran berhasil! Selamat datang di Portal Cuti.');
+        // Kirim Notifikasi Verifikasi Email Bawaan Laravel
+        $user->sendEmailVerificationNotification();
+
+        // Arahkan ke Halaman Login dengan Pesan Petunjuk Verifikasi Email
+        return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan periksa email Anda untuk melakukan verifikasi akun sebelum login.');
     }
 
     /**
@@ -141,12 +140,31 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Proteksi Rate Limiting Login (Maksimal 5x percobaan per menit)
+        $throttleKey = 'login-attempt:'.strtolower($request->input('email')).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            Log::warning("Terlalu banyak percobaan login gagal dari IP: {$request->ip()}, Email: {$request->email}");
+
+            return back()->withErrors([
+                'email' => "Terlalu banyak percobaan login yang gagal. Silakan coba lagi dalam {$seconds} detik.",
+            ])->withInput($request->only('email'));
+        }
+
         $remember = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
+
+            Log::info("User ID ".Auth::id()." berhasil login dari IP: {$request->ip()}");
+
             return redirect()->intended('/dashboard');
         }
+
+        RateLimiter::hit($throttleKey, 60);
+        Log::warning("Gagal login untuk email: {$request->email} dari IP: {$request->ip()}");
 
         return back()->withErrors([
             'email' => 'Kombinasi Email atau Password salah!',
@@ -154,33 +172,50 @@ class AuthController extends Controller
     }
 
     /**
-     * 1. KIRIM OTP KE EMAIL (AJAX)
+     * 1. KIRIM OTP KE EMAIL (AJAX) - Pencegahan Email Enumeration & Hashing OTP
      */
     public function sendOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        $userExists = User::where('email', $request->email)->exists();
 
-        if (! $userExists) {
-            return response()->json(['status' => 'error', 'message' => 'Email tidak terdaftar.'], 404);
+        // Rate limiting OTP Email (Maksimal 3x percobaan per 5 menit)
+        $throttleKey = 'send-otp-email:'.$request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terlalu banyak permintaan OTP. Silakan tunggu beberapa menit.',
+            ], 429);
+        }
+        RateLimiter::hit($throttleKey, 300);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Kriptografi Kuat
+        $otp = random_int(100000, 999999);
+
+        if ($user) {
+            // Hash OTP sebelum disimpan ke session untuk keamanan
+            session([
+                'reset_email' => $request->email,
+                'reset_otp_hash' => Hash::make($otp),
+                'reset_otp_expires' => now()->addMinutes(5),
+            ]);
+
+            try {
+                Mail::raw('Kode OTP Pemulihan Akun Anda: '.$otp, function ($message) use ($request) {
+                    $message->to($request->email)->subject('Kode OTP Lupa Password');
+                });
+                Log::info("OTP Reset Password berhasil dikirim ke email: {$request->email}");
+            } catch (\Exception $e) {
+                Log::error("Gagal mengirim email OTP ke {$request->email}: ".$e->getMessage());
+            }
         }
 
-        $otp = rand(100000, 999999);
-        session([
-            'reset_email' => $request->email,
-            'reset_otp' => $otp,
-            'reset_otp_expires' => now()->addMinutes(5),
+        // Mengembalikan respon generik seragam untuk mencegah Email Enumeration
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jika email Anda terdaftar dalam sistem, kami telah mengirimkan kode OTP ke email tersebut.',
         ]);
-
-        try {
-            Mail::raw('Kode OTP Pemulihan Akun Anda: '.$otp, function ($message) use ($request) {
-                $message->to($request->email)->subject('Kode OTP Lupa Password');
-            });
-
-            return response()->json(['status' => 'success', 'message' => 'Kode OTP berhasil dikirim ke email!']);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => 'Gagal mengirim email OTP.'], 500);
-        }
     }
 
     /**
@@ -188,21 +223,25 @@ class AuthController extends Controller
      */
     public function verifyOtpMailWeb(Request $request)
     {
-        $request->validate(['email' => 'required|email', 'otp' => 'required']);
+        $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
 
-        $sessionOtp = session('reset_otp');
+        $sessionOtpHash = session('reset_otp_hash');
         $sessionEmail = session('reset_email');
         $sessionExpires = session('reset_otp_expires');
 
-        if (! $sessionOtp || $sessionEmail !== $request->email || now()->greaterThan(Carbon::parse($sessionExpires))) {
+        if (! $sessionOtpHash || $sessionEmail !== $request->email || now()->greaterThan(Carbon::parse($sessionExpires))) {
             return response()->json(['status' => 'error', 'message' => 'Kode OTP sudah kedaluwarsa atau tidak valid.'], 400);
         }
 
-        if ($sessionOtp != $request->otp) {
+        if (! Hash::check($request->otp, $sessionOtpHash)) {
+            Log::warning("Gagal verifikasi OTP email untuk: {$request->email} dari IP: {$request->ip()}");
             return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
         }
 
-        session(['otp_verified_for' => $request->email]);
+        session([
+            'otp_verified_for' => $request->email,
+            'otp_verified_expires' => now()->addMinutes(10),
+        ]);
 
         return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
     }
@@ -214,25 +253,28 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
-        if (session('otp_verified_for') !== $request->email) {
+        $verifiedEmail = session('otp_verified_for');
+        $verifiedExpires = session('otp_verified_expires');
+
+        if (! $verifiedEmail || $verifiedEmail !== $request->email || now()->greaterThan(Carbon::parse($verifiedExpires))) {
             return response()->json([
-                'status' => 'error', 
-                'message' => 'Aksi tidak valid atau verifikasi OTP gagal.'
+                'status' => 'error',
+                'message' => 'Aksi tidak valid atau batas waktu verifikasi OTP telah habis.',
             ], 422);
         }
 
-        // Perbaikan: Menggunakan Eloquent agar updated_at terupdate
         $user = User::where('email', $request->email)->first();
         if ($user) {
             $user->update([
                 'password' => Hash::make($request->password),
             ]);
+            Log::info("Kata sandi berhasil di-reset untuk email: {$request->email} dari IP: {$request->ip()}");
         }
 
-        session()->forget(['reset_email', 'reset_otp', 'reset_otp_expires', 'otp_verified_for']);
+        session()->forget(['reset_email', 'reset_otp_hash', 'reset_otp_expires', 'otp_verified_for', 'otp_verified_expires']);
 
         return response()->json([
             'status' => 'success',
@@ -241,7 +283,7 @@ class AuthController extends Controller
     }
 
     /**
-     * 1. Fungsi untuk mengirim OTP via Fonnte (WhatsApp)
+     * 1. Fungsi untuk mengirim OTP via WhatsApp (Fonnte) dengan Checking Ownership & Rate Limiting
      */
     public function sendOtpPhone(Request $request)
     {
@@ -250,34 +292,61 @@ class AuthController extends Controller
         ]);
 
         $phone = $request->phone_number;
-        $otp = rand(100000, 999999);
+
+        // Rate limiting kirim WA (Maksimal 3x percobaan per 5 menit)
+        $throttleKey = 'send-otp-phone:'.$request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak permintaan OTP WhatsApp. Silakan tunggu beberapa menit.',
+            ], 429);
+        }
+        RateLimiter::hit($throttleKey, 300);
+
+        // Ownership Check: Pastikan nomor telepon belum dipakai oleh akun user lain
+        $isPhoneTaken = User::where('phone_number', $phone)
+            ->where('id', '!=', Auth::id())
+            ->exists();
+
+        if ($isPhoneTaken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor telepon tersebut sudah terdaftar pada akun lain.',
+            ], 422);
+        }
+
+        // Kriptografi Kuat
+        $otp = random_int(100000, 999999);
 
         session([
-            'otp_code' => $otp,
+            'otp_phone_hash' => Hash::make($otp),
             'otp_phone' => $phone,
             'otp_expires_at' => now()->addMinutes(5),
         ]);
 
         $message = "Kode verifikasi (OTP) Anda adalah: *{$otp}*.\nJangan bagikan kode ini kepada siapapun. Kode berlaku selama 5 menit.";
-
-        // Perbaikan: Hanya gunakan config(). Pastikan 'fonnte.token' sudah ada di config/services.php
         $fonnteToken = config('services.fonnte.token');
 
-        $response = Http::withHeaders([
-            'Authorization' => $fonnteToken,
-        ])->post('https://api.fonnte.com/send', [
-            'target' => $phone,
-            'message' => $message,
-            'all' => 'true',
-        ]);
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => $fonnteToken,
+            ])->post('https://api.fonnte.com/send', [
+                'target' => $phone,
+                'message' => $message,
+                'all' => 'true',
+            ]);
 
-        if ($response->successful()) {
-            $result = $response->json();
-            if (isset($result['status']) && $result['status'] == true) {
-                return response()->json(['success' => true, 'message' => 'Kode OTP berhasil dikirim ke WhatsApp Anda!']);
+            if ($response->successful()) {
+                $result = $response->json();
+                if (isset($result['status']) && $result['status'] == true) {
+                    Log::info("OTP WA berhasil dikirim ke nomor {$phone} oleh User ID: ".Auth::id());
+                    return response()->json(['success' => true, 'message' => 'Kode OTP berhasil dikirim ke WhatsApp Anda!']);
+                }
+
+                return response()->json(['success' => false, 'message' => $result['reason'] ?? 'Gagal mengirim pesan dari gateway.'], 422);
             }
-
-            return response()->json(['success' => false, 'message' => $result['reason'] ?? 'Gagal mengirim pesan dari gateway.'], 422);
+        } catch (\Exception $e) {
+            Log::error("Gagal terhubung ke Fonnte API: ".$e->getMessage());
         }
 
         return response()->json(['success' => false, 'message' => 'Gagal terhubung ke server WhatsApp. Coba lagi nanti.'], 500);
@@ -292,29 +361,34 @@ class AuthController extends Controller
             'otp_input' => 'required|numeric|digits:6',
         ]);
 
-        if (! session()->has('otp_code') || now()->isAfter(session('otp_expires_at'))) {
+        $sessionOtpHash = session('otp_phone_hash');
+        $sessionExpires = session('otp_expires_at');
+
+        if (! $sessionOtpHash || now()->isAfter(Carbon::parse($sessionExpires))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kode OTP sudah kedaluwarsa atau tidak valid. Silakan kirim ulang.',
             ], 422);
         }
 
-        if (trim((string) $request->otp_input) === trim((string) session('otp_code'))) {
-
+        if (Hash::check($request->otp_input, $sessionOtpHash)) {
             if (Auth::check()) {
                 User::where('id', Auth::id())->update([
                     'phone_number' => session('otp_phone'),
                     'phone_verified_at' => now(),
                 ]);
+                Log::info("Nomor WhatsApp berhasil diverifikasi untuk User ID: ".Auth::id());
             }
 
-            session()->forget(['otp_code', 'otp_phone', 'otp_expires_at']);
+            session()->forget(['otp_phone_hash', 'otp_phone', 'otp_expires_at']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Nomor telepon berhasil diverifikasi!',
             ]);
         }
+
+        Log::warning("Gagal verifikasi OTP HP dari IP: {$request->ip()}");
 
         return response()->json([
             'success' => false,
@@ -327,6 +401,10 @@ class AuthController extends Controller
      */
     public function logoutWeb(Request $request)
     {
+        if (Auth::check()) {
+            Log::info("User ID ".Auth::id()." melakukan logout.");
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
