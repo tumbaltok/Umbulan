@@ -162,12 +162,27 @@ class AccountController extends Controller
             $updateData['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-        // UPLOAD TTD
+        // UPLOAD & PROSES TTD OTOMATIS TRANSPARAN
         if ($request->hasFile('signature')) {
+            $file = $request->file('signature');
+            
+            // Hapus TTD lama jika ada
             if ($user->signature && Storage::disk('public')->exists($user->signature)) {
                 Storage::disk('public')->delete($user->signature);
             }
-            $updateData['signature'] = $request->file('signature')->store('signatures', 'public');
+
+            // Panggil helper function pembuat background transparan
+            $transparentImageData = $this->makeSignatureBackgroundTransparent($file->getPathname());
+
+            if ($transparentImageData) {
+                // Simpan berkas hasil olahan PNG ke folder signatures
+                $filename = 'signatures/ttd_' . $user->id . '_' . time() . '.png';
+                Storage::disk('public')->put($filename, $transparentImageData);
+                $updateData['signature'] = $filename;
+            } else {
+                // Fallback jika GD gagal / tidak mendukung
+                $updateData['signature'] = $file->store('signatures', 'public');
+            }
         }
 
         // Mencegah penetapan/perubahan role jika akun saat ini adalah Admin
@@ -183,5 +198,73 @@ class AccountController extends Controller
         $user->update($updateData);
 
         return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
+    }
+
+    /**
+     * Helper Function: Mengubah background foto TTD (kertas putih/terang) menjadi transparan murni.
+     */
+    private function makeSignatureBackgroundTransparent($filePath)
+    {
+        $info = @getimagesize($filePath);
+        if (! $info) {
+            return null;
+        }
+
+        switch ($info['mime']) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $src = @imagecreatefromjpeg($filePath);
+                break;
+            case 'image/png':
+                $src = @imagecreatefrompng($filePath);
+                break;
+            default:
+                return null;
+        }
+
+        if (! $src) {
+            return null;
+        }
+
+        $width = imagesx($src);
+        $height = imagesy($src);
+
+        // Buat canvas TrueColor
+        $dst = imagecreatetruecolor($width, $height);
+
+        // Salin gambar asli ke canvas baru
+        imagecopy($dst, $src, 0, 0, 0, 0, $width, $height);
+        imagedestroy($src);
+
+        // Buat warna transparan murni (Alpha = 127)
+        $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+
+        // Aktifkan Alpha Saving
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+
+        // Tentukan threshold warna putih kertas (RGB di atas 200)
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                $rgb = imagecolorat($dst, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+
+                // Jika piksel berwarna putih/terang (kertas), ubah menjadi transparan
+                if ($r > 180 && $g > 180 && $b > 180) {
+                    imagesetpixel($dst, $x, $y, $transparent);
+                }
+            }
+        }
+
+        // Export sebagai PNG string
+        ob_start();
+        imagepng($dst);
+        $imageData = ob_get_clean();
+
+        imagedestroy($dst);
+
+        return $imageData;
     }
 }

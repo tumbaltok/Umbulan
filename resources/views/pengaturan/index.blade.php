@@ -43,9 +43,12 @@
 
                     {{-- Tanda Tangan Digital (TTD) --}}
                     <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2 shadow-inner">
+                        <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2">
                             @if($user->signature)
-                                <img src="{{ asset('storage/' . $user->signature) }}" alt="Tanda Tangan" class="max-w-full max-h-full object-contain">
+                                <!-- Pakai style mix-blend-mode & bg-white untuk menjamin latar tidak hitam -->
+                                <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}" 
+                                    alt="Tanda Tangan" 
+                                    class="max-w-full max-h-full object-contain bg-white">
                             @else
                                 <span class="text-xs text-slate-400 italic">Belum Ada TTD</span>
                             @endif
