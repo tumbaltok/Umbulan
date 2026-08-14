@@ -142,25 +142,80 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // 6. MASTER JENIS CUTI & SUB-CUTI
         // ==========================================
+
+        // 1. Ijin Meninggalkan Pekerjaan (IMP)
         $ijinIMP = JenisCuti::create([
-            'kode_cuti' => 'IMP', 'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
-            'kuota_default' => 12, 'butuh_surat_dokter' => false,
+            'kode_cuti' => 'IMP',
+            'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
+            'kuota_default' => 12,
+            'butuh_surat_dokter' => false,
+            'keterangan' => null,
         ]);
 
-        $subCutiImp = [
-            ['nama' => 'Sakit', 'durasi' => null, 'ket' => 'Dengan surat dokter'],
-            ['nama' => 'Haid', 'durasi' => 2, 'ket' => 'Maks 2 hari/bulan (Khusus Wanita)'],
-            ['nama' => 'Pernikahan Karyawan', 'durasi' => 3, 'ket' => '3 Hari kerja'],
-            ['nama' => 'Istri Melahirkan', 'durasi' => 3, 'ket' => '3 Hari kerja (Khusus Pria)'],
-            ['nama' => 'Kematian Keluarga Inti', 'durasi' => 3, 'ket' => '3 Hari kerja'],
+        $dataSubCutiImp = [
+            ['nama' => 'Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
+            ['nama' => 'Haid', 'durasi' => 2, 'ket' => 'Kuota maks 2 hari per bulan (Khusus Wanita)'],
+            ['nama' => 'Pernikahan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Istri Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
+            ['nama' => 'Kematian Suami/Istri/Anak/Orang Tua/Mertua', 'durasi' => 3, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pernikahan Anak/Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Khitanan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pembaptisan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Kematian Tanggungan Tinggal di Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Pindah Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Bencana Alam', 'durasi' => 2, 'ket' => 'Hari Kerja'],
+            ['nama' => 'Cuti Ibadah Haji/Umroh', 'durasi' => null, 'ket' => 'Umroh maks 2 tahun sekali - Tidak memotong kuota tahunan'],
         ];
-        foreach ($subCutiImp as $s) {
-            SubCuti::create(['jenis_cuti_id' => $ijinIMP->id, 'nama_sub_cuti' => $s['nama'], 'durasi_default' => $s['durasi'], 'keterangan_opsional' => $s['ket']]);
+
+        foreach ($dataSubCutiImp as $sub) {
+            SubCuti::create([
+                'jenis_cuti_id' => $ijinIMP->id,
+                'nama_sub_cuti' => $sub['nama'],
+                'durasi_default' => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket'],
+            ]);
         }
 
+        // 2. Cuti Family Visit
+        $cutiFamilyVisit = JenisCuti::create([
+            'kode_cuti' => 'CFV',
+            'name_cuti' => 'Cuti Family Visit/ Penugasan Sementara per 3 bulan',
+            'kuota_default' => 0,
+            'butuh_surat_dokter' => false,
+            'keterangan' => null,
+        ]);
+
+        // 3. Cuti Melahirkan
+        $cutiMelahirkan = JenisCuti::create([
+            'kode_cuti' => 'CM',
+            'name_cuti' => 'Cuti Melahirkan',
+            'kuota_default' => 45,
+            'butuh_surat_dokter' => true,
+            'keterangan' => null,
+        ]);
+
+        $subMelahirkan = [
+            ['nama' => 'Istirahat Bersalin', 'durasi' => 45, 'ket' => '1,5 Bulan sebelum/sesudah melahirkan'],
+            ['nama' => 'Istirahat Gugur Kandungan', 'durasi' => 45, 'ket' => '1,5 Bulan sesuai surat keterangan dokter'],
+        ];
+
+        foreach ($subMelahirkan as $sub) {
+            SubCuti::create([
+                'jenis_cuti_id' => $cutiMelahirkan->id,
+                'nama_sub_cuti' => $sub['nama'],
+                'durasi_default' => $sub['durasi'],
+                'keterangan_opsional' => $sub['ket'],
+            ]);
+        }
+
+        // 4. Cuti Tahunan Utama
         $cutiTahunan = JenisCuti::create([
-            'kode_cuti' => 'CT', 'name_cuti' => 'Cuti',
-            'kuota_default' => 12, 'butuh_surat_dokter' => false,
+            'kode_cuti' => 'CT',
+            'name_cuti' => 'Cuti',
+            'kuota_default' => 12,
+            'butuh_surat_dokter' => false,
+            'keterangan' => null,
         ]);
 
         $normalScheduleData = [
@@ -289,6 +344,7 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         $allUsers = User::all();
         foreach ($allUsers as $user) {
+            // Saldo Cuti Tahunan
             SaldoCuti::firstOrCreate([
                 'user_id' => $user->id,
                 'jenis_cuti_id' => $cutiTahunan->id,
@@ -297,6 +353,7 @@ class DatabaseSeeder extends Seeder
                 'sisa_saldo' => 12,
             ]);
 
+            // Saldo IMP (Khusus Wanita untuk Cuti Haid)
             if ($user->gender_id == $wanita->id) {
                 SaldoCuti::firstOrCreate([
                     'user_id' => $user->id,
@@ -314,7 +371,6 @@ class DatabaseSeeder extends Seeder
 
         // A. TRANSAKSI PENGAJUAN CUTI (3 RECORD DUMMY)
         if (count($staffKaryawanList) >= 3) {
-            // 1. Cuti Approved (Disetujui Spv & Mgr)
             PengajuanCuti::create([
                 'user_id' => $staffKaryawanList[0]->id,
                 'jenis_cuti_id' => $cutiTahunan->id,
@@ -329,11 +385,10 @@ class DatabaseSeeder extends Seeder
                 'status_akhir' => 'approved',
             ]);
 
-            // 2. Cuti Pending (Menunggu Persetujuan Atasan)
             PengajuanCuti::create([
                 'user_id' => $staffKaryawanList[1]->id,
                 'jenis_cuti_id' => $ijinIMP->id,
-                'sub_cuti_id' => 1, // Sakit
+                'sub_cuti_id' => 1,
                 'tanggal_mulai' => now()->addDays(1)->toDateString(),
                 'tanggal_selesai' => now()->addDays(2)->toDateString(),
                 'total_hari' => 2,
@@ -345,7 +400,6 @@ class DatabaseSeeder extends Seeder
                 'status_akhir' => 'pending',
             ]);
 
-            // 3. Cuti Ditolak (Rejected)
             PengajuanCuti::create([
                 'user_id' => $staffKaryawanList[2]->id,
                 'jenis_cuti_id' => $cutiTahunan->id,
@@ -364,7 +418,6 @@ class DatabaseSeeder extends Seeder
 
         // B. TRANSAKSI PENGAJUAN CAR (CASH ADVANCE REQUEST)
         if (count($staffKaryawanList) >= 2) {
-            // CAR 1 - Approved
             $carId1 = DB::table('pengajuan_cars')->insertGetId([
                 'user_id' => $staffKaryawanList[3]->id,
                 'alasan_pembelian' => 'Pembelian sparepart & oli darurat stasiun booster',
@@ -396,7 +449,6 @@ class DatabaseSeeder extends Seeder
                 ]
             ]);
 
-            // CAR 2 - Pending
             $carId2 = DB::table('pengajuan_cars')->insertGetId([
                 'user_id' => $staffKaryawanList[4]->id,
                 'alasan_pembelian' => 'Pengadaan konsumsi & alat kebersihan tim operasional',
@@ -423,7 +475,6 @@ class DatabaseSeeder extends Seeder
 
         // C. TRANSAKSI PENGAJUAN MPR (MATERIAL PURCHASE REQUEST)
         if (count($staffKaryawanList) >= 2) {
-            // MPR 1 - Approved
             $mprId1 = DB::table('pengajuan_mprs')->insertGetId([
                 'user_id' => $staffKaryawanList[5]->id,
                 'nomor_mpr' => 'MPR/' . date('Y/m') . '/001',
@@ -458,7 +509,6 @@ class DatabaseSeeder extends Seeder
                 ]
             ]);
 
-            // MPR 2 - Pending
             $mprId2 = DB::table('pengajuan_mprs')->insertGetId([
                 'user_id' => $staffKaryawanList[6]->id,
                 'nomor_mpr' => 'MPR/' . date('Y/m') . '/002',
