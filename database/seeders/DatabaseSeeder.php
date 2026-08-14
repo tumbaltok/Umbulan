@@ -143,80 +143,30 @@ class DatabaseSeeder extends Seeder
         // 6. MASTER JENIS CUTI & SUB-CUTI
         // ==========================================
 
-        // 1. Ijin Meninggalkan Pekerjaan (IMP)
-        $ijinIMP = JenisCuti::create([
-            'kode_cuti' => 'IMP',
-            'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
-            'kuota_default' => 12,
-            'butuh_surat_dokter' => false,
-            'keterangan' => null,
-        ]);
+        // Ambil jenis cuti yang sudah ada di database
+        $ijinIMP = JenisCuti::where('kode_cuti', 'IMPI')->first();
+        $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')->first();
 
-        $dataSubCutiImp = [
-            ['nama' => 'Sakit', 'durasi' => null, 'ket' => 'Tidak memotong kuota tahunan jika melampirkan surat dokter'],
-            ['nama' => 'Haid', 'durasi' => 2, 'ket' => 'Kuota maks 2 hari per bulan (Khusus Wanita)'],
-            ['nama' => 'Pernikahan', 'durasi' => 3, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Istri Melahirkan', 'durasi' => 3, 'ket' => 'Hari Kerja (Khusus Pria)'],
-            ['nama' => 'Kematian Suami/Istri/Anak/Orang Tua/Mertua', 'durasi' => 3, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Kematian Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Pernikahan Anak/Kakak/Adik', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Khitanan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Pembaptisan Anak', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Kematian Tanggungan Tinggal di Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Pindah Rumah', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Bencana Alam', 'durasi' => 2, 'ket' => 'Hari Kerja'],
-            ['nama' => 'Cuti Ibadah Haji/Umroh', 'durasi' => null, 'ket' => 'Umroh maks 2 tahun sekali - Tidak memotong kuota tahunan'],
-        ];
-
-        foreach ($dataSubCutiImp as $sub) {
-            SubCuti::create([
-                'jenis_cuti_id' => $ijinIMP->id,
-                'nama_sub_cuti' => $sub['nama'],
-                'durasi_default' => $sub['durasi'],
-                'keterangan_opsional' => $sub['ket'],
+        // Jika jenis cuti tidak ditemukan, buat jenis cuti baru
+        if (!$ijinIMP) {
+            $ijinIMP = JenisCuti::create([
+                'kode_cuti' => 'IMPI',
+                'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
+                'kuota_default' => null,
+                'butuh_surat_dokter' => false,
+                'keterangan' => null,
             ]);
         }
 
-        // 2. Cuti Family Visit
-        $cutiFamilyVisit = JenisCuti::create([
-            'kode_cuti' => 'CFV',
-            'name_cuti' => 'Cuti Family Visit/ Penugasan Sementara per 3 bulan',
-            'kuota_default' => 0,
-            'butuh_surat_dokter' => false,
-            'keterangan' => null,
-        ]);
-
-        // 3. Cuti Melahirkan
-        $cutiMelahirkan = JenisCuti::create([
-            'kode_cuti' => 'CM',
-            'name_cuti' => 'Cuti Melahirkan',
-            'kuota_default' => 45,
-            'butuh_surat_dokter' => true,
-            'keterangan' => null,
-        ]);
-
-        $subMelahirkan = [
-            ['nama' => 'Istirahat Bersalin', 'durasi' => 45, 'ket' => '1,5 Bulan sebelum/sesudah melahirkan'],
-            ['nama' => 'Istirahat Gugur Kandungan', 'durasi' => 45, 'ket' => '1,5 Bulan sesuai surat keterangan dokter'],
-        ];
-
-        foreach ($subMelahirkan as $sub) {
-            SubCuti::create([
-                'jenis_cuti_id' => $cutiMelahirkan->id,
-                'nama_sub_cuti' => $sub['nama'],
-                'durasi_default' => $sub['durasi'],
-                'keterangan_opsional' => $sub['ket'],
+        if (!$cutiTahunan) {
+            $cutiTahunan = JenisCuti::create([
+                'kode_cuti' => 'CT',
+                'name_cuti' => 'Cuti',
+                'kuota_default' => 12,
+                'butuh_surat_dokter' => false,
+                'keterangan' => null,
             ]);
         }
-
-        // 4. Cuti Tahunan Utama
-        $cutiTahunan = JenisCuti::create([
-            'kode_cuti' => 'CT',
-            'name_cuti' => 'Cuti',
-            'kuota_default' => 12,
-            'butuh_surat_dokter' => false,
-            'keterangan' => null,
-        ]);
 
         $normalScheduleData = [
             'schedule_type' => 'normal',
