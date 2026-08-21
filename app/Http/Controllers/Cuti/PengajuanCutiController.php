@@ -276,7 +276,7 @@ class PengajuanCutiController extends Controller
     {
         $atasan = Auth::user();
         // Mengambil level hirarki role (Default 4 = Staff jika null)
-        $roleLevel = $atasan->role->level ?? 4; 
+        $roleLevel = $atasan->role->level ?? 4;
 
         $query = DB::table('pengajuan_cutis')
             ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
@@ -295,12 +295,12 @@ class PengajuanCutiController extends Controller
         if ($roleLevel == 3) {
             $query->where('pengajuan_cutis.status_supervisor', 'pending')
                 ->where('users.station_id', $atasan->station_id);
-        } 
+        }
         // LEVEL 2 = Manager / Kepala Divisi (Menunggu persetujuan final setelah disetujui Level 3)
         elseif ($roleLevel == 2) {
             $query->where('pengajuan_cutis.status_manager', 'pending')
                 ->where('pengajuan_cutis.status_supervisor', 'approved');
-        } 
+        }
         // LEVEL 1 = Admin / Direksi / Full Akses (Menampilkan antrean pending)
         else {
             $query->where('pengajuan_cutis.status_akhir', 'pending');
@@ -333,7 +333,7 @@ class PengajuanCutiController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
-        } 
+        }
         // TAHAP 2: Persetujuan Final / Manajemen (Level 1 & 2)
         elseif (in_array($roleLevel, [1, 2])) {
             DB::beginTransaction();
@@ -398,7 +398,7 @@ class PengajuanCutiController extends Controller
             'pengajuan' => $pengajuan,
         ];
 
-        $pdf = Pdf::loadView('cuti.cetak', $data)->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('cuti.cuticetak', $data)->setPaper('a4', 'portrait');
 
         return $pdf->stream('Surat-Cuti-'.$pengajuan->id.'.pdf');
     }

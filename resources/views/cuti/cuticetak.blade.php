@@ -302,7 +302,7 @@
                         </tr>
                         <tr>
                             <td colspan="5" style="padding-top: 15px; text-align: right; padding-right: 25px;">
-                                No Telp yang bisa dihubungi : <span class="dots-line" style="width: 45%;">{{ $pengajuan->user->phone_number }}</span>
+                                No Telp yang bisa dihubungi : <span class="dots-line" style="width: 45%; display: inline-block; text-align: left;">{{ $pengajuan->user->phone_number }}</span>
                             </td>
                         </tr>
                     </table>

@@ -107,8 +107,8 @@ trait CutiHelperTrait
                 ],
                 [
                     'shift_type' => 'Cuti',
-                    'status_kehadiran' => 'Cuti',
-                    'keterangan' => 'Izin Cuti Disetujui',
+                    // 'status_kehadiran' => 'Cuti',
+                    'reason_checkout' => 'Izin Cuti Disetujui',
                 ]
             );
         }
