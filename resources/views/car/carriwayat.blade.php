@@ -39,9 +39,9 @@
                                     </div>
 
                                     @if($detail->dokumen_nota_or_proposal)
-                                        <button type="button" 
-                                                data-url="{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}" 
-                                                onclick="bukaPratinjauLampiran(this.dataset.url)" 
+                                        <button type="button"
+                                                data-url="{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}"
+                                                onclick="bukaPratinjauLampiran(this.dataset.url)"
                                                 class="...">
                                             <span>Lihat Lampiran</span>
                                         </button>
@@ -61,6 +61,7 @@
                     {{-- Menampilkan Status Akhir beserta tombol cetak popup --}}
                     <td class="p-4 text-center align-middle whitespace-nowrap">
                         <div class="flex flex-col items-center justify-center gap-2">
+                            {{-- Status Badge --}}
                             <span class="px-3 py-1 text-xs font-extrabold tracking-wide uppercase rounded-full
                                 @if(trim(strtolower($car->status_akhir)) === 'approved') bg-emerald-500 text-white
                                 @elseif(trim(strtolower($car->status_akhir)) === 'rejected') bg-rose-500 text-white
@@ -68,23 +69,20 @@
                                 {{ $car->status_akhir }}
                             </span>
 
+                            {{-- Catatan Penolakan --}}
                             @if(trim(strtolower($car->status_akhir)) === 'rejected' && !empty($car->catatan_penolakan))
-                                <span class="text-[11px] text-rose-600 font-medium italic max-w-[200px] whitespace-normal text-center bg-rose-5 px-2 py-0.5 rounded border border-rose-100">
+                                <span class="text-[11px] text-rose-600 font-medium italic max-w-[200px] whitespace-normal text-center bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
                                     Keterangan : {{ $car->catatan_penolakan }}
                                 </span>
                             @endif
 
-                            @if(trim(strtolower($car->status_supervisor)) === 'approved')
-                                @if(trim(strtolower($car->status_manager)) === 'approved')
-                                    @if(trim(strtolower($car->status_akhir)) === 'approved')
-                                        <button type="button" 
-                                                data-url="{{ route('car.print', $car->id) }}" 
-                                                onclick="bukaPratinjauCetak(this.dataset.url)" 
-                                                class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
-                                            <i class="fa-solid fa-print"></i> Cetak CAR
-                                        </button>
-                                    @endif
-                                @endif
+                            {{-- Tombol Cetak PDF --}}
+                            @if(trim(strtolower($car->status_akhir)) === 'approved')
+                                <button type="button"
+                                        onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
+                                        class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
+                                    <i class="fa-solid fa-print"></i> Cetak PDF
+                                </button>
                             @endif
                         </div>
                     </td>

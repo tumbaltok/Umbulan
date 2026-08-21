@@ -110,12 +110,12 @@ class PengajuanCarController extends Controller
                 ->whereHas('user', function ($q) use ($atasan) {
                     $q->where('station_id', $atasan->station_id);
                 });
-        } 
+        }
         // Jika Atasan Level 2 (Manager / Kepala Sektor)
         elseif ($roleLevel == 2) {
             $query->where('status_supervisor', 'approved')
                 ->where('status_manager', 'pending');
-        } 
+        }
         // Jika Level 1 (Admin / Direksi / Full Akses): Bisa melihat semua antrean pending
         else {
             $query->where('status_akhir', 'pending');
@@ -198,7 +198,7 @@ class PengajuanCarController extends Controller
             'car' => $car,
         ];
 
-        $pdf = Pdf::loadView('car.cetak', $data)
+        $pdf = Pdf::loadView('car.carcetak', $data)
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('CAR-'.$car->id.'.pdf');

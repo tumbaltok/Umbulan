@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // 3. MASTER STATIONS (4 UTAMA + 18 RUMAH METER)
         // ==========================================
-        
+
         // A. Stasiun & Kantor Utama (Penempatan Karyawan)
         $stUmbulan = Station::updateOrCreate(['kode_stasiun' => 'UMBULAN'], [
             'name' => 'Stasiun Umbulan', 'type' => 'stasiun',
@@ -87,8 +87,8 @@ class DatabaseSeeder extends Seeder
             ['kode' => 'RM_13', 'name' => '13. Gedangan', 'lat' => -7.3810, 'long' => 112.7310],
             ['kode' => 'RM_14', 'name' => '14. Waru', 'lat' => -7.3510, 'long' => 112.7410],
             ['kode' => 'RM_15', 'name' => '15. Wonocolo', 'lat' => -7.3210, 'long' => 112.7410],
-            ['kode' => 'RM_16', 'name' => '16. Alas Malang', 'lat' => -7.2810, 'long' => 112.6810],
-            ['kode' => 'RM_17', 'name' => '17. Putat Gedhe', 'lat' => -7.2710, 'long' => 112.6910],
+            ['kode' => 'RM_16', 'name' => '16. Putat Gedhe', 'lat' => -7.2710, 'long' => 112.6910],
+            ['kode' => 'RM_17', 'name' => '17. Alas Malang', 'lat' => -7.2810, 'long' => 112.6810],
             ['kode' => 'RM_18', 'name' => '18. Giri', 'lat' => -7.1610, 'long' => 112.6210],
         ];
 

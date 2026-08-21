@@ -95,15 +95,14 @@
                     {{-- Grid Bawah: Input Dokumen Khusus Item Ini --}}
                     <div class="border-t border-slate-100 pt-3 space-y-2">
                         <label class="block text-xs font-semibold text-slate-600">Upload Nota / Foto Barang</label>
-                        
-                        {{-- Input file dengan styling baru yang disamakan --}}
-                        <input type="file" 
-                            name="items[0][dokumen_pendukung]" 
-                            required 
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
 
-                        {{-- Keterangan Tambahan (Opsional, agar mirip contoh kedua) --}}
-                        <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG (Maksimal 2MB)</p>
+                        {{-- Tambahkan class 'input-file-dokumen' pada input di bawah ini --}}
+                        <input type="file"
+                            name="items[0][dokumen_pendukung]"
+                            required
+                            class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+
+                        <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG</p>
 
                         {{-- Container Preview untuk Dokumen --}}
                         <div class="preview-container hidden p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl max-w-md">
@@ -272,8 +271,8 @@
         barisBaru.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                 <div class="sm:col-span-2 md:col-span-5">
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang</label>
-                    <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Nama barang / tipe">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang / Material</label>
+                    <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch">
                 </div>
                 <div class="grid grid-cols-2 gap-3 sm:col-span-2 md:col-span-5 md:grid-cols-5">
                     <div class="md:col-span-2">
@@ -296,9 +295,16 @@
                 </div>
             </div>
 
+            {{-- Grid Bawah: Input Dokumen yang disamakan --}}
             <div class="border-t border-slate-100 pt-3 space-y-2">
-                <label class="block text-xs font-semibold text-slate-600">Upload Nota / Foto Barang ini (PDF/JPG/PNG)</label>
-                <input type="file" name="items[${itemIndex}][dokumen_pendukung]" required class="input-file-dokumen w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <label class="block text-xs font-semibold text-slate-600">Upload Nota / Foto Barang</label>
+
+                <input type="file"
+                    name="items[${itemIndex}][dokumen_pendukung]"
+                    required
+                    class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+
+                <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG</p>
 
                 <div class="preview-container hidden p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl max-w-md">
                     <div class="flex items-center space-x-3 mb-2">
