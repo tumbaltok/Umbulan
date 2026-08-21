@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             'latitude' => -7.7572565, 'longitude' => 112.9314949, 'radius_meters' => 1000,
         ]);
         $stBooster = Station::updateOrCreate(['kode_stasiun' => 'BOOSTER_M'], [
-            'name' => 'Booster-M', 'type' => 'stasiun',
+            'name' => 'Stasiun Booster-M', 'type' => 'stasiun',
             'latitude' => -7.5812341, 'longitude' => 112.7212341, 'radius_meters' => 500,
         ]);
         $stSurabaya = Station::updateOrCreate(['kode_stasiun' => 'HO_SBY'], [
@@ -71,25 +71,24 @@ class DatabaseSeeder extends Seeder
 
         // B. Rumah Meter / RM (18 Lokasi Service Murni)
         $listRumahMeter = [
-            ['kode' => 'RM_00', 'name' => '00. Umbulan Out', 'lat' => -7.7570, 'long' => 112.9310],
-            ['kode' => 'RM_01', 'name' => '01. Winongan', 'lat' => -7.7210, 'long' => 112.9520],
-            ['kode' => 'RM_02', 'name' => '02. Pohjentrek', 'lat' => -7.6710, 'long' => 112.8910],
-            ['kode' => 'RM_03', 'name' => '03. Pleret', 'lat' => -7.6510, 'long' => 112.8810],
-            ['kode' => 'RM_04', 'name' => '04. PIER', 'lat' => -7.6010, 'long' => 112.8310],
-            ['kode' => 'RM_05', 'name' => '05. Bangil', 'lat' => -7.5910, 'long' => 112.7810],
-            ['kode' => 'RM_06', 'name' => '06. Gempol', 'lat' => -7.5810, 'long' => 112.7110],
-            ['kode' => 'RM_07', 'name' => '07. Porong PDAB', 'lat' => -7.5410, 'long' => 112.7010],
-            ['kode' => 'RM_08', 'name' => '08. Porong PDAM', 'lat' => -7.5380, 'long' => 112.7000],
-            ['kode' => 'RM_09', 'name' => '09. Tanggulangin', 'lat' => -7.5010, 'long' => 112.7110],
-            ['kode' => 'RM_10', 'name' => '10. Candi', 'lat' => -7.4710, 'long' => 112.7210],
-            ['kode' => 'RM_11', 'name' => '11. Sidoarjo', 'lat' => -7.4410, 'long' => 112.7110],
-            ['kode' => 'RM_12', 'name' => '12. Buduran', 'lat' => -7.4110, 'long' => 112.7210],
-            ['kode' => 'RM_13', 'name' => '13. Gedangan', 'lat' => -7.3810, 'long' => 112.7310],
-            ['kode' => 'RM_14', 'name' => '14. Waru', 'lat' => -7.3510, 'long' => 112.7410],
-            ['kode' => 'RM_15', 'name' => '15. Wonocolo', 'lat' => -7.3210, 'long' => 112.7410],
-            ['kode' => 'RM_16', 'name' => '16. Putat Gedhe', 'lat' => -7.2710, 'long' => 112.6910],
-            ['kode' => 'RM_17', 'name' => '17. Alas Malang', 'lat' => -7.2810, 'long' => 112.6810],
-            ['kode' => 'RM_18', 'name' => '18. Giri', 'lat' => -7.1610, 'long' => 112.6210],
+            ['kode' => 'RM_01', 'name' => 'Winongan', 'lat' => -7.7210, 'long' => 112.9520],
+            ['kode' => 'RM_02', 'name' => 'Pohjentrek', 'lat' => -7.6710, 'long' => 112.8910],
+            ['kode' => 'RM_03', 'name' => 'Pleret', 'lat' => -7.6510, 'long' => 112.8810],
+            ['kode' => 'RM_04', 'name' => 'PIER', 'lat' => -7.6010, 'long' => 112.8310],
+            ['kode' => 'RM_05', 'name' => 'Bangil', 'lat' => -7.5910, 'long' => 112.7810],
+            ['kode' => 'RM_06', 'name' => 'Gempol', 'lat' => -7.5810, 'long' => 112.7110],
+            ['kode' => 'RM_07', 'name' => 'Porong PDAB', 'lat' => -7.5410, 'long' => 112.7010],
+            ['kode' => 'RM_08', 'name' => 'Porong PDAM', 'lat' => -7.5380, 'long' => 112.7000],
+            ['kode' => 'RM_09', 'name' => 'Tanggulangin', 'lat' => -7.5010, 'long' => 112.7110],
+            ['kode' => 'RM_10', 'name' => 'Candi', 'lat' => -7.4710, 'long' => 112.7210],
+            ['kode' => 'RM_11', 'name' => 'Sidoarjo', 'lat' => -7.4410, 'long' => 112.7110],
+            ['kode' => 'RM_12', 'name' => 'Buduran', 'lat' => -7.4110, 'long' => 112.7210],
+            ['kode' => 'RM_13', 'name' => 'Gedangan', 'lat' => -7.3810, 'long' => 112.7310],
+            ['kode' => 'RM_14', 'name' => 'Waru', 'lat' => -7.3510, 'long' => 112.7410],
+            ['kode' => 'RM_15', 'name' => 'Wonocolo', 'lat' => -7.3210, 'long' => 112.7410],
+            ['kode' => 'RM_16', 'name' => 'Putat Gedhe', 'lat' => -7.2710, 'long' => 112.6910],
+            ['kode' => 'RM_17', 'name' => 'Alas Malang', 'lat' => -7.2810, 'long' => 112.6810],
+            ['kode' => 'RM_18', 'name' => 'Giri', 'lat' => -7.1610, 'long' => 112.6210],
         ];
 
         foreach ($listRumahMeter as $rm) {

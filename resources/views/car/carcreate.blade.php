@@ -36,9 +36,9 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Receiving Account</label>
                     <select name="receiving_account" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm cursor-pointer">
                         <option value="" disabled selected>--- Pilih Penerima ---</option>
-                        <option value="META Umbulan">META Umbulan</option>
-                        <option value="META Surabaya">META Surabaya</option>
-                        <option value="META Booster-M">META Booster-M</option>
+                        @foreach($daftarStasiun as $stasiun)
+                            <option value="{{ $stasiun->name }}">{{ $stasiun->name }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>

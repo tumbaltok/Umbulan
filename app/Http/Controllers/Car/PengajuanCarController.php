@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User\Station;
 
 class PengajuanCarController extends Controller
 {
@@ -28,7 +29,9 @@ class PengajuanCarController extends Controller
     // KARYAWAN: Menampilkan form pengajuan CAR baru
     public function create()
     {
-        return view('car.carcreate');
+        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+
+        return view('car.carcreate', compact('daftarStasiun'));
     }
 
     // KARYAWAN: Mengirim form pengajuan CAR baru (Multi-Item)
