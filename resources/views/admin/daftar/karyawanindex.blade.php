@@ -8,10 +8,23 @@
     .mermaid-container {
         background: #f8fafc;
         border-radius: 1rem;
-        padding: 1.5rem;
+        padding: 1rem;
         width: 100%;
-        overflow-x: auto;
-        min-height: 250px;
+        overflow: hidden;
+        position: relative;
+        height: 550px;
+        cursor: grab;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .mermaid-container:active {
+        cursor: grabbing;
+    }
+    #karyawanOrgDiagram svg {
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 100% !important;
     }
 </style>
 @endpush
@@ -33,7 +46,7 @@
                 <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
             </button>
             <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
-                <i class="fa-solid fa-sitemap mr-1.5 text-indigo-500"></i> Pohon Organisasi Karyawan
+                <i class="fa-solid fa-sitemap mr-1.5"></i> Pohon Organisasi Karyawan
             </button>
         </div>
     </div>
@@ -153,11 +166,11 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <button type="button" 
+                                    <button type="button"
                                         data-id="{{ $saldoIdVal }}"
                                         data-nama="{{ $namaCutiText }}"
                                         data-saldo="{{ $sisaCutiVal }}"
-                                        onclick="bukaModalEditSaldoBtn(this)" 
+                                        onclick="bukaModalEditSaldoBtn(this)"
                                         class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
@@ -209,42 +222,37 @@
     {{-- TAB 2: POHON ORGANISASI KARYAWAN --}}
     <div id="tab-karyawan-pohon" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
-            
-            {{-- HEADER & FILTER BAR --}}
+
+            {{-- HEADER & TOMBOL KONTROL ZOOM --}}
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-sitemap text-indigo-600"></i> Skema Pohon Organisasi Karyawan
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi hubungan atasan-bawahan berdasarkan struktur riil karyawan.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi hubungan atasan-bawahan berdasarkan struktur riil karyawan. Gunakan scroll/drag untuk navigasi.</p>
                 </div>
 
-                {{-- OPSI FILTER POHON --}}
-                <div class="flex items-center gap-2 flex-wrap">
-                    {{-- Filter Stasiun --}}
-                    <select id="filterOrgStation" onchange="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
-                        <option value="ALL">Semua Stasiun Kerja</option>
-                        @foreach($daftarStasiun as $st)
-                            <option value="{{ $st->id }}">{{ $st->name }}</option>
-                        @endforeach
-                    </select>
-
-                    {{-- Filter Sektor --}}
-                    <select id="filterOrgSektor" onchange="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
-                        <option value="ALL">Semua Divisi / Sektor</option>
-                        <option value="manajemen">Manajemen</option>
-                        <option value="operasional">Operasional</option>
-                    </select>
-
-                    <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors">
-                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Pohon
+                {{-- TOMBOL ZOOM CONTROL --}}
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                    <button type="button" id="btnZoomIn" title="Zoom In (+)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass-plus text-sm"></i>
+                    </button>
+                    <button type="button" id="btnZoomOut" title="Zoom Out (-)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass-minus text-sm"></i>
+                    </button>
+                    <button type="button" id="btnZoomReset" title="Reset Ukuran" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-rotate text-sm"></i>
+                    </button>
+                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
+                    <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> Reload
                     </button>
                 </div>
             </div>
 
-            {{-- WADAH RENDER DIAGRAM MERMAID --}}
-            <div class="mermaid-container flex justify-center py-4">
-                <div id="karyawanOrgDiagram" class="w-full flex justify-center min-h-[200px]"></div>
+            {{-- WADAH RENDER DIAGRAM MERMAID DENGAN ZOOM --}}
+            <div id="mermaidParent" class="mermaid-container flex justify-center items-center">
+                <div id="karyawanOrgDiagram" class="w-full flex justify-center transition-transform origin-center"></div>
             </div>
         </div>
     </div>
@@ -280,7 +288,7 @@
                     <span class="text-slate-400 font-medium">NIP</span>
                     <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
-                
+
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Email</span>
                     <div class="col-span-2 flex items-center space-x-2">
@@ -307,7 +315,7 @@
                     <span class="text-slate-400 font-medium">Jobdesk</span>
                     <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
-                
+
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
                     <span class="text-slate-400 font-medium">Stasiun</span>
                     <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
@@ -361,7 +369,7 @@
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="tutupModalEditSaldo()"></div>
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200">
         <h4 class="font-bold text-slate-800 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
-        
+
         <form id="formEditSaldo" onsubmit="submitEditSaldo(event)" class="space-y-3">
             @csrf
             @method('PUT')
@@ -384,6 +392,8 @@
 @push('scripts')
 <!-- Mermaid.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<!-- Panzoom CDN (Untuk Fitur Zoom In/Out & Pan Drag) -->
+<script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -407,6 +417,10 @@
 
 <script>
     let activeKaryawanId = null;
+    let panzoomInstance = null;
+
+    // DEKLARASI VARIABEL RENDER COUNTER
+    let kRenderCounter = 0;
 
     // Data Karyawan dari Laravel Controller
     const rawKaryawanData = JSON.parse(`{!! json_encode($daftarKaryawan) !!}`);
@@ -415,10 +429,13 @@
     mermaid.initialize({
         startOnLoad: false,
         theme: 'default',
-        securityLevel: 'loose'
+        securityLevel: 'loose',
+        flowchart: {
+            useMaxWidth: true,
+            htmlLabels: true,
+            curve: 'basis'
+        }
     });
-
-    let kRenderCounter = 0;
 
     async function renderKaryawanOrgChart() {
         const diagramContainer = document.getElementById('karyawanOrgDiagram');
@@ -426,44 +443,65 @@
 
         diagramContainer.innerHTML = '';
 
-        const filterStation = document.getElementById('filterOrgStation').value;
-        const filterSektor  = document.getElementById('filterOrgSektor').value.toLowerCase();
-
-        // Filter karyawan
-        const filteredList = rawKaryawanData.filter(u => {
-            const matchStation = (filterStation === 'ALL') || (u.station_id == filterStation);
-            const matchSektor  = (filterSektor === 'ALL') || ((u.sektor || '').toLowerCase() === filterSektor);
-            return matchStation && matchSektor;
-        });
-
-        if (filteredList.length === 0) {
+        if (!rawKaryawanData || rawKaryawanData.length === 0) {
             diagramContainer.innerHTML = `
                 <div class="text-center py-10 text-slate-400 text-xs font-medium">
                     <i class="fa-solid fa-users-slash text-3xl mb-2 block text-slate-200"></i>
-                    Tidak ada karyawan yang cocok dengan kriteria filter.
+                    Tidak ada data karyawan untuk ditampilkan.
                 </div>
             `;
             return;
         }
 
         let graphDef = 'graph TD\n';
-        graphDef += '    COMPANY["🏢 Perusahaan / Direksi"]\n';
+        graphDef += '    COMPANY["🏢 PT META ADHYA TIRTA UMBULAN"]\n\n';
 
-        filteredList.forEach(u => {
-            const cleanName = (u.name || '').replace(/["'()]/g, '');
-            const cleanRole = (u.role ? u.role.role_name : 'Staff').replace(/["'()]/g, '');
-            const cleanStation = (u.station ? u.station.name : 'No Station').replace(/["'()]/g, '');
+        const kelompokSektor = {};
 
+        rawKaryawanData.forEach(u => {
+            let sektorKey = (u.sektor || '').trim();
+            if (!sektorKey) {
+                if (u.job_title == 'Operator' || u.job_title == '1') sektorKey = 'Operasional';
+                else if (u.job_title == 'Maintenance' || u.job_title == '2') sektorKey = 'Teknik & Maintenance';
+                else if (u.job_title == 'HSE' || u.job_title == '3') sektorKey = 'Safety (HSE)';
+                else if (u.job_title == 'Dokumentasi' || u.job_title == '4') sektorKey = 'Dokumentasi';
+                else sektorKey = 'Manajemen & Umum';
+            }
+
+            if (!kelompokSektor[sektorKey]) {
+                kelompokSektor[sektorKey] = [];
+            }
+            kelompokSektor[sektorKey].push(u);
+        });
+
+        let groupIndex = 0;
+        for (const [sektorName, listKaryawan] of Object.entries(kelompokSektor)) {
+            groupIndex++;
+            graphDef += `    subgraph SG_${groupIndex}["📁 ${sektorName.toUpperCase()}"]\n`;
+
+            listKaryawan.forEach(u => {
+                const cleanName = (u.name || '').replace(/["'()]/g, '');
+                const cleanRole = (u.role ? u.role.role_name : 'Staff').replace(/["'()]/g, '');
+                const cleanStation = (u.station ? u.station.name : 'No Station').replace(/["'()]/g, '');
+
+                const nodeId = `U${u.id}`;
+                const nodeLabel = `"${cleanName}<br><b>${cleanRole}</b><br><i>📍 ${cleanStation}</i>"`;
+
+                graphDef += `        ${nodeId}[${nodeLabel}]\n`;
+            });
+
+            graphDef += '    end\n\n';
+        }
+
+        rawKaryawanData.forEach(u => {
             const nodeId = `U${u.id}`;
-            const nodeLabel = `"${cleanName}<br><b>${cleanRole}</b><br><i>📍 ${cleanStation}</i>"`;
 
-            // Hubungkan ke Supervisor / Manager jika ada di daftar, atau ke Perusahaan
-            if (u.supervisor_id && filteredList.some(emp => emp.id == u.supervisor_id)) {
-                graphDef += `    U${u.supervisor_id} --> ${nodeId}[${nodeLabel}]\n`;
-            } else if (u.manager_id && filteredList.some(emp => emp.id == u.manager_id)) {
-                graphDef += `    U${u.manager_id} --> ${nodeId}[${nodeLabel}]\n`;
+            if (u.supervisor_id && rawKaryawanData.some(emp => emp.id == u.supervisor_id)) {
+                graphDef += `    U${u.supervisor_id} --> ${nodeId}\n`;
+            } else if (u.manager_id && rawKaryawanData.some(emp => emp.id == u.manager_id)) {
+                graphDef += `    U${u.manager_id} --> ${nodeId}\n`;
             } else {
-                graphDef += `    COMPANY --> ${nodeId}[${nodeLabel}]\n`;
+                graphDef += `    COMPANY --> ${nodeId}\n`;
             }
         });
 
@@ -472,15 +510,50 @@
             const elementId = `karyawanSvg_${kRenderCounter}`;
             const { svg } = await mermaid.render(elementId, graphDef);
             diagramContainer.innerHTML = svg;
+
+            // Terapkan Panzoom setelah SVG berhasil dibuat
+            initPanzoom();
+
         } catch (err) {
             console.error('Org-Chart Render Error:', err);
             diagramContainer.innerHTML = `
                 <div class="text-center py-6 text-rose-500 text-xs font-semibold">
                     <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-                    Gagal merender skema karyawan.
+                    Gagal merender skema organisasi.
                 </div>
             `;
         }
+    }
+
+    // Fungsi Pengaturan Panzoom
+    function initPanzoom() {
+        const elem = document.getElementById('karyawanOrgDiagram');
+        const parent = document.getElementById('mermaidParent');
+        if (!elem || !parent) return;
+
+        if (panzoomInstance) {
+            panzoomInstance.destroy();
+        }
+
+        panzoomInstance = Panzoom(elem, {
+            maxScale: 3,
+            minScale: 0.1,
+            startScale: 0.55,
+            canvas: true
+        });
+
+        setTimeout(() => {
+            panzoomInstance.pan(0, 0);
+        }, 50);
+
+        parent.addEventListener('wheel', panzoomInstance.zoomWithWheel);
+
+        document.getElementById('btnZoomIn').onclick = panzoomInstance.zoomIn;
+        document.getElementById('btnZoomOut').onclick = panzoomInstance.zoomOut;
+        document.getElementById('btnZoomReset').onclick = () => {
+            panzoomInstance.reset();
+            panzoomInstance.zoom(0.55); // Reset ke ukuran awal yang pas
+        };
     }
 
     // Switch Tab Function
@@ -492,7 +565,7 @@
         });
 
         document.getElementById(tabId).classList.remove('hidden');
-        
+
         const activeBtn = document.getElementById('btn-' + tabId);
         activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
         activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
