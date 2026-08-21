@@ -12,7 +12,7 @@ class StationController extends Controller
     {
         $daftarStasiun = Station::withCount(['users as total_karyawan'])
             ->orderBy('type', 'asc')
-            ->orderBy('name', 'asc')
+            ->orderBy('kode_stasiun', 'asc')
             ->get();
 
         return view('admin.daftar.stationindex', compact('daftarStasiun'));
