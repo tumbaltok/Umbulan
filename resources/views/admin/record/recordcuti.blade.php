@@ -20,7 +20,7 @@
                 </div>
 
                 <div class="w-full md:w-auto flex items-center justify-end">
-                    <button type="button" onclick="exportExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+                    <button type="button" onclick="exportExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-file-excel"></i>
                         Export Data
                     </button>
@@ -38,7 +38,7 @@
 
                 <form action="{{ route('admin.record.cuti') }}" method="GET" id="form-filter" class="w-full md:w-auto flex flex-wrap items-center justify-end gap-2 m-0">
                     <div class="w-full sm:w-36">
-                        <select name="bulan" id="filter_bulan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+                        <select name="bulan" id="filter_bulan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
                             <option value="">Semua Bulan</option>
                             @foreach(range(1, 12) as $m)
                                 <option value="{{ $m }}" {{ request('bulan') == $m ? 'selected' : '' }}>
@@ -49,7 +49,7 @@
                     </div>
 
                     <div class="w-full sm:w-28">
-                        <select name="tahun" id="filter_tahun" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+                        <select name="tahun" id="filter_tahun" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
                             @php $tahunSekarang = date('Y'); @endphp
                             @foreach(range($tahunSekarang, $tahunSekarang - 5) as $y)
                                 <option value="{{ $y }}" {{ request('tahun', $tahunSekarang) == $y ? 'selected' : '' }}>
@@ -91,8 +91,8 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700" id="table-body">
                     @forelse($groupedCuti as $userId => $items)
-                        @php 
-                            $karyawan = $items->first()->user; 
+                        @php
+                            $karyawan = $items->first()->user;
                             $totalFrekuensi = $items->count();
                             $totalHariTerpakai = $items->sum(function($item) {
                                 return $item->total_hari ?? $item->durasi_hari ?? 0;
@@ -151,11 +151,11 @@
 
                             {{-- Tombol Lihat History --}}
                             <td class="px-6 py-4 text-center">
-                                <button type="button" 
-                                    data-karyawan="{{ $karyawan->name ?? '' }}" 
+                                <button type="button"
+                                    data-karyawan="{{ $karyawan->name ?? '' }}"
                                     data-history='@json($historyData)'
                                     onclick="bukaModalHistory(this)"
-                                    class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm inline-flex items-center gap-1.5">
+                                    class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-clock-rotate-left"></i> History Cuti
                                 </button>
                             </td>
@@ -191,7 +191,7 @@
                 <h3 class="font-bold text-slate-800 text-base" id="judulModalHistory">History Pengajuan Cuti</h3>
                 <p id="subjudulModalHistory" class="text-xs text-sky-600 font-medium mt-0.5"></p>
             </div>
-            <button type="button" onclick="tutupModalHistory()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <button type="button" onclick="tutupModalHistory()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -212,8 +212,65 @@
         </div>
 
         <div class="flex items-center justify-end border-t border-slate-100 pt-4 mt-4">
-            <button type="button" onclick="tutupModalHistory()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">
+            <button type="button" onclick="tutupModalHistory()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl cursor-pointer">
                 Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL POPUP DETAIL KARYAWAN --}}
+<div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden">
+    <div id="detailModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-800 text-base">Detail Lengkap Karyawan</h3>
+            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div id="modalLoading" class="py-12 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-sky-600 mb-2"></div>
+            <p class="text-xs text-slate-400">Memuat data...</p>
+        </div>
+
+        <div id="modalDataContent" class="hidden space-y-6">
+            <div class="flex flex-col items-center justify-center text-center">
+                <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white ring-4 ring-sky-50"></div>
+                <h4 id="detail_name" class="font-bold text-lg text-slate-800"></h4>
+                <p id="detail_role" class="text-xs font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100"></p>
+            </div>
+
+            <div class="border-t border-slate-100 pt-4 grid grid-cols-1 gap-y-4 text-sm">
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                    <span class="text-slate-400 font-medium">NIP</span>
+                    <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                    <span class="text-slate-400 font-medium">Email</span>
+                    <span id="detail_email" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                    <span class="text-slate-400 font-medium">No. Telepon</span>
+                    <a id="detail_phone_link" href="#" target="_blank" class="col-span-2 text-slate-800 font-semibold hover:text-emerald-600 transition-colors hidden">-</a>
+                    <span id="detail_phone" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                    <span class="text-slate-400 font-medium">Jobdesk</span>
+                    <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+                <div class="grid grid-cols-3 pb-2">
+                    <span class="text-slate-400 font-medium">Stasiun</span>
+                    <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center mt-6 justify-end border-t border-slate-100 pt-4">
+            <button type="button" id="closeDetailModalBtn2" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors cursor-pointer">
+                 Tutup
             </button>
         </div>
     </div>
@@ -301,6 +358,104 @@
                 }
             });
         }
+
+        // --- MODAL POPUP DETAIL KARYAWAN ---
+        const modal = document.getElementById("detailKaryawanModal");
+        const backdrop = document.getElementById("detailModalBackdrop");
+        const closeBtn = document.getElementById("closeDetailModalBtn");
+        const closeBtn2 = document.getElementById("closeDetailModalBtn2");
+
+        const loadingSection = document.getElementById("modalLoading");
+        const contentSection = document.getElementById("modalDataContent");
+
+        function showModal() {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+        }
+
+        function hideModal() {
+            modal.classList.remove("flex");
+            modal.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        }
+
+        if (closeBtn) closeBtn.addEventListener("click", hideModal);
+        if (closeBtn2) closeBtn2.addEventListener("click", hideModal);
+        if (backdrop) backdrop.addEventListener("click", hideModal);
+
+        document.querySelectorAll(".btn-detail-karyawan").forEach(button => {
+            button.addEventListener("click", function () {
+                const karyawanId = this.getAttribute("data-id");
+                if (!karyawanId) return;
+
+                showModal();
+                loadingSection.classList.remove("hidden");
+                contentSection.classList.add("hidden");
+
+                fetch(`/admin/karyawan/${karyawanId}/detail`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data || Object.keys(data).length === 0) throw new Error("Kosong");
+
+                        loadingSection.classList.add("hidden");
+                        contentSection.classList.remove("hidden");
+
+                        document.getElementById("detail_name").textContent = data.name || '-';
+                        document.getElementById("detail_nip").textContent = data.nip ? data.nip : '-';
+                        document.getElementById("detail_email").textContent = data.email || '-';
+                        document.getElementById("detail_phone").textContent = data.phone_number ? data.phone_number : '-';
+                        document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
+                        document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
+
+                        const phoneLink = document.getElementById("detail_phone_link");
+                        const phoneSpan = document.getElementById("detail_phone");
+
+                        if (data.phone_number) {
+                            let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
+                            if (cleanNumber.startsWith('0')) {
+                                cleanNumber = '62' + cleanNumber.substring(1);
+                            }
+                            phoneLink.textContent = data.phone_number;
+                            phoneLink.href = `https://wa.me/${cleanNumber}`;
+                            phoneLink.classList.remove("hidden");
+                            phoneSpan.classList.add("hidden");
+                        } else {
+                            phoneLink.classList.add("hidden");
+                            phoneSpan.classList.remove("hidden");
+                            phoneSpan.textContent = '-';
+                        }
+
+                        let jobTitleText = 'Belum Memilih';
+                        if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
+                        else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
+                        else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
+                        else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
+
+                        document.getElementById("detail_job").textContent = jobTitleText;
+
+                        const photoContainer = document.getElementById("detail_photo_container");
+                        if (data.profile_photo) {
+                            const img = document.createElement("img");
+                            img.src = `/storage/${data.profile_photo}`;
+                            img.className = "w-full h-full object-cover";
+                            photoContainer.textContent = "";
+                            photoContainer.appendChild(img);
+                        } else {
+                            const initials = data.name ? data.name.substring(0, 2).toUpperCase() : '??';
+                            photoContainer.textContent = initials;
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        loadingSection.classList.add("hidden");
+                        hideModal();
+                    });
+            });
+        });
 
         const formFilter = document.getElementById('form-filter');
         const filterBulan = document.getElementById('filter_bulan');
