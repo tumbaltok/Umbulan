@@ -32,6 +32,7 @@
                     <th class="py-3 px-4">Keperluan / Urgensi</th>
                     <th class="py-3 px-4">Rincian Material</th>
                     <th class="py-3 px-4">Status Akhir</th>
+                    <th class="py-3 px-4 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -62,9 +63,11 @@
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             @if($mpr->status_akhir === 'approved')
-                                <a href="{{ route('mpr.cetak', $mpr->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-colors">
+                                <button type="button"
+                                        onclick="bukaPratinjauCetak('{{ route('mpr.cetak', $mpr->id) }}')"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
                                     <i class="fa-solid fa-print"></i> Cetak PDF
-                                </a>
+                                </button>
                             @else
                                 <span class="text-xs text-slate-400">-</span>
                             @endif
@@ -72,7 +75,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center py-8 text-slate-400 text-xs">
+                        <td colspan="5" class="text-center py-8 text-slate-400 text-xs">
                             Belum ada riwayat pengajuan MPR.
                         </td>
                     </tr>
@@ -81,4 +84,78 @@
         </table>
     </div>
 </div>
+
+{{-- MODAL POPUP PRATINJAU DOKUMEN CETAK MPR --}}
+<div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+        {{-- Header Modal --}}
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
+                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800">Pratinjau Dokumen Cetak MPR</h3>
+            </div>
+            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        {{-- Konten Utama / Tempat Render File PDF --}}
+        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    function bukaPratinjauCetak(urlFile) {
+        document.getElementById('judulModalLampiran').innerText = 'Pratinjau Dokumen Cetak MPR';
+        tampilkanModal(urlFile, true);
+    }
+
+    function tampilkanModal(urlFile, isPdfFormated = false) {
+        const modal = document.getElementById('modalPreviewLampiran');
+        const container = document.getElementById('containerKontenLampiran');
+
+        container.innerHTML = '<div class="text-xs text-slate-400 font-medium animate-pulse">Memuat dokumen...</div>';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        const ekstensi = urlFile.split('.').pop().toLowerCase();
+
+        if (isPdfFormated || ekstensi === 'pdf') {
+            container.innerHTML = `<iframe src="${urlFile}" class="w-full h-full rounded-xl border-0 shadow-inner" allow="autoplay"></iframe>`;
+        } else if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ekstensi)) {
+            container.innerHTML = `<img src="${urlFile}" class="max-w-full max-h-full rounded-xl shadow-md object-contain" alt="Pratinjau Dokumen">`;
+        } else {
+            container.innerHTML = `
+                <div class="text-center p-6 bg-white rounded-xl shadow-sm border border-slate-200 max-w-xs">
+                    <i class="fa-solid fa-file-arrow-down text-amber-500 text-3xl mb-2"></i>
+                    <p class="text-xs font-semibold text-slate-700 mb-3">Format file tidak mendukung pratinjau langsung.</p>
+                    <a href="${urlFile}" download class="inline-flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+                        <i class="fa-solid fa-download"></i> Unduh File
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    function tutupPratinjauLampiran() {
+        const modal = document.getElementById('modalPreviewLampiran');
+        const container = document.getElementById('containerKontenLampiran');
+
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        container.innerHTML = '';
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('modalPreviewLampiran').addEventListener('click', function(e) {
+        if (e.target === this) {
+            tutupPratinjauLampiran();
+        }
+    });
+</script>
+@endpush

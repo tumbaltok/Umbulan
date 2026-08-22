@@ -40,7 +40,17 @@
 
                 <div class="md:col-span-1">
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Dokumen Pendukung Utama (Opsional)</label>
-                    <input type="file" name="dokumen_pendukung" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                    <input type="file" id="dokumen_pendukung" name="dokumen_pendukung" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer">
+                    <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG</p>
+
+                    {{-- Container Preview untuk Dokumen --}}
+                    <div id="preview-container" class="preview-container hidden mt-2 p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl max-w-full">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span id="label-tipe-file" class="p-1.5 bg-sky-50 text-sky-600 rounded-lg text-xs font-semibold uppercase tracking-wider">File</span>
+                            <span id="nama-file-preview" class="text-xs text-slate-600 truncate font-medium">nama_file.jpg</span>
+                        </div>
+                        <div id="area-preview-visual" class="area-preview-visual flex justify-start items-center"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,7 +61,7 @@
                 <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                     <i class="fa-solid fa-boxes-stacked text-sky-500"></i> Rincian Material / Barang
                 </h3>
-                <button type="button" id="btn-tambah-item" class="w-full sm:w-auto bg-sky-50 hover:bg-sky-100 text-sky-600 font-semibold text-xs px-3 py-2 rounded-xl transition-colors flex items-center justify-center gap-1">
+                <button type="button" id="btn-tambah-item" class="w-full sm:w-auto bg-sky-50 hover:bg-sky-100 text-sky-600 font-semibold text-xs px-3 py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> Tambah Item
                 </button>
             </div>
@@ -65,7 +75,7 @@
                             <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang / Material</label>
                             <input type="text" name="items[0][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Contoh: Valve Gate 2 Inch">
                         </div>
-                        
+
                         <div class="grid grid-cols-3 gap-2 sm:col-span-2 md:col-span-6">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Qty</label>
@@ -115,7 +125,7 @@
         </div>
 
         <div class="pt-2 flex">
-            <button type="submit" class="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm px-8 py-3 rounded-xl shadow-md shadow-sky-600/10 transition-colors ml-auto">
+            <button type="submit" class="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm px-8 py-3 rounded-xl shadow-md shadow-sky-600/10 transition-colors ml-auto cursor-pointer">
                 Kirim Pengajuan MPR
             </button>
         </div>
@@ -154,7 +164,7 @@
     let itemIndex = 1;
     let isConfirmed = false;
 
-    // HANDLER SUBMIT DENGAN FLAG KONFIRMASI (MENGHINDARI INFINITE LOOP)
+    // HANDLER SUBMIT DENGAN FLAG KONFIRMASI
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById('formMpr');
         if (form) {
@@ -181,6 +191,46 @@
                             form.submit();
                         }
                     });
+                }
+            });
+        }
+
+        // HANDLER PREVIEW DOKUMEN PENDUKUNG UTAMA
+        const inputDokumen = document.getElementById('dokumen_pendukung');
+        const previewContainer = document.getElementById('preview-container');
+        const labelTipeFile = document.getElementById('label-tipe-file');
+        const namaFilePreview = document.getElementById('nama-file-preview');
+        const areaPreviewVisual = document.getElementById('area-preview-visual');
+
+        if (inputDokumen) {
+            inputDokumen.addEventListener('change', function () {
+                const file = this.files[0];
+
+                if (file) {
+                    namaFilePreview.textContent = file.name;
+                    previewContainer.classList.remove('hidden');
+
+                    if (file.type.startsWith('image/')) {
+                        labelTipeFile.textContent = 'Gambar';
+                        labelTipeFile.className = 'p-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold uppercase tracking-wider';
+                        areaPreviewVisual.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-h-40 rounded-lg border border-slate-200 shadow-inner object-contain" alt="Pratinjau Dokumen">`;
+                    } else if (file.type === 'application/pdf') {
+                        labelTipeFile.textContent = 'PDF';
+                        labelTipeFile.className = 'p-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold uppercase tracking-wider';
+                        areaPreviewVisual.innerHTML = `
+                            <div class="flex items-center space-x-2 text-slate-600 bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm shadow-sm">
+                                <i class="fa-solid fa-file-pdf text-rose-500 text-lg"></i>
+                                <span>Dokumen PDF Siap Diunggah</span>
+                            </div>
+                        `;
+                    } else {
+                        labelTipeFile.textContent = 'File';
+                        labelTipeFile.className = 'p-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold uppercase tracking-wider';
+                        areaPreviewVisual.innerHTML = `<span class="text-xs text-slate-400">Format file tidak mendukung pratinjau visual</span>`;
+                    }
+                } else {
+                    previewContainer.classList.add('hidden');
+                    areaPreviewVisual.innerHTML = '';
                 }
             });
         }
@@ -223,7 +273,7 @@
                     <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang / Material</label>
                     <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Nama barang">
                 </div>
-                
+
                 <div class="grid grid-cols-3 gap-2 sm:col-span-2 md:col-span-6">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Qty</label>
@@ -249,7 +299,7 @@
                         <span class="block text-[10px] text-slate-400 uppercase font-bold">Subtotal</span>
                         <span class="text-sm font-bold text-slate-700 label-subtotal">Rp 0</span>
                     </div>
-                    <button type="button" class="btn-hapus-item text-rose-500 hover:text-rose-700 transition-colors p-2 rounded-lg md:mt-4">
+                    <button type="button" class="btn-hapus-item text-rose-500 hover:text-rose-700 transition-colors p-2 rounded-lg md:mt-4 cursor-pointer">
                         <i class="fa-solid fa-trash-can text-base"></i>
                     </button>
                 </div>

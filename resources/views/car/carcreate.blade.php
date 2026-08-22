@@ -80,7 +80,7 @@
                             {{-- Container Dynamic Ongkir --}}
                             <div class="col-span-4 flex flex-col justify-end container-ongkir">
                                 <button type="button" class="btn-tambah-ongkir h-[38px] px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1 cursor-pointer">
-                                    <i class="fa-solid fa-truck-fast"></i> + Ongkir
+                                    + <i class="fa-solid fa-truck-fast"></i> Ongkir
                                 </button>
                                 <div class="wrapper-input-ongkir hidden">
                                     <label class="block text-[10px] font-semibold text-amber-600 mb-1">Ongkir (Rp)</label>

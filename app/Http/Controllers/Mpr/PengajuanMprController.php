@@ -252,7 +252,7 @@ class PengajuanMprController extends Controller
             'title' => 'Cetak MPR - '.$mpr->nomor_mpr,
         ];
 
-        $pdf = Pdf::loadView('mpr.cetak', $data)->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('mpr.mprcetak', $data)->setPaper('a4', 'portrait');
 
         return $pdf->stream('MPR-'.str_replace('/', '-', $mpr->nomor_mpr).'.pdf');
     }
