@@ -40,10 +40,11 @@ class PengajuanCarController extends Controller
         // Validasi format array dari form multi-item
         $request->validate([
             'alasan_pembelian' => 'required|string',
-            'receiving_account' => 'required|string|in:META Umbulan,META Surabaya,META Booster-M',
+            'receiving_account' => 'required|string',
             'items' => 'required|array|min:1',
             'items.*.nama_barang' => 'required|string|max:255',
             'items.*.jumlah' => 'required|integer|min:1',
+            'items.*.satuan' => 'required|string',
             'items.*.estimasi_harga' => 'required|numeric|min:0',
             'items.*.dokumen_pendukung' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -90,6 +91,7 @@ class PengajuanCarController extends Controller
             $carHeader->details()->create([
                 'nama_barang' => $item['nama_barang'],
                 'jumlah' => $item['jumlah'],
+                'satuan' => $item['satuan'],
                 'estimasi_harga' => $item['estimasi_harga'],
                 'total_harga' => $total_harga_item,
                 'dokumen_nota_or_proposal' => $pathDokumen,

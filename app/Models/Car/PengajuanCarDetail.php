@@ -15,6 +15,7 @@ class PengajuanCarDetail extends Model
         'pengajuan_car_id',
         'nama_barang',
         'jumlah',
+        'satuan',
         'estimasi_harga',
         'total_harga',
         'dokumen_nota_or_proposal',

@@ -460,7 +460,6 @@
                 const content = container.querySelector('.dropdown-content');
                 container.classList.add('dropdown-open');
 
-                // Gunakan scrollHeight yang pas tanpa penambahan angka berlebih agar transisi pas 0.45 detik
                 content.style.maxHeight = content.scrollHeight + "px";
             }
 
@@ -484,18 +483,15 @@
                 });
             });
 
-            // HANDLER SUB-DROPDOWN LEVEL 2 (DAFTAR & RECORD)
             const subDropdownContainers = document.querySelectorAll('.sub-dropdown-container');
 
             function openSubDropdown(subContainer) {
                 const subContent = subContainer.querySelector('.sub-dropdown-content');
                 subContainer.classList.add('sub-dropdown-open');
 
-                // Set tinggi sub-menu sesuai tinggi aslinya
                 const subHeight = subContent.scrollHeight;
                 subContent.style.maxHeight = subHeight + "px";
 
-                // Perbarui parent secara pas & mulus menggunakan requestAnimationFrame
                 const parentDropdown = subContainer.closest('.dropdown-container');
                 if (parentDropdown) {
                     const parentContent = parentDropdown.querySelector('.dropdown-content');
@@ -512,7 +508,6 @@
                 subContainer.classList.remove('sub-dropdown-open');
                 subContent.style.maxHeight = "0px";
 
-                // Kurangi max-height parent secara presisi saat sub-menu ditutup
                 const parentDropdown = subContainer.closest('.dropdown-container');
                 if (parentDropdown) {
                     const parentContent = parentDropdown.querySelector('.dropdown-content');

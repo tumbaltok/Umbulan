@@ -18,6 +18,16 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
+            <ul class="list-disc pl-5 space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form action="{{ route('car.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
@@ -61,29 +71,42 @@
                 <div class="baris-item bg-white p-4 rounded-xl border border-slate-200 relative shadow-sm space-y-4">
                     {{-- Grid Atas: Input Data Nominal --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
-                        <div class="sm:col-span-2 md:col-span-4">
+                        <div class="sm:col-span-2 md:col-span-3">
                             <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang / Material</label>
                             <input type="text" name="items[0][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch">
                         </div>
 
-                        <div class="grid grid-cols-12 gap-2 sm:col-span-2 md:col-span-6">
-                            <div class="col-span-3">
-                                <label class="block text-xs font-semibold text-slate-500 mb-1">Qty</label>
-                                <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Qty">
+                        <div class="grid grid-cols-12 gap-2 sm:col-span-2 md:col-span-7">
+                            <div class="col-span-2">
+                                <label class="block text-xs font-semibold text-slate-500 mb-1 text-center">Qty</label>
+                                <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500 text-center" placeholder="Qty">
                             </div>
 
-                            <div class="col-span-5">
+                            <div class="col-span-3">
+                                <label class="block text-xs font-semibold text-slate-500 mb-1 text-center">Satuan</label>
+                                <select name="items[0][satuan]" required class="w-full px-2 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
+                                    <option value="" disabled selected hidden>Pilih</option>
+                                    <option value="PCS">Pcs</option>
+                                    <option value="Unit">Unit</option>
+                                    <option value="BOX">Box</option>
+                                    <option value="Meter">Meter</option>
+                                    <option value="Batang">Batang</option>
+                                    <option value="Set">Set</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-4">
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Harga Satuan (Rp)</label>
                                 <input type="number" name="items[0][estimasi_harga]" required min="0" class="input-harga w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Harga">
                             </div>
 
                             {{-- Container Dynamic Ongkir --}}
-                            <div class="col-span-4 flex flex-col justify-end container-ongkir">
-                                <button type="button" class="btn-tambah-ongkir h-[38px] px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                            <div class="col-span-3 flex flex-col justify-end container-ongkir">
+                                <button type="button" class="btn-tambah-ongkir h-[38px] px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1 cursor-pointer w-full">
                                     + <i class="fa-solid fa-truck-fast"></i> Ongkir
                                 </button>
                                 <div class="wrapper-input-ongkir hidden">
-                                    <label class="block text-[10px] font-semibold text-amber-600 mb-1">Ongkir (Rp)</label>
+                                    <label class="block text-[10px] font-semibold text-amber-600 mb-1 text-center">Ongkir (Rp)</label>
                                     <input type="number" name="items[0][ongkir]" min="0" value="" class="input-ongkir w-full px-2 py-1.5 rounded-lg border border-amber-300 text-sm focus:outline-none focus:border-amber-500 bg-amber-50/30" placeholder="Ongkir">
                                 </div>
                             </div>
@@ -107,7 +130,7 @@
                         <input type="file"
                             name="items[0][dokumen_pendukung]"
                             required
-                            class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+                            class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer">
 
                         <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG</p>
 
@@ -279,7 +302,7 @@
         }
     });
 
-    // Event Listener Klik Tombol + Ongkir
+    // Event Listener Klik Tombol + Ongkir & Hapus Baris
     containerItem.addEventListener('click', function(e) {
         const btnOngkir = e.target.closest('.btn-tambah-ongkir');
         if (btnOngkir) {
@@ -291,7 +314,7 @@
 
             const inputOngkir = wrapperInput.querySelector('.input-ongkir');
             if (inputOngkir) {
-                inputOngkir.value = ''; // Memastikan input kosong
+                inputOngkir.value = '';
                 inputOngkir.focus();
             }
         }
@@ -311,25 +334,38 @@
 
         barisBaru.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
-                <div class="sm:col-span-2 md:col-span-4">
+                <div class="sm:col-span-2 md:col-span-3">
                     <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Barang / Material</label>
                     <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch">
                 </div>
 
-                <div class="grid grid-cols-12 gap-2 sm:col-span-2 md:col-span-6">
-                    <div class="col-span-3">
+                <div class="grid grid-cols-12 gap-2 sm:col-span-2 md:col-span-7">
+                    <div class="col-span-2">
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Qty</label>
-                        <input type="number" name="items[${itemIndex}][jumlah]" required min="1" class="input-jumlah w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Qty">
+                        <input type="number" name="items[${itemIndex}][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500 text-center" placeholder="Qty">
                     </div>
 
-                    <div class="col-span-5">
+                    <div class="col-span-3">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Satuan</label>
+                        <select name="items[${itemIndex}][satuan]" required class="w-full px-2 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
+                            <option value="" disabled selected hidden>Pilih</option>
+                            <option value="PCS">PCS</option>
+                            <option value="Unit">Unit</option>
+                            <option value="BOX">BOX</option>
+                            <option value="Meter">Meter</option>
+                            <option value="Batang">Batang</option>
+                            <option value="Set">Set</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-4">
                         <label class="block text-xs font-semibold text-slate-500 mb-1">Harga Satuan (Rp)</label>
                         <input type="number" name="items[${itemIndex}][estimasi_harga]" required min="0" class="input-harga w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Harga">
                     </div>
 
-                    <div class="col-span-4 flex flex-col justify-end container-ongkir">
-                        <button type="button" class="btn-tambah-ongkir h-[38px] px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-truck-fast"></i> + Ongkir
+                    <div class="col-span-3 flex flex-col justify-end container-ongkir">
+                        <button type="button" class="btn-tambah-ongkir h-[38px] px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1 cursor-pointer w-full">
+                            + <i class="fa-solid fa-truck-fast"></i> Ongkir
                         </button>
                         <div class="wrapper-input-ongkir hidden">
                             <label class="block text-[10px] font-semibold text-amber-600 mb-1">Ongkir (Rp)</label>
@@ -355,7 +391,7 @@
                 <input type="file"
                     name="items[${itemIndex}][dokumen_pendukung]"
                     required
-                    class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+                    class="input-file-dokumen w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 text-xs focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer">
 
                 <p class="text-[10px] text-slate-400 mt-1">* Format: PDF, JPG, JPEG, PNG</p>
 

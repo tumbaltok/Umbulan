@@ -37,9 +37,10 @@ return new class extends Migration
             $table->foreignId('pengajuan_car_id')->constrained('pengajuan_cars')->onDelete('cascade');
             $table->string('nama_barang');
             $table->integer('jumlah');
+            $table->string('satuan')->default('PCS');
             $table->decimal('estimasi_harga', 15, 2);
             $table->decimal('total_harga', 15, 2);
-            $table->string('dokumen_nota_or_proposal')->nullable(); // Menyimpan path nota per item
+            $table->string('dokumen_nota_or_proposal')->nullable();
             $table->timestamps();
         });
     }

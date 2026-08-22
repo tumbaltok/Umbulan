@@ -176,7 +176,7 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $detail->nama_barang }}</td>
-                    <td class="text-center">{{ $detail->jumlah }}</td>
+                    <td class="text-center">{{ $detail->jumlah }} {{ $detail->satuan }}</td>
                     <td class="text-right">Rp{{ number_format($detail->estimasi_harga, 0, ',', '.') }}</td>
                     <td class="text-right">Rp{{ number_format($detail->total_harga, 0, ',', '.') }}</td>
                     @if($loop->first)
@@ -288,7 +288,7 @@
                                 {{ $index + 1 }}. {{ $detail->nama_barang }}
                             </span>
                             <span style="font-size: 11px; color: #64748b; font-family: sans-serif;">
-                                ({{ $detail->jumlah }} Qty)
+                                ({{ $detail->jumlah }} {{ $detail->satuan }})
                             </span>
                         </div>
 
