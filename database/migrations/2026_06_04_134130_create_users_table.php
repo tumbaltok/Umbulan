@@ -22,8 +22,6 @@ return new class extends Migration
             $table->foreignId('station_id')->constrained('stations');
             $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('sektor', ['manajemen', 'operasional'])->default('operasional');
-            $table->string('job_title')->nullable();
             $table->enum('schedule_type', ['normal', 'roster'])->default('normal')->nullable();
             $table->json('normal_work_days')->nullable();
             $table->time('normal_check_in')->nullable();
@@ -51,7 +49,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };

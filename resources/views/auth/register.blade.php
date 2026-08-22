@@ -181,7 +181,7 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Station / Penempatan (Database Select) -->
-                            <div class="md:col-span-2">
+                            <div>
                                 <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Penempatan Kerja
                                 </label>
@@ -204,8 +204,8 @@
                             </div>
 
                             <!-- Jabatan / Role (Database Select) -->
-                            <div class="md:col-span-2">
-                                <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jabatan</label>
+                            <div>
+                                <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">ROLE</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-briefcase text-xs"></i>
@@ -224,46 +224,6 @@
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                         <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Jobdesk / Bidang Tugas (Custom Multi-Select Dropdown) -->
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Jobdesk / Bidang
-                                </label>
-
-                                <div class="relative" id="custom-jobdesk-dropdown">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
-                                        <i class="fa-solid fa-list-check text-xs"></i>
-                                    </div>
-
-                                    <button type="button" id="jobdesk-btn" class="w-full text-left pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer">
-                                        <span id="jobdesk-text" class="truncate text-slate-400">Pilih Jobdesk / Bidang</span>
-                                    </button>
-
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 z-10">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-
-                                    <div id="jobdesk-menu" class="hidden absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto p-1.5 space-y-1">
-                                        @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
-                                            @foreach($daftarJobdesk as $jobdesk)
-                                                @php
-                                                    $jobdeskId = $jobdesk->id;
-                                                    $jobdeskNama = $jobdesk->name ?? $jobdesk->nama_jobdesk ?? $jobdesk->job_title ?? $jobdesk->nama;
-                                                    $oldJobdesks = old('jobdesk', []);
-                                                    $isChecked = is_array($oldJobdesks) && in_array($jobdeskId, $oldJobdesks);
-                                                @endphp
-                                                <label class="flex items-center space-x-2.5 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer text-xs sm:text-sm text-slate-700 select-none">
-                                                    <input type="checkbox" name="jobdesk[]" value="{{ $jobdeskId }}" data-nama="{{ $jobdeskNama }}" class="jobdesk-checkbox rounded text-sky-600 focus:ring-sky-500 border-slate-300 w-4 h-4 cursor-pointer" {{ $isChecked ? 'checked' : '' }}>
-                                                    <span class="font-medium">{{ $jobdeskNama }}</span>
-                                                </label>
-                                            @endforeach
-                                        @else
-                                            <div class="p-2 text-xs text-slate-400 text-center">Tidak ada data Jobdesk tersedia</div>
-                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -364,48 +324,6 @@
 
     <!-- Script Operasi Frontend -->
     <script>
-        // JS HANDLER UNTUK CUSTOM MULTI-SELECT JOBDESK
-        document.addEventListener("DOMContentLoaded", function () {
-            const btn = document.getElementById('jobdesk-btn');
-            const menu = document.getElementById('jobdesk-menu');
-            const textSpan = document.getElementById('jobdesk-text');
-            const checkboxes = document.querySelectorAll('.jobdesk-checkbox');
-            const container = document.getElementById('custom-jobdesk-dropdown');
-
-            if (btn && menu) {
-                btn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    menu.classList.toggle('hidden');
-                });
-
-                function updateText() {
-                    const selected = Array.from(checkboxes)
-                        .filter(cb => cb.checked)
-                        .map(cb => cb.getAttribute('data-nama'));
-
-                    if (selected.length === 0) {
-                        textSpan.textContent = 'Pilih Jobdesk / Bidang';
-                        textSpan.className = 'truncate text-slate-400';
-                    } else {
-                        textSpan.textContent = selected.join(', ');
-                        textSpan.className = 'truncate text-slate-800 font-normal';
-                    }
-                }
-
-                checkboxes.forEach(cb => {
-                    cb.addEventListener('change', updateText);
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (container && !container.contains(e.target)) {
-                        menu.classList.add('hidden');
-                    }
-                });
-
-                updateText();
-            }
-        });
-
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const toggleIcon = document.getElementById(iconId);
@@ -495,16 +413,6 @@
             const notification = document.getElementById('notification');
             const notifIcon = document.getElementById('notif-icon');
             const notifMessage = document.getElementById('notif-message');
-
-            // Cek apakah minimal ada 1 Jobdesk yang dicentang
-            const checkedJobdesks = document.querySelectorAll('.jobdesk-checkbox:checked');
-            if (checkedJobdesks.length === 0) {
-                notification.style.display = 'flex';
-                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
-                notifIcon.innerHTML = `<i class="fa-solid fa-list-check text-rose-500 text-lg"></i>`;
-                notifMessage.innerText = "Error: Anda wajib memilih minimal 1 Jobdesk / Bidang.";
-                return;
-            }
 
             const isPasswordValid = checkPasswordStrength();
 

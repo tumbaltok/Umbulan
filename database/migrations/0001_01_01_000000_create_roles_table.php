@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('role_name');
+            $table->string('role_name')->unique;
             $table->integer('level')->default(1);
             $table->text('description')->nullable();
             $table->foreignId('parent_role_id')
@@ -22,7 +22,6 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->json('approval_rules')->nullable();
             $table->timestamps();
-            $table->unique(['role_name', 'divisi']);
         });
     }
 

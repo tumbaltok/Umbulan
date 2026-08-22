@@ -308,7 +308,7 @@
                                 </button>
                                 <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
                                     <a href="{{ route('admin.role.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Role / Jabatan & Jobdesk</span>
+                                        <span class="hide-on-collapse">Role</span>
                                     </a>
                                     <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.karyawan.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
                                         <span class="hide-on-collapse">Karyawan</span>

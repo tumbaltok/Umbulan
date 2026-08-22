@@ -3,11 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Cuti\JenisCuti;
-use App\Models\Cuti\PengajuanCuti;
 use App\Models\Cuti\SaldoCuti;
-use App\Models\Cuti\SubCuti;
 use App\Models\User\Gender;
-use App\Models\User\Jobdesk;
 use App\Models\User\Role;
 use App\Models\User\Station;
 use App\Models\User\User;
@@ -49,7 +46,7 @@ class DatabaseSeeder extends Seeder
         // 3. MASTER STATIONS (4 UTAMA + 18 RUMAH METER)
         // ==========================================
 
-        // A. Stasiun & Kantor Utama (Penempatan Karyawan)
+        // A. Stasiun & Kantor Utama
         $stUmbulan = Station::updateOrCreate(['kode_stasiun' => 'UMBULAN'], [
             'name' => 'Stasiun Umbulan', 'type' => 'stasiun',
             'latitude' => -7.7572565, 'longitude' => 112.9314949, 'radius_meters' => 1000,
@@ -66,8 +63,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Kantor Jakarta', 'type' => 'kantor',
             'latitude' => -6.2087634, 'longitude' => 106.845599, 'radius_meters' => 200,
         ]);
-
-        $mainStations = [$stUmbulan, $stBooster, $stSurabaya, $stJakarta];
 
         // B. Rumah Meter / RM (18 Lokasi Service Murni)
         $listRumahMeter = [
@@ -102,386 +97,122 @@ class DatabaseSeeder extends Seeder
         }
 
         // ==========================================
-        // 4. MASTER ROLES / JABATAN
+        // 4. MASTER ROLES (SESUAI DUMP SQL)
         // ==========================================
-        $roleAdmin    = Role::create(['role_name' => 'Admin', 'divisi' => 'Operasional', 'level' => 1, 'description' => 'Administrator Utama Sistem ERP']);
-        $roleDireksi  = Role::create(['role_name' => 'Direksi', 'divisi' => 'Manajemen', 'level' => 1, 'description' => 'Dewan Direksi / Eksekutif Tertinggi']);
-        $roleGM       = Role::create(['role_name' => 'General Manager', 'divisi' => 'Manajemen', 'level' => 1, 'description' => 'Manajemen Puncak Operasional']);
-        $roleManager  = Role::create(['role_name' => 'Manager', 'divisi' => 'Manajemen', 'level' => 2, 'description' => 'Kepala Divisi / Sektor']);
-        $roleHRD      = Role::create(['role_name' => 'HRD', 'divisi' => 'Manajemen', 'level' => 3, 'description' => 'Pengelolaan Kepegawaian & SDM']);
-        $roleHumas    = Role::create(['role_name' => 'Humas', 'divisi' => 'Manajemen', 'level' => 3, 'description' => 'Hubungan Masyarakat & Komunikasi']);
-        $roleSpv      = Role::create(['role_name' => 'Supervisor', 'divisi' => 'Operasional', 'level' => 3, 'description' => 'Pengawas Lapangan & Stasiun']);
-        $roleStaff    = Role::create(['role_name' => 'Staff', 'divisi' => 'Operasional', 'level' => 4, 'description' => 'Pelaksana Tugas / Operator Lapangan']);
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Role::truncate();
 
-        $roleManager->parent_role_id = $roleGM->id; $roleManager->save();
-        $roleHRD->parent_role_id     = $roleManager->id; $roleHRD->save();
-        $roleHumas->parent_role_id   = $roleManager->id; $roleHumas->save();
-        $roleSpv->parent_role_id     = $roleManager->id; $roleSpv->save();
-        $roleStaff->parent_role_id   = $roleSpv->id; $roleStaff->save();
-        $roleAdmin->parent_role_id   = $roleSpv->id; $roleAdmin->save();
+        $rulesDefault = json_encode([
+            "approval_levels" => 1,
+            "require_same_sektor" => false,
+            "require_same_jobdesk" => false,
+            "require_same_station" => true
+        ]);
 
-        // ==========================================
-        // 5. MASTER JOBDESK / BIDANG TUGAS
-        // ==========================================
-        $jobList = [
-            'Operator'    => 'Pengoperasian sistem teknis stasiun, valve, dan meteran air',
-            'Maintenance' => 'Pemeliharaan instalasi mekanikal, elektrikal, dan instrumen',
-            'HSE'         => 'Pengawasan K3, keselamatan kerja, dan lingkungan',
-            'Pipeline'    => 'Inspeksi & pemeliharaan jaringan pipa utama transmisi',
-            'Finance'     => 'Pengelolaan keuangan, akuntansi, dan pengeluaran operasional',
-            'Legal'       => 'Dokumentasi hukum, kontrak kerja, dan perizinan',
-            'GS'          => 'General Service, pengelolaan sarana & prasana kantor',
-            'Engineering' => 'Perencanaan teknik, evaluasi infrastruktur, dan sistem',
+        $rulesLevel2 = json_encode([
+            "approval_levels" => 2,
+            "require_same_sektor" => false,
+            "require_same_jobdesk" => false,
+            "require_same_station" => true
+        ]);
+
+        $rolesData = [
+            ['id' => 1, 'role_name' => 'Admin', 'level' => 1, 'description' => 'Administrator Utama Sistem ERP', 'parent_role_id' => 18, 'approval_rules' => $rulesDefault],
+            ['id' => 2, 'role_name' => 'SECRETARY', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 3, 'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 4, 'role_name' => 'PROCUREMENT', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 5, 'role_name' => 'HRD', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 6, 'role_name' => 'CONSULTANT', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 7, 'role_name' => 'GENERAL MANAGER', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 8, 'role_name' => 'OPERATIONAL', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 9, 'role_name' => 'PUBLIC RELATIONS', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 10, 'role_name' => 'SUPORT', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 11, 'role_name' => 'LEGAL', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 12, 'role_name' => 'FINANCE', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
+            ['id' => 13, 'role_name' => 'GENERAL AFFAIRS', 'level' => 2, 'description' => null, 'parent_role_id' => 10, 'approval_rules' => $rulesDefault],
+            ['id' => 14, 'role_name' => 'ASSET', 'level' => 2, 'description' => null, 'parent_role_id' => 11, 'approval_rules' => $rulesDefault],
+            ['id' => 15, 'role_name' => 'ACCOUNT', 'level' => 2, 'description' => null, 'parent_role_id' => 12, 'approval_rules' => $rulesDefault],
+            ['id' => 16, 'role_name' => 'MARKETING', 'level' => 2, 'description' => null, 'parent_role_id' => 12, 'approval_rules' => $rulesDefault],
+            ['id' => 17, 'role_name' => 'DOKUMENT CONTROL', 'level' => 2, 'description' => null, 'parent_role_id' => 14, 'approval_rules' => $rulesDefault],
+            ['id' => 18, 'role_name' => 'Unit Booster-M', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
+            ['id' => 19, 'role_name' => 'Maintanance (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 20, 'role_name' => 'Q.HSE (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 21, 'role_name' => 'Operator (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 22, 'role_name' => 'AREA (PIPELINE)', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
+            ['id' => 23, 'role_name' => 'Unit IPA Umbulan (Instalasi Pengelolahan Air)', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
+            ['id' => 24, 'role_name' => 'Operator (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
+            ['id' => 25, 'role_name' => 'Maintanance (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
+            ['id' => 26, 'role_name' => 'Q.HSE (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
         ];
 
-        foreach ($jobList as $title => $desc) {
-            Jobdesk::create(['job_title' => $title, 'description' => $desc]);
+        foreach ($rolesData as $role) {
+            Role::create([
+                'id' => $role['id'],
+                'role_name' => $role['role_name'],
+                'level' => $role['level'],
+                'description' => $role['description'],
+                'parent_role_id' => $role['parent_role_id'],
+                'approval_rules' => json_decode($role['approval_rules'], true),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // ==========================================
-        // 6. MASTER JENIS CUTI & SUB-CUTI
+        // 5. MASTER JENIS CUTI & SUB-CUTI
         // ==========================================
-
-        // Ambil jenis cuti yang sudah ada di database
         $ijinIMP = JenisCuti::where('kode_cuti', 'IMPI')->first();
         $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')->first();
 
-        // Jika jenis cuti tidak ditemukan, buat jenis cuti baru
         if (!$ijinIMP) {
             $ijinIMP = JenisCuti::create([
-                'kode_cuti' => 'IMPI',
-                'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
-                'kuota_default' => null,
+                'kode_cuti'          => 'IMPI',
+                'name_cuti'          => 'Ijin Meninggalkan Pekerjaan',
+                'kuota_default'      => null,
                 'butuh_surat_dokter' => false,
-                'keterangan' => null,
+                'keterangan'         => null,
             ]);
         }
 
         if (!$cutiTahunan) {
             $cutiTahunan = JenisCuti::create([
-                'kode_cuti' => 'CT',
-                'name_cuti' => 'Cuti',
-                'kuota_default' => 12,
+                'kode_cuti'          => 'CT',
+                'name_cuti'          => 'Cuti',
+                'kuota_default'      => 12,
                 'butuh_surat_dokter' => false,
-                'keterangan' => null,
+                'keterangan'         => null,
             ]);
         }
 
-        $normalScheduleData = [
-            'schedule_type' => 'normal',
-            'normal_work_days' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
-            'normal_check_in' => '07:00',
-            'normal_check_out' => '16:00',
-        ];
-
         // ==========================================
-        // 7. SEEDING KARYAWAN
+        // 6. SEEDING AKUN ADMIN UTAMA
         // ==========================================
+        $adminRole = Role::find(1);
 
-        $admin = User::create(array_merge([
-            'nip' => 'ADM-001', 'name' => 'Admin Sistem', 'email' => 'admin@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleAdmin->id, 'gender_id' => $pria->id,
-            'station_id' => $stBooster->id, 'sektor' => 'Operasional', 'job_title' => 'Operator',
-            'phone_number' => '081234567890', 'password' => Hash::make('Admin123.'),
-        ], $normalScheduleData));
+        $admin = User::create([
+            'nip'               => 'ADMIN-001',
+            'name'              => 'Admin Sistem',
+            'email'             => 'admin@meta.com',
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+            'role_id'           => $adminRole->id,
+            'gender_id'         => $pria->id,
+            'station_id'        => $stBooster->id,
+            'phone_number'      => '081234567890',
+            'schedule_type'     => 'normal',
+            'normal_work_days'  => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
+            'normal_check_in'   => '00:00',
+            'normal_check_out'  => '00:00',
+            'password'          => Hash::make('Admin123.'),
+        ]);
 
-        $direktur = User::create(array_merge([
-            'nip' => 'DIR-001', 'name' => 'Ir. Bambang Triyono', 'email' => 'direksi@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleDireksi->id, 'gender_id' => $pria->id,
-            'station_id' => $stJakarta->id, 'sektor' => 'manajemen', 'job_title' => 'Engineering',
-            'phone_number' => '081100000001', 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $gm = User::create(array_merge([
-            'nip' => 'GM-001', 'name' => 'Drs. Hendra Setiawan, M.T.', 'email' => 'gm@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleGM->id, 'gender_id' => $pria->id,
-            'station_id' => $stSurabaya->id, 'sektor' => 'manajemen', 'job_title' => 'Engineering',
-            'phone_number' => '081100000002', 'supervisor_id' => $direktur->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $mgrOps = User::create(array_merge([
-            'nip' => 'MGR-001', 'name' => 'Rahmat Hidayat, S.T.', 'email' => 'mgr.ops@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleManager->id, 'gender_id' => $pria->id,
-            'station_id' => $stUmbulan->id, 'sektor' => 'operasional', 'job_title' => 'Operator',
-            'phone_number' => '081100000003', 'manager_id' => $gm->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $mgrTeknik = User::create(array_merge([
-            'nip' => 'MGR-002', 'name' => 'Agus Priyanto, M.T.', 'email' => 'mgr.teknik@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleManager->id, 'gender_id' => $pria->id,
-            'station_id' => $stSurabaya->id, 'sektor' => 'operasional', 'job_title' => 'Engineering',
-            'phone_number' => '081100000004', 'manager_id' => $gm->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $mgrHRD = User::create(array_merge([
-            'nip' => 'MGR-003', 'name' => 'Siti Rahmawati, S.Psi.', 'email' => 'mgr.hrd@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'role_id' => $roleManager->id, 'gender_id' => $wanita->id,
-            'station_id' => $stSurabaya->id, 'sektor' => 'manajemen', 'job_title' => 'Legal',
-            'phone_number' => '081100000005', 'manager_id' => $gm->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $spvUmbulan = User::create(array_merge([
-            'nip' => 'SPV-001', 'name' => 'Eko Prasetyo', 'email' => 'spv.umbulan@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'phone_number' => '081100000010',
-            'role_id' => $roleSpv->id, 'gender_id' => $pria->id, 'station_id' => $stUmbulan->id,
-            'sektor' => 'operasional', 'job_title' => 'Operator', 'manager_id' => $mgrOps->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $spvBooster = User::create(array_merge([
-            'nip' => 'SPV-002', 'name' => 'Budi Santoso', 'email' => 'spv.booster@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'phone_number' => '081100000011',
-            'role_id' => $roleSpv->id, 'gender_id' => $pria->id, 'station_id' => $stBooster->id,
-            'sektor' => 'operasional', 'job_title' => 'Maintenance', 'manager_id' => $mgrOps->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $spvSurabaya = User::create(array_merge([
-            'nip' => 'SPV-003', 'name' => 'Heri Susanto', 'email' => 'spv.surabaya@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'phone_number' => '081100000012',
-            'role_id' => $roleSpv->id, 'gender_id' => $pria->id, 'station_id' => $stSurabaya->id,
-            'sektor' => 'operasional', 'job_title' => 'Pipeline', 'manager_id' => $mgrTeknik->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $spvJakarta = User::create(array_merge([
-            'nip' => 'SPV-004', 'name' => 'Aris Wijaya', 'email' => 'spv.jakarta@meta.com',
-            'email_verified_at' => now(), 'phone_verified_at' => now(), 'phone_number' => '081100000013',
-            'role_id' => $roleSpv->id, 'gender_id' => $pria->id, 'station_id' => $stJakarta->id,
-            'sektor' => 'operasional', 'job_title' => 'Engineering', 'manager_id' => $mgrTeknik->id, 'password' => Hash::make('Password123.'),
-        ], $normalScheduleData));
-
-        $staffKaryawanList = [];
-        $namaDummyPria = [
-            'Aditya Kuncoro', 'Bayu Nugroho', 'Candra Wijaya', 'Denny Gunawan', 'Edi Sukamto',
-            'Farhan Maulana', 'Gilang Ramadhan', 'Hendra Gunawan', 'Irfan Bachdim', 'Joko Susilo',
-            'Kurnia Meiga', 'Lukman Hakim', 'M. Ridwan', 'Nanda Pratama', 'Oky Rendy',
-            'Panji Petualang', 'Qomaruddin', 'Rendi Febrian', 'Setyo Budi', 'Tomy Sugiarto'
-        ];
-
-        $allSupervisors = [$spvUmbulan, $spvBooster, $spvSurabaya, $spvJakarta];
-        $jobCategories  = ['Operator', 'Maintenance', 'HSE', 'Pipeline', 'Engineering'];
-
-        $karyawanCounter = 1;
-        foreach ($namaDummyPria as $idx => $nama) {
-            $assignedStation = $mainStations[$idx % count($mainStations)];
-            $assignedSpv     = $allSupervisors[$idx % count($allSupervisors)];
-            $jobTitle        = $jobCategories[$idx % count($jobCategories)];
-            $rosterStartDate = ($idx % 2 === 0) ? now()->subDays(2) : now()->subDays(1);
-
-            $u = User::create([
-                'nip' => sprintf('STF-%03d', $karyawanCounter++),
-                'name' => $nama,
-                'email' => strtolower(str_replace([' ', '.'], '', $nama)) . '@meta.com',
-                'email_verified_at' => now(),
-                'phone_verified_at' => now(),
-                'phone_number' => sprintf('08129000%04d', $karyawanCounter),
-                'role_id' => $roleStaff->id,
-                'gender_id' => $pria->id,
-                'station_id' => $assignedStation->id,
-                'sektor' => 'operasional',
-                'job_title' => $jobTitle,
-                'supervisor_id' => $assignedSpv->id,
-                'manager_id' => $mgrOps->id,
-                'schedule_type' => 'roster',
-                'roster_start_date' => $rosterStartDate,
-                'password' => Hash::make('Password123.'),
-            ]);
-
-            $staffKaryawanList[] = $u;
-        }
-
-        // ==========================================
-        // 8. GENERATE SALDO CUTI OTOMATIS
-        // ==========================================
-        $allUsers = User::all();
-        foreach ($allUsers as $user) {
-            // Saldo Cuti Tahunan
-            SaldoCuti::firstOrCreate([
-                'user_id' => $user->id,
-                'jenis_cuti_id' => $cutiTahunan->id,
-                'tahun' => 2026,
-            ], [
-                'sisa_saldo' => 12,
-            ]);
-
-            // Saldo IMP (Khusus Wanita untuk Cuti Haid)
-            if ($user->gender_id == $wanita->id) {
-                SaldoCuti::firstOrCreate([
-                    'user_id' => $user->id,
-                    'jenis_cuti_id' => $ijinIMP->id,
-                    'tahun' => 2026,
-                ], [
-                    'sisa_saldo' => 2,
-                ]);
-            }
-        }
-
-        // ==========================================
-        // 9. SEEDING TRANSACTION RECORDS: CUTI, CAR, & MPR
-        // ==========================================
-
-        // A. TRANSAKSI PENGAJUAN CUTI (3 RECORD DUMMY)
-        if (count($staffKaryawanList) >= 3) {
-            PengajuanCuti::create([
-                'user_id' => $staffKaryawanList[0]->id,
-                'jenis_cuti_id' => $cutiTahunan->id,
-                'tanggal_mulai' => now()->addDays(2)->toDateString(),
-                'tanggal_selesai' => now()->addDays(4)->toDateString(),
-                'total_hari' => 3,
-                'alasan_cuti' => 'Acara keluarga di kampung halaman',
-                'status_supervisor' => 'approved',
-                'supervisor_id' => $staffKaryawanList[0]->supervisor_id,
-                'status_manager' => 'approved',
-                'manager_id' => $staffKaryawanList[0]->manager_id,
-                'status_akhir' => 'approved',
-            ]);
-
-            PengajuanCuti::create([
-                'user_id' => $staffKaryawanList[1]->id,
-                'jenis_cuti_id' => $ijinIMP->id,
-                'sub_cuti_id' => 1,
-                'tanggal_mulai' => now()->addDays(1)->toDateString(),
-                'tanggal_selesai' => now()->addDays(2)->toDateString(),
-                'total_hari' => 2,
-                'alasan_cuti' => 'Istirahat karena demam tinggi',
-                'status_supervisor' => 'pending',
-                'supervisor_id' => $staffKaryawanList[1]->supervisor_id,
-                'status_manager' => 'pending',
-                'manager_id' => $staffKaryawanList[1]->manager_id,
-                'status_akhir' => 'pending',
-            ]);
-
-            PengajuanCuti::create([
-                'user_id' => $staffKaryawanList[2]->id,
-                'jenis_cuti_id' => $cutiTahunan->id,
-                'tanggal_mulai' => now()->addDays(5)->toDateString(),
-                'tanggal_selesai' => now()->addDays(7)->toDateString(),
-                'total_hari' => 3,
-                'alasan_cuti' => 'Liburan akhir bulan',
-                'status_supervisor' => 'rejected',
-                'supervisor_id' => $staffKaryawanList[2]->supervisor_id,
-                'status_manager' => 'rejected',
-                'manager_id' => $staffKaryawanList[2]->manager_id,
-                'status_akhir' => 'rejected',
-                'catatan_penolakan' => 'Jadwal shift stasiun sedang padat maintenance.',
-            ]);
-        }
-
-        // B. TRANSAKSI PENGAJUAN CAR (CASH ADVANCE REQUEST)
-        if (count($staffKaryawanList) >= 2) {
-            $carId1 = DB::table('pengajuan_cars')->insertGetId([
-                'user_id' => $staffKaryawanList[3]->id,
-                'alasan_pembelian' => 'Pembelian sparepart & oli darurat stasiun booster',
-                'receiving_account' => 'BCA - 8220192831 - Aditya',
-                'status_supervisor' => 'approved',
-                'supervisor_id' => $staffKaryawanList[3]->supervisor_id,
-                'status_manager' => 'approved',
-                'manager_id' => $staffKaryawanList[3]->manager_id,
-                'status_akhir' => 'approved',
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            DB::table('pengajuan_car_details')->insert([
-                [
-                    'pengajuan_car_id' => $carId1,
-                    'nama_barang' => 'Oli Mesin Pompa High Temp',
-                    'jumlah' => 2,
-                    'estimasi_harga' => 450000.00,
-                    'total_harga' => 900000.00,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                [
-                    'pengajuan_car_id' => $carId1,
-                    'nama_barang' => 'Seal Valve 4 Inch',
-                    'jumlah' => 5,
-                    'estimasi_harga' => 120000.00,
-                    'total_harga' => 600000.00,
-                    'created_at' => now(), 'updated_at' => now(),
-                ]
-            ]);
-
-            $carId2 = DB::table('pengajuan_cars')->insertGetId([
-                'user_id' => $staffKaryawanList[4]->id,
-                'alasan_pembelian' => 'Pengadaan konsumsi & alat kebersihan tim operasional',
-                'receiving_account' => 'Mandiri - 14200192812 - Bayu',
-                'status_supervisor' => 'pending',
-                'supervisor_id' => $staffKaryawanList[4]->supervisor_id,
-                'status_manager' => 'pending',
-                'manager_id' => $staffKaryawanList[4]->manager_id,
-                'status_akhir' => 'pending',
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            DB::table('pengajuan_car_details')->insert([
-                [
-                    'pengajuan_car_id' => $carId2,
-                    'nama_barang' => 'Paket APD & Sarung Tangan Karet',
-                    'jumlah' => 10,
-                    'estimasi_harga' => 35000.00,
-                    'total_harga' => 350000.00,
-                    'created_at' => now(), 'updated_at' => now(),
-                ]
-            ]);
-        }
-
-        // C. TRANSAKSI PENGAJUAN MPR (MATERIAL PURCHASE REQUEST)
-        if (count($staffKaryawanList) >= 2) {
-            $mprId1 = DB::table('pengajuan_mprs')->insertGetId([
-                'user_id' => $staffKaryawanList[5]->id,
-                'nomor_mpr' => 'MPR/' . date('Y/m') . '/001',
-                'tanggal_pengajuan' => now()->toDateString(),
-                'keperluan_urgensi' => 'Perbaikan kebocoran sambungan pipa pipa utama',
-                'status_supervisor' => 'approved',
-                'supervisor_id' => $staffKaryawanList[5]->supervisor_id,
-                'status_manager' => 'approved',
-                'manager_id' => $staffKaryawanList[5]->manager_id,
-                'status_akhir' => 'approved',
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            DB::table('pengajuan_mpr_details')->insert([
-                [
-                    'pengajuan_mpr_id' => $mprId1,
-                    'nama_barang' => 'Pipa Baja Seamless 6 Inch',
-                    'jumlah' => 4,
-                    'satuan' => 'Batang',
-                    'estimasi_harga' => 2500000.00,
-                    'keterangan_item' => 'Urgensi penambalan pipa jalur transmisi',
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                [
-                    'pengajuan_mpr_id' => $mprId1,
-                    'nama_barang' => 'Flange Joint Set Heavy Duty',
-                    'jumlah' => 8,
-                    'satuan' => 'Set',
-                    'estimasi_harga' => 350000.00,
-                    'keterangan_item' => 'Lengkap dengan baut galvanis',
-                    'created_at' => now(), 'updated_at' => now(),
-                ]
-            ]);
-
-            $mprId2 = DB::table('pengajuan_mprs')->insertGetId([
-                'user_id' => $staffKaryawanList[6]->id,
-                'nomor_mpr' => 'MPR/' . date('Y/m') . '/002',
-                'tanggal_pengajuan' => now()->toDateString(),
-                'keperluan_urgensi' => 'Peremajaan instrumen sensor tekanan air stasiun',
-                'status_supervisor' => 'pending',
-                'supervisor_id' => $staffKaryawanList[6]->supervisor_id,
-                'status_manager' => 'pending',
-                'manager_id' => $staffKaryawanList[6]->manager_id,
-                'status_akhir' => 'pending',
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            DB::table('pengajuan_mpr_details')->insert([
-                [
-                    'pengajuan_mpr_id' => $mprId2,
-                    'nama_barang' => 'Pressure Transmitter Digital 0-16 Bar',
-                    'jumlah' => 2,
-                    'satuan' => 'Unit',
-                    'estimasi_harga' => 4200000.00,
-                    'keterangan_item' => 'Kalibrasi standar industri',
-                    'created_at' => now(), 'updated_at' => now(),
-                ]
-            ]);
-        }
+        // Saldo Cuti untuk Admin
+        SaldoCuti::create([
+            'user_id'       => $admin->id,
+            'jenis_cuti_id' => $cutiTahunan->id,
+            'tahun'         => 2026,
+            'sisa_saldo'    => 12,
+        ]);
     }
 }

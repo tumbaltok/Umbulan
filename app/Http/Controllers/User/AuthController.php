@@ -25,7 +25,7 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
-        $daftarStasiun = Station::whereIn('type', ['kantor', 'stasiun'])
+        $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
             ->orderBy('type', 'asc')
             ->orderBy('name', 'asc')
             ->get();
@@ -117,8 +117,6 @@ class AuthController extends Controller
             'role_id' => $request->role_id,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
-            'sektor' => $sektorInput,
-            'job_title' => $jobdeskFormatted,
             'supervisor_id' => $supervisorId,
             'manager_id' => $managerId,
             'password' => Hash::make($request->password),

@@ -46,7 +46,7 @@
                 <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
             </button>
             <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
-                <i class="fa-solid fa-sitemap mr-1.5"></i> Pohon Organisasi Karyawan
+                <i class="fa-solid fa-sitemap mr-1.5"></i> Struktur Organisasi Karyawan
             </button>
         </div>
     </div>
@@ -83,10 +83,7 @@
                             <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="1">
                                 Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
-                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
-                                Jobdesk <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
-                            </th>
-                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="3">
+                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
                                 Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                             <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
@@ -132,20 +129,6 @@
                                         {{ strtolower($roleName) == 'manager' ? 'bg-purple-50 text-purple-700 border border-purple-100' : (strtolower($roleName) == 'supervisor' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-700 border border-slate-200/50') }}">
                                         {{ $roleName }}
                                     </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-sm font-medium">
-                                    @if($karyawan->job_title == 'Operator' || $karyawan->job_title == '1')
-                                        <span class="text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded-md text-xs border border-sky-100">Operator</span>
-                                    @elseif($karyawan->job_title == 'Maintenance' || $karyawan->job_title == '2')
-                                        <span class="text-amber-600 bg-amber-50/50 px-2 py-0.5 rounded-md text-xs border border-amber-100">Maintenance</span>
-                                    @elseif($karyawan->job_title == 'HSE' || $karyawan->job_title == '3')
-                                        <span class="text-rose-600 bg-rose-50/50 px-2 py-0.5 rounded-md text-xs border border-rose-100">Safety (HSE)</span>
-                                    @elseif($karyawan->job_title == 'Dokumentasi' || $karyawan->job_title == '4')
-                                        <span class="text-teal-600 bg-teal-50/50 px-2 py-0.5 rounded-md text-xs border border-teal-100">Documenter</span>
-                                    @else
-                                        <span class="text-slate-400 italic text-xs">Belum Memilih</span>
-                                    @endif
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
@@ -201,14 +184,14 @@
                             </tr>
                         @empty
                             <tr id="emptyRow">
-                                <td colspan="7" class="px-6 py-10 text-center text-slate-400">
+                                <td colspan="6" class="px-6 py-10 text-center text-slate-400">
                                     <i class="fa-solid fa-users text-3xl mb-2 block text-slate-200"></i>
                                     Belum ada data karyawan terdaftar di database.
                                 </td>
                             </tr>
                         @endforelse
                         <tr id="noResultRow" class="hidden">
-                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">
+                            <td colspan="6" class="px-6 py-10 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-2 block text-slate-200"></i>
                                 Karyawan dengan nama tersebut tidak ditemukan.
                             </td>
@@ -219,7 +202,7 @@
         </div>
     </div>
 
-    {{-- TAB 2: POHON ORGANISASI KARYAWAN --}}
+    {{-- TAB 2: POHON ORGANISASI KARYAWAN BERDASARKAN ROLE --}}
     <div id="tab-karyawan-pohon" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
 
@@ -227,9 +210,9 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Skema Pohon Organisasi Karyawan
+                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Struktur Organisasi Karyawan
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi hubungan atasan-bawahan berdasarkan struktur riil karyawan. Gunakan scroll/drag untuk navigasi.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Skema hirarki role jabatan beserta daftar karyawan terdaftar yang mengisi posisi tersebut.</p>
                 </div>
 
                 {{-- TOMBOL ZOOM CONTROL --}}
@@ -309,11 +292,6 @@
                             <span>Chat WA</span>
                         </a>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
-                    <span class="text-slate-400 font-medium">Jobdesk</span>
-                    <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
 
                 <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
@@ -418,12 +396,11 @@
 <script>
     let activeKaryawanId = null;
     let panzoomInstance = null;
-
-    // DEKLARASI VARIABEL RENDER COUNTER
     let kRenderCounter = 0;
 
-    // Data Karyawan dari Laravel Controller
-    const rawKaryawanData = JSON.parse(`{!! json_encode($daftarKaryawan) !!}`);
+    // Data Karyawan & Roles langsung diambil dari Controller
+    const rawKaryawanData = JSON.parse(`{!! json_encode($daftarKaryawan ?? []) !!}`);
+    const rawRolesData    = JSON.parse(`{!! json_encode($daftarRole ?? []) !!}`);
 
     // Inisialisasi Mermaid.js
     mermaid.initialize({
@@ -443,67 +420,75 @@
 
         diagramContainer.innerHTML = '';
 
-        if (!rawKaryawanData || rawKaryawanData.length === 0) {
-            diagramContainer.innerHTML = `
-                <div class="text-center py-10 text-slate-400 text-xs font-medium">
-                    <i class="fa-solid fa-users-slash text-3xl mb-2 block text-slate-200"></i>
-                    Tidak ada data karyawan untuk ditampilkan.
-                </div>
-            `;
-            return;
+        let graphDef = 'graph TD\n';
+        graphDef += '    COMPANY["B O D"]\n\n';
+
+        // 1. Kelompokkan karyawan berdasarkan role_id
+        const karyawanPerRole = {};
+        if (rawKaryawanData && rawKaryawanData.length > 0) {
+            rawKaryawanData.forEach(u => {
+                const rId = u.role_id || (u.role ? u.role.id : null);
+                if (rId) {
+                    if (!karyawanPerRole[rId]) {
+                        karyawanPerRole[rId] = [];
+                    }
+                    karyawanPerRole[rId].push(u);
+                }
+            });
         }
 
-        let graphDef = 'graph TD\n';
-        graphDef += '    COMPANY["🏢 PT META ADHYA TIRTA UMBULAN"]\n\n';
+        // 2. Buat struktur diagram berdasarkan daftarRole persis seperti di Halaman Role
+        if (rawRolesData && rawRolesData.length > 0) {
+            rawRolesData.forEach(r => {
+                const nodeId = `R${r.id}`;
+                const cleanRoleName = (r.role_name || 'Role').replace(/["'()]/g, '');
 
-        const kelompokSektor = {};
+                let nodeLabel = `<b>${cleanRoleName}</b><br>──────────────`;
+                const listKaryawan = karyawanPerRole[r.id] || [];
 
-        rawKaryawanData.forEach(u => {
-            let sektorKey = (u.sektor || '').trim();
-            if (!sektorKey) {
-                if (u.job_title == 'Operator' || u.job_title == '1') sektorKey = 'Operasional';
-                else if (u.job_title == 'Maintenance' || u.job_title == '2') sektorKey = 'Teknik & Maintenance';
-                else if (u.job_title == 'HSE' || u.job_title == '3') sektorKey = 'Safety (HSE)';
-                else if (u.job_title == 'Dokumentasi' || u.job_title == '4') sektorKey = 'Dokumentasi';
-                else sektorKey = 'Manajemen & Umum';
-            }
+                if (listKaryawan.length > 0) {
+                    listKaryawan.forEach(emp => {
+                        const cleanName = (emp.name || '').replace(/["'()]/g, '');
+                        nodeLabel += `<br>${cleanName}`;
+                    });
+                } else {
+                    nodeLabel += `<br><i>Posisi Kosong</i>`;
+                }
 
-            if (!kelompokSektor[sektorKey]) {
-                kelompokSektor[sektorKey] = [];
-            }
-            kelompokSektor[sektorKey].push(u);
-        });
+                graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
 
-        let groupIndex = 0;
-        for (const [sektorName, listKaryawan] of Object.entries(kelompokSektor)) {
-            groupIndex++;
-            graphDef += `    subgraph SG_${groupIndex}["📁 ${sektorName.toUpperCase()}"]\n`;
-
-            listKaryawan.forEach(u => {
-                const cleanName = (u.name || '').replace(/["'()]/g, '');
-                const cleanRole = (u.role ? u.role.role_name : 'Staff').replace(/["'()]/g, '');
-                const cleanStation = (u.station ? u.station.name : 'No Station').replace(/["'()]/g, '');
-
-                const nodeId = `U${u.id}`;
-                const nodeLabel = `"${cleanName}<br><b>${cleanRole}</b><br><i>📍 ${cleanStation}</i>"`;
-
-                graphDef += `        ${nodeId}[${nodeLabel}]\n`;
+                // Hubungkan rantai hirarki sesuai parent_role_id
+                if (r.parent_role_id && rawRolesData.some(parent => parent.id == r.parent_role_id)) {
+                    graphDef += `    R${r.parent_role_id} --> ${nodeId}\n`;
+                } else {
+                    graphDef += `    COMPANY --> ${nodeId}\n`;
+                }
+            });
+        } else {
+            // Fallback dinamis jika $daftarRole belum terisi
+            const roleMap = {};
+            rawKaryawanData.forEach(u => {
+                const roleObj = u.role || { id: 'default', role_name: 'Staff' };
+                if (!roleMap[roleObj.id]) {
+                    roleMap[roleObj.id] = {
+                        id: roleObj.id,
+                        name: roleObj.role_name,
+                        members: []
+                    };
+                }
+                roleMap[roleObj.id].members.push(u);
             });
 
-            graphDef += '    end\n\n';
-        }
-
-        rawKaryawanData.forEach(u => {
-            const nodeId = `U${u.id}`;
-
-            if (u.supervisor_id && rawKaryawanData.some(emp => emp.id == u.supervisor_id)) {
-                graphDef += `    U${u.supervisor_id} --> ${nodeId}\n`;
-            } else if (u.manager_id && rawKaryawanData.some(emp => emp.id == u.manager_id)) {
-                graphDef += `    U${u.manager_id} --> ${nodeId}\n`;
-            } else {
+            Object.values(roleMap).forEach(r => {
+                const nodeId = `R${r.id}`;
+                let nodeLabel = `<b>${r.name}</b>`;
+                r.members.forEach(emp => {
+                    nodeLabel += `<br>${emp.name}`;
+                });
+                graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
                 graphDef += `    COMPANY --> ${nodeId}\n`;
-            }
-        });
+            });
+        }
 
         try {
             kRenderCounter++;
@@ -511,7 +496,6 @@
             const { svg } = await mermaid.render(elementId, graphDef);
             diagramContainer.innerHTML = svg;
 
-            // Terapkan Panzoom setelah SVG berhasil dibuat
             initPanzoom();
 
         } catch (err) {
@@ -519,13 +503,12 @@
             diagramContainer.innerHTML = `
                 <div class="text-center py-6 text-rose-500 text-xs font-semibold">
                     <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-                    Gagal merender skema organisasi.
+                    Gagal merender skema organisasi. Klik tombol "Reload" di atas.
                 </div>
             `;
         }
     }
 
-    // Fungsi Pengaturan Panzoom
     function initPanzoom() {
         const elem = document.getElementById('karyawanOrgDiagram');
         const parent = document.getElementById('mermaidParent');
@@ -538,7 +521,7 @@
         panzoomInstance = Panzoom(elem, {
             maxScale: 3,
             minScale: 0.1,
-            startScale: 0.55,
+            startScale: 1.0,
             canvas: true
         });
 
@@ -552,11 +535,10 @@
         document.getElementById('btnZoomOut').onclick = panzoomInstance.zoomOut;
         document.getElementById('btnZoomReset').onclick = () => {
             panzoomInstance.reset();
-            panzoomInstance.zoom(0.55); // Reset ke ukuran awal yang pas
+            panzoomInstance.zoom(1.0);
         };
     }
 
-    // Switch Tab Function
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -578,6 +560,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        // Otomatis jalankan render diagram saat halaman dimuat
+        renderKaryawanOrgChart();
+
         const searchInput = document.getElementById("searchKaryawanInput");
         const noResultRow = document.getElementById("noResultRow");
 
@@ -733,14 +718,6 @@
                     phoneSpan.textContent = '-';
                     phoneLink.classList.add("hidden");
                 }
-
-                let jobTitleText = 'Belum Memilih';
-                if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
-                else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
-                else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
-                else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
-
-                document.getElementById("detail_job").textContent = jobTitleText;
 
                 const scheduleBadge = document.getElementById("detail_schedule_badge");
                 const normalBox = document.getElementById("detail_normal_schedule_box");

@@ -22,8 +22,10 @@ class AccountController extends Controller
         // 1. Ambil daftar Jobdesk
         $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
 
-        // 2. Ambil seluruh Penempatan Kerja / Stasiun
-        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+        // 2. Ambil seluruh Penempatan Kerja / Stasiun (Kecuali Rumah Meter)
+        $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
+            ->orderBy('name', 'asc')
+            ->get();
 
         // 3. Ambil Peran / Jabatan KECUALI Admin (Filter out level 1 / 'Admin')
         $daftarRole = Role::where('level', '>', 1)
@@ -76,8 +78,6 @@ class AccountController extends Controller
             'sektor' => 'nullable|string|max:255',
             'station_id' => 'nullable|integer|exists:stations,id',
             'role_id' => 'nullable|integer|exists:roles,id',
-            'jobdesk' => 'required|array|min:1',
-            'jobdesk.*' => 'required|string',
             'phone_number' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -118,19 +118,11 @@ class AccountController extends Controller
         if ($request->has('gender_id')) {
             $updateData['gender_id'] = $request->gender_id;
         }
-        if ($request->has('sektor')) {
-            $updateData['sektor'] = $request->sektor;
-        }
+
         if ($request->has('station_id')) {
             $updateData['station_id'] = $request->station_id;
         }
 
-        // KOREKSI UTAMA: Menggabungkan Array Jobdesk Menjadi String Terpisah Koma
-        if ($request->has('jobdesk')) {
-            $updateData['job_title'] = is_array($request->jobdesk)
-                ? implode(', ', $request->jobdesk)
-                : $request->jobdesk;
-        }
 
         // SIMPAN JADWAL KERJA
         if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
@@ -208,7 +200,7 @@ class AccountController extends Controller
     /**
      * Helper Function: Mengubah background foto TTD (kertas putih/terang) menjadi transparan murni.
      */
-    private function makeSignatureBackgroundTransparent($filePath)
+    private function makeSignatureBackgroundTransparent(string $filePath)
     {
         $info = @getimagesize($filePath);
         if (! $info) {

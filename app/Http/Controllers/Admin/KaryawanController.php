@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\User\Jobdesk;
+use App\Models\User\Role;
 use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\ScheduleService;
@@ -30,6 +31,9 @@ class KaryawanController extends Controller
 
         $cutiJenis = JenisCuti::where('name_cuti', 'Cuti')->first();
         $jenisCutiId = $cutiJenis ? $cutiJenis->id : null;
+
+        // Ambil data Role lengkap untuk dirender pada struktur pohon organisasi
+        $daftarRole = Role::orderBy('level', 'asc')->get();
 
         $query = User::with([
             'role',
@@ -96,7 +100,7 @@ class KaryawanController extends Controller
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
         $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
 
-        return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk'));
+        return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk', 'daftarRole'));
     }
 
     public function showDetail(int $id): JsonResponse
