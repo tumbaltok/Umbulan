@@ -13,9 +13,8 @@ class Role extends Model
 
     protected $fillable = [
         'role_name', 
-        'divisi', 
-        'level', 
-        'description', 
+        'level',
+        'description',
         'job_title',
         'parent_role_id',
         'approval_rules',

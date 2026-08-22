@@ -76,6 +76,19 @@
 
         <div class="w-full md:w-1/2 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white">
 
+            {{-- NOTIFIKASI SUKSES SETELAH REGISTRASI --}}
+            @if (session('success'))
+                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-start space-x-3 shadow-sm transition-all">
+                    <div class="text-emerald-500 mt-0.5 shrink-0">
+                        <i class="fa-solid fa-circle-check text-base sm:text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-0.5 text-emerald-900">Pendaftaran Berhasil!</h4>
+                        <p class="text-emerald-700 leading-relaxed">{{ session('success') }}</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="w-full my-auto">
                 <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Selamat Datang</h2>

@@ -28,8 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'gender_id',
         'station_id',
-        'supervisor_id', // Ditambahkan
-        'manager_id',    // Ditambahkan
+        'supervisor_id',
+        'manager_id',
         'sektor',
         'job_title',
         'jobdesk',
@@ -59,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'normal_work_days' => 'array',
             'face_descriptor' => 'array',
             'roster_start_date' => 'date',
+            'jobdesk' => 'array',
         ];
     }
 

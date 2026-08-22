@@ -78,12 +78,12 @@
 
                         <div class="grid grid-cols-12 gap-2 sm:col-span-2 md:col-span-7">
                             <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-slate-500 mb-1 text-center">Qty</label>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Qty</label>
                                 <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-sky-500 text-center" placeholder="Qty">
                             </div>
 
                             <div class="col-span-3">
-                                <label class="block text-xs font-semibold text-slate-500 mb-1 text-center">Satuan</label>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Satuan</label>
                                 <select name="items[0][satuan]" required class="w-full px-2 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-sky-500 cursor-pointer">
                                     <option value="" disabled selected hidden>Pilih</option>
                                     <option value="PCS">Pcs</option>
@@ -106,7 +106,7 @@
                                     + <i class="fa-solid fa-truck-fast"></i> Ongkir
                                 </button>
                                 <div class="wrapper-input-ongkir hidden">
-                                    <label class="block text-[10px] font-semibold text-amber-600 mb-1 text-center">Ongkir (Rp)</label>
+                                    <label class="block text-[10px] font-semibold text-amber-600 mb-1">Ongkir (Rp)</label>
                                     <input type="number" name="items[0][ongkir]" min="0" value="" class="input-ongkir w-full px-2 py-1.5 rounded-lg border border-amber-300 text-sm focus:outline-none focus:border-amber-500 bg-amber-50/30" placeholder="Ongkir">
                                 </div>
                             </div>

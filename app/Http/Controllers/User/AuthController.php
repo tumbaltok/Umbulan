@@ -44,6 +44,7 @@ class AuthController extends Controller
      */
     public function registerWeb(Request $request)
     {
+        // 1. ATURAN VALIDASI DIPERBAIKI
         $request->validate([
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
@@ -51,14 +52,17 @@ class AuthController extends Controller
             'role_id' => 'required|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
-            'sektor' => 'required|in:manajemen,operasional',
-            'jobdesk' => 'required|string|max:100',
+            'sektor' => 'nullable|in:manajemen,operasional',
+            'jobdesk' => 'required|array|min:1',
+            'jobdesk.*' => 'required',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
-        $sektorInput = strtolower($request->sektor);
+        $sektorInput = strtolower($request->sektor ?? 'operasional');
         $roleSelected = Role::find($request->role_id);
         $roleName = strtolower($roleSelected->role_name ?? '');
+
+        $jobdeskFormatted = is_array($request->jobdesk) ? implode(', ', $request->jobdesk) : $request->jobdesk;
 
         $supervisorId = null;
         $managerId = null;
@@ -72,7 +76,7 @@ class AuthController extends Controller
             })
                 ->where('sektor', $sektorInput)
                 ->where('station_id', $request->station_id)
-                ->where('job_title', $request->jobdesk)
+                ->where('job_title', $jobdeskFormatted)
                 ->first();
 
             if (! $supervisor) {
@@ -105,7 +109,7 @@ class AuthController extends Controller
             $managerId = $manager ? $manager->id : null;
         }
 
-        // 1. Buat User Baru
+        // 3. SIMPAN USER BARU
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
@@ -114,7 +118,7 @@ class AuthController extends Controller
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
             'sektor' => $sektorInput,
-            'job_title' => $request->jobdesk,
+            'job_title' => $jobdeskFormatted,
             'supervisor_id' => $supervisorId,
             'manager_id' => $managerId,
             'password' => Hash::make($request->password),
@@ -126,7 +130,7 @@ class AuthController extends Controller
         // Kirim Notifikasi Verifikasi Email Bawaan Laravel
         $user->sendEmailVerificationNotification();
 
-        // Arahkan ke Halaman Login dengan Pesan Petunjuk Verifikasi Email
+        // Arahkan ke Halaman Login
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan periksa email Anda untuk melakukan verifikasi akun sebelum login.');
     }
 

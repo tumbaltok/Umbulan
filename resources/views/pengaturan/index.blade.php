@@ -46,8 +46,8 @@
                         <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2">
                             @if($user->signature)
                                 <!-- Pakai style mix-blend-mode & bg-white untuk menjamin latar tidak hitam -->
-                                <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}" 
-                                    alt="Tanda Tangan" 
+                                <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
+                                    alt="Tanda Tangan"
                                     class="max-w-full max-h-full object-contain bg-white">
                             @else
                                 <span class="text-xs text-slate-400 italic">Belum Ada TTD</span>
@@ -109,8 +109,8 @@
                             <option value="" disabled {{ empty($userSektorValue) ? 'selected' : '' }}>Pilih Sektor Kerja</option>
                             @if(isset($daftarSektor) && count($daftarSektor) > 0)
                                 @foreach($daftarSektor as $sektorItem)
-                                    @php 
-                                        $sektorVal = is_object($sektorItem) ? ($sektorItem->value ?? $sektorItem->name) : $sektorItem; 
+                                    @php
+                                        $sektorVal = is_object($sektorItem) ? ($sektorItem->value ?? $sektorItem->name) : $sektorItem;
                                     @endphp
                                     <option value="{{ $sektorVal }}" {{ strtolower($userSektorValue) === strtolower($sektorVal) ? 'selected' : '' }}>
                                         {{ ucfirst($sektorVal) }}
@@ -146,7 +146,7 @@
                     {{-- Jabatan / Role --}}
                     <div>
                         <label for="role_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jabatan / Peran</label>
-                        
+
                         @php
                             $isAdmin = ($user->role && strtolower($user->role->role_name) === 'admin') || $user->role_id == 1;
                             $userRoleValue = old('role_id', $user->role_id ?? '');
@@ -154,10 +154,10 @@
 
                         @if($isAdmin)
                             <div class="relative">
-                                <input type="text" 
-                                    value="Admin (Akses Penuh System)" 
-                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm cursor-not-allowed select-none" 
-                                    readonly 
+                                <input type="text"
+                                    value="Admin (Akses Penuh System)"
+                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm cursor-not-allowed select-none"
+                                    readonly
                                     disabled>
                                 <input type="hidden" name="role_id" value="{{ $user->role_id }}">
                             </div>
@@ -177,29 +177,47 @@
                         @endif
                     </div>
 
-                    {{-- Jobdesk --}}
-                    <div>
-                        <label for="jobdesk" class="block text-sm font-semibold text-slate-700 mb-1.5">Jobdesk / Bidang Tugas</label>
-                        <select id="jobdesk" name="jobdesk" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('jobdesk') ? 'border-rose-500' : 'border-slate-200' }}">
-                            @php
-                                $userJobValue = old('jobdesk', $user->job_title ?? $user->jobdesk ?? '');
-                                $selectedClean = strtolower(trim((string)$userJobValue));
-                            @endphp
-                            <option value="" disabled {{ $selectedClean === '' ? 'selected' : '' }}>Pilih Jobdesk / Bidang</option>
-                            @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
-                                @foreach($daftarJobdesk as $jd)
-                                    @php 
-                                        $namaJobdesk = $jd->job_title ?? $jd->name ?? $jd->nama_jobdesk ?? $jd->jobdesk ?? ''; 
-                                        $namaClean = strtolower(trim((string)$namaJobdesk));
-                                        $idClean = strtolower(trim((string)$jd->id));
-                                        $isSelected = ($selectedClean === $namaClean) || ($selectedClean === $idClean);
+                    {{-- Jobdesk (Custom Multi-Select Dropdown) --}}
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Jobdesk / Bidang Tugas
+                        </label>
+
+                        <div class="relative" id="custom-jobdesk-dropdown">
+                            {{-- Tombol Utama Dropdown --}}
+                            <button type="button" id="jobdesk-btn" class="w-full text-left px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all flex items-center justify-between cursor-pointer shadow-sm">
+                                <span id="jobdesk-text" class="truncate text-slate-400">Pilih Jobdesk / Bidang</span>
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 ml-2"></i>
+                            </button>
+
+                            {{-- Menu Popup Option Checkbox --}}
+                            <div id="jobdesk-menu" class="hidden absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto p-1.5 space-y-1">
+                                @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
+                                    @php
+                                        // Ambil nilai jobdesk yang tersimpan di DB atau old input
+                                        $userJobValue = old('jobdesk', $user->job_title ?? $user->jobdesk ?? []);
+
+                                        // Jika data berupa string dipisah koma (misal: "Operator, Maintenance"), pecah jadi Array
+                                        if (is_string($userJobValue)) {
+                                            $userJobValue = array_map('trim', explode(',', $userJobValue));
+                                        }
                                     @endphp
-                                    <option value="{{ $namaJobdesk }}" {{ $isSelected ? 'selected' : '' }}>
-                                        {{ $namaJobdesk }}
-                                    </option>
-                                @endforeach
-                            @endif
-                        </select>
+
+                                    @foreach($daftarJobdesk as $jd)
+                                        @php
+                                            $namaJobdesk = $jd->job_title ?? $jd->name ?? $jd->nama_jobdesk ?? $jd->jobdesk ?? '';
+                                            $isChecked = is_array($userJobValue) && in_array($namaJobdesk, $userJobValue);
+                                        @endphp
+                                        <label class="flex items-center space-x-2.5 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm text-slate-700 select-none">
+                                            <input type="checkbox" name="jobdesk[]" value="{{ $namaJobdesk }}" data-nama="{{ $namaJobdesk }}" class="jobdesk-checkbox rounded text-sky-600 focus:ring-sky-500 border-slate-300 w-4 h-4 cursor-pointer" {{ $isChecked ? 'checked' : '' }}>
+                                            <span class="font-medium">{{ $namaJobdesk }}</span>
+                                        </label>
+                                    @endforeach
+                                @else
+                                    <div class="p-2 text-xs text-slate-400 text-center">Tidak ada data Jobdesk tersedia</div>
+                                @endif
+                            </div>
+                        </div>
                         @error('jobdesk') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
@@ -220,10 +238,10 @@
                             </div>
                         </div>
                         <div class="relative">
-                            <input type="email" 
+                            <input type="email"
                                 value="{{ $user->email }}"
                                 class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
-                                readonly 
+                                readonly
                                 disabled>
                             <input type="hidden" name="email" value="{{ $user->email }}">
                         </div>
@@ -504,8 +522,8 @@
 </div>
 
 {{-- MODAL FOTO PROFIL --}}
-<div id="photoModal" 
-     data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}" 
+<div id="photoModal"
+     data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}"
      class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4">
@@ -552,7 +570,7 @@
 </div>
 
 {{-- MODAL UPLOAD TANDA TANGAN DIGITAL (TTD) --}}
-<div id="signatureModal" 
+<div id="signatureModal"
      data-has-error="{{ $errors->has('signature') ? 'true' : 'false' }}"
      class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
@@ -709,8 +727,50 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        // ==========================================
+        // JS HANDLER MULTI-SELECT JOBDESK (PROFIL)
+        // ==========================================
+        const jobdeskBtn = document.getElementById('jobdesk-btn');
+        const jobdeskMenu = document.getElementById('jobdesk-menu');
+        const jobdeskTextSpan = document.getElementById('jobdesk-text');
+        const jobdeskCheckboxes = document.querySelectorAll('.jobdesk-checkbox');
+        const jobdeskContainer = document.getElementById('custom-jobdesk-dropdown');
+
+        if (jobdeskBtn && jobdeskMenu) {
+            jobdeskBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                jobdeskMenu.classList.toggle('hidden');
+            });
+
+            function updateJobdeskText() {
+                const selected = Array.from(jobdeskCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.getAttribute('data-nama'));
+
+                if (selected.length === 0) {
+                    jobdeskTextSpan.textContent = 'Pilih Jobdesk / Bidang';
+                    jobdeskTextSpan.className = 'truncate text-slate-400';
+                } else {
+                    jobdeskTextSpan.textContent = selected.join(', ');
+                    jobdeskTextSpan.className = 'truncate text-slate-800 font-normal';
+                }
+            }
+
+            jobdeskCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateJobdeskText);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (jobdeskContainer && !jobdeskContainer.contains(e.target)) {
+                    jobdeskMenu.classList.add('hidden');
+                }
+            });
+
+            updateJobdeskText();
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
-        
+
         if (urlParams.get('schedule_required') === '1' || window.location.hash === '#schedule_setting') {
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
@@ -914,10 +974,10 @@
                     } else {
                         otpMessage.className = "text-xs text-rose-500 mt-1 block";
                         otpMessage.innerText = data.message || "Kode OTP salah.";
-                        
+
                         btnVerifyOtp.disabled = false;
                         btnVerifyOtp.innerHTML = "Konfirmasi";
-                        
+
                         inputOtp.focus();
                         inputOtp.select();
                     }
@@ -925,7 +985,7 @@
                 .catch(() => {
                     otpMessage.className = "text-xs text-rose-500 mt-1 block";
                     otpMessage.innerText = "Terjadi kesalahan saat memverifikasi.";
-                    
+
                     btnVerifyOtp.disabled = false;
                     btnVerifyOtp.innerHTML = "Konfirmasi";
                 });

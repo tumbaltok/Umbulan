@@ -76,7 +76,8 @@ class AccountController extends Controller
             'sektor' => 'nullable|string|max:255',
             'station_id' => 'nullable|integer|exists:stations,id',
             'role_id' => 'nullable|integer|exists:roles,id',
-            'jobdesk' => 'nullable|string|max:255',
+            'jobdesk' => 'required|array|min:1',
+            'jobdesk.*' => 'required|string',
             'phone_number' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -123,8 +124,12 @@ class AccountController extends Controller
         if ($request->has('station_id')) {
             $updateData['station_id'] = $request->station_id;
         }
+
+        // KOREKSI UTAMA: Menggabungkan Array Jobdesk Menjadi String Terpisah Koma
         if ($request->has('jobdesk')) {
-            $updateData['job_title'] = $request->jobdesk;
+            $updateData['job_title'] = is_array($request->jobdesk)
+                ? implode(', ', $request->jobdesk)
+                : $request->jobdesk;
         }
 
         // SIMPAN JADWAL KERJA
@@ -165,7 +170,7 @@ class AccountController extends Controller
         // UPLOAD & PROSES TTD OTOMATIS TRANSPARAN
         if ($request->hasFile('signature')) {
             $file = $request->file('signature');
-            
+
             // Hapus TTD lama jika ada
             if ($user->signature && Storage::disk('public')->exists($user->signature)) {
                 Storage::disk('public')->delete($user->signature);
@@ -243,7 +248,7 @@ class AccountController extends Controller
         imagealphablending($dst, false);
         imagesavealpha($dst, true);
 
-        // Tentukan threshold warna putih kertas (RGB di atas 200)
+        // Tentukan threshold warna putih kertas (RGB di atas 180)
         for ($x = 0; $x < $width; $x++) {
             for ($y = 0; $y < $height; $y++) {
                 $rgb = imagecolorat($dst, $x, $y);

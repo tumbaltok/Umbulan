@@ -180,37 +180,10 @@
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Sektor Kerja (Database Select) -->
-                            <div>
-                                <label for="sektor" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sektor Kerja</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-building-user text-xs"></i>
-                                    </div>
-                                    <select id="sektor" name="sektor" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="" disabled {{ old('sektor') ? '' : 'selected' }}>Pilih Sektor Kerja</option>
-                                        @if(isset($daftarSektor) && count($daftarSektor) > 0)
-                                            @foreach($daftarSektor as $sektorItem)
-                                                <option value="{{ $sektorItem->value ?? $sektorItem->name }}" {{ old('sektor') == ($sektorItem->value ?? $sektorItem->name) ? 'selected' : '' }}>
-                                                    {{ ucfirst($sektorItem->name) }}
-                                                </option>
-                                            @endforeach
-                                        @else
-                                            {{-- PERBAIKAN: Hapus default 'operasional' agar sejajar dengan select lain --}}
-                                            <option value="operasional" {{ old('sektor') == 'operasional' ? 'selected' : '' }}>Operasional</option>
-                                            <option value="manajemen" {{ old('sektor') == 'manajemen' ? 'selected' : '' }}>Manajemen</option>
-                                        @endif
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- Station / Penempatan (Database Select) -->
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Penempatan Kerja 
+                                    Penempatan Kerja
                                 </label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -231,7 +204,7 @@
                             </div>
 
                             <!-- Jabatan / Role (Database Select) -->
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jabatan</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -255,27 +228,42 @@
                                 </div>
                             </div>
 
-                            <!-- Jobdesk / Bidang Tugas (Database Select) -->
-                            <div>
-                                <label for="jobdesk" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jobdesk</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <!-- Jobdesk / Bidang Tugas (Custom Multi-Select Dropdown) -->
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Jobdesk / Bidang
+                                </label>
+
+                                <div class="relative" id="custom-jobdesk-dropdown">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
                                         <i class="fa-solid fa-list-check text-xs"></i>
                                     </div>
-                                    <select id="jobdesk" name="jobdesk" required class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="" disabled {{ old('jobdesk') ? '' : 'selected' }}>Pilih Jobdesk / Bidang</option>
+
+                                    <button type="button" id="jobdesk-btn" class="w-full text-left pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all flex items-center justify-between cursor-pointer">
+                                        <span id="jobdesk-text" class="truncate text-slate-400">Pilih Jobdesk / Bidang</span>
+                                    </button>
+
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 z-10">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+
+                                    <div id="jobdesk-menu" class="hidden absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto p-1.5 space-y-1">
                                         @if(isset($daftarJobdesk) && count($daftarJobdesk) > 0)
                                             @foreach($daftarJobdesk as $jobdesk)
-                                                <option value="{{ $jobdesk->id }}" {{ old('jobdesk') == $jobdesk->id ? 'selected' : '' }}>
-                                                    {{ $jobdesk->name ?? $jobdesk->nama_jobdesk ?? $jobdesk->job_title ?? $jobdesk->nama }}
-                                                </option>
+                                                @php
+                                                    $jobdeskId = $jobdesk->id;
+                                                    $jobdeskNama = $jobdesk->name ?? $jobdesk->nama_jobdesk ?? $jobdesk->job_title ?? $jobdesk->nama;
+                                                    $oldJobdesks = old('jobdesk', []);
+                                                    $isChecked = is_array($oldJobdesks) && in_array($jobdeskId, $oldJobdesks);
+                                                @endphp
+                                                <label class="flex items-center space-x-2.5 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer text-xs sm:text-sm text-slate-700 select-none">
+                                                    <input type="checkbox" name="jobdesk[]" value="{{ $jobdeskId }}" data-nama="{{ $jobdeskNama }}" class="jobdesk-checkbox rounded text-sky-600 focus:ring-sky-500 border-slate-300 w-4 h-4 cursor-pointer" {{ $isChecked ? 'checked' : '' }}>
+                                                    <span class="font-medium">{{ $jobdeskNama }}</span>
+                                                </label>
                                             @endforeach
                                         @else
-                                            <option value="" disabled>Tidak ada data Jobdesk tersedia</option>
+                                            <div class="p-2 text-xs text-slate-400 text-center">Tidak ada data Jobdesk tersedia</div>
                                         @endif
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </div>
                                 </div>
                             </div>
@@ -299,7 +287,7 @@
                                     <input type="password" id="password" name="password" required onkeyup="checkPasswordStrength()"
                                         class="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Kombinasi sandi kuat">
-                                    
+
                                     <button type="button" tabindex="-1" onclick="togglePasswordVisibility('password', 'password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="password-icon" class="fa-solid fa-eye text-xs"></i>
                                     </button>
@@ -316,7 +304,7 @@
                                     <input type="password" id="confirm_password" name="password_confirmation" required
                                         class="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all"
                                         placeholder="Ulangi kata sandi">
-                                        
+
                                     <button type="button" tabindex="-1" onclick="togglePasswordVisibility('confirm_password', 'confirm-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                                         <i id="confirm-icon" class="fa-solid fa-eye text-xs"></i>
                                     </button>
@@ -326,15 +314,12 @@
 
                         <!-- Indikator Validasi Password Real-Time -->
                         <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1">
-                            <!-- Indikator Password Minimalis & Elegan -->
                             <div class="mt-2 space-y-1.5">
-                                <!-- Baris Progress & Label Kekuatan Sandi -->
                                 <div class="flex items-center justify-between text-[11px] font-medium text-slate-500">
                                     <span>Kekuatan Kata Sandi:</span>
                                     <span id="pwd-status-text" class="font-bold text-slate-400">Belum diisi</span>
                                 </div>
-                                
-                                <!-- Progress Bar Halus -->
+
                                 <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex gap-1">
                                     <div id="pwd-bar-1" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
                                     <div id="pwd-bar-2" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
@@ -342,7 +327,6 @@
                                     <div id="pwd-bar-4" class="h-full w-1/4 bg-slate-200 transition-all duration-300"></div>
                                 </div>
 
-                                <!-- Micro Text Bantuan (Sangat Ringkas & Tidak Memakan Tempat) -->
                                 <p id="pwd-hint" class="text-[10px] text-slate-400 flex items-center gap-1">
                                     <i class="fa-solid fa-circle-info text-[9px]"></i>
                                     <span>Wajib min. 8 karakter, kombinasi huruf besar, kecil, angka & simbol.</span>
@@ -380,6 +364,48 @@
 
     <!-- Script Operasi Frontend -->
     <script>
+        // JS HANDLER UNTUK CUSTOM MULTI-SELECT JOBDESK
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn = document.getElementById('jobdesk-btn');
+            const menu = document.getElementById('jobdesk-menu');
+            const textSpan = document.getElementById('jobdesk-text');
+            const checkboxes = document.querySelectorAll('.jobdesk-checkbox');
+            const container = document.getElementById('custom-jobdesk-dropdown');
+
+            if (btn && menu) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    menu.classList.toggle('hidden');
+                });
+
+                function updateText() {
+                    const selected = Array.from(checkboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.getAttribute('data-nama'));
+
+                    if (selected.length === 0) {
+                        textSpan.textContent = 'Pilih Jobdesk / Bidang';
+                        textSpan.className = 'truncate text-slate-400';
+                    } else {
+                        textSpan.textContent = selected.join(', ');
+                        textSpan.className = 'truncate text-slate-800 font-normal';
+                    }
+                }
+
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', updateText);
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (container && !container.contains(e.target)) {
+                        menu.classList.add('hidden');
+                    }
+                });
+
+                updateText();
+            }
+        });
+
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const toggleIcon = document.getElementById(iconId);
@@ -398,22 +424,19 @@
         // Pengecekan Kriteria Password Real-Time
         function checkPasswordStrength() {
             const password = document.getElementById('password').value;
-            
-            // Kriteria Standar Industri
+
             const hasMinLen = password.length >= 8;
             const hasUpper  = /[A-Z]/.test(password);
             const hasLower  = /[a-z]/.test(password);
             const hasNumber = /[0-9]/.test(password);
             const hasSymbol = /[@$!%*?&]/.test(password);
 
-            // Hitung Skor (0 - 4)
             let score = 0;
             if (hasMinLen) score++;
             if (hasUpper && hasLower) score++;
             if (hasNumber) score++;
             if (hasSymbol) score++;
 
-            // Element Target
             const statusText = document.getElementById('pwd-status-text');
             const hintText   = document.getElementById('pwd-hint');
             const bars       = [
@@ -423,7 +446,6 @@
                 document.getElementById('pwd-bar-4')
             ];
 
-            // Reset Bar Warna
             bars.forEach(bar => bar.className = "h-full w-1/4 bg-slate-200 transition-all duration-300");
 
             if (password.length === 0) {
@@ -433,7 +455,6 @@
                 return false;
             }
 
-            // Update Tampilan Berdasarkan Skor
             if (score <= 1) {
                 statusText.innerText = "Sangat Lemah";
                 statusText.className = "font-bold text-rose-500";
@@ -452,7 +473,6 @@
                 bars.forEach(bar => bar.className = "h-full w-1/4 bg-emerald-500 transition-all duration-300");
             }
 
-            // Cek Apakah Semua Syarat Terpenuhi
             const isAllValid = hasMinLen && hasUpper && hasLower && hasNumber && hasSymbol;
 
             if (isAllValid) {
@@ -475,6 +495,16 @@
             const notification = document.getElementById('notification');
             const notifIcon = document.getElementById('notif-icon');
             const notifMessage = document.getElementById('notif-message');
+
+            // Cek apakah minimal ada 1 Jobdesk yang dicentang
+            const checkedJobdesks = document.querySelectorAll('.jobdesk-checkbox:checked');
+            if (checkedJobdesks.length === 0) {
+                notification.style.display = 'flex';
+                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
+                notifIcon.innerHTML = `<i class="fa-solid fa-list-check text-rose-500 text-lg"></i>`;
+                notifMessage.innerText = "Error: Anda wajib memilih minimal 1 Jobdesk / Bidang.";
+                return;
+            }
 
             const isPasswordValid = checkPasswordStrength();
 

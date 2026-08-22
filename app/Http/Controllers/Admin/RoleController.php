@@ -23,7 +23,6 @@ class RoleController extends Controller
         if ($request->has('roles')) {
             $request->validate([
                 'roles.*.role_name' => 'required|string|max:255',
-                'roles.*.divisi' => 'required|string|max:255',
                 'roles.*.level' => 'required|integer',
                 'roles.*.description' => 'nullable|string',
                 'roles.*.parent_role_id' => 'nullable|exists:roles,id',
@@ -35,7 +34,6 @@ class RoleController extends Controller
         } else {
             $request->validate([
                 'role_name' => 'required|string|max:255',
-                'divisi' => 'required|string|max:255',
                 'level' => 'required|integer',
                 'description' => 'nullable|string',
                 'parent_role_id' => 'nullable|exists:roles,id',
@@ -94,8 +92,8 @@ class RoleController extends Controller
             $role = Role::findOrFail($item['role_id']);
 
             // Mencegah siklus (Role tidak boleh menjadi parent bagi dirinya sendiri)
-            $parentId = (!empty($item['parent_role_id']) && $item['parent_role_id'] != $item['role_id']) 
-                ? $item['parent_role_id'] 
+            $parentId = (!empty($item['parent_role_id']) && $item['parent_role_id'] != $item['role_id'])
+                ? $item['parent_role_id']
                 : null;
 
             $approvalRules = [
