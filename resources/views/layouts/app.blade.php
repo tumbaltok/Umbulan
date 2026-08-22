@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -31,7 +31,7 @@
             overflow: hidden;
             transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
+
         .chevron-icon, .sub-chevron-icon {
             transition: transform 0.3s ease;
         }
@@ -71,7 +71,7 @@
                 overflow: hidden !important;
                 will-change: width;
             }
-            
+
             .sidebar-hover-mode:hover {
                 width: 17.5rem;
                 box-shadow: 12px 0 35px -5px rgba(0, 0, 0, 0.35);
@@ -125,11 +125,11 @@
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
                 <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
                     <div class="bg-white p-0.5 rounded-full shadow-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
-                        <img src="{{ asset('images/iconfav.png') }}" 
-                            alt="Logo META" 
+                        <img src="{{ asset('images/iconfav.png') }}"
+                            alt="Logo META"
                             class="w-full h-full object-contain rounded-full">
                     </div>
-                    
+
                     <div class="hide-on-collapse min-w-0 w-44">
                         <h2 class="font-bold tracking-wide text-[11px] text-cyan-100 leading-snug whitespace-normal break-words">
                             META ADHYA TIRTA UMBULAN
@@ -272,9 +272,9 @@
 
                 <!-- MENU ADMINISTRATOR (MODIFIKASI: STRUKTUR SUB-MENU BERTINGKAT & ABSENSI) -->
                 @if($hasAccess)
-                @php 
-                    $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*')) 
-                                    && !request()->is('admin/persetujuan/*'); 
+                @php
+                    $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*'))
+                                    && !request()->is('admin/persetujuan/*');
                     $isDaftarActive = request()->routeIs('admin.karyawan.*') || request()->routeIs('admin.stations.*') || request()->routeIs('admin.role.*');
                     $isRecordActive = request()->is('admin/record/*');
                 @endphp
@@ -288,7 +288,7 @@
                             </div>
                             <i class="fa-solid fa-chevron-down text-xs chevron-icon hide-on-collapse"></i>
                         </button>
-                        
+
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
 
                             <!-- MENU BARU: REKAP ABSENSI HARIAN -->
@@ -296,7 +296,7 @@
                                 <i class="fa-solid fa-user-check text-xs"></i>
                                 <span class="hide-on-collapse">Rekap Absensi Harian</span>
                             </a>
-                            
+
                             <!-- SUB-MENU 1: DAFTAR -->
                             <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
                                 <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
@@ -397,18 +397,18 @@
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight group-hover:text-sky-600 transition-colors">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {{ Auth::user()->role->role_name ?? 'USER' }} 
+                        {{ Auth::user()->role->role_name ?? 'USER' }}
                         @php
                             $userAuth = Auth::user();
-                            $jobText = $userAuth->jobdesk 
-                                ?? $userAuth->job_title 
+                            $jobText = $userAuth->jobdesk
+                                ?? $userAuth->job_title
                                 ?? optional($userAuth->jobTitle)->job_title;
                         @endphp
 
                         @if(!empty($jobText))
                             • {{ $jobText }}
                         @endif
-                    </p>               
+                    </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
                     @if(Auth::user()->profile_photo)
@@ -430,7 +430,7 @@
         function updateHeaderClock() {
             const now = new Date();
             const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            
+
             const dateString = now.toLocaleDateString('id-ID', optionsDate);
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -452,14 +452,16 @@
             const backdrop = document.getElementById("sidebarBackdrop");
             const toggleBtn = document.getElementById("toggleSidebarBtn");
             const closeBtn = document.getElementById("closeSidebarBtn");
-            
+
             // HANDLER DROPDOWN LEVEL 1
             const dropdownContainers = document.querySelectorAll('.dropdown-container');
-            
+
             function openDropdown(container) {
                 const content = container.querySelector('.dropdown-content');
                 container.classList.add('dropdown-open');
-                content.style.maxHeight = content.scrollHeight + 500 + "px";
+
+                // Gunakan scrollHeight yang pas tanpa penambahan angka berlebih agar transisi pas 0.45 detik
+                content.style.maxHeight = content.scrollHeight + "px";
             }
 
             function closeDropdown(container) {
@@ -473,10 +475,12 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (window.innerWidth >= 768 && sidebar.matches(':not(:hover)')) return;
-
                     const isOpen = container.classList.contains('dropdown-open');
-                    dropdownContainers.forEach(other => { if (other !== container) closeDropdown(other); });
-                    if (isOpen) closeDropdown(container); else openDropdown(container);
+                    if (isOpen) {
+                        closeDropdown(container);
+                    } else {
+                        openDropdown(container);
+                    }
                 });
             });
 
@@ -486,20 +490,35 @@
             function openSubDropdown(subContainer) {
                 const subContent = subContainer.querySelector('.sub-dropdown-content');
                 subContainer.classList.add('sub-dropdown-open');
-                subContent.style.maxHeight = subContent.scrollHeight + "px";
-                
-                // Recalculate parent max-height
+
+                // Set tinggi sub-menu sesuai tinggi aslinya
+                const subHeight = subContent.scrollHeight;
+                subContent.style.maxHeight = subHeight + "px";
+
+                // Perbarui parent secara pas & mulus menggunakan requestAnimationFrame
                 const parentDropdown = subContainer.closest('.dropdown-container');
                 if (parentDropdown) {
                     const parentContent = parentDropdown.querySelector('.dropdown-content');
-                    parentContent.style.maxHeight = parentContent.scrollHeight + subContent.scrollHeight + "px";
+                    requestAnimationFrame(() => {
+                        parentContent.style.maxHeight = (parentContent.scrollHeight + subHeight) + "px";
+                    });
                 }
             }
 
             function closeSubDropdown(subContainer) {
                 const subContent = subContainer.querySelector('.sub-dropdown-content');
+                const subHeight = subContent.scrollHeight;
+
                 subContainer.classList.remove('sub-dropdown-open');
                 subContent.style.maxHeight = "0px";
+
+                // Kurangi max-height parent secara presisi saat sub-menu ditutup
+                const parentDropdown = subContainer.closest('.dropdown-container');
+                if (parentDropdown) {
+                    const parentContent = parentDropdown.querySelector('.dropdown-content');
+                    const currentParentHeight = parentContent.scrollHeight;
+                    parentContent.style.maxHeight = Math.max(0, currentParentHeight - subHeight) + "px";
+                }
             }
 
             subDropdownContainers.forEach(subContainer => {
@@ -523,7 +542,7 @@
                             dropdownContainers.forEach(container => {
                                 if (container.getAttribute('data-active') === 'true') {
                                     openDropdown(container);
-                                    
+
                                     // Auto-open sub-dropdown if active
                                     const activeSub = container.querySelectorAll('.sub-dropdown-container[data-active="true"]');
                                     activeSub.forEach(sub => openSubDropdown(sub));
@@ -535,10 +554,7 @@
 
                 sidebar.addEventListener('mouseleave', function() {
                     if (window.innerWidth >= 768) {
-                        sidebarHoverTimeout = setTimeout(() => {
-                            dropdownContainers.forEach(container => closeDropdown(container));
-                            subDropdownContainers.forEach(sub => closeSubDropdown(sub));
-                        }, 250);
+                        if (sidebarHoverTimeout) clearTimeout(sidebarHoverTimeout);
                     }
                 });
             }
@@ -580,7 +596,7 @@
     <!-- MODAL POPUP DETAIL AKUN USER -->
     <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
         <div id="profileDetailModalCard" class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 transform transition-all duration-300 scale-95 opacity-0">
-            
+
             <!-- HEADER MODAL -->
             <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
                 <div class="flex items-center space-x-2">
@@ -658,8 +674,8 @@
                         <p class="font-bold text-slate-800">
                             @php
                                 $userAuth = Auth::user();
-                                $jobText = $userAuth->jobdesk 
-                                    ?? $userAuth->job_title 
+                                $jobText = $userAuth->jobdesk
+                                    ?? $userAuth->job_title
                                     ?? optional($userAuth->jobTitle)->job_title;
                             @endphp
                             {{ !empty($jobText) ? $jobText : '-' }}
