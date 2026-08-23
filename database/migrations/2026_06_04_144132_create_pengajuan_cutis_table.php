@@ -21,13 +21,11 @@ return new class extends Migration
             $table->integer('total_hari');
             $table->text('alasan_cuti')->nullable();
             $table->string('dokumen_pendukung')->nullable();
-            // Alur Persetujuan Bertingkat
-            $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('status_manager', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('status_tahap_1', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('approver_tahap_1_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('status_tahap_2', ['pending', 'approved', 'rejected', 'not_required'])->default('pending');
+            $table->foreignId('approver_tahap_2_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
-            // Alasan jika cuti ditolak atasan
             $table->text('catatan_penolakan')->nullable();
             $table->timestamps();
         });

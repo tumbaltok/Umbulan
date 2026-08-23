@@ -356,7 +356,7 @@
             </td>
         </tr>
 
-        <tr>
+        <tr class="ttd-section">
             <td colspan="3" style="padding: 0;">
                 <table class="ttd-table">
                     <thead>
@@ -376,29 +376,36 @@
                                     @endif
                                 </div>
                                 <span class="ttd-line">{{ $pengajuan->user->name }}</span>
-                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Karyawan</div>
+                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">
+                                    {{ $pengajuan->user->role->role_name ?? 'Karyawan' }}
+                                </div>
                             </td>
 
-                            {{-- 2. TTD Supervisor / Atasan Langsung --}}
+                            {{-- 2. TTD Atasan Langsung (Tahap 1) --}}
                             <td class="ttd-border-right" style="padding-top: 5px; padding-bottom: 5px;">
                                 <div style="height: 55px; text-align: center; vertical-align: middle;">
-                                    @if(optional($pengajuan->supervisor)->signature && file_exists(public_path('storage/' . $pengajuan->supervisor->signature)))
-                                        <img src="{{ public_path('storage/' . $pengajuan->supervisor->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                                    @if(optional($approverLevel1)->signature && file_exists(public_path('storage/' . $approverLevel1->signature)))
+                                        <img src="{{ public_path('storage/' . $approverLevel1->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
                                     @endif
                                 </div>
-                                <span class="ttd-line">{{ $pengajuan->supervisor->name ?? 'Atasan Langsung' }}</span>
-                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Atasan langsung</div>
+                                <span class="ttd-line">{{ $approverLevel1->name ?? 'Atasan Langsung' }}</span>
+                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">
+                                    {{ $approverLevel1->role->role_name ?? 'Atasan Langsung' }}
+                                </div>
                             </td>
 
-                            {{-- 3. TTD Manager --}}
+                            {{-- 3. TTD Manager / Atasan Tahap 2 --}}
                             <td style="padding-top: 5px; padding-bottom: 5px;">
                                 <div style="height: 55px; text-align: center; vertical-align: middle;">
-                                    @if(optional($pengajuan->manager)->signature && file_exists(public_path('storage/' . $pengajuan->manager->signature)))
-                                        <img src="{{ public_path('storage/' . $pengajuan->manager->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
+                                    @if(optional($approverLevel2)->signature && file_exists(public_path('storage/' . $approverLevel2->signature)))
+                                        <img src="{{ public_path('storage/' . $approverLevel2->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
                                     @endif
                                 </div>
-                                <span class="ttd-line">{{ $pengajuan->manager->name ?? 'Manager' }}</span>
-                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">Manager</div>
+                                {{-- Jika 1 level, nama & TTD otomatis menduplikasi atasan level 1 --}}
+                                <span class="ttd-line">{{ $approverLevel2->name ?? 'Manager' }}</span>
+                                <div style="font-weight: normal; font-size: 9.5pt; margin-top: 4px;">
+                                    {{ $approverLevel2->role->role_name ?? 'Manager' }}
+                                </div>
                             </td>
                         </tr>
                     </tbody>

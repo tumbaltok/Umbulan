@@ -12,11 +12,12 @@ class Role extends Model
     use HasFactory;
 
     protected $fillable = [
-        'role_name', 
+        'role_name',
         'level',
         'description',
         'job_title',
         'parent_role_id',
+        'tree_code',
         'approval_rules',
     ];
 
@@ -29,13 +30,11 @@ class Role extends Model
         return $this->hasMany(User::class);
     }
 
-    // Relasi ke Atasan Langsung (Parent Role)
     public function parentRole(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'parent_role_id');
     }
 
-    // Relasi ke Bawahan Langsung (Child Roles)
     public function childRoles(): HasMany
     {
         return $this->hasMany(Role::class, 'parent_role_id');

@@ -18,9 +18,6 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         // ==========================================
@@ -45,8 +42,6 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // 3. MASTER STATIONS (4 UTAMA + 18 RUMAH METER)
         // ==========================================
-
-        // A. Stasiun & Kantor Utama
         $stUmbulan = Station::updateOrCreate(['kode_stasiun' => 'UMBULAN'], [
             'name' => 'Stasiun Umbulan', 'type' => 'stasiun',
             'latitude' => -7.7572565, 'longitude' => 112.9314949, 'radius_meters' => 1000,
@@ -64,7 +59,6 @@ class DatabaseSeeder extends Seeder
             'latitude' => -6.2087634, 'longitude' => 106.845599, 'radius_meters' => 200,
         ]);
 
-        // B. Rumah Meter / RM (18 Lokasi Service Murni)
         $listRumahMeter = [
             ['kode' => 'RM_01', 'name' => 'Winongan', 'lat' => -7.7210, 'long' => 112.9520],
             ['kode' => 'RM_02', 'name' => 'Pohjentrek', 'lat' => -7.6710, 'long' => 112.8910],
@@ -113,14 +107,14 @@ class DatabaseSeeder extends Seeder
             "approval_levels" => 2,
             "require_same_sektor" => false,
             "require_same_jobdesk" => false,
-            "require_same_station" => true
+            "require_same_station" => false
         ]);
 
         $rolesData = [
             ['id' => 1, 'role_name' => 'Admin', 'level' => 1, 'description' => 'Administrator Utama Sistem ERP', 'parent_role_id' => 18, 'approval_rules' => $rulesDefault],
             ['id' => 2, 'role_name' => 'SECRETARY', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
             ['id' => 3, 'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
-            ['id' => 4, 'role_name' => 'PROCUREMENT', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
+            ['id' => 4, 'role_name' => 'PROCUREMENT', 'level' => 1, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
             ['id' => 5, 'role_name' => 'HRD', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
             ['id' => 6, 'role_name' => 'CONSULTANT', 'level' => 2, 'description' => null, 'parent_role_id' => 7, 'approval_rules' => $rulesDefault],
             ['id' => 7, 'role_name' => 'GENERAL MANAGER', 'level' => 2, 'description' => null, 'parent_role_id' => null, 'approval_rules' => $rulesDefault],
@@ -133,16 +127,16 @@ class DatabaseSeeder extends Seeder
             ['id' => 14, 'role_name' => 'ASSET', 'level' => 2, 'description' => null, 'parent_role_id' => 11, 'approval_rules' => $rulesDefault],
             ['id' => 15, 'role_name' => 'ACCOUNT', 'level' => 2, 'description' => null, 'parent_role_id' => 12, 'approval_rules' => $rulesDefault],
             ['id' => 16, 'role_name' => 'MARKETING', 'level' => 2, 'description' => null, 'parent_role_id' => 12, 'approval_rules' => $rulesDefault],
-            ['id' => 17, 'role_name' => 'DOKUMENT CONTROL', 'level' => 2, 'description' => null, 'parent_role_id' => 14, 'approval_rules' => $rulesDefault],
+            ['id' => 17, 'role_name' => 'DOKUMENT CONTROL', 'level' => 3, 'description' => null, 'parent_role_id' => 14, 'approval_rules' => $rulesDefault],
             ['id' => 18, 'role_name' => 'Unit Booster-M', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
-            ['id' => 19, 'role_name' => 'Maintanance (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
-            ['id' => 20, 'role_name' => 'Q.HSE (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
-            ['id' => 21, 'role_name' => 'Operator (Booster-M)', 'level' => 2, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 19, 'role_name' => 'Maintanance (Booster-M)', 'level' => 3, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 20, 'role_name' => 'Q.HSE (Booster-M)', 'level' => 3, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
+            ['id' => 21, 'role_name' => 'Operator (Booster-M)', 'level' => 3, 'description' => null, 'parent_role_id' => 18, 'approval_rules' => $rulesLevel2],
             ['id' => 22, 'role_name' => 'AREA (PIPELINE)', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
             ['id' => 23, 'role_name' => 'Unit IPA Umbulan (Instalasi Pengelolahan Air)', 'level' => 2, 'description' => null, 'parent_role_id' => 8, 'approval_rules' => $rulesDefault],
-            ['id' => 24, 'role_name' => 'Operator (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
-            ['id' => 25, 'role_name' => 'Maintanance (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
-            ['id' => 26, 'role_name' => 'Q.HSE (Umbulan)', 'level' => 2, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
+            ['id' => 24, 'role_name' => 'Operator (Umbulan)', 'level' => 3, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
+            ['id' => 25, 'role_name' => 'Maintanance (Umbulan)', 'level' => 3, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
+            ['id' => 26, 'role_name' => 'Q.HSE (Umbulan)', 'level' => 3, 'description' => null, 'parent_role_id' => 23, 'approval_rules' => $rulesLevel2],
         ];
 
         foreach ($rolesData as $role) {
@@ -158,6 +152,9 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // === TAMBAHAN UTAMA: PEMICU PEMBENTUKAN TREE_CODE DAN LEVEL JABATAN ===
+        $this->rebuildRoleTree();
 
         // ==========================================
         // 5. MASTER JENIS CUTI & SUB-CUTI
@@ -200,8 +197,8 @@ class DatabaseSeeder extends Seeder
             'gender_id'         => $pria->id,
             'station_id'        => $stBooster->id,
             'phone_number'      => '081234567890',
-            'schedule_type'     => 'normal',
-            'normal_work_days'  => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
+            'schedule_type'     => 'roster',
+            'normal_work_days'  => '2026-08-18',
             'normal_check_in'   => '00:00',
             'normal_check_out'  => '00:00',
             'password'          => Hash::make('Admin123.'),
@@ -214,5 +211,42 @@ class DatabaseSeeder extends Seeder
             'tahun'         => 2026,
             'sisa_saldo'    => 12,
         ]);
+    }
+
+    // ==========================================
+    // METODE PEMBANTU REKURSIF PENGISI TREE_CODE
+    // ==========================================
+    private function rebuildRoleTree()
+    {
+        $topRoles = Role::whereNull('parent_role_id')->orderBy('id', 'asc')->get();
+
+        if ($topRoles->isEmpty()) {
+            $topRoles = Role::where('id', Role::min('id'))->get();
+        }
+
+        $index = 1;
+        foreach ($topRoles as $role) {
+            $this->assignTreeCodeRecursively($role, (string) $index, 1);
+            $index++;
+        }
+    }
+
+    private function assignTreeCodeRecursively(Role $role, string $codePrefix, int $currentLevel)
+    {
+        $role->update([
+            'tree_code' => $codePrefix,
+        ]);
+
+        $childRoles = Role::where('parent_role_id', $role->id)
+            ->where('id', '!=', $role->id)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $subIndex = 1;
+        foreach ($childRoles as $child) {
+            $newPrefix = $codePrefix . '.' . $subIndex;
+            $this->assignTreeCodeRecursively($child, $newPrefix, $currentLevel + 1);
+            $subIndex++;
+        }
     }
 }

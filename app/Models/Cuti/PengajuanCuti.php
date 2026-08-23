@@ -20,10 +20,10 @@ class PengajuanCuti extends Model
         'total_hari',
         'alasan_cuti',
         'dokumen_pendukung',
-        'status_supervisor',
-        'supervisor_id',
-        'status_manager',
-        'manager_id',
+        'status_tahap_1',
+        'approver_tahap_1_id',
+        'status_tahap_2',
+        'approver_tahap_2_id',
         'status_akhir',
         'catatan_penolakan',
     ];
@@ -33,14 +33,14 @@ class PengajuanCuti extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function supervisor(): BelongsTo
+    public function approverTahap1(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'supervisor_id');
+        return $this->belongsTo(User::class, 'approver_tahap_1_id');
     }
 
-    public function manager(): BelongsTo
+    public function approverTahap2(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'manager_id');
+        return $this->belongsTo(User::class, 'approver_tahap_2_id');
     }
 
     public function jenisCuti(): BelongsTo

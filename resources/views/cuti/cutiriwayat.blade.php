@@ -50,23 +50,22 @@
                                 {{ blank($cuti->alasan_cuti) ? '-' : $cuti->alasan_cuti }}
                             </td>
 
-                            {{-- STATUS MANAGEMENT --}}
+                            {{-- STATUS MANAGEMENT (PERBAIKAN STATUS TAHAP 1 & 2) --}}
                             <td class="px-6 py-4">
-                                @if($cuti->status_supervisor == 'approved' && $cuti->status_manager == 'approved' && $cuti->status_akhir == 'approved')
+                                @if($cuti->status_akhir == 'approved')
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Disetujui</span>
                                         </span>
-                                        {{-- MODIFIKASI: Menggunakan button yang memicu fungsi bukaPratinjauCetak ala halaman CAR --}}
-                                        <button type="button" 
-                                                data-url="{{ route('cuti.cetak', $cuti->id) }}" 
-                                                onclick="bukaPratinjauCetak(this.dataset.url)" 
+                                        <button type="button"
+                                                data-url="{{ route('cuti.cetak', $cuti->id) }}"
+                                                onclick="bukaPratinjauCetak(this.dataset.url)"
                                                 class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm w-fit cursor-pointer">
                                             <span>Cetak</span>
                                         </button>
                                     </div>
-                                @elseif($cuti->status_supervisor == 'rejected' || $cuti->status_manager == 'rejected')
+                                @elseif($cuti->status_akhir == 'rejected' || $cuti->status_tahap_1 == 'rejected' || $cuti->status_tahap_2 == 'rejected')
                                     <div class="space-y-1.5">
                                         <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -103,9 +102,7 @@
     </div>
 </div>
 
-{{-- ========================================================= --}}
-{{-- MODAL 1: DETAILED INFORMATION POPUP (AJAX DATA)          --}}
-{{-- ========================================================= --}}
+{{-- MODAL 1: DETAILED INFORMATION POPUP --}}
 <div id="detailCutiModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="cutiModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
@@ -170,12 +167,9 @@
     </div>
 </div>
 
-{{-- ========================================================= --}}
-{{-- MODAL 2: PRATINJAU INTEGRASI DOKUMEN CETAK & LAMPIRAN      --}}
-{{-- ========================================================= --}}
+{{-- MODAL 2: PRATINJAU INTEGRASI DOKUMEN CETAK & LAMPIRAN --}}
 <div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
-        {{-- Header Modal --}}
         <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
@@ -186,7 +180,6 @@
             </button>
         </div>
 
-        {{-- Tempat Render File (Iframe / Image) --}}
         <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
         </div>
     </div>
@@ -195,7 +188,6 @@
 
 @push('scripts')
 <script>
-    // --- INTEGRASI FUNGSI POPUP PRATINJAU DOKUMEN (SAMA SEPERTI KODE CAR) ---
     function bukaPratinjauLampiran(urlFile) {
         document.getElementById('judulModalLampiran').innerText = 'Pratinjau Lampiran Dokumen';
         tampilkanModalPratinjau(urlFile);
@@ -245,15 +237,12 @@
         document.body.style.overflow = 'auto';
     }
 
-    // Menutup modal jika area luar diklik
     document.getElementById('modalPreviewLampiran').addEventListener('click', function(e) {
         if (e.target === this) {
             tutupPratinjauLampiran();
         }
     });
 
-
-    // --- SCRIPT MODAL DETAIL JENDELA CUTI (EXISTING AJAX) ---
     document.addEventListener("DOMContentLoaded", function () {
         const modal = document.getElementById("detailCutiModal");
         const backdrop = document.getElementById("cutiModalBackdrop");
@@ -303,9 +292,9 @@
                         document.getElementById("txt_alasan_cuti").innerText = data.alasan_cuti ? data.alasan_cuti : '-';
 
                         const wrapperStatus = document.getElementById("wrapper_status");
-                        if (data.status_manager === 'approved') {
+                        if (data.status_akhir === 'approved') {
                             wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center border border-emerald-100"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Disetujui</span>`;
-                        } else if (data.status_supervisor === 'rejected' || data.status_manager === 'rejected') {
+                        } else if (data.status_akhir === 'rejected' || data.status_tahap_1 === 'rejected' || data.status_tahap_2 === 'rejected') {
                             let note = data.catatan_penolakan ? `<p class="text-xs text-rose-600 mt-1 italic font-medium">"${data.catatan_penolakan}"</p>` : '';
                             wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center border border-rose-100"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Ditolak</span> ${note}`;
                         } else {
@@ -315,8 +304,6 @@
                         const docArea = document.getElementById("dokumen_render_area");
                         if (data.dokumen_pendukung) {
                             const fileUrl = `/storage/${data.dokumen_pendukung}`;
-
-                            // Diubah agar tombol unduh/lihat di dalam detail modal AJAX juga memicu Modal Preview CAR baru ini
                             docArea.innerHTML = `
                                 <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
                                     <div class="flex items-center space-x-2.5 overflow-hidden">

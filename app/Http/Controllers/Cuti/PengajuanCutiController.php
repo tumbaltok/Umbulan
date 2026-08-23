@@ -94,7 +94,6 @@ class PengajuanCutiController extends Controller
         $user = Auth::user();
         $jenisCuti = JenisCuti::with('subCutis')->get();
 
-        // Cari ID Cuti Tahunan secara dinamis berdasarkan kode/nama
         $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')
             ->orWhere('name_cuti', 'LIKE', '%Tahunan%')
             ->first();
@@ -170,7 +169,6 @@ class PengajuanCutiController extends Controller
             }
         }
 
-        // Menggunakan alurPotongSaldo dari CutiHelperTrait
         if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
             $saldo = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $jenisCutiId)
@@ -182,7 +180,6 @@ class PengajuanCutiController extends Controller
             }
 
             try {
-                // Menggunakan validasiDanCekSaldo dari CutiHelperTrait
                 $this->validasiDanCekSaldo($user->id, $jenisCutiId, $subCutiId, $tahunSekarang, $totalHari);
             } catch (\Exception $e) {
                 return back()->withErrors(['error' => $e->getMessage()])->withInput();
@@ -214,38 +211,40 @@ class PengajuanCutiController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public');
         }
 
-        // PERBAIKAN: Menggunakan level hirarki role untuk auto-approval pemohon bernilai manajerial
-        $roleLevel = $user->role->level ?? 4;
-        $statusSupervisor = 'pending';
-        $statusManager = 'pending';
-        $statusAkhir = 'pending';
+        // PENANGANAN HIRARKI PUSAT (Tree Code & Rule Level)
+        $userRole = $user->role;
+        $approvalRules = $userRole->approval_rules ?? [];
+        $requiredLevels = (int) ($approvalRules['approval_levels'] ?? 1);
 
-        if (in_array($roleLevel, [1, 2])) {
-            $statusSupervisor = 'approved';
-            $statusManager = 'approved';
-            $statusAkhir = 'approved';
-        } elseif ($roleLevel == 3) {
-            $statusSupervisor = 'approved';
+        if (empty($userRole->parent_role_id)) {
+            $statusTahap1 = 'approved';
+            $statusTahap2 = 'approved';
+            $statusAkhir  = 'approved';
+        } else {
+            $statusTahap1 = 'pending';
+            $statusTahap2 = ($requiredLevels === 1) ? 'not_required' : 'pending';
+            $statusAkhir  = 'pending';
         }
 
         DB::beginTransaction();
         try {
             $pengajuan = PengajuanCuti::create([
-                'user_id' => $user->id,
-                'jenis_cuti_id' => $jenisCutiId,
-                'sub_cuti_id' => $subCutiId,
-                'tanggal_mulai' => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'total_hari' => $totalHari,
-                'alasan_cuti' => $request->alasan_cuti ?? '',
-                'dokumen_pendukung' => $namaDokumen,
-                'status_supervisor' => $statusSupervisor,
-                'status_manager' => $statusManager,
-                'status_akhir' => $statusAkhir,
+                'user_id'             => $user->id,
+                'jenis_cuti_id'       => $jenisCutiId,
+                'sub_cuti_id'         => $subCutiId,
+                'tanggal_mulai'       => $request->tanggal_mulai,
+                'tanggal_selesai'     => $request->tanggal_selesai,
+                'total_hari'          => $totalHari,
+                'alasan_cuti'         => $request->alasan_cuti ?? '',
+                'dokumen_pendukung'   => $namaDokumen,
+                'status_tahap_1'      => $statusTahap1,
+                'approver_tahap_1_id' => $statusTahap1 === 'approved' ? $user->id : null,
+                'status_tahap_2'      => $statusTahap2,
+                'approver_tahap_2_id' => $statusTahap2 === 'approved' ? $user->id : null,
+                'status_akhir'        => $statusAkhir,
             ]);
 
             if ($statusAkhir === 'approved') {
-                // Dipanggil dari CutiHelperTrait
                 $this->sinkronisasiCutiDanAbsen($pengajuan);
             }
 
@@ -275,11 +274,11 @@ class PengajuanCutiController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        // Mengambil level hirarki role (Default 4 = Staff jika null)
-        $roleLevel = $atasan->role->level ?? 4;
+        $atasanRole = $atasan->role;
 
         $query = DB::table('pengajuan_cutis')
             ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
+            ->join('roles', 'users.role_id', '=', 'roles.id')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
             ->select(
@@ -291,19 +290,31 @@ class PengajuanCutiController extends Controller
             )
             ->orderBy('pengajuan_cutis.created_at', 'desc');
 
-        // LEVEL 3 = Pengawas / Supervisor (Hanya station terkait)
-        if ($roleLevel == 3) {
-            $query->where('pengajuan_cutis.status_supervisor', 'pending')
-                ->where('users.station_id', $atasan->station_id);
-        }
-        // LEVEL 2 = Manager / Kepala Divisi (Menunggu persetujuan final setelah disetujui Level 3)
-        elseif ($roleLevel == 2) {
-            $query->where('pengajuan_cutis.status_manager', 'pending')
-                ->where('pengajuan_cutis.status_supervisor', 'approved');
-        }
-        // LEVEL 1 = Admin / Direksi / Full Akses (Menampilkan antrean pending)
-        else {
+        if (empty($atasanRole->parent_role_id)) {
             $query->where('pengajuan_cutis.status_akhir', 'pending');
+        } else {
+            $atasanTreeCode = $atasanRole->tree_code;
+
+            $query->where(function ($q) use ($atasan, $atasanTreeCode) {
+                $q->where(function ($sub) use ($atasan, $atasanTreeCode) {
+                    $sub->where('pengajuan_cutis.status_tahap_1', 'pending')
+                        ->where(function ($uq) use ($atasan, $atasanTreeCode) {
+                            $uq->where('users.atasan_langsung_id', $atasan->id)
+                            ->orWhere(function ($rq) use ($atasanTreeCode) {
+                                $rq->where('roles.tree_code', 'LIKE', $atasanTreeCode . '.%')
+                                    ->whereRaw("LENGTH(roles.tree_code) - LENGTH(REPLACE(roles.tree_code, '.', '')) = ?", [substr_count($atasanTreeCode, '.') + 1]);
+                            });
+                        });
+                })
+                ->orWhere(function ($sub) use ($atasan, $atasanTreeCode) {
+                    $sub->where('pengajuan_cutis.status_tahap_1', 'approved')
+                        ->where('pengajuan_cutis.status_tahap_2', 'pending')
+                        ->where(function ($uq) use ($atasan, $atasanTreeCode) {
+                            $uq->where('users.atasan_dua_id', $atasan->id)
+                            ->orWhere('roles.tree_code', 'LIKE', $atasanTreeCode . '.%');
+                        });
+                });
+            });
         }
 
         $daftarPengajuan = $query->get();
@@ -321,36 +332,54 @@ class PengajuanCutiController extends Controller
         $atasan = Auth::user();
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
-        $roleLevel = $atasan->role->level ?? 4;
 
-        // TAHAP 1: Persetujuan Pengawas Lapangan (Level 3)
-        if ($roleLevel == 3) {
+        if ($tindakan === 'rejected') {
             $pengajuan->update([
-                'status_supervisor' => $tindakan,
-                'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
-                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
+                'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? 'rejected' : $pengajuan->status_supervisor,
+                'status_manager' => $pengajuan->status_manager === 'pending' ? 'rejected' : $pengajuan->status_manager,
+                'status_akhir' => 'rejected',
+                'catatan_penolakan' => $request->catatan_penolakan,
             ]);
 
-            return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
+            return redirect()->back()->with('success', 'Status pengajuan cuti berhasil ditolak.');
         }
-        // TAHAP 2: Persetujuan Final / Manajemen (Level 1 & 2)
-        elseif (in_array($roleLevel, [1, 2])) {
+
+        // PERSETUJUAN TAHAP 1
+        if ($pengajuan->status_supervisor === 'pending') {
+            $userRole = User::find($pengajuan->user_id)->role;
+            $approvalRules = $userRole->approval_rules ?? [];
+            $requiredLevels = (int) ($approvalRules['approval_levels'] ?? 1);
+
+            $updateData = [
+                'status_supervisor' => 'approved',
+                'supervisor_id' => $atasan->id,
+            ];
+
+            if ($requiredLevels === 1) {
+                $updateData['status_manager'] = 'not_required';
+                $updateData['status_akhir'] = 'approved';
+            }
+
+            $pengajuan->update($updateData);
+
+            if ($updateData['status_akhir'] ?? '' === 'approved') {
+                $this->sinkronisasiCutiDanAbsen($pengajuan);
+            }
+
+            return redirect()->back()->with('success', 'Persetujuan Cuti Tahap 1 berhasil diproses.');
+        }
+
+        // PERSETUJUAN TAHAP 2
+        if ($pengajuan->status_manager === 'pending') {
             DB::beginTransaction();
             try {
                 $pengajuan->update([
-                    // Jika disetujui langsung oleh Level 1/2, otomatis setujui status_supervisor jika masih pending
-                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? 'approved' : $pengajuan->status_supervisor,
-                    'status_manager' => $tindakan,
-                    'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
+                    'status_manager' => 'approved',
+                    'manager_id' => $atasan->id,
+                    'status_akhir' => 'approved',
                 ]);
 
-                if ($tindakan === 'approved') {
-                    // Dipanggil dari CutiHelperTrait
-                    $this->sinkronisasiCutiDanAbsen($pengajuan);
-                }
+                $this->sinkronisasiCutiDanAbsen($pengajuan);
 
                 DB::commit();
             } catch (\Exception $e) {
@@ -359,10 +388,10 @@ class PengajuanCutiController extends Controller
                 return redirect()->back()->with('error', 'Gagal memproses: '.$e->getMessage());
             }
 
-            return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui');
+            return redirect()->back()->with('success', 'Persetujuan Cuti Tahap 2 (Final) berhasil diproses.');
         }
 
-        return redirect()->back()->with('error', 'Akses ditolak. Level akun Anda tidak mencukupi.');
+        return redirect()->back()->with('error', 'Pengajuan sudah diproses sebelumnya.');
     }
 
     public function detailCutiJSON(int $id)
@@ -376,8 +405,8 @@ class PengajuanCutiController extends Controller
             'tanggal_selesai_formatted' => Carbon::parse($cuti->tanggal_selesai)->format('d M Y'),
             'total_hari' => $cuti->total_hari,
             'alasan_cuti' => $cuti->alasan_cuti,
-            'status_supervisor' => $cuti->status_supervisor,
-            'status_manager' => $cuti->status_manager,
+            'status_tahap_1' => $cuti->status_tahap_1,
+            'status_tahap_2' => $cuti->status_tahap_2,
             'status_akhir' => $cuti->status_akhir,
             'catatan_penolakan' => $cuti->catatan_penolakan,
             'dokumen_pendukung' => $cuti->dokumen_pendukung,
@@ -386,21 +415,38 @@ class PengajuanCutiController extends Controller
 
     public function cetakSuratCuti(int $id)
     {
-        $pengajuan = PengajuanCuti::with(['user', 'supervisor', 'manager'])->findOrFail($id);
+        $pengajuan = PengajuanCuti::with([
+            'user.role',
+            'user.station',
+            'jenisCuti',
+            'subCuti',
+            'approverTahap1.role',
+            'approverTahap2.role'
+        ])->findOrFail($id);
 
-        if ($pengajuan->status_manager !== 'approved' && $pengajuan->status_akhir !== 'approved') {
+        if ($pengajuan->status_akhir !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum disetujui sepenuhnya.');
         }
 
+        $approverLevel1 = $pengajuan->approverTahap1;
+
+        if ($pengajuan->status_tahap_2 === 'not_required' || empty($pengajuan->approver_tahap_2_id)) {
+            $approverLevel2 = $approverLevel1;
+        } else {
+            $approverLevel2 = $pengajuan->approverTahap2;
+        }
+
         $data = [
-            'id' => $id,
-            'title' => 'Surat Cuti - '.$pengajuan->user->name,
-            'pengajuan' => $pengajuan,
+            'id'             => $id,
+            'title'          => 'Surat Cuti - ' . $pengajuan->user->name,
+            'pengajuan'      => $pengajuan,
+            'approverLevel1' => $approverLevel1,
+            'approverLevel2' => $approverLevel2,
         ];
 
         $pdf = Pdf::loadView('cuti.cuticetak', $data)->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Surat-Cuti-'.$pengajuan->id.'.pdf');
+        return $pdf->stream('Surat-Cuti-' . str_replace(' ', '_', $pengajuan->user->name) . '.pdf');
     }
 
     public function handleSubCuti(int $id)

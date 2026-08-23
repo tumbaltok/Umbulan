@@ -114,8 +114,10 @@
 <body class="bg-slate-50 min-h-screen text-slate-800 flex overflow-hidden">
 
     @php
-        $userRole = strtolower(Auth::user()->role->role_name ?? '');
-        $hasAccess = ($userRole !== 'karyawan' && $userRole !== 'staff');
+        $authUser  = Auth::user();
+        $roleLevel = (int) ($authUser->role->level ?? 99);
+        $hasAccess   = ($roleLevel === 1 || $roleLevel === 2);
+        $isAdminRole = ($roleLevel === 1 || $roleLevel === 2);
     @endphp
 
     <!-- SIDEBAR -->
@@ -271,7 +273,7 @@
                 </div>
 
                 <!-- MENU ADMINISTRATOR (MODIFIKASI: STRUKTUR SUB-MENU BERTINGKAT & ABSENSI) -->
-                @if($hasAccess)
+                @if($isAdminRole)
                 @php
                     $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*'))
                                     && !request()->is('admin/persetujuan/*');

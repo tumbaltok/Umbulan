@@ -18,20 +18,26 @@ return new class extends Migration
             $table->text('alasan_pembelian')->nullable();
             $table->string('receiving_account')->nullable();
 
-            // Status Persetujuan Bertingkat & ID Approver
-            $table->enum('status_supervisor', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
+            // Jumlah tingkat approval yang dibutuhkan (1 atau 2) berdasarkan role pengaju
+            $table->tinyInteger('total_approval_levels')->default(1)->comment('1: Cukup 1 Atasan, 2: Butuh 2 Tingkat Atasan');
 
-            $table->enum('status_manager', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
+            // Persetujuan Tahap 1 (Atasan Langsung)
+            $table->enum('status_tahap_1', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('approver_tahap_1_id')->nullable()->constrained('users')->nullOnDelete();
 
+            // Persetujuan Tahap 2 (Atasan Lebih Tinggi / Manager)
+            // 'not_required' digunakan jika user hanya membutuhkan 1 tahap persetujuan
+            $table->enum('status_tahap_2', ['pending', 'approved', 'rejected', 'not_required'])->default('pending');
+            $table->foreignId('approver_tahap_2_id')->nullable()->constrained('users')->nullOnDelete();
+
+            // Status Akhir Seluruh Proses Pengajuan
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('catatan_penolakan')->nullable();
 
             $table->timestamps();
         });
 
-        // 2. Tabel Detail Rincian Barang CAR (Auto-Delete saat Header Dihapus)
+        // 2. Tabel Detail Rincian Barang CAR
         Schema::create('pengajuan_car_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pengajuan_car_id')->constrained('pengajuan_cars')->onDelete('cascade');

@@ -68,7 +68,7 @@ class CalendarScheduleService
 
         // Ambil Data Cuti User yang Disetujui (Mencakup Cuti Lintas Bulan)
         $approvedLeaves = PengajuanCuti::where('user_id', $user->id)
-            ->where('status_manager', 'approved')
+            ->where('status_akhir', 'approved') // <--- Menggunakan status_akhir
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('tanggal_mulai', [$startDate, $endDate])
                     ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])

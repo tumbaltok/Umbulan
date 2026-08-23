@@ -22,10 +22,11 @@ class CekAtasan
             return redirect()->route('dashboard')->with('error', 'Akun Anda belum memiliki role jabatan!');
         }
 
-        $level = (int) ($role->level ?? 3);
+        $level = (int) ($role->level ?? 99);
 
-        // Level 3 = User Biasa (Sama sekali tidak boleh akses halaman admin)
-        if ($level === 3) {
+        // UBAH LOGIKA DI SINI:
+        // Jika level lebih dari 2 (yaitu Level 3, 4, 5, dst.), TOLAK DENGAN STRUKTUR TEGAS
+        if ($level > 2) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman administrator!');
         }
 

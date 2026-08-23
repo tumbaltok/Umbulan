@@ -4,20 +4,16 @@ namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
+use App\Models\User\Station;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Models\User\Station;
 
 class PengajuanCarController extends Controller
 {
-    // KARYAWAN: Melihat riwayat pengajuan CAR milik sendiri
     public function index()
     {
         $user = Auth::user();
-
-        // Memuat relasi details agar data barang multi-item bisa dipanggil di view
         $riwayatCar = PengajuanCar::with('details')
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
@@ -26,18 +22,14 @@ class PengajuanCarController extends Controller
         return view('car.carriwayat', compact('riwayatCar'));
     }
 
-    // KARYAWAN: Menampilkan form pengajuan CAR baru
     public function create()
     {
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
-
         return view('car.carcreate', compact('daftarStasiun'));
     }
 
-    // KARYAWAN: Mengirim form pengajuan CAR baru (Multi-Item)
     public function store(Request $request)
     {
-        // Validasi format array dari form multi-item
         $request->validate([
             'alasan_pembelian' => 'required|string',
             'receiving_account' => 'required|string',
@@ -50,34 +42,32 @@ class PengajuanCarController extends Controller
         ]);
 
         $user = Auth::user();
-        $roleLevel = $user->role->level ?? 4;
+        $userRole = $user->role;
+        $approvalRules = $userRole->approval_rules ?? [];
+        $requiredLevels = (int) ($approvalRules['approval_levels'] ?? 1);
 
-        // Auto-approve jika pemohon adalah Atasan / Manajerial
-        $statusSupervisor = 'pending';
-        $statusManager = 'pending';
-        $statusAkhir = 'pending';
-
-        if (in_array($roleLevel, [1, 2])) {
-            $statusSupervisor = 'approved';
-            $statusManager = 'approved';
-            $statusAkhir = 'approved';
-        } elseif ($roleLevel == 3) {
-            $statusSupervisor = 'approved';
+        if (empty($userRole->parent_role_id)) {
+            $statusTahap1 = 'approved';
+            $statusTahap2 = 'approved';
+            $statusAkhir  = 'approved';
+        } else {
+            $statusTahap1 = 'pending';
+            $statusTahap2 = ($requiredLevels === 1) ? 'not_required' : 'pending';
+            $statusAkhir  = 'pending';
         }
 
-        // Buat data utama (Header) CAR
         $carHeader = PengajuanCar::create([
-            'user_id' => $user->id,
-            'alasan_pembelian' => $request->alasan_pembelian,
-            'receiving_account' => $request->receiving_account,
-            'status_supervisor' => $statusSupervisor,
-            'supervisor_id' => $statusSupervisor === 'approved' ? $user->id : null,
-            'status_manager' => $statusManager,
-            'manager_id' => $statusManager === 'approved' ? $user->id : null,
-            'status_akhir' => $statusAkhir,
+            'user_id'               => $user->id,
+            'alasan_pembelian'      => $request->alasan_pembelian,
+            'receiving_account'     => $request->receiving_account,
+            'total_approval_levels' => $requiredLevels,
+            'status_tahap_1'        => $statusTahap1,
+            'approver_tahap_1_id'   => $statusTahap1 === 'approved' ? $user->id : null,
+            'status_tahap_2'        => $statusTahap2,
+            'approver_tahap_2_id'   => $statusTahap2 === 'approved' ? $user->id : null,
+            'status_akhir'          => $statusAkhir,
         ]);
 
-        // Loop dan simpan setiap item barang beserta file nota masing-masing
         foreach ($request->items as $index => $item) {
             $pathDokumen = null;
             if ($request->hasFile("items.{$index}.dokumen_pendukung")) {
@@ -85,45 +75,68 @@ class PengajuanCarController extends Controller
                 $pathDokumen = $file->store('dokumen_car', 'public');
             }
 
-            // Menghitung subtotal per item
-            $total_harga_item = $item['jumlah'] * $item['estimasi_harga'];
-
             $carHeader->details()->create([
                 'nama_barang' => $item['nama_barang'],
                 'jumlah' => $item['jumlah'],
                 'satuan' => $item['satuan'],
                 'estimasi_harga' => $item['estimasi_harga'],
-                'total_harga' => $total_harga_item,
+                'total_harga' => $item['jumlah'] * $item['estimasi_harga'],
                 'dokumen_nota_or_proposal' => $pathDokumen,
             ]);
         }
 
-        return redirect()->route('car.riwayat')->with('success', 'Pengajuan uang barang (CAR) multi-item berhasil diajukan.');
+        return redirect()->route('car.riwayat')->with('success', 'Pengajuan CAR berhasil dikirim.');
     }
 
-    // ATASAN & ADMIN: Melihat daftar pengajuan masuk dari bawahan
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $roleLevel = $atasan->role->level ?? 4; // Default level 4 (Staff)
+        $atasanRole = $atasan->role;
 
         $query = PengajuanCar::with(['user.role', 'details']);
 
-        // Jika Atasan Level 3 (Supervisor / Pengawas Lapangan)
-        if ($roleLevel == 3) {
-            $query->where('status_supervisor', 'pending')
-                ->whereHas('user', function ($q) use ($atasan) {
-                    $q->where('station_id', $atasan->station_id);
-                });
-        }
-        // Jika Atasan Level 2 (Manager / Kepala Sektor)
-        elseif ($roleLevel == 2) {
-            $query->where('status_supervisor', 'approved')
-                ->where('status_manager', 'pending');
-        }
-        // Jika Level 1 (Admin / Direksi / Full Akses): Bisa melihat semua antrean pending
-        else {
+        if (empty($atasanRole->parent_role_id)) {
             $query->where('status_akhir', 'pending');
+        } else {
+            $atasanTreeCode = $atasanRole->tree_code;
+
+            $query->where(function ($q) use ($atasan, $atasanRole, $atasanTreeCode) {
+                // ANTREAN TAHAP 1
+                $q->where(function ($sub) use ($atasan, $atasanRole, $atasanTreeCode) {
+                    $sub->where('status_tahap_1', 'pending')
+                        ->whereHas('user', function ($uq) use ($atasan, $atasanTreeCode) {
+                            $uq->where('atasan_langsung_id', $atasan->id)
+                               ->orWhereHas('role', function ($rq) use ($atasanTreeCode) {
+                                   $rq->where('tree_code', 'LIKE', $atasanTreeCode . '.%')
+                                      ->whereRaw("LENGTH(tree_code) - LENGTH(REPLACE(tree_code, '.', '')) = ?", [substr_count($atasanTreeCode, '.') + 1]);
+                               });
+                        });
+
+                    // Validasi Stasiun Kerja Level 1
+                    $reqStationLvl1 = $atasanRole->approval_rules['require_same_station_level_1'] ?? ($atasanRole->approval_rules['require_same_station'] ?? false);
+                    if ($reqStationLvl1) {
+                        $sub->whereHas('user', fn($uq) => $uq->where('station_id', $atasan->station_id));
+                    }
+                })
+                // ANTREAN TAHAP 2
+                ->orWhere(function ($sub) use ($atasan, $atasanRole, $atasanTreeCode) {
+                    $sub->where('total_approval_levels', 2)
+                        ->where('status_tahap_1', 'approved')
+                        ->where('status_tahap_2', 'pending')
+                        ->whereHas('user', function ($uq) use ($atasan, $atasanTreeCode) {
+                            $uq->where('atasan_dua_id', $atasan->id)
+                               ->orWhereHas('role', function ($rq) use ($atasanTreeCode) {
+                                   $rq->where('tree_code', 'LIKE', $atasanTreeCode . '.%');
+                               });
+                        });
+
+                    // Validasi Stasiun Kerja Level 2
+                    $reqStationLvl2 = $atasanRole->approval_rules['require_same_station_level_2'] ?? false;
+                    if ($reqStationLvl2) {
+                        $sub->whereHas('user', fn($uq) => $uq->where('station_id', $atasan->station_id));
+                    }
+                });
+            });
         }
 
         $daftarPengajuan = $query->latest()->get();
@@ -131,81 +144,82 @@ class PengajuanCarController extends Controller
         return view('admin.persetujuan.persetujuanCar', compact('daftarPengajuan'));
     }
 
-    // ATASAN & ADMIN: Menyetujui atau Menolak Pengajuan CAR
     public function prosesPersetujuan(Request $request, int $id)
     {
-        $tindakan = $request->input('tindakan') ?? $request->input('aksi');
-        $request->merge(['tindakan' => $tindakan]);
-
         $request->validate([
-            'tindakan' => 'required|in:approved,rejected',
+            'tindakan'          => 'required|in:approved,rejected',
             'catatan_penolakan' => 'required_if:tindakan,rejected|string|nullable',
         ]);
 
         $atasan = Auth::user();
         $pengajuan = PengajuanCar::findOrFail($id);
-        $roleLevel = $atasan->role->level ?? 4;
+        $tindakan = $request->tindakan;
 
-        // TAHAP 1: Approval Pengawas (Level 3 / Supervisor)
-        if ($roleLevel == 3) {
+        if ($tindakan === 'rejected') {
             $pengajuan->update([
-                'status_supervisor' => $tindakan,
-                'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
-                'status_akhir' => $tindakan === 'rejected' ? 'rejected' : 'pending',
-                'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
+                'status_tahap_1'    => $pengajuan->status_tahap_1 === 'pending' ? 'rejected' : $pengajuan->status_tahap_1,
+                'status_tahap_2'    => $pengajuan->status_tahap_2 === 'pending' ? 'rejected' : $pengajuan->status_tahap_2,
+                'status_akhir'      => 'rejected',
+                'catatan_penolakan' => $request->catatan_penolakan,
             ]);
 
-            return redirect()->back()->with('success', 'Persetujuan Tahap 1 berhasil diperbarui');
-
-        // TAHAP 2: Approval Final / Anggaran (Level 1 & 2 / Manager, Admin, Direksi)
-        } elseif (in_array($roleLevel, [1, 2])) {
-            if ($pengajuan->status_supervisor === 'rejected') {
-                return redirect()->back()->with('error', 'Pengajuan sudah ditolak pada tingkat pengawas.');
-            }
-
-            DB::beginTransaction();
-            try {
-                $pengajuan->update([
-                    // Jika disetujui langsung oleh Level 1/2, otomatis selesaikan status_supervisor jika masih pending
-                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? 'approved' : $pengajuan->status_supervisor,
-                    'status_manager' => $tindakan,
-                    'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
-                ]);
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return redirect()->back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
-            }
-
-            return redirect()->back()->with('success', 'Persetujuan Final berhasil diperbarui');
-
-        } else {
-            return redirect()->back()->with('error', 'Gagal! Hak akses Anda tidak mencukupi untuk menyetujui pengajuan ini.');
+            return redirect()->back()->with('success', 'Pengajuan CAR berhasil ditolak.');
         }
+
+        if ($pengajuan->status_tahap_1 === 'pending') {
+            $updateData = [
+                'status_tahap_1'      => 'approved',
+                'approver_tahap_1_id' => $atasan->id,
+            ];
+
+            if ($pengajuan->total_approval_levels === 1) {
+                $updateData['status_tahap_2'] = 'not_required';
+                $updateData['status_akhir']   = 'approved';
+            }
+
+            $pengajuan->update($updateData);
+
+            return redirect()->back()->with('success', 'Persetujuan Tahap 1 berhasil diproses.');
+        }
+
+        if ($pengajuan->total_approval_levels === 2 && $pengajuan->status_tahap_2 === 'pending') {
+            $pengajuan->update([
+                'status_tahap_2'      => 'approved',
+                'approver_tahap_2_id' => $atasan->id,
+                'status_akhir'        => 'approved',
+            ]);
+
+            return redirect()->back()->with('success', 'Persetujuan Tahap 2 (Final) berhasil diproses.');
+        }
+
+        return redirect()->back()->with('error', 'Pengajuan sudah diproses sebelumnya.');
     }
 
-    // CETAK PDF FORMULIR CAR
     public function print(int $id)
     {
-        // Load relasi pemohon, supervisor, manager, dan rincian barang
-        $car = PengajuanCar::with(['user.role', 'supervisor', 'manager', 'details'])->findOrFail($id);
+        $car = PengajuanCar::with([
+            'user.role',
+            'details',
+            'approverTahap1.role',
+            'approverTahap2.role'
+        ])->findOrFail($id);
 
-        if ($car->status_manager !== 'approved') {
-            return redirect()->back()->with('error', 'Dokumen CAR belum dapat dicetak karena belum disetujui sepenuhnya.');
+        if ($car->status_akhir !== 'approved') {
+            return redirect()->back()->with('error', 'Dokumen CAR belum disetujui secara penuh.');
         }
 
-        $data = [
-            'id' => $id,
-            'title' => 'Formulir CAR - '.$car->user->name,
-            'car' => $car,
-        ];
+        $approverLevel1 = $car->approverTahap1;
 
-        $pdf = Pdf::loadView('car.carcetak', $data)
-            ->setPaper('a4', 'portrait');
+        // Jika 1 level, samakan penandatangan Level 2 dengan Level 1
+        if ($car->status_tahap_2 === 'not_required' || empty($car->approver_tahap_2_id)) {
+            $approverLevel2 = $approverLevel1;
+        } else {
+            $approverLevel2 = $car->approverTahap2;
+        }
 
-        return $pdf->stream('CAR-'.$car->id.'.pdf');
+        $pdf = Pdf::loadView('car.carcetak', compact('car', 'approverLevel1', 'approverLevel2'));
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('CAR_' . sprintf('%03d', $car->id) . '.pdf');
     }
 }

@@ -218,33 +218,33 @@
                     @endif
                 </div>
                 <div class="signer-name">{{ $car->user->name ?? '-' }}</div>
-                <div>Staff / Karyawan</div>
+                <div>{{ $car->user->role->role_name ?? 'Karyawan' }}</div>
             </td>
 
-            {{-- 2. SUPERVISOR --}}
+            {{-- 2. SUPERVISOR / ATASAN LANGSUNG --}}
             <td>
                 <div class="approval-title">Checked By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Supervisor</div>
+                <div style="font-size: 9px; margin-top: 2px;">Supervisor / Atasan 1</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
-                    @if(optional($car->supervisor)->signature && file_exists(public_path('storage/' . $car->supervisor->signature)))
-                        <img src="{{ public_path('storage/' . $car->supervisor->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
+                    @if(optional($approverLevel1)->signature && file_exists(public_path('storage/' . $approverLevel1->signature)))
+                        <img src="{{ public_path('storage/' . $approverLevel1->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
                     @endif
                 </div>
-                <div class="signer-name">{{ $car->supervisor->name ?? '...........................' }}</div>
-                <div>Supervisor Operasional</div>
+                <div class="signer-name">{{ $approverLevel1->name ?? '...........................' }}</div>
+                <div>{{ $approverLevel1->role->role_name ?? 'Atasan Langsung' }}</div>
             </td>
 
-            {{-- 3. MANAGER --}}
+            {{-- 3. MANAGER / ATASAN TAHAP 2 (SAMA DENGAN TAHAP 1 JIKA 1 LEVEL) --}}
             <td>
                 <div class="approval-title">Checked & Proceed By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Finance / Manager</div>
+                <div style="font-size: 9px; margin-top: 2px;">Manager / Atasan 2</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
-                    @if(optional($car->manager)->signature && file_exists(public_path('storage/' . $car->manager->signature)))
-                        <img src="{{ public_path('storage/' . $car->manager->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
+                    @if(optional($approverLevel2)->signature && file_exists(public_path('storage/' . $approverLevel2->signature)))
+                        <img src="{{ public_path('storage/' . $approverLevel2->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
                     @endif
                 </div>
-                <div class="signer-name">{{ $car->manager->name ?? '...........................' }}</div>
-                <div>General Manager</div>
+                <div class="signer-name">{{ $approverLevel2->name ?? '...........................' }}</div>
+                <div>{{ $approverLevel2->role->role_name ?? 'Manager' }}</div>
             </td>
 
             {{-- 4. DIRECTOR --}}

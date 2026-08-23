@@ -52,10 +52,14 @@ class KaryawanController extends Controller
             },
         ]);
 
-        if (($currentUser->role->level ?? 3) != 1) {
-            $query->where('sektor', $currentUser->sektor ?? 'operasional');
-        } elseif ($request->filled('sektor') && in_array(strtolower($request->sektor), ['manajemen', 'operasional'])) {
-            $query->where('sektor', strtolower($request->sektor));
+        // PERBAIKAN: Jika user bukan Top Level (BOD), batasi daftar karyawan berdasarkan cabang kodenya (tree_code)
+        if (!empty($currentUser->role->parent_role_id)) {
+            $userTreeCode = $currentUser->role->tree_code;
+            if ($userTreeCode) {
+                $query->whereHas('role', function ($q) use ($userTreeCode) {
+                    $q->where('tree_code', 'LIKE', $userTreeCode . '%');
+                });
+            }
         }
 
         $daftarKaryawan = $query->orderBy('name', 'asc')->get();
@@ -119,7 +123,7 @@ class KaryawanController extends Controller
                 'nip' => $karyawan->nip ?? '-',
                 'name' => $karyawan->name ?? '-',
                 'email' => $karyawan->email ?? '-',
-                'sektor' => ucfirst($karyawan->sektor ?? 'Operasional'),
+                'sektor' => optional($karyawan->role)->role_name ?? 'Operasional',
                 'phone_number' => $karyawan->phone_number ?? null,
                 'profile_photo' => $karyawan->profile_photo ?? null,
                 'role_name' => optional($karyawan->role)->role_name ?? 'Tidak Ada Role',

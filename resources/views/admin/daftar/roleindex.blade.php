@@ -2,10 +2,8 @@
 @section('title', 'Manajemen Role & Skema Hirarki Jabatan')
 
 @push('styles')
-<!-- SweetAlert2 CDN CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
-    /* Styling khusus diagram Mermaid */
     .mermaid-container {
         background: #f8fafc;
         border-radius: 1rem;
@@ -60,7 +58,7 @@
                 <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Pengaturan Atasan & Dynamic Approval Scope
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando dan validasi batas wilayah untuk alur persetujuan Cuti, CAR, dan MPR.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando dan validasi batas wilayah stasiun untuk persetujuan Cuti & CAR.</p>
             </div>
 
             <form action="{{ route('admin.role.hierarchy.update') }}" method="POST">
@@ -71,16 +69,17 @@
                             <tr class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
                                 <th class="p-3.5">Role / Jabatan</th>
                                 <th class="p-3.5">Atasan Langsung (Parent Role)</th>
-                                <th class="p-3.5 text-center">Wajib Stasiun Sama?</th>
                                 <th class="p-3.5 text-center">Level Approval</th>
+                                <th class="p-3.5 text-center">Aturan Stasiun Kerja</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
                             @foreach($daftarRole as $idx => $r)
                                 @php
                                     $rules = $r->approval_rules ?? [];
-                                    $reqStation = $rules['require_same_station'] ?? true;
-                                    $appLevels  = $rules['approval_levels'] ?? (str_contains(strtolower($r->role_name), 'staff') ? 2 : 1);
+                                    $reqLvl1  = $rules['require_same_station_level_1'] ?? ($rules['require_same_station'] ?? true);
+                                    $reqLvl2  = $rules['require_same_station_level_2'] ?? false;
+                                    $appLevels = $rules['approval_levels'] ?? 1;
                                 @endphp
                                 <tr class="hover:bg-slate-50/60 transition-colors">
                                     <td class="p-3 font-bold text-slate-800">
@@ -102,14 +101,36 @@
                                     </td>
 
                                     <td class="p-3 text-center">
-                                        <input type="checkbox" name="hierarchy[{{ $idx }}][require_same_station]" value="1" {{ $reqStation ? 'checked' : '' }} class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
-                                    </td>
-
-                                    <td class="p-3 text-center">
-                                        <select name="hierarchy[{{ $idx }}][approval_levels]" class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
+                                        <select name="hierarchy[{{ $idx }}][approval_levels]"
+                                                onchange="toggleStationRules(this, {{ $idx }})"
+                                                class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
                                             <option value="1" {{ $appLevels == 1 ? 'selected' : '' }}>1 Level (Atasan Saja)</option>
                                             <option value="2" {{ $appLevels == 2 ? 'selected' : '' }}>2 Level (Atasan + Manager)</option>
                                         </select>
+                                    </td>
+
+                                    <td class="p-3 text-left">
+                                        <div class="space-y-1.5">
+                                            {{-- CHECKBOX LEVEL 1 (SELALU MUNCUL) --}}
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox"
+                                                       name="hierarchy[{{ $idx }}][require_same_station_level_1]"
+                                                       value="1"
+                                                       {{ $reqLvl1 ? 'checked' : '' }}
+                                                       class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
+                                                <span class="text-[11px] font-medium text-slate-700">Wajib Stasiun Sama (Atasan Langsung)</span>
+                                            </label>
+
+                                            {{-- CHECKBOX LEVEL 2 (DINAMIS SENSITIF TERHADAP DROPDOWN LEVEL APPROVAL) --}}
+                                            <label id="box_level_2_{{ $idx }}" class="flex items-center gap-2 cursor-pointer {{ $appLevels == 2 ? '' : 'hidden' }}">
+                                                <input type="checkbox"
+                                                       name="hierarchy[{{ $idx }}][require_same_station_level_2]"
+                                                       value="1"
+                                                       {{ $reqLvl2 ? 'checked' : '' }}
+                                                       class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
+                                                <span class="text-[11px] font-medium text-indigo-700">Wajib Stasiun Sama (Atasan Level 2)</span>
+                                            </label>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -275,9 +296,7 @@
 @endsection
 
 @push('scripts')
-<!-- Mermaid.js CDN for Diagram Tree -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<!-- SweetAlert2 JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -289,7 +308,21 @@
 
     const rawRolesData = JSON.parse('@json($daftarRole)');
 
-    // INISIALISASI MERMAID API
+    // DYNAMIC SWITCH CHECKBOX LEVEL 2 BERDASARKAN SELECT APPROVAL
+    function toggleStationRules(selectElement, index) {
+        const boxLevel2 = document.getElementById(`box_level_2_${index}`);
+        if (!boxLevel2) return;
+
+        if (parseInt(selectElement.value) === 2) {
+            boxLevel2.classList.remove('hidden');
+        } else {
+            boxLevel2.classList.add('hidden');
+            // Uncheck level 2 jika diubah ke 1 level
+            const checkboxLvl2 = boxLevel2.querySelector('input[type="checkbox"]');
+            if (checkboxLvl2) checkboxLvl2.checked = false;
+        }
+    }
+
     mermaid.initialize({
         startOnLoad: false,
         theme: 'default',
@@ -339,7 +372,6 @@
         }
     }
 
-    // SWITCH TAB HANDLER
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
