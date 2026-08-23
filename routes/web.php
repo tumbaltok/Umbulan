@@ -7,9 +7,13 @@ use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\RecordController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\StationController;
+use App\Http\Controllers\Car\CarDokumenController;
 use App\Http\Controllers\Car\PengajuanCarController;
+use App\Http\Controllers\Car\PersetujuanCarController;
 use App\Http\Controllers\Cuti\PengajuanCutiController;
+use App\Http\Controllers\Mpr\MprDokumenController;
 use App\Http\Controllers\Mpr\PengajuanMprController;
+use App\Http\Controllers\Mpr\PersetujuanMprController;
 use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
@@ -94,15 +98,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
         Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
-        // Form CAR
+        // Form & Cetak CAR
         Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
         Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
-        Route::get('/car/print/{id}', [PengajuanCarController::class, 'print'])->name('car.print');
+        Route::get('/car/print/{id}', [CarDokumenController::class, 'print'])->name('car.print');
 
-        // Form MPR
+        // Form & Cetak MPR
         Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
         Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
-        Route::get('/mpr/cetak/{id}', [PengajuanMprController::class, 'cetakPdf'])->name('mpr.cetak');
+        Route::get('/mpr/cetak/{id}', [MprDokumenController::class, 'cetakPdf'])->name('mpr.cetak');
     });
 
     // Fitur Jadwal Kerja (Set Initial Shift)
@@ -133,12 +137,12 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
 
     // Jalur Utama Persetujuan CAR
-    Route::get('/admin/persetujuan/car', [PengajuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
-    Route::post('/admin/persetujuan/car/proses/{id}', [PengajuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
+    Route::get('/admin/persetujuan/car', [PersetujuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
+    Route::post('/admin/persetujuan/car/proses/{id}', [PersetujuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
 
     // Jalur Utama Persetujuan MPR
-    Route::get('/admin/persetujuan/mpr', [PengajuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
-    Route::post('/admin/persetujuan/mpr/proses/{id}', [PengajuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
+    Route::get('/admin/persetujuan/mpr', [PersetujuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
+    Route::post('/admin/persetujuan/mpr/proses/{id}', [PersetujuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
 
     // Karyawan
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');

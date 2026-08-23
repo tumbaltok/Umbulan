@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\Mpr\PengajuanMprDetail;
 use App\Models\User\User;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +61,7 @@ class PengajuanMprController extends Controller
         }
     }
 
-    // KARYAWAN: Simpan Pengajuan MPR Baru (Bypass Direct)
+    // KARYAWAN: Simpan Pengajuan MPR Baru
     public function store(Request $request)
     {
         $request->validate([
@@ -82,7 +81,6 @@ class PengajuanMprController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
         }
 
-        // Auto-approve jika yang mengajukan adalah Level Manajerial/Atasan Sendiri
         $statusSupervisor = 'pending';
         $statusManager = 'pending';
         $statusAkhir = 'pending';
@@ -129,7 +127,6 @@ class PengajuanMprController extends Controller
 
             DB::commit();
 
-            // Notifikasi WA ke Semua Atasan di Station Terkait
             if ($statusAkhir === 'pending') {
                 $targetAtasan = User::where('station_id', $user->station_id)
                     ->whereHas('role', function ($query) {
@@ -163,97 +160,5 @@ class PengajuanMprController extends Controller
 
             return back()->withErrors(['error' => 'Gagal menyimpan pengajuan MPR: '.$e->getMessage()])->withInput();
         }
-    }
-
-    // ATASAN & ADMIN: Menampilkan List Pengajuan Masuk (Model Bypass)
-    public function listPengajuan()
-    {
-        $atasan = Auth::user();
-        $roleLevel = $atasan->role->level ?? 4;
-
-        $query = PengajuanMpr::with(['user', 'items'])->orderBy('created_at', 'desc');
-
-        // MODEL BYPASS: Semua Level Atasan (1, 2, dan 3) bisa melihat semua antrean MPR yang status_akhir-nya masih pending
-        if (in_array($roleLevel, [1, 2, 3])) {
-            $query->where('status_akhir', 'pending');
-
-            // Khusus Supervisor (Level 3), batasi hanya staf di Station-nya sendiri
-            if ($roleLevel == 3) {
-                $query->whereHas('user', function ($q) use ($atasan) {
-                    $q->where('station_id', $atasan->station_id);
-                });
-            }
-        } else {
-            abort(403, 'Akses Ditolak.');
-        }
-
-        $daftarPengajuan = $query->get();
-
-        return view('admin.persetujuan.persetujuanmpr', compact('daftarPengajuan'));
-    }
-
-    // ATASAN & ADMIN: Memproses Aksi Setuju / Tolak (Bypass Direct)
-    public function prosesPersetujuan(Request $request, int $id)
-    {
-        $request->validate([
-            'tindakan' => 'required|in:approved,rejected',
-            'catatan_penolakan' => 'nullable|string',
-        ]);
-
-        $atasan = Auth::user();
-        $tindakan = $request->tindakan;
-        $pengajuan = PengajuanMpr::findOrFail($id);
-        $roleLevel = $atasan->role->level ?? 4;
-
-        if (!in_array($roleLevel, [1, 2, 3])) {
-            return redirect()->back()->with('error', 'Akses ditolak. Level akun Anda tidak mencukupi.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Karena bersifat Bypass, siapa pun atasan yang menyetujui/menolak, status_akhir LANGSUNG BERUBAH
-            if ($roleLevel == 3) { // Supervisor
-                $pengajuan->update([
-                    'status_supervisor' => $tindakan,
-                    'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_manager' => $tindakan, // Bypass langsung setuju ke tingkat manager
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
-                ]);
-            } else { // Manager / Admin / Direksi (Level 1 & 2)
-                $pengajuan->update([
-                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? $tindakan : $pengajuan->status_supervisor,
-                    'status_manager' => $tindakan,
-                    'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
-                ]);
-            }
-
-            DB::commit();
-            return redirect()->back()->with('success', 'Status pengajuan MPR berhasil diperbarui.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
-        }
-    }
-
-    // CETAK PDF MPR
-    public function cetakPdf(int $id)
-    {
-        $mpr = PengajuanMpr::with(['user.role', 'user.station', 'supervisor', 'manager', 'items'])->findOrFail($id);
-
-        if ($mpr->status_akhir === 'rejected') {
-            return redirect()->back()->with('error', 'Dokumen MPR yang ditolak tidak dapat dicetak.');
-        }
-
-        $data = [
-            'mpr' => $mpr,
-            'title' => 'Cetak MPR - '.$mpr->nomor_mpr,
-        ];
-
-        $pdf = Pdf::loadView('mpr.mprcetak', $data)->setPaper('a4', 'portrait');
-
-        return $pdf->stream('MPR-'.str_replace('/', '-', $mpr->nomor_mpr).'.pdf');
     }
 }
