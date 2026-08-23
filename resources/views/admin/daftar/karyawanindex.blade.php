@@ -39,20 +39,58 @@
         </div>
     @endif
 
-    {{-- NAVIGASI TAB UTAMA --}}
+    {{-- NAVIGASI TAB UTAMA (DEFAULT ACTIVATED: POHON ORGANISASI) --}}
     <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 rounded-2xl shadow-xs">
         <div class="flex space-x-2">
-            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs">
-                <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
-            </button>
-            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs">
                 <i class="fa-solid fa-sitemap mr-1.5"></i> Struktur Organisasi Karyawan
+            </button>
+            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+                <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
             </button>
         </div>
     </div>
 
-    {{-- TAB 1: TABEL DAFTAR KARYAWAN --}}
-    <div id="tab-karyawan-tabel" class="tab-content">
+    {{-- TAB 1: POHON ORGANISASI KARYAWAN BERDASARKAN ROLE (DEFAULT OPEN / TAMPIL DULUPAN) --}}
+    <div id="tab-karyawan-pohon" class="tab-content space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+
+            {{-- HEADER & TOMBOL KONTROL ZOOM --}}
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Struktur Organisasi Karyawan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Skema hirarki role jabatan beserta daftar karyawan terdaftar yang mengisi posisi tersebut.</p>
+                </div>
+
+                {{-- TOMBOL ZOOM CONTROL --}}
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                    <button type="button" id="btnZoomIn" title="Zoom In (+)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass-plus text-sm"></i>
+                    </button>
+                    <button type="button" id="btnZoomOut" title="Zoom Out (-)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass-minus text-sm"></i>
+                    </button>
+                    <button type="button" id="btnZoomReset" title="Reset Ukuran" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-rotate text-sm"></i>
+                    </button>
+                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
+                    <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i> Reload
+                    </button>
+                </div>
+            </div>
+
+            {{-- WADAH RENDER DIAGRAM MERMAID DENGAN ZOOM --}}
+            <div id="mermaidParent" class="mermaid-container flex justify-center items-center">
+                <div id="karyawanOrgDiagram" class="w-full flex justify-center transition-transform origin-center"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- TAB 2: TABEL DAFTAR KARYAWAN (SEMBUNYI DAHULU / DIBERI CLASS HIDDEN) --}}
+    <div id="tab-karyawan-tabel" class="tab-content hidden">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-sky-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -123,11 +161,10 @@
 
                                 <td class="px-6 py-4">
                                     @php
-                                        $roleName = $karyawan->role->role_name ?? 'Tidak Ada Role';
+                                        $roleNames = $karyawan->roles->pluck('role_name')->implode(' / ');
                                     @endphp
-                                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block
-                                        {{ strtolower($roleName) == 'manager' ? 'bg-purple-50 text-purple-700 border border-purple-100' : (strtolower($roleName) == 'supervisor' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-700 border border-slate-200/50') }}">
-                                        {{ $roleName }}
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 text-slate-700 border border-slate-200/50">
+                                        {{ $roleNames ?: 'Tidak Ada Role' }}
                                     </span>
                                 </td>
 
@@ -198,44 +235,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- TAB 2: POHON ORGANISASI KARYAWAN BERDASARKAN ROLE --}}
-    <div id="tab-karyawan-pohon" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
-
-            {{-- HEADER & TOMBOL KONTROL ZOOM --}}
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Struktur Organisasi Karyawan
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Skema hirarki role jabatan beserta daftar karyawan terdaftar yang mengisi posisi tersebut.</p>
-                </div>
-
-                {{-- TOMBOL ZOOM CONTROL --}}
-                <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                    <button type="button" id="btnZoomIn" title="Zoom In (+)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass-plus text-sm"></i>
-                    </button>
-                    <button type="button" id="btnZoomOut" title="Zoom Out (-)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass-minus text-sm"></i>
-                    </button>
-                    <button type="button" id="btnZoomReset" title="Reset Ukuran" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
-                        <i class="fa-solid fa-rotate text-sm"></i>
-                    </button>
-                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
-                    <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
-                        <i class="fa-solid fa-arrows-rotate"></i> Reload
-                    </button>
-                </div>
-            </div>
-
-            {{-- WADAH RENDER DIAGRAM MERMAID DENGAN ZOOM --}}
-            <div id="mermaidParent" class="mermaid-container flex justify-center items-center">
-                <div id="karyawanOrgDiagram" class="w-full flex justify-center transition-transform origin-center"></div>
             </div>
         </div>
     </div>
@@ -423,21 +422,23 @@
         let graphDef = 'graph TD\n';
         graphDef += '    COMPANY["B O D"]\n\n';
 
-        // 1. Kelompokkan karyawan berdasarkan role_id
+        // 1. Kelompokkan karyawan berdasarkan seluruh roles yang ia miliki (Many-to-Many)
         const karyawanPerRole = {};
         if (rawKaryawanData && rawKaryawanData.length > 0) {
             rawKaryawanData.forEach(u => {
-                const rId = u.role_id || (u.role ? u.role.id : null);
-                if (rId) {
-                    if (!karyawanPerRole[rId]) {
-                        karyawanPerRole[rId] = [];
-                    }
-                    karyawanPerRole[rId].push(u);
+                const rolesList = u.roles || (u.role ? [u.role] : []);
+                if (rolesList.length > 0) {
+                    rolesList.forEach(r => {
+                        if (!karyawanPerRole[r.id]) {
+                            karyawanPerRole[r.id] = [];
+                        }
+                        karyawanPerRole[r.id].push(u);
+                    });
                 }
             });
         }
 
-        // 2. Buat struktur diagram berdasarkan daftarRole persis seperti di Halaman Role
+        // 2. Buat struktur diagram berdasarkan daftarRole
         if (rawRolesData && rawRolesData.length > 0) {
             rawRolesData.forEach(r => {
                 const nodeId = `R${r.id}`;
@@ -457,36 +458,11 @@
 
                 graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
 
-                // Hubungkan rantai hirarki sesuai parent_role_id
                 if (r.parent_role_id && rawRolesData.some(parent => parent.id == r.parent_role_id)) {
                     graphDef += `    R${r.parent_role_id} --> ${nodeId}\n`;
                 } else {
                     graphDef += `    COMPANY --> ${nodeId}\n`;
                 }
-            });
-        } else {
-            // Fallback dinamis jika $daftarRole belum terisi
-            const roleMap = {};
-            rawKaryawanData.forEach(u => {
-                const roleObj = u.role || { id: 'default', role_name: 'Staff' };
-                if (!roleMap[roleObj.id]) {
-                    roleMap[roleObj.id] = {
-                        id: roleObj.id,
-                        name: roleObj.role_name,
-                        members: []
-                    };
-                }
-                roleMap[roleObj.id].members.push(u);
-            });
-
-            Object.values(roleMap).forEach(r => {
-                const nodeId = `R${r.id}`;
-                let nodeLabel = `<b>${r.name}</b>`;
-                r.members.forEach(emp => {
-                    nodeLabel += `<br>${emp.name}`;
-                });
-                graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
-                graphDef += `    COMPANY --> ${nodeId}\n`;
             });
         }
 
@@ -521,7 +497,7 @@
         panzoomInstance = Panzoom(elem, {
             maxScale: 3,
             minScale: 0.1,
-            startScale: 1.0,
+            startScale: 0.9,
             canvas: true
         });
 
@@ -535,11 +511,13 @@
         document.getElementById('btnZoomOut').onclick = panzoomInstance.zoomOut;
         document.getElementById('btnZoomReset').onclick = () => {
             panzoomInstance.reset();
-            panzoomInstance.zoom(1.0);
+            panzoomInstance.zoom(0.9);
         };
     }
 
     function switchTab(tabId) {
+        localStorage.setItem('active_tab_karyawan', tabId);
+
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
@@ -549,8 +527,10 @@
         document.getElementById(tabId).classList.remove('hidden');
 
         const activeBtn = document.getElementById('btn-' + tabId);
-        activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
-        activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        if (activeBtn) {
+            activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
+            activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        }
 
         if (tabId === 'tab-karyawan-pohon') {
             setTimeout(() => {
@@ -560,8 +540,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Otomatis jalankan render diagram saat halaman dimuat
-        renderKaryawanOrgChart();
+        // BACA TAB TERAKHIR DARI LOCALSTORAGE (JIKA KOSONG, DEFAULT KE TAB POHON)
+        const savedTab = localStorage.getItem('active_tab_karyawan') || 'tab-karyawan-pohon';
+        switchTab(savedTab);
 
         const searchInput = document.getElementById("searchKaryawanInput");
         const noResultRow = document.getElementById("noResultRow");

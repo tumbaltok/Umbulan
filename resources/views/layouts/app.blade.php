@@ -114,10 +114,12 @@
 <body class="bg-slate-50 min-h-screen text-slate-800 flex overflow-hidden">
 
     @php
-        $authUser  = Auth::user();
-        $roleLevel = (int) ($authUser->role->level ?? 99);
-        $hasAccess   = ($roleLevel === 1 || $roleLevel === 2);
-        $isAdminRole = ($roleLevel === 1 || $roleLevel === 2);
+        $authUser    = Auth::user();
+        $userRoles   = $authUser->roles;
+        $isRootAdmin = $userRoles->contains('id', 1);
+        $isLevel1Or2 = $userRoles->contains(fn($r) => (int)$r->level <= 2);
+        $hasAccess   = $isRootAdmin || $isLevel1Or2;
+        $isAdminRole = $isRootAdmin || $isLevel1Or2;
     @endphp
 
     <!-- SIDEBAR -->
@@ -399,17 +401,7 @@
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight group-hover:text-sky-600 transition-colors">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {{ Auth::user()->role->role_name ?? 'USER' }}
-                        @php
-                            $userAuth = Auth::user();
-                            $jobText = $userAuth->jobdesk
-                                ?? $userAuth->job_title
-                                ?? optional($userAuth->jobTitle)->job_title;
-                        @endphp
-
-                        @if(!empty($jobText))
-                            • {{ $jobText }}
-                        @endif
+                        {{ Auth::user()->roles->pluck('role_name')->implode(' / ') ?? 'USER' }}
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">

@@ -114,11 +114,10 @@ class AuthController extends Controller
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
-            'role_id' => $request->role_id,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
-            'supervisor_id' => $supervisorId,
-            'manager_id' => $managerId,
+            // 'supervisor_id' => $supervisorId,
+            // 'manager_id' => $managerId,
             'password' => Hash::make($request->password),
         ]);
 

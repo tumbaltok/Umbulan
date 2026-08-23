@@ -5,6 +5,7 @@ namespace App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
@@ -25,9 +26,9 @@ class Role extends Model
         'approval_rules' => 'array',
     ];
 
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'role_user')->withPivot('is_primary')->withTimestamps();
     }
 
     public function parentRole(): BelongsTo

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,24 +16,24 @@ class CekAtasan
             return redirect()->route('login');
         }
 
+        /** @var User $user */
         $user = Auth::user();
-        $role = $user->role;
 
-        if (! $role) {
-            return redirect()->route('dashboard')->with('error', 'Akun Anda belum memiliki role jabatan!');
+        // BYPASS FULL AKSES
+        if ($user->roles->contains('id', 1)) {
+            return $next($request);
         }
 
-        $level = (int) ($role->level ?? 99);
+        // Ambil level paling tinggi/berhak (angka terkecil) dari seluruh role yang diampu user
+        $minLevel = $user->roles()->min('level') ?? 99;
 
-        // UBAH LOGIKA DI SINI:
-        // Jika level lebih dari 2 (yaitu Level 3, 4, 5, dst.), TOLAK DENGAN STRUKTUR TEGAS
-        if ($level > 2) {
+        // Level > 2 (Level 3, 4, 5, dst) Ditolak dari Area Administrator
+        if ($minLevel > 2) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman administrator!');
         }
 
-        // Level 2 = Read Only (Bisa lihat fitur admin, tapi dilarang ubah data admin)
-        if ($level === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-            // Kecualikan rute persetujuan (tetap boleh approve/reject jika ditujukan kepadanya)
+        // Level 2 = Monitoring / Read-Only (Kecuali untuk Rute Persetujuan)
+        if ($minLevel === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             $isApprovalRoute = $request->routeIs('admin.persetujuan.*');
 
             if (! $isApprovalRoute) {

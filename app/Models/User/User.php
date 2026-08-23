@@ -25,11 +25,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role_id',
         'gender_id',
         'station_id',
-        'supervisor_id',
-        'manager_id',
+        'atasan_langsung_id',
+        'atasan_dua_id',
         'phone_number',
         'profile_photo',
         'signature',
@@ -63,16 +62,14 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         static::created(function ($user) {
-            // Ambil semua master Jenis Cuti
             $semuaJenisCuti = JenisCuti::all();
 
             foreach ($semuaJenisCuti as $cuti) {
-                // 1. Proteksi Cuti Melahirkan (id = 3) -> Hanya untuk Gender Wanita (id = 2)
+                // Proteksi Cuti Melahirkan (id = 3) -> Hanya untuk Gender Wanita (id = 2)
                 if ($cuti->id == 3 && $user->gender_id != 2) {
                     continue;
                 }
 
-                // 2. Tentukan kuota & saldo awal
                 $saldoAwal = $cuti->kuota_default ?? 0;
 
                 // Jika Ijin Meninggalkan Pekerjaan (id = 1) dan Gender Wanita (id = 2), beri kuota 2 untuk Haid
@@ -96,27 +93,39 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     const CUTI_TAHUNAN_ID = 4;
-
     const CUTI_HAID_ID = 5;
 
-    const JOB_OPERATOR = 'Operator';
-
-    const JOB_MAINTENANCE = 'Maintenance';
-
-    const JOB_HSE = 'HSE';
-
-    const JOB_DOKUMENTASI = 'Dokumentasi';
+    // const JOB_OPERATOR = 'Operator';
+    // const JOB_MAINTENANCE = 'Maintenance';
+    // const JOB_HSE = 'HSE';
+    // const JOB_DOKUMENTASI = 'Dokumentasi';
 
     // --- RELASI MODEL ---
+
+    /**
+     * Relasi Banyak ke Banyak (Many-to-Many) untuk Rangkapan Jabatan via tabel pivot role_user
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    /**
+     * Helper Backward Compatibility untuk mengambil Role Utama
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id')->withDefault(function () {
+            return $this->roles()->wherePivot('is_primary', true)->first()
+                ?? $this->roles()->first();
+        });
+    }
 
     public function station(): BelongsTo
     {
         return $this->belongsTo(Station::class, 'station_id', 'id');
-    }
-
-    public function role(): BelongsTo
-    {
-        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
     public function gender(): BelongsTo
@@ -126,12 +135,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function supervisor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'supervisor_id', 'id');
+        return $this->belongsTo(User::class, 'atasan_langsung_id', 'id');
     }
 
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'manager_id', 'id');
+        return $this->belongsTo(User::class, 'atasan_dua_id', 'id');
     }
 
     public function stations(): BelongsToMany
@@ -142,7 +151,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function cuti_aktif(): HasMany
     {
         return $this->hasMany(PengajuanCuti::class, 'user_id')
-            ->where('status_manager', 'approved')
+            ->where('status_akhir', 'approved')
             ->whereDate('tanggal_mulai', '<=', now())
             ->whereDate('tanggal_selesai', '>=', now());
     }

@@ -373,6 +373,9 @@
     }
 
     function switchTab(tabId) {
+        // SIMPAN TAB AKTIF KE LOCALSTORAGE
+        localStorage.setItem('active_tab_role', tabId);
+
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
@@ -382,8 +385,10 @@
         document.getElementById(tabId).classList.remove('hidden');
 
         const activeBtn = document.getElementById('btn-' + tabId);
-        activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
-        activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        if (activeBtn) {
+            activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
+            activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
+        }
 
         if (tabId === 'tab-hierarchy') {
             setTimeout(() => {
@@ -393,12 +398,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // AMBIL TAB DARI LOCALSTORAGE, ATAU SESSION, ATAU DEFAULT TO 'tab-hierarchy'
         const activeTabSession = JSON.parse(`{!! json_encode(session('active_tab')) !!}`);
-        if (activeTabSession) {
-            switchTab(activeTabSession);
-        } else {
-            switchTab('tab-hierarchy');
-        }
+        const savedTab = localStorage.getItem('active_tab_role') || activeTabSession || 'tab-hierarchy';
+
+        switchTab(savedTab);
 
         if (sessionSuccess) {
             Swal.fire({

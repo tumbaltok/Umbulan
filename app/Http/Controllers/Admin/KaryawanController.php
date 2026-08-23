@@ -36,7 +36,7 @@ class KaryawanController extends Controller
         $daftarRole = Role::orderBy('level', 'asc')->get();
 
         $query = User::with([
-            'role',
+            'roles', // PERBAIKAN: Menggunakan relasi BelongsToMany
             'station',
             'supervisor',
             'manager',
@@ -52,12 +52,20 @@ class KaryawanController extends Controller
             },
         ]);
 
-        // PERBAIKAN: Jika user bukan Top Level (BOD), batasi daftar karyawan berdasarkan cabang kodenya (tree_code)
-        if (!empty($currentUser->role->parent_role_id)) {
-            $userTreeCode = $currentUser->role->tree_code;
-            if ($userTreeCode) {
-                $query->whereHas('role', function ($q) use ($userTreeCode) {
-                    $q->where('tree_code', 'LIKE', $userTreeCode . '%');
+        $userRoles = $currentUser->roles;
+
+        $isAdminRole = $userRoles->contains('id', 1);
+        $hasTopRole  = $userRoles->contains(fn($r) => empty($r->parent_role_id));
+
+        if (! $isAdminRole && ! $hasTopRole) {
+            $userTreeCodes = $userRoles->pluck('tree_code')->filter()->toArray();
+            if (! empty($userTreeCodes)) {
+                $query->whereHas('roles', function ($q) use ($userTreeCodes) {
+                    $q->where(function ($subQ) use ($userTreeCodes) {
+                        foreach ($userTreeCodes as $code) {
+                            $subQ->orWhere('tree_code', 'LIKE', $code . '%');
+                        }
+                    });
                 });
             }
         }
@@ -110,25 +118,26 @@ class KaryawanController extends Controller
     public function showDetail(int $id): JsonResponse
     {
         try {
-            $karyawan = User::with(['role', 'station', 'saldoCuti.jenisCuti'])->find($id);
+            $karyawan = User::with(['roles', 'station', 'saldoCuti.jenisCuti'])->find($id);
 
             if (! $karyawan) {
                 return response()->json(['message' => 'Karyawan tidak ditemukan'], 404);
             }
 
             $todaySchedule = $this->scheduleService->getTodaySchedule($karyawan);
+            $primaryRole = $karyawan->roles->where('pivot.is_primary', true)->first() ?? $karyawan->roles->first();
+            $roleNames = $karyawan->roles->pluck('role_name')->implode(' / ');
 
             return response()->json([
                 'id' => $karyawan->id,
                 'nip' => $karyawan->nip ?? '-',
                 'name' => $karyawan->name ?? '-',
                 'email' => $karyawan->email ?? '-',
-                'sektor' => optional($karyawan->role)->role_name ?? 'Operasional',
+                'sektor' => optional($primaryRole)->role_name ?? 'Operasional',
                 'phone_number' => $karyawan->phone_number ?? null,
                 'profile_photo' => $karyawan->profile_photo ?? null,
-                'role_name' => optional($karyawan->role)->role_name ?? 'Tidak Ada Role',
+                'role_name' => $roleNames ?: 'Tidak Ada Role',
                 'nama_stasiun' => optional($karyawan->station)->name ?? '-',
-                'job_title' => $karyawan->job_title ?? 'Belum Memilih',
                 'schedule_type' => $karyawan->schedule_type ?? 'normal',
                 'normal_work_days' => is_array($karyawan->normal_work_days) ? implode(', ', $karyawan->normal_work_days) : ($karyawan->normal_work_days ?? 'Senin - Jumat'),
                 'normal_check_in' => $karyawan->normal_check_in ? Carbon::parse($karyawan->normal_check_in)->format('H:i') : '08:00',
