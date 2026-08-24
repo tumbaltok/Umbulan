@@ -17,14 +17,24 @@ class PengajuanMpr extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function approverTahap1()
+    {
+        return $this->belongsTo(User::class, 'approver_tahap_1_id');
+    }
+
+    public function approverTahap2()
+    {
+        return $this->belongsTo(User::class, 'approver_tahap_2_id');
+    }
+
     public function supervisor()
     {
-        return $this->belongsTo(User::class, 'supervisor_id');
+        return $this->belongsTo(User::class, 'approver_tahap_1_id');
     }
 
     public function manager()
     {
-        return $this->belongsTo(User::class, 'manager_id');
+        return $this->belongsTo(User::class, 'approver_tahap_2_id');
     }
 
     public function items()

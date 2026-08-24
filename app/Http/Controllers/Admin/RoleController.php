@@ -78,9 +78,21 @@ class RoleController extends Controller
             'hierarchy' => 'required|array',
             'hierarchy.*.role_id' => 'required|exists:roles,id',
             'hierarchy.*.parent_role_id' => 'nullable|exists:roles,id',
-            'hierarchy.*.approval_levels' => 'required|integer|in:1,2',
-            'hierarchy.*.approver_level_1_role_id' => 'nullable|exists:roles,id',
-            'hierarchy.*.approver_level_2_role_id' => 'nullable|exists:roles,id',
+
+            // Validasi Cuti
+            'hierarchy.*.cuti_approval_levels' => 'nullable|integer|in:1,2',
+            'hierarchy.*.cuti_approver_1_role_id' => 'nullable|exists:roles,id',
+            'hierarchy.*.cuti_approver_2_role_id' => 'nullable|exists:roles,id',
+
+            // Validasi CAR
+            'hierarchy.*.car_approval_levels' => 'nullable|integer|in:1,2',
+            'hierarchy.*.car_approver_1_role_id' => 'nullable|exists:roles,id',
+            'hierarchy.*.car_approver_2_role_id' => 'nullable|exists:roles,id',
+
+            // Validasi MPR
+            'hierarchy.*.mpr_approval_levels' => 'nullable|integer|in:1,2',
+            'hierarchy.*.mpr_approver_1_role_id' => 'nullable|exists:roles,id',
+            'hierarchy.*.mpr_approver_2_role_id' => 'nullable|exists:roles,id',
         ]);
 
         foreach ($request->hierarchy as $item) {
@@ -90,24 +102,65 @@ class RoleController extends Controller
                 ? $item['parent_role_id']
                 : null;
 
-            $approvalLevels = (int) ($item['approval_levels'] ?? 1);
+            $existingRules = $role->approval_rules ?? [];
+            if (!is_array($existingRules)) {
+                $existingRules = [];
+            }
 
-            $approvalRules = [
-                'approval_levels'          => $approvalLevels,
-                'approver_level_1_role_id' => !empty($item['approver_level_1_role_id']) ? (int) $item['approver_level_1_role_id'] : null,
-                'approver_level_2_role_id' => ($approvalLevels === 2 && !empty($item['approver_level_2_role_id'])) ? (int) $item['approver_level_2_role_id'] : null,
-            ];
+            // 1. MODUL CUTI
+            if (isset($item['cuti_approval_levels'])) {
+                $cutiLevels = (int) ($item['cuti_approval_levels'] ?? 1);
+                $cutiApprover1 = !empty($item['cuti_approver_1_role_id']) ? (int) $item['cuti_approver_1_role_id'] : null;
+                $cutiApprover2 = ($cutiLevels === 2 && !empty($item['cuti_approver_2_role_id'])) ? (int) $item['cuti_approver_2_role_id'] : null;
+
+                $existingRules['cuti'] = [
+                    'levels'             => $cutiLevels,
+                    'approver_1_role_id' => $cutiApprover1,
+                    'approver_2_role_id' => $cutiApprover2,
+                ];
+
+                // Fallback compatibility
+                $existingRules['approval_levels'] = $cutiLevels;
+                $existingRules['approver_level_1_role_id'] = $cutiApprover1;
+                $existingRules['approver_level_2_role_id'] = $cutiApprover2;
+            }
+
+            // 2. MODUL CAR
+            if (isset($item['car_approval_levels'])) {
+                $carLevels = (int) ($item['car_approval_levels'] ?? 1);
+                $carApprover1 = !empty($item['car_approver_1_role_id']) ? (int) $item['car_approver_1_role_id'] : null;
+                $carApprover2 = ($carLevels === 2 && !empty($item['car_approver_2_role_id'])) ? (int) $item['car_approver_2_role_id'] : null;
+
+                $existingRules['car'] = [
+                    'levels'             => $carLevels,
+                    'approver_1_role_id' => $carApprover1,
+                    'approver_2_role_id' => $carApprover2,
+                ];
+            }
+
+            // 3. MODUL MPR
+            if (isset($item['mpr_approval_levels'])) {
+                $mprLevels = (int) ($item['mpr_approval_levels'] ?? 1);
+                $mprApprover1 = !empty($item['mpr_approver_1_role_id']) ? (int) $item['mpr_approver_1_role_id'] : null;
+                $mprApprover2 = ($mprLevels === 2 && !empty($item['mpr_approver_2_role_id'])) ? (int) $item['mpr_approver_2_role_id'] : null;
+
+                $existingRules['mpr'] = [
+                    'levels'             => $mprLevels,
+                    'approver_1_role_id' => $mprApprover1,
+                    'approver_2_role_id' => $mprApprover2,
+                ];
+            }
 
             $role->update([
                 'parent_role_id' => $parentId,
-                'approval_rules' => $approvalRules,
+                'approval_rules' => $existingRules,
             ]);
         }
 
         $this->rebuildRoleTree();
 
         return redirect()->back()
-            ->with('success', 'Skema hirarki dan aturan persetujuan role berhasil diperbarui!')
+            ->with('success', 'Skema hierarki dan aturan persetujuan modul berhasil diperbarui!')
             ->with('active_tab', 'tab-hierarchy');
     }
 }

@@ -196,45 +196,6 @@
                     </div>
                 </div>
 
-                <!-- Fasilitas CAR -->
-                @php $isCarActive = request()->is('car/*') || request()->is('admin/persetujuan/car*'); @endphp
-                <div class="dropdown-container" data-active="{{ $isCarActive ? 'true' : 'false' }}">
-                    <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCarActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas CAR">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-file-invoice-dollar text-base text-center"></i>
-                            </div>
-                            <span class="hide-on-collapse">Fasilitas CAR</span>
-                        </div>
-                        <div class="flex items-center space-x-2 hide-on-collapse">
-                            @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
-                                <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
-                            @endif
-                            <i class="fa-solid fa-chevron-down text-xs chevron-icon"></i>
-                        </div>
-                    </button>
-
-                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/car/create" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                            <span class="hide-on-collapse">Ajukan CAR</span>
-                        </a>
-                        <a href="/car/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                            <span class="hide-on-collapse">Riwayat CAR</span>
-                        </a>
-
-                        @if($hasAccess)
-                            <a href="{{ route('admin.persetujuan.car') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Persetujuan CAR</span>
-                                @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
-                                    <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
-                                        {{ $jumlahSaranCar }}
-                                    </span>
-                                @endif
-                            </a>
-                        @endif
-                    </div>
-                </div>
-
                 <!-- Fasilitas MPR -->
                 @php $isMprActive = request()->is('mpr/*') || request()->is('admin/persetujuan/mpr*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isMprActive ? 'true' : 'false' }}">
@@ -267,6 +228,45 @@
                                 @if(isset($jumlahSaranMpr) && $jumlahSaranMpr > 0)
                                     <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
                                         {{ $jumlahSaranMpr }}
+                                    </span>
+                                @endif
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Fasilitas CAR -->
+                @php $isCarActive = request()->is('car/*') || request()->is('admin/persetujuan/car*'); @endphp
+                <div class="dropdown-container" data-active="{{ $isCarActive ? 'true' : 'false' }}">
+                    <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCarActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas CAR">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-file-invoice-dollar text-base text-center"></i>
+                            </div>
+                            <span class="hide-on-collapse">Fasilitas CAR</span>
+                        </div>
+                        <div class="flex items-center space-x-2 hide-on-collapse">
+                            @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
+                                <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
+                            @endif
+                            <i class="fa-solid fa-chevron-down text-xs chevron-icon"></i>
+                        </div>
+                    </button>
+
+                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
+                        <a href="/car/create" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                            <span class="hide-on-collapse">Ajukan CAR</span>
+                        </a>
+                        <a href="/car/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                            <span class="hide-on-collapse">Riwayat CAR</span>
+                        </a>
+
+                        @if($hasAccess)
+                            <a href="{{ route('admin.persetujuan.car') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                                <span class="hide-on-collapse">Persetujuan CAR</span>
+                                @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
+                                    <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
+                                        {{ $jumlahSaranCar }}
                                     </span>
                                 @endif
                             </a>

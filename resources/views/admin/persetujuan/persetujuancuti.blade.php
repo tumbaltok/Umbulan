@@ -23,8 +23,8 @@
                         <th class="px-6 py-4 text-center">Jenis Cuti</th>
                         <th class="px-6 py-4 text-center">Tanggal Pelaksanaan</th>
                         <th class="px-6 py-4 text-center">Total Hari</th>
-                        <th class="px-6 py-4 text-center">Status SPV</th>
-                        <th class="px-6 py-4 text-center">Status Manager</th>
+                        <th class="px-6 py-4 text-center">Status Step 1</th>
+                        <th class="px-6 py-4 text-center">Status Step 2</th>
                         <th class="px-6 py-4 text-center">Aksi Tindakan</th>
                     </tr>
                 </thead>
@@ -34,7 +34,7 @@
                             <td class="px-6 py-4 font-medium text-slate-900 text-center">{{ $item->user_name }}</td>
 
                             <td class="px-6 py-4">
-                                <div class="font-medium text-slate-800 text-center">{{ $item->nama_sub_cuti }}</div>
+                                <div class="font-medium text-slate-800 text-center">{{ $item->nama_sub_cuti ?? $item->name_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
                                     <div class="mt-1">
                                         <button type="button"
@@ -66,7 +66,7 @@
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
                                     {{ $item->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : ($item->status_tahap_2 === 'not_required' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-700')) }}">
-                                    {{ $item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2) }}
+                                    {{ $item->status_tahap_2 === 'not_required' ? '1 Step Only' : ($item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2)) }}
                                 </span>
                             </td>
 

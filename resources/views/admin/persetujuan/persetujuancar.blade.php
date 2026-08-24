@@ -29,7 +29,21 @@
                 @forelse($daftarPengajuan as $car)
                 <tr>
                     <td class="p-4 whitespace-nowrap font-medium text-slate-900 align-center text-center">
-                        {{ $car->user->name }}
+                        <div class="font-bold text-slate-800">{{ $car->user->name }}</div>
+                        <div class="flex items-center justify-center gap-1.5 mt-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold {{ $car->status_tahap_1 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($car->status_tahap_1 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                Step 1: {{ ucfirst($car->status_tahap_1) }}
+                            </span>
+                            @if($car->status_tahap_2 !== 'not_required')
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold {{ $car->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($car->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    Step 2: {{ ucfirst($car->status_tahap_2) }}
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">
+                                    1 Step Only
+                                </span>
+                            @endif
+                        </div>
                     </td>
 
                     <td class="p-4 align-top min-w-[320px]">

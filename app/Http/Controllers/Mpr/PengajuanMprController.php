@@ -46,13 +46,29 @@ class PengajuanMprController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
         }
 
-        if (empty($user->atasan_role_id)) {
+        $user = Auth::user();
+        $role = $user->role;
+        $rules = $role?->approval_rules ?? [];
+        $mprRules = $rules['mpr'] ?? [];
+
+        $levels = (int) ($mprRules['levels'] ?? ($rules['approval_levels'] ?? 1));
+        $approver1RoleId = $mprRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+        $approver2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+
+        if (empty($approver1RoleId) && empty($role?->parent_role_id)) {
+            // Top Level tanpa approver otomatis approved
             $statusTahap1 = 'approved';
-            $statusTahap2 = 'approved';
+            $statusTahap2 = 'not_required';
             $statusAkhir  = 'approved';
-        } else {
+        } elseif ($levels === 2 && !empty($approver2RoleId)) {
+            // Alur 2 Step Berjenjang
             $statusTahap1 = 'pending';
             $statusTahap2 = 'pending';
+            $statusAkhir  = 'pending';
+        } else {
+            // Alur 1 Step
+            $statusTahap1 = 'pending';
+            $statusTahap2 = 'not_required';
             $statusAkhir  = 'pending';
         }
 

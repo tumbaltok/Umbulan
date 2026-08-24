@@ -63,6 +63,51 @@
         </div>
     @endif
 
+    {{-- Statistik Ringkasan --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
+            <div class="p-3 bg-sky-50 text-sky-600 rounded-xl">
+                <i class="fa-solid fa-calendar-days text-xl w-6 text-center"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hak Cuti Tahunan</p>
+                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $kuotaTahunan }} Hari</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
+            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <i class="fa-solid fa-umbrella-beach text-xl w-6 text-center"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Cuti Telah Diambil</p>
+                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $totalCutiDiambil }} Hari</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
+            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                <i class="fa-solid fa-hourglass-half text-xl w-6 text-center"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Menunggu Review</p>
+                <h3 class="text-xl font-bold text-slate-800 mt-0.5">
+                    {{ $totalPending }} Pengajuan
+                </h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
+            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                <i class="fa-solid fa-circle-check text-xl w-6 text-center"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Sisa Kuota Cuti</p>
+                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $sisaKuota }} Hari</h3>
+            </div>
+        </div>
+    </div>
+
     {{-- Widget Absensi & Jadwal Kerja --}}
     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
@@ -406,51 +451,6 @@
         </div>
     </div>
 
-    {{-- Statistik Ringkasan --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-            <div class="p-3 bg-sky-50 text-sky-600 rounded-xl">
-                <i class="fa-solid fa-calendar-days text-xl w-6 text-center"></i>
-            </div>
-            <div>
-                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hak Cuti Tahunan</p>
-                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $kuotaTahunan }} Hari</h3>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <i class="fa-solid fa-umbrella-beach text-xl w-6 text-center"></i>
-            </div>
-            <div>
-                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Cuti Telah Diambil</p>
-                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $totalCutiDiambil }} Hari</h3>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <i class="fa-solid fa-hourglass-half text-xl w-6 text-center"></i>
-            </div>
-            <div>
-                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Menunggu Review</p>
-                <h3 class="text-xl font-bold text-slate-800 mt-0.5">
-                    {{ (isset($totalPendingCuti) ? $totalPendingCuti : $totalPending) + (isset($totalPendingCar) ? $totalPendingCar : 0) }} Pengajuan
-                </h3>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                <i class="fa-solid fa-circle-check text-xl w-6 text-center"></i>
-            </div>
-            <div>
-                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Sisa Kuota Cuti</p>
-                <h3 class="text-xl font-bold text-slate-800 mt-0.5">{{ $sisaKuota }} Hari</h3>
-            </div>
-        </div>
-    </div>
-
     {{-- Tabel Riwayat Cuti Anda --}}
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
@@ -458,7 +458,7 @@
                 <h3 class="font-bold text-slate-800">Riwayat Cuti Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
             </div>
-            <a href="{{ url('/cuti/ajukan') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/cuti/create') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan Cuti</span>
             </a>
@@ -495,7 +495,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4" onclick="event.stopPropagation();">
-                                    @if(trim(strtolower($cuti->status_supervisor ?? ''))) === 'approved' && trim(strtolower($cuti->status_manager ?? '')) === 'approved' && trim(strtolower($cuti->status_akhir ?? '')) === 'approved')
+                                @if(trim(strtolower($cuti->status_akhir ?? '')) === 'approved')
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -510,7 +510,7 @@
                                             <span>Cetak</span>
                                         </button>
                                     </div>
-                                @elseif(trim(strtolower($cuti->status_supervisor ?? '')) === 'rejected' || trim(strtolower($cuti->status_manager ?? '')) === 'rejected' || trim(strtolower($cuti->status_akhir ?? '')) === 'rejected')
+                                @elseif(trim(strtolower($cuti->status_akhir ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_2 ?? '')) === 'rejected')
                                     <div class="space-y-1.5">
                                         <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -544,14 +544,113 @@
         </div>
     </div>
 
+    {{-- Tabel Riwayat MPR Anda --}}
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h3 class="font-bold text-slate-800">Riwayat MPR Anda</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
+            </div>
+            <a href="{{ url('/mpr/create') }}" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Ajukan MPR</span>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-100 uppercase tracking-wider">
+                        <th class="px-6 py-3.5">Nomor & Tanggal</th>
+                        <th class="px-6 py-3.5">Keperluan / Urgensi</th>
+                        <th class="px-6 py-3.5">Daftar Material</th>
+                        <th class="px-6 py-3.5">Status Persetujuan</th>
+                        <th class="px-6 py-3.5 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    @forelse($riwayatMpr as $mpr)
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-slate-800 block text-xs">{{ $mpr->nomor_mpr }}</span>
+                                <span class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d M Y') }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-xs font-medium text-slate-700 max-w-xs truncate" title="{{ $mpr->keperluan_urgensi }}">
+                                {{ $mpr->keperluan_urgensi }}
+                            </td>
+                            <td class="px-6 py-4 text-xs">
+                                <ul class="list-disc pl-4 space-y-0.5">
+                                    @foreach($mpr->items->take(2) as $item)
+                                        <li><span class="font-semibold text-slate-700">{{ $item->nama_barang }}</span> ({{ $item->jumlah }} {{ $item->satuan }})</li>
+                                    @endforeach
+                                    @if($mpr->items->count() > 2)
+                                        <li class="text-slate-400 italic">+{{ $mpr->items->count() - 2 }} item lainnya</li>
+                                    @endif
+                                </ul>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col items-start gap-1.5">
+                                    @if(trim(strtolower($mpr->status_akhir ?? '')) === 'approved')
+                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Disetujui</span>
+                                        </span>
+                                    @elseif(trim(strtolower($mpr->status_akhir ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_2 ?? '')) === 'rejected')
+                                        <div class="space-y-1.5">
+                                            <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                <span>Ditolak</span>
+                                            </span>
+                                            @if($mpr->catatan_penolakan)
+                                                <div class="text-[11px] bg-rose-50/50 border border-rose-100 p-2 rounded-lg max-w-[200px] text-slate-600 leading-relaxed">
+                                                    <span class="font-bold text-rose-700 block mb-0.5">Alasan Penolakan:</span>
+                                                    "{{ $mpr->catatan_penolakan }}"
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <span>Menunggu Review</span>
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if(trim(strtolower($mpr->status_akhir ?? '')) === 'approved')
+                                    <button type="button"
+                                            data-url="{{ route('mpr.cetak', $mpr->id) }}"
+                                            onclick="bukaPratinjauCetak(this.dataset.url)"
+                                            class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm cursor-pointer">
+                                        <i class="fa-solid fa-print text-[10px]"></i>
+                                        <span>Cetak PDF</span>
+                                    </button>
+                                @else
+                                    <span class="text-xs text-slate-400">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                                <i class="fa-solid fa-boxes-packing text-3xl mb-2 block text-slate-200"></i>
+                                Anda belum pernah mengajukan permohonan MPR.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     {{-- Tabel Riwayat CAR Anda --}}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <div>
                 <h3 class="font-bold text-slate-800">Riwayat CAR Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
             </div>
-            <a href="{{ url('/car/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/car/create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan CAR</span>
             </a>
@@ -581,7 +680,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col items-start gap-1.5">
-                                    @if(trim(strtolower($car->status_manager)) === 'approved' && trim(strtolower($car->status_supervisor)) === 'approved' && trim(strtolower($car->status_akhir)) === 'approved')
+                                    @if(trim(strtolower($car->status_akhir ?? '')) === 'approved')
                                         <div class="flex items-center gap-2">
                                             <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -596,7 +695,7 @@
                                                 <span>Cetak</span>
                                             </button>
                                         </div>
-                                    @elseif(trim(strtolower($car->status_supervisor)) === 'rejected' || trim(strtolower($car->status_manager)) === 'rejected' || trim(strtolower($car->status_akhir)) === 'rejected')
+                                    @elseif(trim(strtolower($car->status_akhir ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_2 ?? '')) === 'rejected')
                                         <div class="space-y-1.5">
                                             <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -630,7 +729,6 @@
             </table>
         </div>
     </div>
-
 </div>
 
 {{-- Modal Pratinjau Dokumen Lampiran --}}
@@ -707,6 +805,8 @@
             judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen CAR';
         } else if (urlFile.includes('cuti')) {
             judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen Cuti';
+        } else if (urlFile.includes('mpr')) {
+            judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen MPR';
         } else {
             judulModal.innerText = 'Pratinjau Dokumen Cetak';
         }

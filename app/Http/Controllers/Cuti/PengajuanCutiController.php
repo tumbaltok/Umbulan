@@ -211,18 +211,29 @@ class PengajuanCutiController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_cuti', 'public');
         }
 
-        // PENENTUAN STATUS AWAL BERDASARKAN PARENT_ROLE_ID
-        $parentRoleId = $user->role ? $user->role->parent_role_id : null;
+        // PENENTUAN STATUS AWAL BERDASARKAN DYNAMIC APPROVAL RULES DI ROLE PEMOHON
+        $role = $user->role;
+        $rules = $role?->approval_rules ?? [];
+        $cutiRules = $rules['cuti'] ?? [];
 
-        if (empty($parentRoleId)) {
-            // Top Level (misal GM/Direksi) otomatis disetujui
+        $levels = (int) ($cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1));
+        $approver1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+        $approver2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+
+        if (empty($approver1RoleId) && empty($role?->parent_role_id)) {
+            // Top Level (misal GM/Direksi tanpa approver) otomatis disetujui
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';
             $statusAkhir  = 'approved';
-        } else {
-            // Membutuhkan persetujuan atasan
+        } elseif ($levels === 2 && !empty($approver2RoleId)) {
+            // Alur 2 Step Berjenjang
             $statusTahap1 = 'pending';
             $statusTahap2 = 'pending';
+            $statusAkhir  = 'pending';
+        } else {
+            // Alur 1 Step
+            $statusTahap1 = 'pending';
+            $statusTahap2 = 'not_required';
             $statusAkhir  = 'pending';
         }
 

@@ -7,6 +7,7 @@ use App\Models\Absen\Kehadiran;
 use App\Models\Car\PengajuanCar;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
+use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\CalendarScheduleService;
@@ -131,22 +132,36 @@ class DashboardController extends Controller
             ->where('status_akhir', 'pending')
             ->count();
 
-        $totalPending = $pendingCuti + $pendingCar;
+        // Hitung pending MPR
+        $pendingMpr = DB::table('pengajuan_mprs')
+            ->where('user_id', $user->id)
+            ->where('status_akhir', 'pending')
+            ->count();
+
+        $totalPending = $pendingCuti + $pendingCar + $pendingMpr;
 
         // 7. Hitung Sisa Kuota Real-Time
         $sisaKuota = $saldoTahunan->sisa_saldo ?? max(0, $kuotaTahunan - $totalCutiDiambil);
 
-        // 8. Riwayat CAR & Cuti
-        $riwayatCar = PengajuanCar::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+        // 8. Riwayat Cuti, CAR, & MPR
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
             ->where('pengajuan_cutis.user_id', $user->id)
             ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti')
             ->orderBy('pengajuan_cutis.created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $riwayatCar = PengajuanCar::with('details')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $riwayatMpr = PengajuanMpr::with('items')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
@@ -161,6 +176,7 @@ class DashboardController extends Controller
             'sisaKuota',
             'riwayatCuti',
             'riwayatCar',
+            'riwayatMpr',
             'todaySchedule',
             'todayAttendance',
             'calendarDays',

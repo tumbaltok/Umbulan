@@ -54,11 +54,26 @@
 
         {{-- FORM MATRIKS CUSTOM RELASI ATASAN & DYNAMIC APPROVAL RULES --}}
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
-            <div class="border-b border-slate-100 pb-4">
-                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Pengaturan Atasan & Dynamic Approval Scope
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando, tingkat tahapan approval, serta penanggung jawab role penyetuju.</p>
+            <div class="border-b border-slate-100 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Hierarki & Penyetuju Dinamis
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Atur struktur atasan langsung serta alur persetujuan (1 Step / 2 Step) untuk Modul Cuti, CAR, dan MPR.</p>
+                </div>
+
+                {{-- SUB-TAB SWITCHER MODUL --}}
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl gap-1 self-start">
+                    <button type="button" onclick="switchMatrixTab('matrix-cuti')" id="btn-matrix-cuti" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sky-700 shadow-xs transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-umbrella-beach text-[11px]"></i> Modul Cuti
+                    </button>
+                    <button type="button" onclick="switchMatrixTab('matrix-car')" id="btn-matrix-car" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i> Modul CAR
+                    </button>
+                    <button type="button" onclick="switchMatrixTab('matrix-mpr')" id="btn-matrix-mpr" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-boxes-packing text-[11px]"></i> Modul MPR
+                    </button>
+                </div>
             </div>
 
             <form action="{{ route('admin.role.hierarchy.update') }}" method="POST">
@@ -68,25 +83,54 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
                                 <th class="p-3.5">Role / Jabatan</th>
-                                <th class="p-3.5">Atasan Langsung</th>
-                                <th class="p-3.5 text-center">Herarki</th>
-                                <th class="p-3.5">Approver 1 Langkah</th>
-                                <th class="p-3.5">Approver 2 Langkah</th>
+                                <th class="p-3.5">Atasan Langsung (Struktur)</th>
+                                
+                                {{-- HEADER CUTI --}}
+                                <th class="p-3.5 text-center col-matrix-cuti">Alur Cuti</th>
+                                <th class="p-3.5 col-matrix-cuti">Approver Cuti (Step 1)</th>
+                                <th class="p-3.5 col-matrix-cuti">Approver Cuti (Step 2)</th>
+
+                                {{-- HEADER CAR --}}
+                                <th class="p-3.5 text-center col-matrix-car hidden">Alur CAR</th>
+                                <th class="p-3.5 col-matrix-car hidden">Approver CAR (Step 1)</th>
+                                <th class="p-3.5 col-matrix-car hidden">Approver CAR (Step 2)</th>
+
+                                {{-- HEADER MPR --}}
+                                <th class="p-3.5 text-center col-matrix-mpr hidden">Alur MPR</th>
+                                <th class="p-3.5 col-matrix-mpr hidden">Approver MPR (Step 1)</th>
+                                <th class="p-3.5 col-matrix-mpr hidden">Approver MPR (Step 2)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
                             @foreach($daftarRole as $idx => $r)
                                 @php
                                     $rules = $r->approval_rules ?? [];
-                                    $appLevels = $rules['approval_levels'] ?? 1;
-                                    $lvl1RoleId = $rules['approver_level_1_role_id'] ?? null;
-                                    $lvl2RoleId = $rules['approver_level_2_role_id'] ?? null;
+                                    
+                                    // Rule Cuti
+                                    $cutiRules = $rules['cuti'] ?? [];
+                                    $cutiLevels = $cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1);
+                                    $cutiLvl1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+                                    $cutiLvl2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+
+                                    // Rule CAR
+                                    $carRules = $rules['car'] ?? [];
+                                    $carLevels = $carRules['levels'] ?? ($rules['approval_levels'] ?? 1);
+                                    $carLvl1RoleId = $carRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+                                    $carLvl2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+
+                                    // Rule MPR
+                                    $mprRules = $rules['mpr'] ?? [];
+                                    $mprLevels = $mprRules['levels'] ?? ($rules['approval_levels'] ?? 1);
+                                    $mprLvl1RoleId = $mprRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+                                    $mprLvl2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
                                 @endphp
                                 <tr class="hover:bg-slate-50/60 transition-colors">
                                     {{-- NAMA ROLE --}}
                                     <td class="p-3 font-bold text-slate-800 align-middle">
                                         <input type="hidden" name="hierarchy[{{ $idx }}][role_id]" value="{{ $r->id }}">
-                                        {{ $r->role_name }}
+                                        <div class="flex items-center gap-1.5">
+                                            <span>{{ $r->role_name }}</span>
+                                        </div>
                                     </td>
 
                                     {{-- PARENT ROLE --}}
@@ -103,35 +147,95 @@
                                         </select>
                                     </td>
 
-                                    {{-- JUMLAH LEVEL APPROVAL --}}
-                                    <td class="p-3 text-center align-middle">
-                                        <select name="hierarchy[{{ $idx }}][approval_levels]"
-                                                onchange="toggleApproverInputs(this, {{ $idx }})"
+                                    {{-- ==================== KOLOM MODUL CUTI ==================== --}}
+                                    <td class="p-3 text-center align-middle col-matrix-cuti">
+                                        <select name="hierarchy[{{ $idx }}][cuti_approval_levels]"
+                                                onchange="toggleCutiApproverInputs(this, {{ $idx }})"
                                                 class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
-                                            <option value="1" {{ $appLevels == 1 ? 'selected' : '' }}>1 Step</option>
-                                            <option value="2" {{ $appLevels == 2 ? 'selected' : '' }}>2 Step</option>
+                                            <option value="1" {{ $cutiLevels == 1 ? 'selected' : '' }}>1 Step</option>
+                                            <option value="2" {{ $cutiLevels == 2 ? 'selected' : '' }}>2 Step</option>
                                         </select>
                                     </td>
-
-                                    {{-- APPROVER LEVEL 1 --}}
-                                    <td class="p-3 align-middle">
-                                        <select name="hierarchy[{{ $idx }}][approver_level_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
-                                            <option value="">-- Pilih Role Penyetuju (Lvl 1) --</option>
+                                    <td class="p-3 align-middle col-matrix-cuti">
+                                        <select name="hierarchy[{{ $idx }}][cuti_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
+                                            <option value="">-- Pilih Role Penyetuju (Step 1) --</option>
                                             @foreach($daftarRole as $approverCandidate)
-                                                <option value="{{ $approverCandidate->id }}" {{ $lvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                <option value="{{ $approverCandidate->id }}" {{ $cutiLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
                                                     {{ $approverCandidate->role_name }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </td>
-
-                                    {{-- APPROVER LEVEL 2 --}}
-                                    <td class="p-3 align-middle">
-                                        <div id="box_approver_lvl2_{{ $idx }}" class="{{ $appLevels == 2 ? '' : 'hidden' }}">
-                                            <select name="hierarchy[{{ $idx }}][approver_level_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs focus:border-indigo-500 cursor-pointer">
-                                                <option value="">-- Pilih Role Penyetuju (Lvl 2) --</option>
+                                    <td class="p-3 align-middle col-matrix-cuti">
+                                        <div id="box_cuti_approver_lvl2_{{ $idx }}" class="{{ $cutiLevels == 2 ? '' : 'hidden' }}">
+                                            <select name="hierarchy[{{ $idx }}][cuti_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs focus:border-indigo-500 cursor-pointer">
+                                                <option value="">-- Pilih Role Penyetuju (Step 2) --</option>
                                                 @foreach($daftarRole as $approverCandidate)
-                                                    <option value="{{ $approverCandidate->id }}" {{ $lvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                    <option value="{{ $approverCandidate->id }}" {{ $cutiLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                        {{ $approverCandidate->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </td>
+
+                                    {{-- ==================== KOLOM MODUL CAR ==================== --}}
+                                    <td class="p-3 text-center align-middle col-matrix-car hidden">
+                                        <select name="hierarchy[{{ $idx }}][car_approval_levels]"
+                                                onchange="toggleCarApproverInputs(this, {{ $idx }})"
+                                                class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-emerald-500 cursor-pointer">
+                                            <option value="1" {{ $carLevels == 1 ? 'selected' : '' }}>1 Step</option>
+                                            <option value="2" {{ $carLevels == 2 ? 'selected' : '' }}>2 Step</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-car hidden">
+                                        <select name="hierarchy[{{ $idx }}][car_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
+                                            <option value="">-- Pilih Role Penyetuju CAR (Step 1) --</option>
+                                            @foreach($daftarRole as $approverCandidate)
+                                                <option value="{{ $approverCandidate->id }}" {{ $carLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                    {{ $approverCandidate->role_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-car hidden">
+                                        <div id="box_car_approver_lvl2_{{ $idx }}" class="{{ $carLevels == 2 ? '' : 'hidden' }}">
+                                            <select name="hierarchy[{{ $idx }}][car_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
+                                                <option value="">-- Pilih Role Penyetuju CAR (Step 2) --</option>
+                                                @foreach($daftarRole as $approverCandidate)
+                                                    <option value="{{ $approverCandidate->id }}" {{ $carLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                        {{ $approverCandidate->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </td>
+
+                                    {{-- ==================== KOLOM MODUL MPR ==================== --}}
+                                    <td class="p-3 text-center align-middle col-matrix-mpr hidden">
+                                        <select name="hierarchy[{{ $idx }}][mpr_approval_levels]"
+                                                onchange="toggleMprApproverInputs(this, {{ $idx }})"
+                                                class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-purple-500 cursor-pointer">
+                                            <option value="1" {{ $mprLevels == 1 ? 'selected' : '' }}>1 Step</option>
+                                            <option value="2" {{ $mprLevels == 2 ? 'selected' : '' }}>2 Step</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-mpr hidden">
+                                        <select name="hierarchy[{{ $idx }}][mpr_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-purple-500 cursor-pointer">
+                                            <option value="">-- Pilih Role Penyetuju MPR (Step 1) --</option>
+                                            @foreach($daftarRole as $approverCandidate)
+                                                <option value="{{ $approverCandidate->id }}" {{ $mprLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                    {{ $approverCandidate->role_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-mpr hidden">
+                                        <div id="box_mpr_approver_lvl2_{{ $idx }}" class="{{ $mprLevels == 2 ? '' : 'hidden' }}">
+                                            <select name="hierarchy[{{ $idx }}][mpr_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-purple-200 rounded-lg text-xs focus:border-purple-500 cursor-pointer">
+                                                <option value="">-- Pilih Role Penyetuju MPR (Step 2) --</option>
+                                                @foreach($daftarRole as $approverCandidate)
+                                                    <option value="{{ $approverCandidate->id }}" {{ $mprLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
                                                         {{ $approverCandidate->role_name }}
                                                     </option>
                                                 @endforeach
@@ -314,9 +418,75 @@
 
     const rawRolesData = JSON.parse('@json($daftarRole)');
 
-    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER LEVEL 2
-    function toggleApproverInputs(selectElement, index) {
-        const boxLvl2 = document.getElementById(`box_approver_lvl2_${index}`);
+    // SWITCH SUB-TAB MODUL MATRIKS HIERARKI (CUTI / CAR / MPR)
+    function switchMatrixTab(tabName) {
+        // Sembunyikan semua kolom modul
+        document.querySelectorAll('.col-matrix-cuti, .col-matrix-car, .col-matrix-mpr').forEach(el => {
+            el.classList.add('hidden');
+        });
+
+        // Reset styling tombol sub-tab
+        document.querySelectorAll('.matrix-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-white', 'text-sky-700', 'shadow-xs', 'text-emerald-700', 'text-purple-700');
+            btn.classList.add('text-slate-500', 'hover:text-slate-800');
+        });
+
+        // Tampilkan kolom modul yang aktif
+        if (tabName === 'matrix-cuti') {
+            document.querySelectorAll('.col-matrix-cuti').forEach(el => el.classList.remove('hidden'));
+            const btn = document.getElementById('btn-matrix-cuti');
+            if (btn) {
+                btn.classList.add('bg-white', 'text-sky-700', 'shadow-xs');
+                btn.classList.remove('text-slate-500');
+            }
+        } else if (tabName === 'matrix-car') {
+            document.querySelectorAll('.col-matrix-car').forEach(el => el.classList.remove('hidden'));
+            const btn = document.getElementById('btn-matrix-car');
+            if (btn) {
+                btn.classList.add('bg-white', 'text-emerald-700', 'shadow-xs');
+                btn.classList.remove('text-slate-500');
+            }
+        } else if (tabName === 'matrix-mpr') {
+            document.querySelectorAll('.col-matrix-mpr').forEach(el => el.classList.remove('hidden'));
+            const btn = document.getElementById('btn-matrix-mpr');
+            if (btn) {
+                btn.classList.add('bg-white', 'text-purple-700', 'shadow-xs');
+                btn.classList.remove('text-slate-500');
+            }
+        }
+    }
+
+    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER CUTI LEVEL 2
+    function toggleCutiApproverInputs(selectElement, index) {
+        const boxLvl2 = document.getElementById(`box_cuti_approver_lvl2_${index}`);
+        if (!boxLvl2) return;
+
+        if (parseInt(selectElement.value) === 2) {
+            boxLvl2.classList.remove('hidden');
+        } else {
+            boxLvl2.classList.add('hidden');
+            const selectLvl2 = boxLvl2.querySelector('select');
+            if (selectLvl2) selectLvl2.value = '';
+        }
+    }
+
+    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER CAR LEVEL 2
+    function toggleCarApproverInputs(selectElement, index) {
+        const boxLvl2 = document.getElementById(`box_car_approver_lvl2_${index}`);
+        if (!boxLvl2) return;
+
+        if (parseInt(selectElement.value) === 2) {
+            boxLvl2.classList.remove('hidden');
+        } else {
+            boxLvl2.classList.add('hidden');
+            const selectLvl2 = boxLvl2.querySelector('select');
+            if (selectLvl2) selectLvl2.value = '';
+        }
+    }
+
+    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER MPR LEVEL 2
+    function toggleMprApproverInputs(selectElement, index) {
+        const boxLvl2 = document.getElementById(`box_mpr_approver_lvl2_${index}`);
         if (!boxLvl2) return;
 
         if (parseInt(selectElement.value) === 2) {

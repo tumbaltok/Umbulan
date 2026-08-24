@@ -29,76 +29,80 @@ class AppServiceProvider extends ServiceProvider
                 $hasAdminRole = $userRole?->id === 1;
                 $hasTopRole = empty($userRole?->parent_role_id);
 
-                if ($hasAdminRole || $hasTopRole) {
-                    // Top level/Admin: Akses pantau seluruh antrean global
-                    $jumlahCar  = PengajuanCar::where('status_akhir', 'pending')->count();
+                if ($hasAdminRole) {
+                    // Admin Sistem: Akses pantau seluruh antrean cuti global
                     $jumlahCuti = PengajuanCuti::where('status_akhir', 'pending')->count();
+                    $jumlahCar  = PengajuanCar::where('status_akhir', 'pending')->count();
                     $jumlahMpr  = PengajuanMpr::where('status_akhir', 'pending')->count();
                 } else {
-                    // 1. HITUNG ANTREAN CUTI
-                    $jumlahCuti = PengajuanCuti::where(function ($q) use ($atasanRoleId, $treeCode) {
-                        $q->where(function ($sub) use ($atasanRoleId, $treeCode) {
+                    // 1. HITUNG ANTREAN CUTI BERDASARKAN DYNAMIC APPROVAL RULES
+                    $jumlahCuti = PengajuanCuti::where(function ($q) use ($atasanRoleId) {
+                        $q->where(function ($sub) use ($atasanRoleId) {
                             $sub->where('status_tahap_1', 'pending')
-                                ->whereHas('user', function ($uq) use ($atasanRoleId, $treeCode) {
-                                    $uq->whereHas('role', function ($rq) use ($atasanRoleId, $treeCode) {
-                                        $rq->where('parent_role_id', $atasanRoleId);
-                                        if ($treeCode) {
-                                            $rq->orWhere('tree_code', 'LIKE', $treeCode . '.%');
-                                        }
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->cuti->approver_1_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_1_role_id', $atasanRoleId);
                                     });
                                 });
-                        })->orWhere(function ($sub) use ($atasanRoleId, $treeCode) {
+                        })->orWhere(function ($sub) use ($atasanRoleId) {
                             $sub->where('status_tahap_1', 'approved')
                                 ->where('status_tahap_2', 'pending')
                                 ->where('status_tahap_2', '!=', 'not_required')
-                                ->whereHas('user', function ($uq) use ($atasanRoleId, $treeCode) {
-                                    $uq->whereHas('role', function ($rq) use ($atasanRoleId, $treeCode) {
-                                        $rq->where('parent_role_id', $atasanRoleId);
-                                        if ($treeCode) {
-                                            $rq->orWhere('tree_code', 'LIKE', $treeCode . '.%');
-                                        }
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->cuti->approver_2_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_2_role_id', $atasanRoleId);
                                     });
                                 });
                         });
                     })->count();
 
-                    // 2. HITUNG ANTREAN CAR
-                    $jumlahCar = PengajuanCar::where(function ($q) use ($atasanRoleId, $treeCode) {
-                        $q->where(function ($sub) use ($atasanRoleId, $treeCode) {
+                    // 2. HITUNG ANTREAN CAR BERDASARKAN DYNAMIC APPROVAL RULES
+                    $jumlahCar = PengajuanCar::where(function ($q) use ($atasanRoleId) {
+                        $q->where(function ($sub) use ($atasanRoleId) {
                             $sub->where('status_tahap_1', 'pending')
-                                ->whereHas('user', function ($uq) use ($atasanRoleId, $treeCode) {
-                                    $uq->whereHas('role', function ($rq) use ($atasanRoleId, $treeCode) {
-                                        $rq->where('parent_role_id', $atasanRoleId);
-                                        if ($treeCode) {
-                                            $rq->orWhere('tree_code', 'LIKE', $treeCode . '.%');
-                                        }
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->car->approver_1_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_1_role_id', $atasanRoleId);
                                     });
                                 });
-                        })->orWhere(function ($sub) use ($atasanRoleId, $treeCode) {
+                        })->orWhere(function ($sub) use ($atasanRoleId) {
                             $sub->where('status_tahap_1', 'approved')
                                 ->where('status_tahap_2', 'pending')
                                 ->where('status_tahap_2', '!=', 'not_required')
-                                ->whereHas('user', function ($uq) use ($atasanRoleId, $treeCode) {
-                                    $uq->whereHas('role', function ($rq) use ($atasanRoleId, $treeCode) {
-                                        $rq->where('parent_role_id', $atasanRoleId);
-                                        if ($treeCode) {
-                                            $rq->orWhere('tree_code', 'LIKE', $treeCode . '.%');
-                                        }
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->car->approver_2_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_2_role_id', $atasanRoleId);
                                     });
                                 });
                         });
                     })->count();
 
-                    // 3. HITUNG ANTREAN MPR
-                    $jumlahMpr = PengajuanMpr::where('status_akhir', 'pending')
-                        ->whereHas('user', function ($uq) use ($atasanRoleId, $treeCode) {
-                            $uq->whereHas('role', function ($rq) use ($atasanRoleId, $treeCode) {
-                                $rq->where('parent_role_id', $atasanRoleId);
-                                if ($treeCode) {
-                                    $rq->orWhere('tree_code', 'LIKE', $treeCode . '.%');
-                                }
-                            });
-                        })->count();
+                    // 3. HITUNG ANTREAN MPR BERDASARKAN DYNAMIC APPROVAL RULES
+                    $jumlahMpr = PengajuanMpr::where(function ($q) use ($atasanRoleId) {
+                        $q->where(function ($sub) use ($atasanRoleId) {
+                            $sub->where('status_tahap_1', 'pending')
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->mpr->approver_1_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_1_role_id', $atasanRoleId);
+                                    });
+                                });
+                        })->orWhere(function ($sub) use ($atasanRoleId) {
+                            $sub->where('status_tahap_1', 'approved')
+                                ->where('status_tahap_2', 'pending')
+                                ->where('status_tahap_2', '!=', 'not_required')
+                                ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
+                                    $rq->where(function ($jsonQ) use ($atasanRoleId) {
+                                        $jsonQ->where('approval_rules->mpr->approver_2_role_id', $atasanRoleId)
+                                              ->orWhere('approval_rules->approver_level_2_role_id', $atasanRoleId);
+                                    });
+                                });
+                        });
+                    })->count();
                 }
 
                 $view->with([

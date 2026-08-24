@@ -93,7 +93,7 @@ Route::middleware('auth')->group(function () {
     // Fitur Internal (Wajib Verified)
     Route::middleware(['verified', 'phone.verified'])->group(function () {
         // Form Cuti
-        Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.ajukan');
+        Route::get('/cuti/create', [PengajuanCutiController::class, 'create'])->name('cuti.create');
         Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
         Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
         Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
@@ -110,7 +110,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
     });
 
-    // Fitur Jadwal Kerja (Set Initial Shift)
+    // Fitur Jadwal Kerja
     Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
     Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
 
@@ -133,7 +133,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
     Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
 
-    // Jalur Utama Persetujuan Cuti (SUDAH DIPERBAIKI)
+    // Jalur Utama Persetujuan Cuti
     Route::get('/admin/persetujuan/cuti', [PersetujuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan.cuti');
     Route::post('/admin/persetujuan/cuti/proses/{id}', [PersetujuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
 

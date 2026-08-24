@@ -20,6 +20,20 @@
                     <div>
                         <span class="text-xs font-bold text-sky-600 block">{{ $mpr->nomor_mpr }}</span>
                         <h3 class="text-sm font-bold text-slate-800">{{ $mpr->user->name }} <span class="text-xs font-normal text-slate-500">({{ $mpr->user->station->name ?? 'Stasiun Umbulan' }})</span></h3>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold {{ $mpr->status_tahap_1 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($mpr->status_tahap_1 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                Step 1: {{ ucfirst($mpr->status_tahap_1) }}
+                            </span>
+                            @if($mpr->status_tahap_2 !== 'not_required')
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold {{ $mpr->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($mpr->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    Step 2: {{ ucfirst($mpr->status_tahap_2) }}
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">
+                                    1 Step Only
+                                </span>
+                            @endif
+                        </div>
                     </div>
                     <span class="text-xs text-slate-400">{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d M Y') }}</span>
                 </div>
