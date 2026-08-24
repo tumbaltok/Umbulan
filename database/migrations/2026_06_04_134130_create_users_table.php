@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -18,11 +15,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->foreignId('atasan_role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->foreignId('gender_id')->nullable()->constrained('genders');
             $table->foreignId('station_id')->constrained('stations');
-            $table->foreignId('atasan_langsung_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('atasan_dua_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('schedule_type', ['normal', 'roster'])->default('normal')->nullable();
+            $table->enum('schedule_type', ['normal', 'roster'])->nullable()->default('normal');
             $table->json('normal_work_days')->nullable();
             $table->time('normal_check_in')->nullable();
             $table->time('normal_check_out')->nullable();
@@ -44,9 +40,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('password_reset_tokens');

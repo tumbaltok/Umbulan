@@ -10,24 +10,27 @@ use Illuminate\Support\Facades\DB;
 
 class PersetujuanMprController extends Controller
 {
-    // ATASAN & ADMIN: Menampilkan List Pengajuan Masuk (Model Bypass)
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $roleLevel = $atasan->role->level ?? 4;
+        $atasanRoleId = $atasan->role_id;
 
-        $query = PengajuanMpr::with(['user', 'items'])->orderBy('created_at', 'desc');
+        $query = PengajuanMpr::with(['user', 'items'])
+            ->orderBy('created_at', 'desc');
 
-        if (in_array($roleLevel, [1, 2, 3])) {
+        if (empty($atasan->atasan_role_id)) {
             $query->where('status_akhir', 'pending');
-
-            if ($roleLevel == 3) {
-                $query->whereHas('user', function ($q) use ($atasan) {
-                    $q->where('station_id', $atasan->station_id);
-                });
-            }
         } else {
-            abort(403, 'Akses Ditolak.');
+            $query->whereHas('user', function ($q) use ($atasanRoleId) {
+                $q->where('atasan_role_id', $atasanRoleId);
+            })
+            ->where(function ($q) {
+                $q->where('status_tahap_1', 'pending')
+                  ->orWhere(function ($sub) {
+                      $sub->where('status_tahap_1', 'approved')
+                          ->where('status_tahap_2', 'pending');
+                  });
+            });
         }
 
         $daftarPengajuan = $query->get();
@@ -35,45 +38,62 @@ class PersetujuanMprController extends Controller
         return view('admin.persetujuan.persetujuanmpr', compact('daftarPengajuan'));
     }
 
-    // ATASAN & ADMIN: Memproses Aksi Setuju / Tolak
     public function prosesPersetujuan(Request $request, int $id)
     {
         $request->validate([
-            'tindakan' => 'required|in:approved,rejected',
+            'tindakan'          => 'required|in:approved,rejected',
             'catatan_penolakan' => 'nullable|string',
         ]);
 
         $atasan = Auth::user();
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanMpr::findOrFail($id);
-        $roleLevel = $atasan->role->level ?? 4;
-
-        if (!in_array($roleLevel, [1, 2, 3])) {
-            return redirect()->back()->with('error', 'Akses ditolak. Level akun Anda tidak mencukupi.');
-        }
 
         DB::beginTransaction();
         try {
-            if ($roleLevel == 3) { // Supervisor
+            if ($tindakan === 'rejected') {
                 $pengajuan->update([
-                    'status_supervisor' => $tindakan,
-                    'supervisor_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_manager' => $tindakan,
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
+                    'status_tahap_1'    => $pengajuan->status_tahap_1 === 'pending' ? 'rejected' : $pengajuan->status_tahap_1,
+                    'status_tahap_2'    => $pengajuan->status_tahap_2 === 'pending' ? 'rejected' : $pengajuan->status_tahap_2,
+                    'status_akhir'      => 'rejected',
+                    'catatan_penolakan' => $request->catatan_penolakan,
                 ]);
-            } else { // Manager / Admin / Direksi (Level 1 & 2)
+
+                DB::commit();
+                return redirect()->back()->with('success', 'Pengajuan MPR telah ditolak.');
+            }
+
+            if ($pengajuan->status_tahap_1 === 'pending') {
+                $isSingleLevel = $pengajuan->status_tahap_2 === 'not_required';
+
+                $updateData = [
+                    'status_tahap_1'      => 'approved',
+                    'approver_tahap_1_id' => $atasan->id,
+                ];
+
+                if ($isSingleLevel) {
+                    $updateData['status_akhir'] = 'approved';
+                }
+
+                $pengajuan->update($updateData);
+
+                DB::commit();
+                return redirect()->back()->with('success', 'Persetujuan MPR Tahap 1 berhasil diproses.');
+            }
+
+            if ($pengajuan->status_tahap_2 === 'pending') {
                 $pengajuan->update([
-                    'status_supervisor' => $pengajuan->status_supervisor === 'pending' ? $tindakan : $pengajuan->status_supervisor,
-                    'status_manager' => $tindakan,
-                    'manager_id' => $tindakan === 'approved' ? $atasan->id : null,
-                    'status_akhir' => $tindakan,
-                    'catatan_penolakan' => $tindakan === 'rejected' ? $request->catatan_penolakan : null,
+                    'status_tahap_2'      => 'approved',
+                    'approver_tahap_2_id' => $atasan->id,
+                    'status_akhir'        => 'approved',
                 ]);
+
+                DB::commit();
+                return redirect()->back()->with('success', 'Persetujuan MPR Tahap 2 (Final) berhasil diproses.');
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'Status pengajuan MPR berhasil diperbarui.');
+            return redirect()->back()->with('error', 'Pengajuan sudah diproses sebelumnya.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());

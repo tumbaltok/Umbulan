@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\User\Jobdesk;
 use App\Models\User\Role;
 use App\Models\User\Station;
 use App\Models\User\User;
@@ -19,15 +18,12 @@ class AccountController extends Controller
     {
         $user = User::find(Auth::id());
 
-        // 1. Ambil daftar Jobdesk
-        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
-
-        // 2. Ambil seluruh Penempatan Kerja / Stasiun (Kecuali Rumah Meter)
+        // 1. Ambil seluruh Penempatan Kerja / Stasiun (Kecuali Rumah Meter)
         $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
             ->orderBy('name', 'asc')
             ->get();
 
-        // 3. Ambil Peran / Jabatan KECUALI Admin (Filter out level 1 / 'Admin')
+        // 2. Ambil Peran / Jabatan KECUALI Admin (Filter out level 1 / 'Admin')
         $daftarRole = Role::where('level', '>', 1)
             ->where('role_name', '!=', 'Admin')
             ->orderBy('level', 'asc')
@@ -35,7 +31,6 @@ class AccountController extends Controller
 
         return view('pengaturan.index', compact(
             'user',
-            'daftarJobdesk',
             'daftarStasiun',
             'daftarRole'
         ));
@@ -99,19 +94,19 @@ class AccountController extends Controller
             $updateData['name'] = $request->name;
         }
 
-        // CEK PERUBAHAN EMAIL (RESET VERIFIKASI JIKA DIUBAH)
+        // CEK PERUBAHAN EMAIL
         if ($request->has('email')) {
             if ($request->email !== $user->email) {
                 $updateData['email'] = $request->email;
-                $updateData['email_verified_at'] = null; // Reset status verifikasi email
+                $updateData['email_verified_at'] = null;
             }
         }
 
-        // CEK PERUBAHAN NO TELEPON (RESET VERIFIKASI JIKA DIUBAH)
+        // CEK PERUBAHAN NO TELEPON
         if ($request->has('phone_number')) {
             if ($request->phone_number !== $user->phone_number) {
                 $updateData['phone_number'] = $request->phone_number;
-                $updateData['phone_verified_at'] = null; // Reset status verifikasi nomor HP
+                $updateData['phone_verified_at'] = null;
             }
         }
 
@@ -122,7 +117,6 @@ class AccountController extends Controller
         if ($request->has('station_id')) {
             $updateData['station_id'] = $request->station_id;
         }
-
 
         // SIMPAN JADWAL KERJA
         if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
@@ -163,26 +157,22 @@ class AccountController extends Controller
         if ($request->hasFile('signature')) {
             $file = $request->file('signature');
 
-            // Hapus TTD lama jika ada
             if ($user->signature && Storage::disk('public')->exists($user->signature)) {
                 Storage::disk('public')->delete($user->signature);
             }
 
-            // Panggil helper function pembuat background transparan
             $transparentImageData = $this->makeSignatureBackgroundTransparent($file->getPathname());
 
             if ($transparentImageData) {
-                // Simpan berkas hasil olahan PNG ke folder signatures
                 $filename = 'signatures/ttd_' . $user->id . '_' . time() . '.png';
                 Storage::disk('public')->put($filename, $transparentImageData);
                 $updateData['signature'] = $filename;
             } else {
-                // Fallback jika GD gagal / tidak mendukung
                 $updateData['signature'] = $file->store('signatures', 'public');
             }
         }
 
-        // Mencegah penetapan/perubahan role jika akun saat ini adalah Admin
+        // PREVENT ROLE ADMIN OVERWRITE
         if ($user->role_id != 1 && strtolower($user->role->role_name ?? '') !== 'admin') {
             if ($request->has('role_id') && ! empty($request->role_id)) {
                 $selectedRole = Role::find($request->role_id);
@@ -197,9 +187,6 @@ class AccountController extends Controller
         return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
     }
 
-    /**
-     * Helper Function: Mengubah background foto TTD (kertas putih/terang) menjadi transparan murni.
-     */
     private function makeSignatureBackgroundTransparent(string $filePath)
     {
         $info = @getimagesize($filePath);
@@ -226,21 +213,14 @@ class AccountController extends Controller
         $width = imagesx($src);
         $height = imagesy($src);
 
-        // Buat canvas TrueColor
         $dst = imagecreatetruecolor($width, $height);
-
-        // Salin gambar asli ke canvas baru
         imagecopy($dst, $src, 0, 0, 0, 0, $width, $height);
         imagedestroy($src);
 
-        // Buat warna transparan murni (Alpha = 127)
         $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
-
-        // Aktifkan Alpha Saving
         imagealphablending($dst, false);
         imagesavealpha($dst, true);
 
-        // Tentukan threshold warna putih kertas (RGB di atas 180)
         for ($x = 0; $x < $width; $x++) {
             for ($y = 0; $y < $height; $y++) {
                 $rgb = imagecolorat($dst, $x, $y);
@@ -248,14 +228,12 @@ class AccountController extends Controller
                 $g = ($rgb >> 8) & 0xFF;
                 $b = $rgb & 0xFF;
 
-                // Jika piksel berwarna putih/terang (kertas), ubah menjadi transparan
                 if ($r > 180 && $g > 180 && $b > 180) {
                     imagesetpixel($dst, $x, $y, $transparent);
                 }
             }
         }
 
-        // Export sebagai PNG string
         ob_start();
         imagepng($dst);
         $imageData = ob_get_clean();

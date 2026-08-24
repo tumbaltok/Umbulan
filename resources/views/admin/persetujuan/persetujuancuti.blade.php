@@ -58,15 +58,15 @@
 
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_supervisor === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_supervisor === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
-                                    {{ $item->status_supervisor === 'pending' ? 'Pending' : ucfirst($item->status_supervisor) }}
+                                    {{ $item->status_tahap_1 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_1 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    {{ $item->status_tahap_1 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_1) }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_manager === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_manager === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
-                                    {{ $item->status_manager === 'pending' ? 'Pending' : ucfirst($item->status_manager) }}
+                                    {{ $item->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : ($item->status_tahap_2 === 'not_required' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-700')) }}">
+                                    {{ $item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2) }}
                                 </span>
                             </td>
 
@@ -76,18 +76,18 @@
                                     <form id="form-approve-cuti-{{ $item->id }}" action="{{ route('admin.persetujuan.cuti.proses', $item->id) }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="tindakan" value="approved">
-                                        <button type="button" 
+                                        <button type="button"
                                                 data-form="form-approve-cuti-{{ $item->id }}"
-                                                onclick="konfirmasiApprove(this.getAttribute('data-form'), 'Setujui Pengajuan Cuti?')" 
+                                                onclick="konfirmasiApprove(this.getAttribute('data-form'), 'Setujui Pengajuan Cuti?')"
                                                 class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors">
                                             Approve
                                         </button>
                                     </form>
 
                                     {{-- BUTTON KHUSUS MEMICU MODAL REJECT --}}
-                                    <button type="button" 
+                                    <button type="button"
                                             data-id="{{ $item->id }}"
-                                            onclick="bukaModalTolak(this.getAttribute('data-id'))" 
+                                            onclick="bukaModalTolak(this.getAttribute('data-id'))"
                                             class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold transition-colors">
                                         Reject
                                     </button>

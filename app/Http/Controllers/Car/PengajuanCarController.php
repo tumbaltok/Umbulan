@@ -7,6 +7,7 @@ use App\Models\Car\PengajuanCar;
 use App\Models\User\Station;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengajuanCarController extends Controller
 {
@@ -41,49 +42,53 @@ class PengajuanCarController extends Controller
         ]);
 
         $user = Auth::user();
-        $userRole = $user->role;
-        $approvalRules = $userRole->approval_rules ?? [];
-        $requiredLevels = (int) ($approvalRules['approval_levels'] ?? 1);
 
-        if (empty($userRole->parent_role_id)) {
+        // Top Management tanpa atasan
+        if (empty($user->atasan_role_id)) {
             $statusTahap1 = 'approved';
             $statusTahap2 = 'approved';
             $statusAkhir  = 'approved';
         } else {
             $statusTahap1 = 'pending';
-            $statusTahap2 = ($requiredLevels === 1) ? 'not_required' : 'pending';
+            $statusTahap2 = 'pending';
             $statusAkhir  = 'pending';
         }
 
-        $carHeader = PengajuanCar::create([
-            'user_id'               => $user->id,
-            'alasan_pembelian'      => $request->alasan_pembelian,
-            'receiving_account'     => $request->receiving_account,
-            'total_approval_levels' => $requiredLevels,
-            'status_tahap_1'        => $statusTahap1,
-            'approver_tahap_1_id'   => $statusTahap1 === 'approved' ? $user->id : null,
-            'status_tahap_2'        => $statusTahap2,
-            'approver_tahap_2_id'   => $statusTahap2 === 'approved' ? $user->id : null,
-            'status_akhir'          => $statusAkhir,
-        ]);
+        DB::beginTransaction();
+        try {
+            $carHeader = PengajuanCar::create([
+                'user_id'               => $user->id,
+                'alasan_pembelian'      => $request->alasan_pembelian,
+                'receiving_account'     => $request->receiving_account,
+                'status_tahap_1'        => $statusTahap1,
+                'approver_tahap_1_id'   => $statusTahap1 === 'approved' ? $user->id : null,
+                'status_tahap_2'        => $statusTahap2,
+                'approver_tahap_2_id'   => $statusTahap2 === 'approved' ? $user->id : null,
+                'status_akhir'          => $statusAkhir,
+            ]);
 
-        foreach ($request->items as $index => $item) {
-            $pathDokumen = null;
-            if ($request->hasFile("items.{$index}.dokumen_pendukung")) {
-                $file = $request->file("items.{$index}.dokumen_pendukung");
-                $pathDokumen = $file->store('dokumen_car', 'public');
+            foreach ($request->items as $index => $item) {
+                $pathDokumen = null;
+                if ($request->hasFile("items.{$index}.dokumen_pendukung")) {
+                    $file = $request->file("items.{$index}.dokumen_pendukung");
+                    $pathDokumen = $file->store('dokumen_car', 'public');
+                }
+
+                $carHeader->details()->create([
+                    'nama_barang' => $item['nama_barang'],
+                    'jumlah' => $item['jumlah'],
+                    'satuan' => $item['satuan'],
+                    'estimasi_harga' => $item['estimasi_harga'],
+                    'total_harga' => $item['jumlah'] * $item['estimasi_harga'],
+                    'dokumen_nota_or_proposal' => $pathDokumen,
+                ]);
             }
 
-            $carHeader->details()->create([
-                'nama_barang' => $item['nama_barang'],
-                'jumlah' => $item['jumlah'],
-                'satuan' => $item['satuan'],
-                'estimasi_harga' => $item['estimasi_harga'],
-                'total_harga' => $item['jumlah'] * $item['estimasi_harga'],
-                'dokumen_nota_or_proposal' => $pathDokumen,
-            ]);
+            DB::commit();
+            return redirect()->route('car.riwayat')->with('success', 'Pengajuan CAR berhasil dikirim.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Gagal menyimpan pengajuan CAR: ' . $e->getMessage()])->withInput();
         }
-
-        return redirect()->route('car.riwayat')->with('success', 'Pengajuan CAR berhasil dikirim.');
     }
 }

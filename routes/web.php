@@ -11,6 +11,7 @@ use App\Http\Controllers\Car\DokumenCarController;
 use App\Http\Controllers\Car\PengajuanCarController;
 use App\Http\Controllers\Car\PersetujuanCarController;
 use App\Http\Controllers\Cuti\PengajuanCutiController;
+use App\Http\Controllers\Cuti\PersetujuanCutiController;
 use App\Http\Controllers\Mpr\DokumenMprController;
 use App\Http\Controllers\Mpr\PengajuanMprController;
 use App\Http\Controllers\Mpr\PersetujuanMprController;
@@ -132,9 +133,9 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
     Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
 
-    // Jalur Utama Persetujuan Cuti
-    Route::get('/admin/persetujuan/cuti', [PengajuanCutiController::class, 'listPengajuan'])->name('admin.persetujuan.cuti');
-    Route::post('/admin/persetujuan/cuti/proses/{id}', [PengajuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
+    // Jalur Utama Persetujuan Cuti (SUDAH DIPERBAIKI)
+    Route::get('/admin/persetujuan/cuti', [PersetujuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan.cuti');
+    Route::post('/admin/persetujuan/cuti/proses/{id}', [PersetujuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
 
     // Jalur Utama Persetujuan CAR
     Route::get('/admin/persetujuan/car', [PersetujuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');

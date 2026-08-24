@@ -6,29 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('role_name')->unique;
+            $table->string('role_name')->unique();
             $table->integer('level')->default(1);
             $table->text('description')->nullable();
-            $table->foreignId('parent_role_id')
-            ->nullable()
-            ->constrained('roles')
-            ->nullOnDelete();
+            $table->foreignId('parent_role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->string('tree_code')->nullable();
             $table->json('approval_rules')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('roles');

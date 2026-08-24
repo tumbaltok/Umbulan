@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('type', ['kantor', 'stasiun', 'rumah_meter'])->default('stasiun');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            $table->integer('radius_meters')->default(1000); // Radius default (misal 1000 meter)
+            $table->integer('radius_meters')->default(1000);
 
             $table->timestamps();
         });

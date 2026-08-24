@@ -11,8 +11,9 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $daftarRole = Role::with(['parentRole', 'childRoles'])->withCount('users')->get();
-        $daftarJobdesk = Jobdesk::all();
+        $daftarRole = Role::withCount('users')->get();
+
+        $daftarJobdesk = [];
 
         return view('admin.daftar.roleindex', compact('daftarRole', 'daftarJobdesk'));
     }

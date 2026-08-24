@@ -110,7 +110,7 @@ class KaryawanController extends Controller
 
         // Ambil data pendukung filter pohon organisasi
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
-        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
+        $daftarJobdesk = collect();
 
         return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk', 'daftarRole'));
     }

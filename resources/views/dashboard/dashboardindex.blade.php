@@ -69,7 +69,7 @@
             <div>
                 <div class="flex items-center space-x-2 mb-1">
                     <span class="text-xs font-semibold text-sky-600 uppercase tracking-wider">Status Operasional Hari Ini</span>
-                    
+
                     @if($user->schedule_type === 'roster')
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-100">
                             Sistem Roster
@@ -99,12 +99,12 @@
                                 </span>
                             @elseif(isset($activeSchedule['shift_type']) && $activeSchedule['shift_type'] === 'pagi')
                                 <span class="text-emerald-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full {{ $isWorkingNow ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span> 
+                                    <span class="w-2.5 h-2.5 rounded-full {{ $isWorkingNow ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span>
                                     Shift Pagi <span class="{{ $isWorkingNow ? 'text-emerald-600' : 'text-rose-600' }}">({{ $isWorkingNow ? 'Sedang Bekerja' : 'Sedang OFF - Di Luar Jam Kerja' }})</span>
                                 </span>
                             @else
                                 <span class="text-indigo-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full {{ $isWorkingNow ? 'bg-indigo-600 animate-pulse' : 'bg-rose-500' }}"></span> 
+                                    <span class="w-2.5 h-2.5 rounded-full {{ $isWorkingNow ? 'bg-indigo-600 animate-pulse' : 'bg-rose-500' }}"></span>
                                     Shift Malam <span class="{{ $isWorkingNow ? 'text-indigo-600' : 'text-rose-600' }}">({{ $isWorkingNow ? 'Sedang Bekerja' : 'Sedang OFF - Di Luar Jam Kerja' }})</span>
                                 </span>
                             @endif
@@ -210,7 +210,7 @@
 
         <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl">
             <span class="text-slate-400 font-bold">Keterangan:</span>
-            
+
             @if($user->schedule_type === 'roster')
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
@@ -243,7 +243,7 @@
 
         <div class="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-15 gap-2 pt-2">
             @foreach($calendarDays as $day)
-                <button type="button" 
+                <button type="button"
                         data-date="{{ $day['full_date'] }}"
                         data-title="{{ $day['title'] }}"
                         data-desc="{{ $day['description'] }}"
@@ -275,7 +275,7 @@
     {{-- MODAL STEP 1: KAMERA WEBCAM & GEOLOCATION GPS --}}
     <div id="modalAbsensi" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            
+
             {{-- Header Modal --}}
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <h3 id="judulModalAbsen" class="font-bold text-slate-800 text-sm">Verifikasi Absensi</h3>
@@ -286,7 +286,7 @@
 
             {{-- Isian Content --}}
             <div class="p-5 space-y-3 flex-1 overflow-y-auto">
-                
+
                 {{-- Status GPS --}}
                 <div id="statusLokasiBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all shrink-0">
                     <div class="flex items-center space-x-2.5">
@@ -304,12 +304,12 @@
 
                 {{-- Container Video Kamera --}}
                 <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 shadow-inner shrink-0">
-                    <video id="webcamVideo" 
-                        autoplay 
-                        playsinline 
-                        style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;" 
+                    <video id="webcamVideo"
+                        autoplay
+                        playsinline
+                        style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;"
                         class="w-full h-full object-cover"></video>
-                    
+
                     <canvas id="webcamCanvas" class="hidden"></canvas>
                     <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm z-10">
                         Mempersiapkan kamera...
@@ -332,7 +332,7 @@
     {{-- MODAL STEP 2: PRATINJAU FOTO & KONFIRMASI DETAIL ABSENSI --}}
     <div id="modalKonfirmasiAbsen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            
+
             {{-- Header Modal --}}
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <h3 class="font-bold text-slate-800 text-sm">Konfirmasi Detail Absensi</h3>
@@ -495,7 +495,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4" onclick="event.stopPropagation();">
-                                @if(trim(strtolower($cuti->status_supervisor)) === 'approved' && trim(strtolower($cuti->status_manager)) === 'approved' && trim(strtolower($cuti->status_akhir)) === 'approved')
+                                    @if(trim(strtolower($cuti->status_supervisor ?? ''))) === 'approved' && trim(strtolower($cuti->status_manager ?? '')) === 'approved' && trim(strtolower($cuti->status_akhir ?? '')) === 'approved')
                                     <div class="flex items-center gap-2">
                                         <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -510,7 +510,7 @@
                                             <span>Cetak</span>
                                         </button>
                                     </div>
-                                @elseif(trim(strtolower($cuti->status_supervisor)) === 'rejected' || trim(strtolower($cuti->status_manager)) === 'rejected' || trim(strtolower($cuti->status_akhir)) === 'rejected')
+                                @elseif(trim(strtolower($cuti->status_supervisor ?? '')) === 'rejected' || trim(strtolower($cuti->status_manager ?? '')) === 'rejected' || trim(strtolower($cuti->status_akhir ?? '')) === 'rejected')
                                     <div class="space-y-1.5">
                                         <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -883,7 +883,7 @@
         const dLon = (lon2 - lon1) * Math.PI / 180;
 
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(radLat1) * Math.cos(radLat2) * 
+                  Math.cos(radLat1) * Math.cos(radLat2) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -911,9 +911,9 @@
                         for (let station of daftarStasiun) {
                             if (station.latitude && station.longitude) {
                                 const distance = calculateDistanceMeter(
-                                    userLat, 
-                                    userLng, 
-                                    parseFloat(station.latitude), 
+                                    userLat,
+                                    userLng,
+                                    parseFloat(station.latitude),
                                     parseFloat(station.longitude)
                                 );
                                 const radiusLimit = parseFloat(station.radius_meters) || 100;
@@ -995,7 +995,7 @@
     function bukaModalAbsen(type) {
         document.getElementById('absen_type').value = type;
         document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
-        
+
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
         const iconLokasi = document.getElementById('iconLokasi');
@@ -1031,7 +1031,7 @@
                 mediaStream = stream;
                 const video = document.getElementById('webcamVideo');
                 if (video) video.srcObject = stream;
-                
+
                 const camStatus = document.getElementById('cameraStatus');
                 if (camStatus) camStatus.innerText = 'Kamera Aktif';
             })
@@ -1048,7 +1048,7 @@
         if (!video || !canvas) return;
 
         const context = canvas.getContext('2d');
-        
+
         const maxWidth = 640;
         const scale = Math.min(1, maxWidth / (video.videoWidth || 640));
         canvas.width = (video.videoWidth || 640) * scale;
@@ -1061,7 +1061,7 @@
         context.restore();
 
         const base64Photo = canvas.toDataURL('image/jpeg', 0.6);
-        
+
         document.getElementById('absen_face_image').value = base64Photo;
         document.getElementById('imgPratinjauFoto').src = base64Photo;
 
@@ -1101,7 +1101,7 @@
             if (type === 'in' && todaySchedule.scheduled_in) {
                 const [hIn, mIn] = todaySchedule.scheduled_in.split(':');
                 const schedInMinutes = parseInt(hIn) * 60 + parseInt(mIn);
-                
+
                 if (currentMinutes > schedInMinutes) {
                     isLateOrEarly = true;
                     warningText += "Anda melakukan absen masuk MELEBIHI jam kerja yang ditentukan (Terlambat). ";
@@ -1109,7 +1109,7 @@
             } else if (type === 'out' && todaySchedule.scheduled_out) {
                 const [hOut, mOut] = todaySchedule.scheduled_out.split(':');
                 const [hIn, mIn] = (todaySchedule.scheduled_in || "00:00").split(':');
-                
+
                 const schedOutMinutes = parseInt(hOut) * 60 + parseInt(mOut);
                 const schedInMinutes = parseInt(hIn) * 60 + parseInt(mIn);
 
@@ -1117,7 +1117,7 @@
                 const isCrossDayShift = schedOutMinutes < schedInMinutes;
 
                 if (isCrossDayShift) {
-                    // Untuk Shift Malam, jika absen dilakukan pada malam hari (setelah jam masuk) 
+                    // Untuk Shift Malam, jika absen dilakukan pada malam hari (setelah jam masuk)
                     // atau di pagi hari SEBELUM jam 07:00, maka terdeteksi Pulang Cepat.
                     if (currentMinutes >= schedInMinutes || currentMinutes < schedOutMinutes) {
                         isLateOrEarly = true;
@@ -1212,9 +1212,9 @@
 
         fetch(url, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Accept': 'application/json' 
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify(payload)
         })
@@ -1225,7 +1225,7 @@
         .then(res => {
             if (res.status === 200) {
                 tutupModalAbsen();
-                
+
                 // Pop-Up Sukses Menggunakan SweetAlert2
                 Swal.fire({
                     title: 'Berhasil!',
@@ -1253,7 +1253,7 @@
         })
         .catch(err => {
             console.error("Detail Error:", err);
-            
+
             Swal.fire({
                 title: 'Kesalahan Sistem!',
                 text: 'Gagal mengirim data. Silakan cek koneksi atau hubungi admin.',

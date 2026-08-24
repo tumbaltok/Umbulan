@@ -115,9 +115,9 @@
 
     @php
         $authUser    = Auth::user();
-        $userRoles   = $authUser->roles;
-        $isRootAdmin = $userRoles->contains('id', 1);
-        $isLevel1Or2 = $userRoles->contains(fn($r) => (int)$r->level <= 2);
+        $userRole    = $authUser->role;
+        $isRootAdmin = $userRole?->id === 1;
+        $isLevel1Or2 = (int)($userRole?->level ?? 99) <= 2;
         $hasAccess   = $isRootAdmin || $isLevel1Or2;
         $isAdminRole = $isRootAdmin || $isLevel1Or2;
     @endphp
@@ -274,7 +274,7 @@
                     </div>
                 </div>
 
-                <!-- MENU ADMINISTRATOR (MODIFIKASI: STRUKTUR SUB-MENU BERTINGKAT & ABSENSI) -->
+                <!-- MENU ADMINISTRATOR -->
                 @if($isAdminRole)
                 @php
                     $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*'))
@@ -295,7 +295,7 @@
 
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
 
-                            <!-- MENU BARU: REKAP ABSENSI HARIAN -->
+                            <!-- REKAP ABSENSI HARIAN -->
                             <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <i class="fa-solid fa-user-check text-xs"></i>
                                 <span class="hide-on-collapse">Rekap Absensi Harian</span>
@@ -401,7 +401,7 @@
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight group-hover:text-sky-600 transition-colors">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {{ Auth::user()->roles->pluck('role_name')->implode(' / ') ?? 'USER' }}
+                        {{ Auth::user()->role->role_name ?? 'USER' }}
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">

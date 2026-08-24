@@ -95,32 +95,14 @@ class User extends Authenticatable implements MustVerifyEmail
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
 
-    // const JOB_OPERATOR = 'Operator';
-    // const JOB_MAINTENANCE = 'Maintenance';
-    // const JOB_HSE = 'HSE';
-    // const JOB_DOKUMENTASI = 'Dokumentasi';
-
-    // --- RELASI MODEL ---
-
-    /**
-     * Relasi Banyak ke Banyak (Many-to-Many) untuk Rangkapan Jabatan via tabel pivot role_user
-     */
-    public function roles(): BelongsToMany
+    public function roles(): HasMany
     {
-        return $this->belongsToMany(Role::class, 'role_user')
-            ->withPivot('is_primary')
-            ->withTimestamps();
+        return $this->hasMany(Role::class, 'id', 'role_id');
     }
 
-    /**
-     * Helper Backward Compatibility untuk mengambil Role Utama
-     */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role_id')->withDefault(function () {
-            return $this->roles()->wherePivot('is_primary', true)->first()
-                ?? $this->roles()->first();
-        });
+        return $this->belongsTo(\App\Models\User\Role::class, 'role_id');
     }
 
     public function station(): BelongsTo
