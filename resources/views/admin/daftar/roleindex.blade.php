@@ -59,7 +59,7 @@
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Hierarki & Penyetuju Dinamis
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Atur struktur atasan langsung serta alur persetujuan (1 Step / 2 Step) untuk Modul Cuti, CAR, dan MPR.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Atur struktur atasan langsung serta alur persetujuan (1 Step / 2 Step) untuk Modul CUTI, MPR, dan CAR.</p>
                 </div>
 
                 {{-- SUB-TAB SWITCHER MODUL --}}
@@ -67,11 +67,11 @@
                     <button type="button" onclick="switchMatrixTab('matrix-cuti')" id="btn-matrix-cuti" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sky-700 shadow-xs transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-umbrella-beach text-[11px]"></i> Modul Cuti
                     </button>
-                    <button type="button" onclick="switchMatrixTab('matrix-car')" id="btn-matrix-car" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i> Modul CAR
-                    </button>
                     <button type="button" onclick="switchMatrixTab('matrix-mpr')" id="btn-matrix-mpr" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-boxes-packing text-[11px]"></i> Modul MPR
+                    </button>
+                    <button type="button" onclick="switchMatrixTab('matrix-car')" id="btn-matrix-car" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i> Modul CAR
                     </button>
                 </div>
             </div>
@@ -179,38 +179,6 @@
                                         </div>
                                     </td>
 
-                                    {{-- ==================== KOLOM MODUL CAR ==================== --}}
-                                    <td class="p-3 text-center align-middle col-matrix-car hidden">
-                                        <select name="hierarchy[{{ $idx }}][car_approval_levels]"
-                                                onchange="toggleCarApproverInputs(this, {{ $idx }})"
-                                                class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-emerald-500 cursor-pointer">
-                                            <option value="1" {{ $carLevels == 1 ? 'selected' : '' }}>1 Step</option>
-                                            <option value="2" {{ $carLevels == 2 ? 'selected' : '' }}>2 Step</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-car hidden">
-                                        <select name="hierarchy[{{ $idx }}][car_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
-                                            <option value="">-- Pilih Role Penyetuju CAR (Step 1) --</option>
-                                            @foreach($daftarRole as $approverCandidate)
-                                                <option value="{{ $approverCandidate->id }}" {{ $carLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                    {{ $approverCandidate->role_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-car hidden">
-                                        <div id="box_car_approver_lvl2_{{ $idx }}" class="{{ $carLevels == 2 ? '' : 'hidden' }}">
-                                            <select name="hierarchy[{{ $idx }}][car_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
-                                                <option value="">-- Pilih Role Penyetuju CAR (Step 2) --</option>
-                                                @foreach($daftarRole as $approverCandidate)
-                                                    <option value="{{ $approverCandidate->id }}" {{ $carLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                        {{ $approverCandidate->role_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-
                                     {{-- ==================== KOLOM MODUL MPR ==================== --}}
                                     <td class="p-3 text-center align-middle col-matrix-mpr hidden">
                                         <select name="hierarchy[{{ $idx }}][mpr_approval_levels]"
@@ -236,6 +204,38 @@
                                                 <option value="">-- Pilih Role Penyetuju MPR (Step 2) --</option>
                                                 @foreach($daftarRole as $approverCandidate)
                                                     <option value="{{ $approverCandidate->id }}" {{ $mprLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                        {{ $approverCandidate->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </td>
+
+                                    {{-- ==================== KOLOM MODUL CAR ==================== --}}
+                                    <td class="p-3 text-center align-middle col-matrix-car hidden">
+                                        <select name="hierarchy[{{ $idx }}][car_approval_levels]"
+                                                onchange="toggleCarApproverInputs(this, {{ $idx }})"
+                                                class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-emerald-500 cursor-pointer">
+                                            <option value="1" {{ $carLevels == 1 ? 'selected' : '' }}>1 Step</option>
+                                            <option value="2" {{ $carLevels == 2 ? 'selected' : '' }}>2 Step</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-car hidden">
+                                        <select name="hierarchy[{{ $idx }}][car_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
+                                            <option value="">-- Pilih Role Penyetuju CAR (Step 1) --</option>
+                                            @foreach($daftarRole as $approverCandidate)
+                                                <option value="{{ $approverCandidate->id }}" {{ $carLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                    {{ $approverCandidate->role_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td class="p-3 align-middle col-matrix-car hidden">
+                                        <div id="box_car_approver_lvl2_{{ $idx }}" class="{{ $carLevels == 2 ? '' : 'hidden' }}">
+                                            <select name="hierarchy[{{ $idx }}][car_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
+                                                <option value="">-- Pilih Role Penyetuju CAR (Step 2) --</option>
+                                                @foreach($daftarRole as $approverCandidate)
+                                                    <option value="{{ $approverCandidate->id }}" {{ $carLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
                                                         {{ $approverCandidate->role_name }}
                                                     </option>
                                                 @endforeach
