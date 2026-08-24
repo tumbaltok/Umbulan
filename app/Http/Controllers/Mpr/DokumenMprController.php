@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mpr\PengajuanMpr;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class MprDokumenController extends Controller
+class DokumenMprController extends Controller
 {
     // CETAK PDF MPR
     public function cetakPdf(int $id)

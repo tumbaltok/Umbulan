@@ -40,4 +40,22 @@ class Role extends Model
     {
         return $this->hasMany(Role::class, 'parent_role_id');
     }
+
+    // --- RELASI TAMBAHAN UNTUK APPROVER ROLE ---
+
+    /**
+     * Role yang berwenang menyetujui Tahap/Level 1
+     */
+    public function approverLevel1Role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'approval_rules->approver_level_1_role_id');
+    }
+
+    /**
+     * Role yang berwenang menyetujui Tahap/Level 2
+     */
+    public function approverLevel2Role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'approval_rules->approver_level_2_role_id');
+    }
 }

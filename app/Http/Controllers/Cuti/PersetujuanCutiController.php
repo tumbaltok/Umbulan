@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class CutiPersetujuanController extends Controller
+class PersetujuanCutiController extends Controller
 {
     use CutiHelperTrait;
 

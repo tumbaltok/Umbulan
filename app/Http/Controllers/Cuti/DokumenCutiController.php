@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cuti\PengajuanCuti;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class CutiDokumenController extends Controller
+class DokumenCutiController extends Controller
 {
     // Frame Halaman Preview Cetak (Web View)
     public function viewSuratCuti(int $id)

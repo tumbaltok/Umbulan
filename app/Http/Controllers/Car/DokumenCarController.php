@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class CarDokumenController extends Controller
+class DokumenCarController extends Controller
 {
     public function print(int $id)
     {

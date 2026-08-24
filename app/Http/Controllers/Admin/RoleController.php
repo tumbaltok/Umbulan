@@ -78,8 +78,8 @@ class RoleController extends Controller
             'hierarchy.*.role_id' => 'required|exists:roles,id',
             'hierarchy.*.parent_role_id' => 'nullable|exists:roles,id',
             'hierarchy.*.approval_levels' => 'required|integer|in:1,2',
-            'hierarchy.*.require_same_station_level_1' => 'nullable|boolean',
-            'hierarchy.*.require_same_station_level_2' => 'nullable|boolean',
+            'hierarchy.*.approver_level_1_role_id' => 'nullable|exists:roles,id',
+            'hierarchy.*.approver_level_2_role_id' => 'nullable|exists:roles,id',
         ]);
 
         foreach ($request->hierarchy as $item) {
@@ -92,9 +92,9 @@ class RoleController extends Controller
             $approvalLevels = (int) ($item['approval_levels'] ?? 1);
 
             $approvalRules = [
-                'approval_levels'              => $approvalLevels,
-                'require_same_station_level_1' => isset($item['require_same_station_level_1']) && $item['require_same_station_level_1'] == 1,
-                'require_same_station_level_2' => ($approvalLevels === 2 && isset($item['require_same_station_level_2']) && $item['require_same_station_level_2'] == 1),
+                'approval_levels'          => $approvalLevels,
+                'approver_level_1_role_id' => !empty($item['approver_level_1_role_id']) ? (int) $item['approver_level_1_role_id'] : null,
+                'approver_level_2_role_id' => ($approvalLevels === 2 && !empty($item['approver_level_2_role_id'])) ? (int) $item['approver_level_2_role_id'] : null,
             ];
 
             $role->update([
@@ -106,7 +106,7 @@ class RoleController extends Controller
         $this->rebuildRoleTree();
 
         return redirect()->back()
-            ->with('success', 'Skema hirarki, jalur tree, dan aturan persetujuan berhasil diperbarui!')
+            ->with('success', 'Skema hirarki dan aturan persetujuan role berhasil diperbarui!')
             ->with('active_tab', 'tab-hierarchy');
     }
 }

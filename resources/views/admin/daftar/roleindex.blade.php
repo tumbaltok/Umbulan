@@ -58,7 +58,7 @@
                 <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-sky-600"></i> Matriks Pengaturan Atasan & Dynamic Approval Scope
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando dan validasi batas wilayah stasiun untuk persetujuan Cuti & CAR.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Atur rantai komando, tingkat tahapan approval, serta penanggung jawab role penyetuju.</p>
             </div>
 
             <form action="{{ route('admin.role.hierarchy.update') }}" method="POST">
@@ -68,26 +68,29 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
                                 <th class="p-3.5">Role / Jabatan</th>
-                                <th class="p-3.5">Atasan Langsung (Parent Role)</th>
-                                <th class="p-3.5 text-center">Level Approval</th>
-                                <th class="p-3.5 text-center">Aturan Stasiun Kerja</th>
+                                <th class="p-3.5">Atasan Langsung</th>
+                                <th class="p-3.5 text-center">Herarki</th>
+                                <th class="p-3.5">Approver 1 Langkah</th>
+                                <th class="p-3.5">Approver 2 Langkah</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
                             @foreach($daftarRole as $idx => $r)
                                 @php
                                     $rules = $r->approval_rules ?? [];
-                                    $reqLvl1  = $rules['require_same_station_level_1'] ?? ($rules['require_same_station'] ?? true);
-                                    $reqLvl2  = $rules['require_same_station_level_2'] ?? false;
                                     $appLevels = $rules['approval_levels'] ?? 1;
+                                    $lvl1RoleId = $rules['approver_level_1_role_id'] ?? null;
+                                    $lvl2RoleId = $rules['approver_level_2_role_id'] ?? null;
                                 @endphp
                                 <tr class="hover:bg-slate-50/60 transition-colors">
-                                    <td class="p-3 font-bold text-slate-800">
+                                    {{-- NAMA ROLE --}}
+                                    <td class="p-3 font-bold text-slate-800 align-middle">
                                         <input type="hidden" name="hierarchy[{{ $idx }}][role_id]" value="{{ $r->id }}">
                                         {{ $r->role_name }}
                                     </td>
 
-                                    <td class="p-3">
+                                    {{-- PARENT ROLE --}}
+                                    <td class="p-3 align-middle">
                                         <select name="hierarchy[{{ $idx }}][parent_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
                                             <option value="">-- Top Level (Tidak Ada Atasan) --</option>
                                             @foreach($daftarRole as $parentCandidate)
@@ -100,36 +103,39 @@
                                         </select>
                                     </td>
 
-                                    <td class="p-3 text-center">
+                                    {{-- JUMLAH LEVEL APPROVAL --}}
+                                    <td class="p-3 text-center align-middle">
                                         <select name="hierarchy[{{ $idx }}][approval_levels]"
-                                                onchange="toggleStationRules(this, {{ $idx }})"
-                                                class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
-                                            <option value="1" {{ $appLevels == 1 ? 'selected' : '' }}>1 Level (Atasan Saja)</option>
-                                            <option value="2" {{ $appLevels == 2 ? 'selected' : '' }}>2 Level (Atasan + Manager)</option>
+                                                onchange="toggleApproverInputs(this, {{ $idx }})"
+                                                class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
+                                            <option value="1" {{ $appLevels == 1 ? 'selected' : '' }}>1 Step</option>
+                                            <option value="2" {{ $appLevels == 2 ? 'selected' : '' }}>2 Step</option>
                                         </select>
                                     </td>
 
-                                    <td class="p-3 text-left">
-                                        <div class="space-y-1.5">
-                                            {{-- CHECKBOX LEVEL 1 (SELALU MUNCUL) --}}
-                                            <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox"
-                                                       name="hierarchy[{{ $idx }}][require_same_station_level_1]"
-                                                       value="1"
-                                                       {{ $reqLvl1 ? 'checked' : '' }}
-                                                       class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer">
-                                                <span class="text-[11px] font-medium text-slate-700">Wajib Stasiun Sama (Atasan Langsung)</span>
-                                            </label>
+                                    {{-- APPROVER LEVEL 1 --}}
+                                    <td class="p-3 align-middle">
+                                        <select name="hierarchy[{{ $idx }}][approver_level_1_role_id]" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
+                                            <option value="">-- Pilih Role Penyetuju (Lvl 1) --</option>
+                                            @foreach($daftarRole as $approverCandidate)
+                                                <option value="{{ $approverCandidate->id }}" {{ $lvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                    {{ $approverCandidate->role_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
 
-                                            {{-- CHECKBOX LEVEL 2 (DINAMIS SENSITIF TERHADAP DROPDOWN LEVEL APPROVAL) --}}
-                                            <label id="box_level_2_{{ $idx }}" class="flex items-center gap-2 cursor-pointer {{ $appLevels == 2 ? '' : 'hidden' }}">
-                                                <input type="checkbox"
-                                                       name="hierarchy[{{ $idx }}][require_same_station_level_2]"
-                                                       value="1"
-                                                       {{ $reqLvl2 ? 'checked' : '' }}
-                                                       class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
-                                                <span class="text-[11px] font-medium text-indigo-700">Wajib Stasiun Sama (Atasan Level 2)</span>
-                                            </label>
+                                    {{-- APPROVER LEVEL 2 --}}
+                                    <td class="p-3 align-middle">
+                                        <div id="box_approver_lvl2_{{ $idx }}" class="{{ $appLevels == 2 ? '' : 'hidden' }}">
+                                            <select name="hierarchy[{{ $idx }}][approver_level_2_role_id]" class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs focus:border-indigo-500 cursor-pointer">
+                                                <option value="">-- Pilih Role Penyetuju (Lvl 2) --</option>
+                                                @foreach($daftarRole as $approverCandidate)
+                                                    <option value="{{ $approverCandidate->id }}" {{ $lvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
+                                                        {{ $approverCandidate->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </td>
                                 </tr>
@@ -308,18 +314,17 @@
 
     const rawRolesData = JSON.parse('@json($daftarRole)');
 
-    // DYNAMIC SWITCH CHECKBOX LEVEL 2 BERDASARKAN SELECT APPROVAL
-    function toggleStationRules(selectElement, index) {
-        const boxLevel2 = document.getElementById(`box_level_2_${index}`);
-        if (!boxLevel2) return;
+    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER LEVEL 2
+    function toggleApproverInputs(selectElement, index) {
+        const boxLvl2 = document.getElementById(`box_approver_lvl2_${index}`);
+        if (!boxLvl2) return;
 
         if (parseInt(selectElement.value) === 2) {
-            boxLevel2.classList.remove('hidden');
+            boxLvl2.classList.remove('hidden');
         } else {
-            boxLevel2.classList.add('hidden');
-            // Uncheck level 2 jika diubah ke 1 level
-            const checkboxLvl2 = boxLevel2.querySelector('input[type="checkbox"]');
-            if (checkboxLvl2) checkboxLvl2.checked = false;
+            boxLvl2.classList.add('hidden');
+            const selectLvl2 = boxLvl2.querySelector('select');
+            if (selectLvl2) selectLvl2.value = '';
         }
     }
 
@@ -373,7 +378,6 @@
     }
 
     function switchTab(tabId) {
-        // SIMPAN TAB AKTIF KE LOCALSTORAGE
         localStorage.setItem('active_tab_role', tabId);
 
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -398,7 +402,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // AMBIL TAB DARI LOCALSTORAGE, ATAU SESSION, ATAU DEFAULT TO 'tab-hierarchy'
         const activeTabSession = JSON.parse(`{!! json_encode(session('active_tab')) !!}`);
         const savedTab = localStorage.getItem('active_tab_role') || activeTabSession || 'tab-hierarchy';
 

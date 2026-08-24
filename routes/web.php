@@ -7,11 +7,11 @@ use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\RecordController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\StationController;
-use App\Http\Controllers\Car\CarDokumenController;
+use App\Http\Controllers\Car\DokumenCarController;
 use App\Http\Controllers\Car\PengajuanCarController;
 use App\Http\Controllers\Car\PersetujuanCarController;
 use App\Http\Controllers\Cuti\PengajuanCutiController;
-use App\Http\Controllers\Mpr\MprDokumenController;
+use App\Http\Controllers\Mpr\DokumenMprController;
 use App\Http\Controllers\Mpr\PengajuanMprController;
 use App\Http\Controllers\Mpr\PersetujuanMprController;
 use App\Http\Controllers\User\AccountController;
@@ -101,12 +101,12 @@ Route::middleware('auth')->group(function () {
         // Form & Cetak CAR
         Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
         Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
-        Route::get('/car/print/{id}', [CarDokumenController::class, 'print'])->name('car.print');
+        Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
 
         // Form & Cetak MPR
         Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
         Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
-        Route::get('/mpr/cetak/{id}', [MprDokumenController::class, 'cetakPdf'])->name('mpr.cetak');
+        Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
     });
 
     // Fitur Jadwal Kerja (Set Initial Shift)
