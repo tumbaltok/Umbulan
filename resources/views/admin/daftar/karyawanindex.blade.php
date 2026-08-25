@@ -118,16 +118,16 @@
                             <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
                                 Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
-                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="1">
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors text-center" data-sort="1">
                                 Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                             <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
-                                Penempatan Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                                Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                             <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
                             <th class="px-6 py-4 text-center w-28">Edit Saldo Cuti</th>
                             <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
-                                Status Operasional <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
+                                Status <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                         </tr>
                     </thead>
@@ -159,7 +159,7 @@
                                     </div>
                                 </td>
 
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 text-center">
                                     @php
                                         $roleNames = $karyawan->roles->pluck('role_name')->implode(' / ');
                                     @endphp

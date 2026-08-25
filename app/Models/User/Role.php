@@ -31,18 +31,6 @@ class Role extends Model
         return $this->hasMany(User::class, 'role_id', 'id');
     }
 
-    // public function parentRole(): BelongsTo
-    // {
-    //     return $this->belongsTo(Role::class, 'parent_role_id');
-    // }
-
-    // public function childRoles(): HasMany
-    // {
-    //     return $this->hasMany(Role::class, 'parent_role_id');
-    // }
-
-    // --- RELASI TAMBAHAN UNTUK APPROVER ROLE ---
-
     /**
      * Role yang berwenang menyetujui Tahap/Level 1
      */

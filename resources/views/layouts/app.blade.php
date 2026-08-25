@@ -215,7 +215,7 @@
                     </button>
 
                     <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/mpr/create" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('mpr/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <a href="/mpr/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('mpr/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                             <span class="hide-on-collapse">Ajukan MPR</span>
                         </a>
                         <a href="/mpr/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('mpr/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
@@ -254,7 +254,7 @@
                     </button>
 
                     <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/car/create" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <a href="/car/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                             <span class="hide-on-collapse">Ajukan CAR</span>
                         </a>
                         <a href="/car/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
@@ -384,7 +384,7 @@
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Penempatan Kerja,</p>
+                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Tempat Kerja,</p>
                     <h1 class="text-base font-bold text-slate-800 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>

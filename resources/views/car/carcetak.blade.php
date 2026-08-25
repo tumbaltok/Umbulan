@@ -211,7 +211,7 @@
             {{-- 1. PEMOHON / REQUESTER --}}
             <td>
                 <div class="approval-title">Requested By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Requester</div>
+                <div style="font-size: 9px; margin-top: 2px; visibility: hidden;">Requester</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($car->user)->signature && file_exists(public_path('storage/' . $car->user->signature)))
                         <img src="{{ public_path('storage/' . $car->user->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
@@ -224,7 +224,7 @@
             {{-- 2. SUPERVISOR / ATASAN LANGSUNG --}}
             <td>
                 <div class="approval-title">Checked By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Supervisor / Atasan 1</div>
+                <div style="font-size: 9px; margin-top: 2px; visibility: hidden;">Supervisor / Atasan 1</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($approverLevel1)->signature && file_exists(public_path('storage/' . $approverLevel1->signature)))
                         <img src="{{ public_path('storage/' . $approverLevel1->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
@@ -237,7 +237,7 @@
             {{-- 3. MANAGER / ATASAN TAHAP 2 (SAMA DENGAN TAHAP 1 JIKA 1 LEVEL) --}}
             <td>
                 <div class="approval-title">Checked & Proceed By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Manager / Atasan 2</div>
+                <div style="font-size: 9px; margin-top: 2px; visibility: hidden;">Manager / Atasan 2</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($approverLevel2)->signature && file_exists(public_path('storage/' . $approverLevel2->signature)))
                         <img src="{{ public_path('storage/' . $approverLevel2->signature) }}" style="max-height: 55px; max-width: 100px; object-fit: contain;">
@@ -250,7 +250,7 @@
             {{-- 4. DIRECTOR --}}
             <td>
                 <div class="approval-title">Approved By</div>
-                <div style="font-size: 9px; margin-top: 2px;">Director</div>
+                <div style="font-size: 9px; margin-top: 2px; visibility: hidden;">Director</div>
                 <div class="signature-space"></div>
                 <div class="signer-name">...........................</div>
                 <div>President Director</div>

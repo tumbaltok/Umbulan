@@ -98,13 +98,13 @@ class DatabaseSeeder extends Seeder
 
         $rolesData = [
             // Level 1: System Admin & General Manager
-            ['id' => 1,  'role_name' => 'Admin', 'level' => 1, 'parent_role_id' => 18, 'description' => 'Administrator Utama Sistem ERP'],
+            ['id' => 1, 'role_name' => 'ADMIN', 'level' => 1, 'parent_role_id' => 18, 'approval_rules' => ['cuti' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 8], 'approval_levels' => 2,'car' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 7], 'mpr' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 4], 'approver_level_1_role_id' => 18, 'approver_level_2_role_id' => 8], 'description' => 'Administrator Utama Sistem ERP'],
 
             // Level 2: Direksi & Head Division (Berada langsung di bawah GM - Role 7)
-            ['id' => 7,  'role_name' => 'GENERAL MANAGER', 'level' => 2, 'parent_role_id' => null, 'description' => 'Pimpinan Tertinggi Operasional'],
+            ['id' => 7,  'role_name' => 'GENERAL MANAGER', 'level' => 2, 'parent_role_id' => null, 'description' => null],
             ['id' => 2,  'role_name' => 'SECRETARY', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
             ['id' => 3,  'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 4,  'role_name' => 'PROCUREMENT', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
+            ['id' => 4,  'role_name' => 'PROCUREMENT', 'level' => 1, 'parent_role_id' => 7, 'description' => null],
             ['id' => 5,  'role_name' => 'HRD', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
             ['id' => 6,  'role_name' => 'CONSULTANT', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
             ['id' => 8,  'role_name' => 'OPERATIONAL', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
@@ -114,25 +114,25 @@ class DatabaseSeeder extends Seeder
             ['id' => 12, 'role_name' => 'FINANCE', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
 
             // Level 3: Sub-Departemen
-            ['id' => 13, 'role_name' => 'GENERAL AFFAIRS', 'level' => 3, 'parent_role_id' => 10, 'description' => null], // Bawahan Support (10)
-            ['id' => 14, 'role_name' => 'ASSET', 'level' => 3, 'parent_role_id' => 11, 'description' => null],           // Bawahan Legal (11)
-            ['id' => 15, 'role_name' => 'ACCOUNT', 'level' => 3, 'parent_role_id' => 12, 'description' => null],         // Bawahan Finance (12)
-            ['id' => 16, 'role_name' => 'MARKETING', 'level' => 3, 'parent_role_id' => 12, 'description' => null],       // Bawahan Finance (12)
-            ['id' => 17, 'role_name' => 'DOKUMENT CONTROL', 'level' => 3, 'parent_role_id' => 14, 'description' => null], // Bawahan Asset (14)
+            ['id' => 13, 'role_name' => 'GENERAL AFFAIRS', 'level' => 3, 'parent_role_id' => 10, 'description' => null],
+            ['id' => 14, 'role_name' => 'ASSET', 'level' => 3, 'parent_role_id' => 11, 'description' => null],
+            ['id' => 15, 'role_name' => 'ACCOUNT', 'level' => 3, 'parent_role_id' => 12, 'description' => null],
+            ['id' => 16, 'role_name' => 'MARKETING', 'level' => 3, 'parent_role_id' => 12, 'description' => null],
+            ['id' => 17, 'role_name' => 'DOKUMENT CONTROL', 'level' => 3, 'parent_role_id' => 14, 'description' => null],
 
             // Operational Sub-Units (Bawahan Operational - Role 8)
-            ['id' => 18, 'role_name' => 'Unit Booster-M', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
+            ['id' => 18, 'role_name' => 'UNIT BOOSTER-M', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
             ['id' => 22, 'role_name' => 'AREA (PIPELINE)', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
-            ['id' => 23, 'role_name' => 'Unit IPA Umbulan (Instalasi Pengelolahan Air)', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
+            ['id' => 23, 'role_name' => 'UNIT IPA UMBULAN (Instalasi Pengelolahan Air)', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
 
             // Tim Lapangan (Bawahan Unit Booster-M - Role 18)
-            ['id' => 19, 'role_name' => 'Maintanance (Booster-M)', 'level' => 3, 'parent_role_id' => 18, 'description' => null],
+            ['id' => 19, 'role_name' => 'MAINTANANCE (Booster-M)', 'level' => 3, 'parent_role_id' => 18, 'description' => null],
             ['id' => 20, 'role_name' => 'Q.HSE (Booster-M)', 'level' => 3, 'parent_role_id' => 18, 'description' => null],
-            ['id' => 21, 'role_name' => 'Operator (Booster-M)', 'level' => 3, 'parent_role_id' => 18, 'description' => null],
+            ['id' => 21, 'role_name' => 'OPERATOR (Booster-M)', 'level' => 3, 'parent_role_id' => 18, 'description' => null],
 
             // Tim Lapangan (Bawahan Unit IPA Umbulan - Role 23)
-            ['id' => 24, 'role_name' => 'Operator (Umbulan)', 'level' => 3, 'parent_role_id' => 23, 'description' => null],
-            ['id' => 25, 'role_name' => 'Maintanance (Umbulan)', 'level' => 3, 'parent_role_id' => 23, 'description' => null],
+            ['id' => 24, 'role_name' => 'OPERATOR (Umbulan)', 'level' => 3, 'parent_role_id' => 23, 'description' => null],
+            ['id' => 25, 'role_name' => 'MAINTANANCE (Umbulan)', 'level' => 3, 'parent_role_id' => 23, 'description' => null],
             ['id' => 26, 'role_name' => 'Q.HSE (Umbulan)', 'level' => 3, 'parent_role_id' => 23, 'description' => null],
         ];
 
@@ -142,6 +142,7 @@ class DatabaseSeeder extends Seeder
                 'role_name'      => $role['role_name'],
                 'level'          => $role['level'],
                 'parent_role_id' => $role['parent_role_id'],
+                'approval_rules' => $role['approval_rules'] ?? null,
                 'description'    => $role['description'],
                 'created_at'     => now(),
                 'updated_at'     => now(),

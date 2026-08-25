@@ -192,7 +192,7 @@
         <tbody>
             @php $grandTotal = 0; @endphp
             @foreach($mpr->items as $index => $item)
-                @php 
+                @php
                     $subtotal = $item->jumlah * $item->estimasi_harga;
                     $grandTotal += $subtotal;
                 @endphp
@@ -222,7 +222,7 @@
             {{-- 1. PEMOHON MATERIAL --}}
             <td>
                 <div class="approval-title">Diajukan Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Pemohon Material</div>
+                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Pemohon Material</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($mpr->user)->signature && file_exists(public_path('storage/' . $mpr->user->signature)))
                         <img src="{{ public_path('storage/' . $mpr->user->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
@@ -235,7 +235,7 @@
             {{-- 2. DIVERIFIKASI SUPERVISOR --}}
             <td>
                 <div class="approval-title">Diverifikasi Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Supervisor Operasional</div>
+                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Supervisor</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($mpr->supervisor)->signature && file_exists(public_path('storage/' . $mpr->supervisor->signature)))
                         <img src="{{ public_path('storage/' . $mpr->supervisor->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
@@ -250,7 +250,7 @@
             {{-- 3. DISETUJUI MANAGER --}}
             <td>
                 <div class="approval-title">Disetujui Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Manager Department</div>
+                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Manager</div>
                 <div class="signature-space" style="text-align: center; vertical-align: middle;">
                     @if(optional($mpr->manager)->signature && file_exists(public_path('storage/' . $mpr->manager->signature)))
                         <img src="{{ public_path('storage/' . $mpr->manager->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
@@ -265,7 +265,7 @@
             {{-- 4. PROCUREMENT --}}
             <td>
                 <div class="approval-title">Diketahui Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b;">Procurement / Finance</div>
+                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Procurement / Finance</div>
                 <div class="signature-space"></div>
                 <div class="signer-name">...........................</div>
                 <div style="font-size: 8.5px; color: #475569;">Procurement Manager</div>

@@ -93,19 +93,19 @@ Route::middleware('auth')->group(function () {
     // Fitur Internal (Wajib Verified)
     Route::middleware(['verified', 'phone.verified'])->group(function () {
         // Form Cuti
-        Route::get('/cuti/create', [PengajuanCutiController::class, 'create'])->name('cuti.create');
+        Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
         Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
         Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
         Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
         Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
         // Form & Cetak CAR
-        Route::get('/car/create', [PengajuanCarController::class, 'create'])->name('car.create');
+        Route::get('/car/ajukan', [PengajuanCarController::class, 'create'])->name('car.create');
         Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
         Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
 
         // Form & Cetak MPR
-        Route::get('/mpr/create', [PengajuanMprController::class, 'create'])->name('mpr.create');
+        Route::get('/mpr/ajukan', [PengajuanMprController::class, 'create'])->name('mpr.create');
         Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
         Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
     });

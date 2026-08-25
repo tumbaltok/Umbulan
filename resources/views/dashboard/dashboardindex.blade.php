@@ -458,7 +458,7 @@
                 <h3 class="font-bold text-slate-800">Riwayat Cuti Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
             </div>
-            <a href="{{ url('/cuti/create') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/cuti/ajukan') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan Cuti</span>
             </a>
@@ -507,7 +507,7 @@
                                                 onclick="bukaPratinjauCetak(this.dataset.url)"
                                                 class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm cursor-pointer">
                                             <i class="fa-solid fa-print text-[10px]"></i>
-                                            <span>Cetak</span>
+                                            <span>PDF</span>
                                         </button>
                                     </div>
                                 @elseif(trim(strtolower($cuti->status_akhir ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_2 ?? '')) === 'rejected')
@@ -551,7 +551,7 @@
                 <h3 class="font-bold text-slate-800">Riwayat MPR Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
             </div>
-            <a href="{{ url('/mpr/create') }}" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/mpr/ajukan') }}" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan MPR</span>
             </a>
@@ -565,7 +565,6 @@
                         <th class="px-6 py-3.5">Keperluan / Urgensi</th>
                         <th class="px-6 py-3.5">Daftar Material</th>
                         <th class="px-6 py-3.5">Status Persetujuan</th>
-                        <th class="px-6 py-3.5 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -591,10 +590,20 @@
                             <td class="px-6 py-4">
                                 <div class="flex flex-col items-start gap-1.5">
                                     @if(trim(strtolower($mpr->status_akhir ?? '')) === 'approved')
-                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Disetujui</span>
-                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>Disetujui</span>
+                                            </span>
+
+                                            <button type="button"
+                                                    data-url="{{ route('mpr.cetak', $mpr->id) }}"
+                                                    onclick="bukaPratinjauCetak(this.dataset.url)"
+                                                    class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm cursor-pointer">
+                                                <i class="fa-solid fa-print text-[10px]"></i>
+                                                <span>PDF</span>
+                                            </button>
+                                        </div>
                                     @elseif(trim(strtolower($mpr->status_akhir ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_2 ?? '')) === 'rejected')
                                         <div class="space-y-1.5">
                                             <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
@@ -615,19 +624,6 @@
                                         </span>
                                     @endif
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @if(trim(strtolower($mpr->status_akhir ?? '')) === 'approved')
-                                    <button type="button"
-                                            data-url="{{ route('mpr.cetak', $mpr->id) }}"
-                                            onclick="bukaPratinjauCetak(this.dataset.url)"
-                                            class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm cursor-pointer">
-                                        <i class="fa-solid fa-print text-[10px]"></i>
-                                        <span>Cetak PDF</span>
-                                    </button>
-                                @else
-                                    <span class="text-xs text-slate-400">-</span>
-                                @endif
                             </td>
                         </tr>
                     @empty
@@ -650,7 +646,7 @@
                 <h3 class="font-bold text-slate-800">Riwayat CAR Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
             </div>
-            <a href="{{ url('/car/create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/car/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan CAR</span>
             </a>
@@ -692,7 +688,7 @@
                                                     onclick="bukaPratinjauCetak(this.dataset.url)"
                                                     class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-sm cursor-pointer">
                                                 <i class="fa-solid fa-print text-[10px]"></i>
-                                                <span>Cetak</span>
+                                                <span>PDF</span>
                                             </button>
                                         </div>
                                     @elseif(trim(strtolower($car->status_akhir ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_2 ?? '')) === 'rejected')
