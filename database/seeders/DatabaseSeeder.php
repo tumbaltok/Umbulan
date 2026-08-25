@@ -101,20 +101,22 @@ class DatabaseSeeder extends Seeder
             // Level 1: System Admin & General Manager
             ['id' => 1, 'role_name' => 'ADMIN', 'level' => 1, 'parent_role_id' => 18, 'approval_rules' => ['cuti' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 8], 'approval_levels' => 2,'car' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 7], 'mpr' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 4], 'approver_level_1_role_id' => 18, 'approver_level_2_role_id' => 8], 'description' => 'Administrator Utama Sistem ERP'],
 
-            // Level 2: Direksi & Head Division (Berada langsung di bawah GM - Role 7)
-            ['id' => 7,  'role_name' => 'GENERAL MANAGER', 'level' => 2, 'parent_role_id' => null, 'description' => null],
-            ['id' => 2,  'role_name' => 'SECRETARY', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 3,  'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 4,  'role_name' => 'PROCUREMENT', 'level' => 1, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 5,  'role_name' => 'HRD', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 6,  'role_name' => 'CONSULTANT', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 8,  'role_name' => 'OPERATIONAL', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 9,  'role_name' => 'PUBLIC RELATIONS', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 10, 'role_name' => 'SUPORT', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 11, 'role_name' => 'LEGAL', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
-            ['id' => 12, 'role_name' => 'FINANCE', 'level' => 2, 'parent_role_id' => 7, 'description' => null],
+            // Level 2: Direksi & Head Division
+            ['id' => 2,  'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'parent_role_id' => null, 'description' => null],
+            ['id' => 3,  'role_name' => 'PROCUREMENT', 'level' => 2, 'parent_role_id' => null, 'description' => null],
+            ['id' => 4,  'role_name' => 'GENERAL MANAGER', 'level' => 1, 'parent_role_id' => null, 'description' => null],
+            ['id' => 5,  'role_name' => 'SECRETARY', 'level' => 2, 'parent_role_id' => null, 'description' => null],
+            ['id' => 6,  'role_name' => 'HRD', 'level' => 2, 'parent_role_id' => null, 'description' => null],
 
-            // Level 3: Sub-Departemen
+            // Level 3: Berada langsung di bawah GM - Role 7
+            ['id' => 7,  'role_name' => 'CONSULTANT', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+            ['id' => 8,  'role_name' => 'OPERATIONAL', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+            ['id' => 9,  'role_name' => 'PUBLIC RELATIONS', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+            ['id' => 10, 'role_name' => 'SUPORT', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+            ['id' => 11, 'role_name' => 'LEGAL', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+            ['id' => 12, 'role_name' => 'FINANCE', 'level' => 2, 'parent_role_id' => 6, 'description' => null],
+
+            // Level 4: Sub-Departemen
             ['id' => 13, 'role_name' => 'GENERAL AFFAIRS', 'level' => 3, 'parent_role_id' => 10, 'description' => null],
             ['id' => 14, 'role_name' => 'ASSET', 'level' => 3, 'parent_role_id' => 11, 'description' => null],
             ['id' => 15, 'role_name' => 'ACCOUNT', 'level' => 3, 'parent_role_id' => 12, 'description' => null],
@@ -209,6 +211,19 @@ class DatabaseSeeder extends Seeder
             'sisa_saldo'    => 12,
         ]);
 
+        // ------------------------------------------------------------------
+        // PENGELOMPOKAN NIP/KARYAWAN BERDASARKAN JADWAL
+        // ------------------------------------------------------------------
+
+        // Kelompok Roster Gelombang 1 (Mulai 01-08-2026)
+        $rosterGroupA = ['EMP-037', 'EMP-042', 'EMP-043', 'EMP-044', 'EMP-045', 'EMP-056', 'EMP-057'];
+
+        // Kelompok Roster Gelombang 2 (Mulai 08-08-2026)
+        $rosterGroupB = ['EMP-029', 'EMP-036', 'EMP-050', 'EMP-051', 'EMP-052', 'EMP-053', 'EMP-059', 'EMP-060'];
+
+        // Kelompok Roster Gelombang 3 (Mulai 15-08-2026)
+        $rosterGroupC = ['EMP-030', 'EMP-039', 'EMP-046', 'EMP-047', 'EMP-048', 'EMP-049', 'EMP-058', 'EMP-061'];
+
         // DAFTAR KARYAWAN (Cukup Menyebutkan role_id)
         $usersData = [
             // TOP MANAGEMENT
@@ -281,7 +296,7 @@ class DatabaseSeeder extends Seeder
             ['nip' => 'EMP-057', 'name' => 'Yoga Farely', 'email' => 'yogafarely@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['nip' => 'EMP-058', 'name' => 'Misbahul Munir', 'email' => 'munir@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['nip' => 'EMP-059', 'name' => 'Ach Nafis', 'email' => 'nafis@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
-            ['nip' => 'EMP-060', 'name' => 'Udin', 'email' => 'udin@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
+            ['nip' => 'EMP-060', 'name' => 'Safiudin', 'email' => 'udin@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['nip' => 'EMP-061', 'name' => 'Umar Khusni', 'email' => 'umar@meta.com', 'role_id' => 21, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
 
             // DOCUMENT CONTROL
@@ -290,6 +305,35 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($usersData as $userData) {
+            $nip = $userData['nip'];
+
+            // Logika Evaluasi Jadwal Berdasarkan NIP
+            if (in_array($nip, $rosterGroupA)) {
+                $scheduleType    = 'roster';
+                $rosterStartDate = '2026-08-01';
+                $normalWorkDays  = null;
+                $normalCheckIn   = null;
+                $normalCheckOut  = null;
+            } elseif (in_array($nip, $rosterGroupB)) {
+                $scheduleType    = 'roster';
+                $rosterStartDate = '2026-08-08';
+                $normalWorkDays  = null;
+                $normalCheckIn   = null;
+                $normalCheckOut  = null;
+            } elseif (in_array($nip, $rosterGroupC)) {
+                $scheduleType    = 'roster';
+                $rosterStartDate = '2026-08-15';
+                $normalWorkDays  = null;
+                $normalCheckIn   = null;
+                $normalCheckOut  = null;
+            } else {
+                $scheduleType    = 'normal';
+                $rosterStartDate = null;
+                $normalWorkDays  = '1,2,3,4,5';
+                $normalCheckIn   = '07:00';
+                $normalCheckOut  = '16:00';
+            }
+
             $user = User::create([
                 'nip'               => $userData['nip'],
                 'name'              => $userData['name'],
@@ -300,10 +344,14 @@ class DatabaseSeeder extends Seeder
                 'gender_id'         => $userData['gender_id'],
                 'station_id'        => $userData['station_id'],
                 'phone_number'      => '0812' . rand(10000000, 99999999),
-                'schedule_type'     => 'normal',
-                'normal_work_days'  => '2026-08-18',
-                'normal_check_in'   => '08:00',
-                'normal_check_out'  => '17:00',
+
+                // GUNAKAN VARIABEL DARI IF-ELSE DI ATAS:
+                'schedule_type'     => $scheduleType,
+                'roster_start_date' => $rosterStartDate,
+                'normal_work_days'  => $normalWorkDays,
+                'normal_check_in'   => $normalCheckIn,
+                'normal_check_out'  => $normalCheckOut,
+
                 'password'          => $defaultPassword,
             ]);
 
