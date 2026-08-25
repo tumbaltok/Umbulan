@@ -19,7 +19,7 @@ class RoleController extends Controller
     }
 
     // Rekalkulasi seluruh tree_code dan level organisasi
-    private function rebuildRoleTree()
+    public function rebuildRoleTree()
     {
         $topRoles = Role::whereNull('parent_role_id')->orderBy('id', 'asc')->get();
         $index = 1;

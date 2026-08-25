@@ -13,6 +13,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Admin\RoleController;
 
 class DatabaseSeeder extends Seeder
 {
@@ -148,6 +149,7 @@ class DatabaseSeeder extends Seeder
                 'updated_at'     => now(),
             ]);
         }
+        app(RoleController::class)->rebuildRoleTree();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // ==========================================

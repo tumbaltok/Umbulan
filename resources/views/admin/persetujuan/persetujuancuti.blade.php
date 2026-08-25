@@ -66,7 +66,7 @@
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
                                     {{ $item->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : ($item->status_tahap_2 === 'not_required' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-700')) }}">
-                                    {{ $item->status_tahap_2 === 'not_required' ? '1 Step Only' : ($item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2)) }}
+                                    {{ $item->status_tahap_2 === 'not_required' ? '-' : ($item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2)) }}
                                 </span>
                             </td>
 

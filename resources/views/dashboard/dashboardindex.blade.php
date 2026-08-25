@@ -231,9 +231,17 @@
     {{-- Widget Kalender Aktivitas Jadwal --}}
     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-            <div>
-                <h3 class="font-bold text-slate-800 text-base">Kalender Jadwal Kerja & Aktivitas</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Visualisasi jadwal shift, libur nasional, dan histori cuti Anda.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-blue-600 rounded-full"></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <h3 class="font-bold text-slate-800 text-base">Kalender Jadwal Kerja & Aktivitas</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5 pl-0.5">Visualisasi jadwal shift, libur nasional, dan histori cuti Anda.</p>
+                </div>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -455,7 +463,7 @@
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <div>
-                <h3 class="font-bold text-slate-800">Riwayat Cuti Anda</h3>
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-sky-500 pl-3">Riwayat Cuti Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
             </div>
             <a href="{{ url('/cuti/ajukan') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
@@ -548,10 +556,10 @@
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <div>
-                <h3 class="font-bold text-slate-800">Riwayat MPR Anda</h3>
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-indigo-500 pl-3">Riwayat MPR Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
             </div>
-            <a href="{{ url('/mpr/ajukan') }}" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/mpr/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan MPR</span>
             </a>
@@ -562,7 +570,7 @@
                 <thead>
                     <tr class="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-100 uppercase tracking-wider">
                         <th class="px-6 py-3.5">Nomor & Tanggal</th>
-                        <th class="px-6 py-3.5">Keperluan / Urgensi</th>
+                        <th class="px-6 py-3.5">Alasan Pengajuan</th>
                         <th class="px-6 py-3.5">Daftar Material</th>
                         <th class="px-6 py-3.5">Status Persetujuan</th>
                     </tr>
@@ -643,10 +651,10 @@
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <div>
-                <h3 class="font-bold text-slate-800">Riwayat CAR Anda</h3>
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-purple-500 pl-3">Riwayat CAR Anda</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
             </div>
-            <a href="{{ url('/car/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
+            <a href="{{ url('/car/ajukan') }}" class="bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Ajukan CAR</span>
             </a>
@@ -657,8 +665,8 @@
                 <thead>
                     <tr class="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-100 uppercase tracking-wider">
                         <th class="px-6 py-3.5">Tanggal Pengajuan</th>
-                        <th class="px-6 py-3.5">Alasan Pembelian</th>
-                        <th class="px-6 py-3.5">Rekening Penerima</th>
+                        <th class="px-6 py-3.5">Alasan Pengajuan</th>
+                        <th class="px-6 py-3.5">Daftar Material</th>
                         <th class="px-6 py-3.5">Status Persetujuan</th>
                     </tr>
                 </thead>
@@ -671,8 +679,26 @@
                             <td class="px-6 py-4 max-w-xs truncate" title="{{ $car->alasan_pembelian }}">
                                 {{ $car->alasan_pembelian }}
                             </td>
-                            <td class="px-6 py-4 font-mono text-xs text-slate-600">
+                            {{-- <td class="px-6 py-4 font-mono text-xs text-slate-600">
                                 {{ $car->receiving_account ?? '-' }}
+                            </td> --}}
+                            <td class="px-6 py-4 text-xs">
+                                @if($car->details && $car->details->count() > 0)
+                                    <ul class="list-disc pl-4 space-y-0.5">
+                                        @foreach($car->details->take(2) as $detail)
+                                            <li>
+                                                <span class="font-semibold text-slate-700">{{ $detail->nama_barang }}</span>
+                                                ({{ $detail->jumlah }} {{ $detail->satuan }})
+                                            </li>
+                                        @endforeach
+
+                                        @if($car->details->count() > 2)
+                                            <li class="text-slate-400 italic">+{{ $car->details->count() - 2 }} item lainnya</li>
+                                        @endif
+                                    </ul>
+                                @else
+                                    <span class="text-slate-400 italic">-</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col items-start gap-1.5">

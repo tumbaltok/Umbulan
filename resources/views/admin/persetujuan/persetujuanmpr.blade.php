@@ -30,7 +30,7 @@
                                 </span>
                             @else
                                 <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">
-                                    1 Step Only
+                                    -
                                 </span>
                             @endif
                         </div>
