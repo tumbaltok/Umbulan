@@ -19,21 +19,20 @@ class CekAtasan
         /** @var User $user */
         $user = Auth::user();
 
-        // Ambil role tunggal milik user
-        $role = $user->role;
+        $roles = $user->roles;
 
-        // Jika tidak punya role, tolak akses
-        if (! $role) {
+        // Jika tidak punya role di pivot maupun kolom role_id, tolak akses
+        if ($roles->isEmpty() && ! $user->role) {
             return redirect()->route('dashboard')->with('error', 'Akun Anda tidak memiliki role yang valid!');
         }
 
         // BYPASS FULL AKSES (Role ID 1 / Admin)
-        if ($role->id === 1) {
+        if ($user->hasRole('ADMIN') || $roles->contains('id', 1) || $user->role_id === 1) {
             return $next($request);
         }
 
-        // Ambil level dari role pengguna
-        $minLevel = $role->level;
+        // Ambil level tertinggi (angka terkecil) dari seluruh role pengguna
+        $minLevel = $roles->min('level') ?? ($user->role?->level ?? 3);
 
         // Level > 2 (Level 3, 4, 5, dst) Ditolak dari Area Administrator
         if ($minLevel > 2) {

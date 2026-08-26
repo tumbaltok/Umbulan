@@ -212,15 +212,28 @@ class PengajuanCutiController extends Controller
         }
 
         // PENENTUAN STATUS AWAL BERDASARKAN DYNAMIC APPROVAL RULES DI ROLE PEMOHON
-        $role = $user->role;
-        $rules = $role?->approval_rules ?? [];
-        $cutiRules = $rules['cuti'] ?? [];
+        $isTopLevel = $user->isTopLevel();
+
+        // Cari rule cuti dari seluruh roles yang dimiliki user
+        $cutiRules = [];
+        $rules = [];
+        foreach ($user->roles as $r) {
+            if (!empty($r->approval_rules['cuti'])) {
+                $cutiRules = $r->approval_rules['cuti'];
+                $rules = $r->approval_rules;
+                break;
+            }
+        }
+        if (empty($cutiRules) && $user->role) {
+            $rules = $user->role->approval_rules ?? [];
+            $cutiRules = $rules['cuti'] ?? [];
+        }
 
         $levels = (int) ($cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1));
         $approver1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
         $approver2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
 
-        if (empty($approver1RoleId) && empty($role?->parent_role_id)) {
+        if (empty($approver1RoleId) && $isTopLevel) {
             // Top Level (misal GM/Direksi tanpa approver) otomatis disetujui
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';

@@ -41,16 +41,28 @@ class PengajuanCarController extends Controller
             'items.*.dokumen_pendukung' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $user = Auth::user();
-        $role = $user->role;
-        $rules = $role?->approval_rules ?? [];
-        $carRules = $rules['car'] ?? [];
+        $isTopLevel = $user->isTopLevel();
+
+        // Cari rule CAR dari seluruh roles yang dimiliki user
+        $carRules = [];
+        $rules = [];
+        foreach ($user->roles as $r) {
+            if (!empty($r->approval_rules['car'])) {
+                $carRules = $r->approval_rules['car'];
+                $rules = $r->approval_rules;
+                break;
+            }
+        }
+        if (empty($carRules) && $user->role) {
+            $rules = $user->role->approval_rules ?? [];
+            $carRules = $rules['car'] ?? [];
+        }
 
         $levels = (int) ($carRules['levels'] ?? ($rules['approval_levels'] ?? 1));
         $approver1RoleId = $carRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
         $approver2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
 
-        if (empty($approver1RoleId) && empty($role?->parent_role_id)) {
+        if (empty($approver1RoleId) && $isTopLevel) {
             // Top Level tanpa approver otomatis approved
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';

@@ -203,6 +203,8 @@ class DatabaseSeeder extends Seeder
             'password'          => Hash::make('Admin123.'),
         ]);
 
+        $admin->roles()->sync([1 => ['is_primary' => true]]);
+
         SaldoCuti::create([
             'user_id'       => $admin->id,
             'jenis_cuti_id' => $cutiTahunan->id,
@@ -223,12 +225,13 @@ class DatabaseSeeder extends Seeder
         // Kelompok Roster Gelombang 3 (Mulai 18-08-2020)
         $rosterGroupC = ['EMP-030', 'EMP-039', 'EMP-046', 'EMP-047', 'EMP-048', 'EMP-049', 'EMP-058', 'EMP-061'];
 
-        // DAFTAR KARYAWAN (Cukup Menyebutkan role_id)
+        // DAFTAR KARYAWAN (Dengan Dukungan Multi-Role / Rangkap Jabatan)
         $usersData = [
             // TOP MANAGEMENT
             ['id' => 1, 'nip' => 'EMP-003', 'name' => 'Yan Kuryana', 'email' => 'yan@meta.com', 'role_id' => 2, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 2, 'nip' => 'EMP-004', 'name' => 'Rino Tumilar', 'email' => 'rino@meta.com', 'role_id' => 2, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 3, 'nip' => 'EMP-006', 'name' => 'Reki M.', 'email' => 'reki@meta.com', 'role_id' => 3, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Reki M. (PROCUREMENT & OPERATIONAL)
+            ['id' => 3, 'nip' => 'EMP-006', 'name' => 'Reki M.', 'email' => 'reki@meta.com', 'role_id' => 3, 'roles' => [3, 8], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 4, 'nip' => 'EMP-001', 'name' => 'Herta Eridani', 'email' => 'herta@meta.com', 'role_id' => 4, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 5, 'nip' => 'EMP-002', 'name' => 'Nariessa S', 'email' => 'nariessa@meta.com', 'role_id' => 5, 'station_id' => $stSurabaya->id, 'gender_id' => $wanita->id],
             ['id' => 6, 'nip' => 'EMP-007', 'name' => 'Bantolo E.', 'email' => 'bantolo@meta.com', 'role_id' => 5, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
@@ -237,14 +240,17 @@ class DatabaseSeeder extends Seeder
             // HEAD DIVISION / UNDER GENERAL MANAGER
             ['id' => 8, 'nip' => 'EMP-005', 'name' => 'Hendra Tanzil', 'email' => 'hendra@meta.com', 'role_id' => 6, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 9, 'nip' => 'EMP-009', 'name' => 'Jusman R.', 'email' => 'jusman@meta.com', 'role_id' => 8, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            // ['id' => 3, 'nip' => 'EMP-006', 'name' => 'Reki M.', 'email' => 'reki@meta.com', 'role_id' => 8, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 10, 'nip' => 'EMP-010', 'name' => 'Kurnia Suryandi', 'email' => 'kurnia@meta.com', 'role_id' => 9, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 11, 'nip' => 'EMP-011', 'name' => 'Megantara Putera P.', 'email' => 'megantara@meta.com', 'role_id' => 9, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Kurnia Suryandi (PUBLIC RELATIONS & MARKETING)
+            ['id' => 10, 'nip' => 'EMP-010', 'name' => 'Kurnia Suryandi', 'email' => 'kurnia@meta.com', 'role_id' => 9, 'roles' => [9, 19], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Megantara Putera P. (PUBLIC RELATIONS & ASSET)
+            ['id' => 11, 'nip' => 'EMP-011', 'name' => 'Megantara Putera P.', 'email' => 'megantara@meta.com', 'role_id' => 9, 'roles' => [9, 17], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 12, 'nip' => 'EMP-012', 'name' => 'Facthur R.', 'email' => 'facthur@meta.com', 'role_id' => 10, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 13, 'nip' => 'EMP-013', 'name' => 'Moch. Anwar', 'email' => 'anwar@meta.com', 'role_id' => 10, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Moch. Anwar (SUPORT & MARKETING)
+            ['id' => 13, 'nip' => 'EMP-013', 'name' => 'Moch. Anwar', 'email' => 'anwar@meta.com', 'role_id' => 10, 'roles' => [10, 19], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 14, 'nip' => 'EMP-014', 'name' => 'Mufti A. P.', 'email' => 'mufti@meta.com', 'role_id' => 10, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 15, 'nip' => 'EMP-015', 'name' => 'Hani A.', 'email' => 'hani@meta.com', 'role_id' => 10, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 16, 'nip' => 'EMP-016', 'name' => 'Haidar T.', 'email' => 'haidar@meta.com', 'role_id' => 11, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Haidar Thalib (LEGAL & ASSET)
+            ['id' => 16, 'nip' => 'EMP-016', 'name' => 'Haidar Thalib', 'email' => 'haidar@meta.com', 'role_id' => 11, 'roles' => [11, 17], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 17, 'nip' => 'EMP-017', 'name' => 'Adi P.', 'email' => 'adi@meta.com', 'role_id' => 11, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 18, 'nip' => 'EMP-018', 'name' => 'Hanny Artika', 'email' => 'hanny@meta.com', 'role_id' => 12, 'station_id' => $stSurabaya->id, 'gender_id' => $wanita->id],
             ['id' => 19, 'nip' => 'EMP-019', 'name' => 'Iqbal Hawari', 'email' => 'iqbal@meta.com', 'role_id' => 12, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
@@ -260,14 +266,10 @@ class DatabaseSeeder extends Seeder
             ['id' => 35, 'nip' => 'EMP-035', 'name' => 'Erwin C. H.', 'email' => 'erwin@meta.com', 'role_id' => 15, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
 
             // SUB-DEPARTEMEN
-            ['id' => 21, 'nip' => 'EMP-021', 'name' => 'Agung Dwi Nugroho', 'email' => 'agung@meta.com', 'role_id' => 16, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 22, 'nip' => 'EMP-022', 'name' => 'Megantara P.', 'email' => 'megantara_asset@meta.com', 'role_id' => 17, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 23, 'nip' => 'EMP-023', 'name' => 'Haidar Thalib', 'email' => 'haidar_asset@meta.com', 'role_id' => 17, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 24, 'nip' => 'EMP-024', 'name' => 'Agung Dwi Nugroho B', 'email' => 'agungdwi@meta.com', 'role_id' => 17, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Agung Dwi Nugroho (GENERAL AFFAIRS & ASSET)
+            ['id' => 21, 'nip' => 'EMP-021', 'name' => 'Agung Dwi Nugroho', 'email' => 'agung@meta.com', 'role_id' => 16, 'roles' => [16, 17], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 25, 'nip' => 'EMP-025', 'name' => 'Pontas Nipitulu', 'email' => 'pontas@meta.com', 'role_id' => 18, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 26, 'nip' => 'EMP-026', 'name' => 'Erry K.', 'email' => 'erry@meta.com', 'role_id' => 18, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 27, 'nip' => 'EMP-027', 'name' => 'Moch. Anwar B', 'email' => 'anwar_mkt@meta.com', 'role_id' => 19, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            ['id' => 28, 'nip' => 'EMP-028', 'name' => 'Kurnia Suryandi B', 'email' => 'kurnia_mkt@meta.com', 'role_id' => 19, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
 
             // TIM LAPANGAN UMBULAN
             ['id' => 36, 'nip' => 'EMP-036', 'name' => 'Duanda', 'email' => 'duanda@meta.com', 'role_id' => 20, 'station_id' => $stUmbulan->id, 'gender_id' => $pria->id],
@@ -344,16 +346,20 @@ class DatabaseSeeder extends Seeder
                 'gender_id'         => $userData['gender_id'],
                 'station_id'        => $userData['station_id'],
                 'phone_number'      => '0812' . rand(10000000, 99999999),
-
-                // GUNAKAN VARIABEL DARI IF-ELSE DI ATAS:
                 'schedule_type'     => $scheduleType,
                 'roster_start_date' => $rosterStartDate,
                 'normal_work_days'  => $normalWorkDays,
                 'normal_check_in'   => $normalCheckIn,
                 'normal_check_out'  => $normalCheckOut,
-
                 'password'          => $defaultPassword,
             ]);
+
+            $rolesToSync = $userData['roles'] ?? [$userData['role_id']];
+            $syncData = [];
+            foreach ($rolesToSync as $idx => $rId) {
+                $syncData[$rId] = ['is_primary' => ($idx === 0)];
+            }
+            $user->roles()->sync($syncData);
 
             SaldoCuti::create([
                 'user_id'       => $user->id,

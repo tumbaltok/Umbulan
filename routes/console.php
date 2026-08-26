@@ -53,7 +53,7 @@ Schedule::call(function () {
 
         // Cari atasan yang sesuai dengan targetRole di station yang sama
         $targetAtasan = User::where('station_id', $user->station_id)
-            ->whereHas('role', function ($query) use ($targetRole) {
+            ->whereHas('roles', function ($query) use ($targetRole) {
                 $query->where(DB::raw('LOWER(role_name)'), 'LIKE', '%'.strtolower($targetRole).'%');
             })
             ->whereNotNull('phone_verified_at')

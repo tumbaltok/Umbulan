@@ -47,15 +47,28 @@ class PengajuanMprController extends Controller
         }
 
         $user = Auth::user();
-        $role = $user->role;
-        $rules = $role?->approval_rules ?? [];
-        $mprRules = $rules['mpr'] ?? [];
+        $isTopLevel = $user->isTopLevel();
+
+        // Cari rule MPR dari seluruh roles yang dimiliki user
+        $mprRules = [];
+        $rules = [];
+        foreach ($user->roles as $r) {
+            if (!empty($r->approval_rules['mpr'])) {
+                $mprRules = $r->approval_rules['mpr'];
+                $rules = $r->approval_rules;
+                break;
+            }
+        }
+        if (empty($mprRules) && $user->role) {
+            $rules = $user->role->approval_rules ?? [];
+            $mprRules = $rules['mpr'] ?? [];
+        }
 
         $levels = (int) ($mprRules['levels'] ?? ($rules['approval_levels'] ?? 1));
         $approver1RoleId = $mprRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
         $approver2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
 
-        if (empty($approver1RoleId) && empty($role?->parent_role_id)) {
+        if (empty($approver1RoleId) && $isTopLevel) {
             // Top Level tanpa approver otomatis approved
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';

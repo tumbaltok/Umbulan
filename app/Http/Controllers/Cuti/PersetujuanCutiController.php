@@ -17,48 +17,61 @@ class PersetujuanCutiController extends Controller
     {
         /** @var \App\Models\User\User $atasan */
         $atasan = Auth::user();
-        $atasanRoleId = $atasan->role_id;
+        $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
+        if (empty($atasanRoleIds) && !empty($atasan->role_id)) {
+            $atasanRoleIds = [$atasan->role_id];
+        }
 
-        $query = PengajuanCuti::query()
-            ->join('users', 'pengajuan_cutis.user_id', '=', 'users.id')
-            ->join('roles', 'users.role_id', '=', 'roles.id')
-            ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
-            ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
-            ->select(
-                'pengajuan_cutis.*',
-                'users.name as user_name',
-                'jenis_cutis.name_cuti',
-                'sub_cutis.nama_sub_cuti'
-            )
-            ->orderBy('pengajuan_cutis.created_at', 'desc');
+        $isAdmin = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
-        if ($atasanRoleId === 1) {
+        $query = PengajuanCuti::with(['user.roles', 'jenisCuti', 'subCuti'])
+            ->orderBy('created_at', 'desc');
+
+        if ($isAdmin) {
             // Admin Utama: Dapat memantau seluruh antrean cuti yang belum tuntas
-            $query->where('pengajuan_cutis.status_akhir', 'pending');
+            $query->where('status_akhir', 'pending');
         } else {
-            $query->where(function ($q) use ($atasanRoleId) {
-                // TAHAP 1 PENDING: Role user saat ini ditugaskan sebagai Approver Step 1
-                $q->where(function ($sub) use ($atasanRoleId) {
-                    $sub->where('pengajuan_cutis.status_tahap_1', 'pending')
-                        ->where(function ($jsonQ) use ($atasanRoleId) {
-                            $jsonQ->where('roles.approval_rules->cuti->approver_1_role_id', $atasanRoleId)
-                                  ->orWhere('roles.approval_rules->approver_level_1_role_id', $atasanRoleId);
+            $query->where(function ($q) use ($atasanRoleIds) {
+                // TAHAP 1 PENDING: Atasan memegang role yang menjadi Approver Step 1 pemohon
+                $q->where(function ($sub) use ($atasanRoleIds) {
+                    $sub->where('status_tahap_1', 'pending')
+                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
+                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
+                                foreach ($atasanRoleIds as $roleId) {
+                                    $jsonQ->orWhere('approval_rules->cuti->approver_1_role_id', $roleId)
+                                          ->orWhere('approval_rules->approver_level_1_role_id', $roleId);
+                                }
+                            });
                         });
                 })
-                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Role user ditugaskan sebagai Approver Step 2
-                ->orWhere(function ($sub) use ($atasanRoleId) {
-                    $sub->where('pengajuan_cutis.status_tahap_1', 'approved')
-                        ->where('pengajuan_cutis.status_tahap_2', 'pending')
-                        ->where('pengajuan_cutis.status_tahap_2', '!=', 'not_required')
-                        ->where(function ($jsonQ) use ($atasanRoleId) {
-                            $jsonQ->where('roles.approval_rules->cuti->approver_2_role_id', $atasanRoleId)
-                                  ->orWhere('roles.approval_rules->approver_level_2_role_id', $atasanRoleId);
+                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Atasan memegang role Approver Step 2 pemohon
+                ->orWhere(function ($sub) use ($atasanRoleIds) {
+                    $sub->where('status_tahap_1', 'approved')
+                        ->where('status_tahap_2', 'pending')
+                        ->where('status_tahap_2', '!=', 'not_required')
+                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
+                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
+                                foreach ($atasanRoleIds as $roleId) {
+                                    $jsonQ->orWhere('approval_rules->cuti->approver_2_role_id', $roleId)
+                                          ->orWhere('approval_rules->approver_level_2_role_id', $roleId);
+                                }
+                            });
                         });
                 });
             });
         }
 
+        // Proteksi Self-Approval: Pemohon tidak dapat melihat/menyetujui pengajuannya sendiri di antrean approval
+        $query->where('user_id', '!=', $atasan->id);
+
         $daftarPengajuan = $query->get();
+
+        $daftarPengajuan->transform(function ($item) {
+            $item->user_name = $item->user->name ?? '-';
+            $item->name_cuti = $item->jenisCuti->name_cuti ?? 'Cuti';
+            $item->nama_sub_cuti = $item->subCuti->nama_sub_cuti ?? null;
+            return $item;
+        });
 
         return view('admin.persetujuan.persetujuancuti', compact('daftarPengajuan'));
     }
@@ -73,6 +86,11 @@ class PersetujuanCutiController extends Controller
         $atasan = Auth::user();
         $tindakan = $request->tindakan;
         $pengajuan = PengajuanCuti::findOrFail($id);
+
+        // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
+        if ($pengajuan->user_id === $atasan->id) {
+            return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
+        }
 
         DB::beginTransaction();
         try {

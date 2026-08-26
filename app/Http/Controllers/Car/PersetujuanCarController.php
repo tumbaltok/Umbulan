@@ -13,40 +13,52 @@ class PersetujuanCarController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $atasanRoleId = $atasan->role_id;
+        $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
+        if (empty($atasanRoleIds) && !empty($atasan->role_id)) {
+            $atasanRoleIds = [$atasan->role_id];
+        }
 
-        $query = PengajuanCar::with(['user.role', 'details'])
+        $isAdmin = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
+
+        $query = PengajuanCar::with(['user.roles', 'details'])
             ->orderBy('created_at', 'desc');
 
-        if ($atasanRoleId === 1) {
+        if ($isAdmin) {
             // Admin Sistem: Akses memantau seluruh antrean CAR yang pending
             $query->where('status_akhir', 'pending');
         } else {
-            $query->where(function ($q) use ($atasanRoleId) {
-                // TAHAP 1 PENDING: Role user saat ini ditugaskan sebagai Approver Step 1
-                $q->where(function ($sub) use ($atasanRoleId) {
+            $query->where(function ($q) use ($atasanRoleIds) {
+                // TAHAP 1 PENDING: Atasan memegang role yang menjadi Approver Step 1 pemohon
+                $q->where(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'pending')
-                        ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleId) {
-                                $jsonQ->where('approval_rules->car->approver_1_role_id', $atasanRoleId)
-                                      ->orWhere('approval_rules->approver_level_1_role_id', $atasanRoleId);
+                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
+                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
+                                foreach ($atasanRoleIds as $roleId) {
+                                    $jsonQ->orWhere('approval_rules->car->approver_1_role_id', $roleId)
+                                          ->orWhere('approval_rules->approver_level_1_role_id', $roleId);
+                                }
                             });
                         });
                 })
-                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Role user ditugaskan sebagai Approver Step 2
-                ->orWhere(function ($sub) use ($atasanRoleId) {
+                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Atasan memegang role Approver Step 2 pemohon
+                ->orWhere(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'approved')
                         ->where('status_tahap_2', 'pending')
                         ->where('status_tahap_2', '!=', 'not_required')
-                        ->whereHas('user.role', function ($rq) use ($atasanRoleId) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleId) {
-                                $jsonQ->where('approval_rules->car->approver_2_role_id', $atasanRoleId)
-                                      ->orWhere('approval_rules->approver_level_2_role_id', $atasanRoleId);
+                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
+                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
+                                foreach ($atasanRoleIds as $roleId) {
+                                    $jsonQ->orWhere('approval_rules->car->approver_2_role_id', $roleId)
+                                          ->orWhere('approval_rules->approver_level_2_role_id', $roleId);
+                                }
                             });
                         });
                 });
             });
         }
+
+        // Proteksi Self-Approval: Pemohon tidak dapat melihat/menyetujui pengajuannya sendiri di antrean approval
+        $query->where('user_id', '!=', $atasan->id);
 
         $daftarPengajuan = $query->get();
 
@@ -67,6 +79,11 @@ class PersetujuanCarController extends Controller
 
         $atasan = Auth::user();
         $pengajuan = PengajuanCar::findOrFail($id);
+
+        // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
+        if ($pengajuan->user_id === $atasan->id) {
+            return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
+        }
 
         DB::beginTransaction();
         try {

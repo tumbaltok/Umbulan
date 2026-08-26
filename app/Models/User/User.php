@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'role_id',
         'gender_id',
         'station_id',
         'atasan_langsung_id',
@@ -85,6 +86,11 @@ class User extends Authenticatable implements MustVerifyEmail
                     'sisa_saldo' => $saldoAwal,
                 ]);
             }
+
+            // Sync role_id awal ke pivot role_user jika ada
+            if (!empty($user->role_id)) {
+                $user->roles()->syncWithoutDetaching([$user->role_id => ['is_primary' => true]]);
+            }
         });
     }
 
@@ -95,14 +101,161 @@ class User extends Authenticatable implements MustVerifyEmail
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
 
-    public function roles(): HasMany
+    /**
+     * Relasi Many-to-Many ke tabel roles via pivot role_user.
+     */
+    public function roles(): BelongsToMany
     {
-        return $this->hasMany(Role::class, 'id', 'role_id');
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
+    /**
+     * Relasi BelongsTo ke role utama (backward compatibility).
+     */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User\Role::class, 'role_id');
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    /**
+     * Mengambil Primary Role (role utama pengguna).
+     */
+    public function getPrimaryRoleAttribute(): ?Role
+    {
+        return $this->roles->where('pivot.is_primary', true)->first() 
+            ?? $this->roles->first() 
+            ?? $this->role;
+    }
+
+    /**
+     * Memeriksa apakah user memiliki satu atau lebih role tertentu (berdasarkan nama atau ID).
+     */
+    public function hasRole(string|int|array|Role|\Illuminate\Support\Collection $roles): bool
+    {
+        if ($roles instanceof \Illuminate\Support\Collection) {
+            $roles = $roles->toArray();
+        } elseif ($roles instanceof Role) {
+            $roles = [$roles->id];
+        } elseif (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        $userRoles = $this->roles;
+        $userRoleNames = $userRoles->pluck('role_name')->map(fn($n) => strtoupper(trim($n)))->toArray();
+        $userRoleIds = $userRoles->pluck('id')->toArray();
+
+        foreach ($roles as $r) {
+            if ($r instanceof Role) {
+                if (in_array($r->id, $userRoleIds)) return true;
+            } elseif (is_numeric($r)) {
+                if (in_array((int) $r, $userRoleIds)) return true;
+            } elseif (is_string($r)) {
+                $searchName = strtoupper(trim($r));
+                if (in_array($searchName, $userRoleNames)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Memeriksa apakah user memiliki setidaknya satu role dari array yang diberikan.
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->hasRole($roles);
+    }
+
+    /**
+     * Memeriksa apakah user memiliki seluruh role dalam array yang diberikan.
+     */
+    public function hasAllRoles(array $roles): bool
+    {
+        foreach ($roles as $r) {
+            if (!$this->hasRole($r)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Mengembalikan daftar string nama seluruh role yang dimiliki user.
+     */
+    public function rolesList(): array
+    {
+        return $this->roles->pluck('role_name')->toArray();
+    }
+
+    /**
+     * Menambahkan satu atau beberapa role ke user.
+     */
+    public function assignRole(string|int|array|Role|\Illuminate\Support\Collection $roles): void
+    {
+        $roleIds = $this->resolveRoleIds($roles);
+        if (!empty($roleIds)) {
+            $this->roles()->syncWithoutDetaching($roleIds);
+            if (empty($this->role_id)) {
+                $this->update(['role_id' => $roleIds[0]]);
+            }
+            $this->unsetRelation('roles');
+        }
+    }
+
+    /**
+     * Menghapus satu atau beberapa role dari user.
+     */
+    public function removeRole(string|int|array|Role|\Illuminate\Support\Collection $roles): void
+    {
+        $roleIds = $this->resolveRoleIds($roles);
+        if (!empty($roleIds)) {
+            $this->roles()->detach($roleIds);
+            if (in_array($this->role_id, $roleIds)) {
+                $newPrimary = $this->roles()->first();
+                $this->update(['role_id' => $newPrimary?->id]);
+            }
+            $this->unsetRelation('roles');
+        }
+    }
+
+    /**
+     * Helper privat untuk menormalisasi input role (string/int/object) menjadi array ID.
+     */
+    protected function resolveRoleIds(mixed $roles): array
+    {
+        if ($roles instanceof \Illuminate\Support\Collection) {
+            $roles = $roles->toArray();
+        } elseif ($roles instanceof Role) {
+            return [$roles->id];
+        } elseif (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        $ids = [];
+        foreach ($roles as $r) {
+            if ($r instanceof Role) {
+                $ids[] = $r->id;
+            } elseif (is_numeric($r)) {
+                $ids[] = (int) $r;
+            } elseif (is_string($r)) {
+                $found = Role::whereRaw('LOWER(role_name) = ?', [strtolower(trim($r))])->first();
+                if ($found) {
+                    $ids[] = $found->id;
+                }
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    /**
+     * Memeriksa apakah user memegang setidaknya satu role di level puncak (Top Level).
+     */
+    public function isTopLevel(): bool
+    {
+        return $this->roles->contains(fn($r) => empty($r->parent_role_id));
     }
 
     public function station(): BelongsTo

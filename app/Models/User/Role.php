@@ -25,9 +25,11 @@ class Role extends Model
         'approval_rules' => 'array',
     ];
 
-    public function users()
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class, 'role_id', 'id');
+        return $this->belongsToMany(User::class, 'role_user', 'role_id', 'user_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     public function parentRole(): BelongsTo

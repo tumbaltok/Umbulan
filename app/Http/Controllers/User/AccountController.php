@@ -173,11 +173,26 @@ class AccountController extends Controller
         }
 
         // PREVENT ROLE ADMIN OVERWRITE
-        if ($user->role_id != 1 && strtolower($user->role->role_name ?? '') !== 'admin') {
-            if ($request->has('role_id') && ! empty($request->role_id)) {
+        if (!$user->hasRole('ADMIN') && $user->role_id != 1) {
+            if ($request->has('roles') && is_array($request->roles)) {
+                $validRoleIds = Role::whereIn('id', $request->roles)
+                    ->where('id', '!=', 1)
+                    ->where('level', '>', 1)
+                    ->pluck('id')
+                    ->toArray();
+                if (!empty($validRoleIds)) {
+                    $syncData = [];
+                    foreach ($validRoleIds as $idx => $rId) {
+                        $syncData[$rId] = ['is_primary' => ($idx === 0)];
+                    }
+                    $user->roles()->sync($syncData);
+                    $updateData['role_id'] = $validRoleIds[0];
+                }
+            } elseif ($request->has('role_id') && ! empty($request->role_id)) {
                 $selectedRole = Role::find($request->role_id);
                 if ($selectedRole && strtolower($selectedRole->role_name) !== 'admin' && $selectedRole->level > 1) {
                     $updateData['role_id'] = $request->role_id;
+                    $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
                 }
             }
         }
