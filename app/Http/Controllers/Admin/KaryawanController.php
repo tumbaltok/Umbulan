@@ -33,7 +33,7 @@ class KaryawanController extends Controller
         $jenisCutiId = $cutiJenis ? $cutiJenis->id : null;
 
         // Ambil data Role lengkap untuk dirender pada struktur pohon organisasi
-        $daftarRole = Role::orderBy('level', 'asc')->get();
+        $daftarRole = Role::orderBy('id', 'asc')->get();
 
         $query = User::with([
             'roles', // PERBAIKAN: Menggunakan relasi BelongsToMany
