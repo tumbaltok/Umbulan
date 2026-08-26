@@ -58,14 +58,12 @@ class KaryawanController extends Controller
         $hasTopRole  = $userRoles->contains(fn($r) => empty($r->parent_role_id));
 
         if (! $isAdminRole && ! $hasTopRole) {
-            $userTreeCodes = $userRoles->pluck('tree_code')->filter()->toArray();
-            if (! empty($userTreeCodes)) {
-                $query->whereHas('roles', function ($q) use ($userTreeCodes) {
-                    $q->where(function ($subQ) use ($userTreeCodes) {
-                        foreach ($userTreeCodes as $code) {
-                            $subQ->orWhere('tree_code', 'LIKE', $code . '%');
-                        }
-                    });
+            $userRoleIds = $userRoles->pluck('id')->filter()->toArray();
+            $subordinateRoleIds = Role::getAllChildRoleIds($userRoleIds);
+
+            if (! empty($subordinateRoleIds)) {
+                $query->whereHas('roles', function ($q) use ($subordinateRoleIds) {
+                    $q->whereIn('roles.id', $subordinateRoleIds);
                 });
             }
         }

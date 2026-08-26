@@ -18,34 +18,6 @@ class RoleController extends Controller
         return view('admin.daftar.roleindex', compact('daftarRole', 'daftarJobdesk'));
     }
 
-    // Rekalkulasi seluruh tree_code dan level organisasi
-    public function rebuildRoleTree()
-    {
-        $topRoles = Role::whereNull('parent_role_id')->orderBy('id', 'asc')->get();
-        $index = 1;
-
-        foreach ($topRoles as $role) {
-            $this->assignTreeCodeRecursively($role, (string) $index, 1);
-            $index++;
-        }
-    }
-
-    private function assignTreeCodeRecursively(Role $role, string $codePrefix, int $currentLevel)
-    {
-        $role->update([
-            'tree_code' => $codePrefix,
-        ]);
-
-        $childRoles = Role::where('parent_role_id', $role->id)->orderBy('id', 'asc')->get();
-        $subIndex = 1;
-
-        foreach ($childRoles as $child) {
-            $newPrefix = $codePrefix . '.' . $subIndex;
-            $this->assignTreeCodeRecursively($child, $newPrefix, $currentLevel + 1);
-            $subIndex++;
-        }
-    }
-
     public function store(Request $request)
     {
         if ($request->has('roles')) {
@@ -56,8 +28,6 @@ class RoleController extends Controller
             Role::create($request->all());
         }
 
-        $this->rebuildRoleTree();
-
         return redirect()->back()->with('success', 'Data Role berhasil ditambahkan!');
     }
 
@@ -67,7 +37,6 @@ class RoleController extends Controller
         $data = $request->has('roles') ? ($request->roles[0] ?? []) : $request->all();
 
         $role->update($data);
-        $this->rebuildRoleTree();
 
         return redirect()->back()->with('success', 'Data Role berhasil diperbarui!');
     }
@@ -156,8 +125,6 @@ class RoleController extends Controller
                 'approval_rules' => $existingRules,
             ]);
         }
-
-        $this->rebuildRoleTree();
 
         return redirect()->back()
             ->with('success', 'Skema hierarki dan aturan persetujuan modul berhasil diperbarui!')

@@ -25,7 +25,6 @@ class AppServiceProvider extends ServiceProvider
                 // Ambil single role dari user yang sedang login
                 $userRole = $atasan->role;
                 $atasanRoleId = $atasan->role_id;
-                $treeCode = $userRole?->tree_code;
                 $hasAdminRole = $userRole?->id === 1;
                 $hasTopRole = empty($userRole?->parent_role_id);
 

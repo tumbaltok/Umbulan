@@ -14,7 +14,6 @@ return new class extends Migration
             $table->integer('level')->default(1);
             $table->text('description')->nullable();
             $table->foreignId('parent_role_id')->nullable()->constrained('roles')->nullOnDelete();
-            $table->string('tree_code')->nullable();
             $table->json('approval_rules')->nullable();
             $table->timestamps();
         });
