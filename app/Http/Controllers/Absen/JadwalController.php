@@ -136,7 +136,7 @@ class JadwalController extends Controller
     }
 
     /**
-     * Merekam Vektor Wajah (Descriptor) Karyawan
+     * Merekam Vektor Biometrik Wajah (128-float Descriptor) Karyawan
      */
     public function registerFace(Request $request)
     {
@@ -144,10 +144,21 @@ class JadwalController extends Controller
             'face_descriptor' => 'required',
         ]);
 
+        $descriptor = $request->face_descriptor;
+        if (is_string($descriptor)) {
+            $decoded = json_decode($descriptor, true);
+            if (is_array($decoded)) {
+                $descriptor = $decoded;
+            }
+        }
+
         $request->user()->update([
-            'face_descriptor' => $request->face_descriptor,
+            'face_descriptor' => $descriptor,
         ]);
 
-        return response()->json(['message' => 'Perekaman wajah berhasil disimpan!']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Perekaman biometrik wajah karyawan berhasil disimpan!',
+        ]);
     }
 }

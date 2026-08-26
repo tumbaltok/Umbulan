@@ -24,7 +24,7 @@ class AbsensiAdminController extends Controller
         $tanggal = $request->input('tanggal', Carbon::today('Asia/Jakarta')->format('Y-m-d'));
 
         // 2. Ambil seluruh karyawan aktif beserta relasinya
-        $semuaKaryawan = User::with(['role', 'station'])->orderBy('name', 'asc')->get();
+        $semuaKaryawan = User::with(['roles', 'station'])->orderBy('name', 'asc')->get();
 
         // 3. Ambil data absensi pada tanggal tersebut
         $dataAbsensi = Kehadiran::whereDate('date', $tanggal)->get()->keyBy('user_id');

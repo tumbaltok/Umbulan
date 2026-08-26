@@ -68,17 +68,18 @@ Sistem menangani dua jenis jam kerja: **Normal** (5 hari kerja kantor) dan **Ros
 * **Shift Pagi**: 07:00 – 15:00 WIB.
 * **Shift Malam**: 23:00 – 07:00 WIB.
 
-### B. Presensi Geofencing & Selfie (`KehadiranController`)
+### B. Presensi Geofencing & Biometrik Wajah AI (`KehadiranController`)
 
-[ Buka Presensi ] ──> [ Hitung Jarak Geolocation ] ──> [ Ambil Foto Selfie ] ──> [ Validasi Radius ] ──> [ Simpan Presensi ]
+[ Buka Presensi ] ──> [ Hitung Jarak GPS Haversine ] ──> [ Verifikasi Wajah AI di Browser ] ──> [ Validasi Radius & Waktu ] ──> [ Simpan Presensi ]
 
 
 1. **Perhitungan Radius Location**:
    * Menghitung posisi koordinat pengguna (`latitude`, `longitude`) terhadap koordinat Stasiun Kerja menggunakan **Formula Haversine**.
-   * Jika posisi pengguna di luar radius stasiun, pengguna **wajib menyertakan alasan**.
-2. **Perekaman Waktu & Foto**:
-   * Sistem mencatat jam `check_in` dan `check_out` serta menyimpan berkas foto selfie ke `storage/app/public/foto_absensi/`.
-   * Sistem otomatis membandingkan jam presensi dengan jadwal resmi untuk menentukan indikator **Terlambat** atau **Pulang Awal**.
+   * Jika posisi pengguna di luar radius stasiun atau terlambat/pulang cepat, pengguna **wajib menyertakan alasan**.
+2. **Verifikasi Biometrik Wajah & Hemat Storage**:
+   * Sistem mencocokkan wajah karyawan secara real-time di browser menggunakan model embedding 128-vektor AI (`face-api.js`), **tanpa menyimpan file foto selfie harian ke server**.
+   * Sistem otomatis membandingkan jam presensi dengan jadwal resmi untuk menentukan status **Terlambat** atau **Pulang Awal**.
+   * **Bukti Pendukung Khusus (Watermark)**: Lampiran bukti (opsional) otomatis dibubuhi watermark tanggal, jam WIB, nama karyawan, dan status via PHP GD ke direktori `storage/app/public/bukti_alasan/`.
 
 ---
 

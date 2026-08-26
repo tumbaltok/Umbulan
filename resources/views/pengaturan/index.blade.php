@@ -23,8 +23,8 @@
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Informasi Profil</h3>
 
-                {{-- Container Foto Profil & TTD --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 border-b border-slate-100 pb-6">
+                {{-- Container Foto Profil, TTD, & Biometrik Wajah --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 border-b border-slate-100 pb-6">
                     {{-- Foto Profil --}}
                     <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
                         <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden border-2 border-white ring-2 ring-sky-100">
@@ -35,7 +35,7 @@
                             @endif
                         </div>
 
-                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
+                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1 cursor-pointer">
                             <i class="fa-solid fa-camera"></i>
                             <span>Ubah Foto Profil</span>
                         </button>
@@ -53,10 +53,34 @@
                             @endif
                         </div>
 
-                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center space-x-1">
+                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center space-x-1 cursor-pointer">
                             <i class="fa-solid fa-file-signature"></i>
                             <span>Unggah Tanda Tangan (TTD)</span>
                         </button>
+                    </div>
+
+                    {{-- Biometrik Wajah AI --}}
+                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }} flex items-center justify-center text-2xl shadow-sm">
+                            <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-face-viewfinder' : 'fa-camera-rotate' }}"></i>
+                        </div>
+
+                        <div class="mt-2">
+                            @if(!empty($user->face_descriptor))
+                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Biometrik Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Belum Terdaftar
+                                </span>
+                            @endif
+                        </div>
+
+                        <a href="{{ route('dashboard') }}" class="mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>{{ !empty($user->face_descriptor) ? 'Update di Dashboard' : 'Rekam di Dashboard' }}</span>
+                        </a>
                     </div>
                 </div>
 

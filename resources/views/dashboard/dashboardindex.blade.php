@@ -196,20 +196,33 @@
             </div>
 
             @if(!is_null($user->schedule_type) && isset($todaySchedule['is_day_off']) && !$todaySchedule['is_day_off'])
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    {{-- Status / Tombol Rekam Wajah Biometrik --}}
+                    @if(!empty($user->face_descriptor))
+                        <button type="button" onclick="bukaModalRekamWajah()" title="Klik untuk merekam ulang / memperbarui data wajah biometrik" class="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-[11px] font-bold py-2 px-3 rounded-xl transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs">
+                            <i class="fa-solid fa-shield-check text-sky-600"></i>
+                            <span>Biometrik Aktif</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="bukaModalRekamWajah()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-[11px] font-bold py-2 px-3 rounded-xl transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs animate-pulse">
+                            <i class="fa-solid fa-camera text-amber-600"></i>
+                            <span>Rekam Wajah</span>
+                        </button>
+                    @endif
+
                     @if(!$todayAttendance || !$todayAttendance->check_in)
-                        <button type="button" onclick="bukaModalAbsen('in')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm">
+                        <button type="button" onclick="bukaModalAbsen('in')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-camera"></i>
                             <span>Absen Masuk</span>
                         </button>
                     @elseif(!$todayAttendance->check_out)
-                        <button type="button" onclick="bukaModalAbsen('out')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm">
+                        <button type="button" onclick="bukaModalAbsen('out')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>Absen Pulang</span>
                         </button>
                     @else
                         <span class="bg-slate-100 text-slate-600 text-xs font-bold py-2 px-4 rounded-xl border border-slate-200">
-                            <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Absensi Hari Ini Selesai
+                            <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Absensi Selesai
                         </span>
                     @endif
                 </div>
@@ -325,7 +338,51 @@
         </div>
     </div>
 
-    {{-- MODAL STEP 1: KAMERA WEBCAM & GEOLOCATION GPS --}}
+    {{-- MODAL KHUSUS: PEREKAMAN / UPDATE BIOMETRIK WAJAH --}}
+    <div id="modalRekamWajah" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-face-viewfinder text-sky-600"></i>
+                    <h3 class="font-bold text-slate-800 text-sm">Perekaman Biometrik Wajah</h3>
+                </div>
+                <button type="button" onclick="tutupModalRekamWajah()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-3 flex-1 overflow-y-auto">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Posisikan wajah Anda tepat di dalam frame kamera. Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa masker atau kacamata gelap.
+                </p>
+
+                {{-- Container Video Kamera Perekaman --}}
+                <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 shadow-inner">
+                    <video id="videoRekamWajah"
+                           autoplay
+                           playsinline
+                           muted
+                           style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;"
+                           class="w-full h-full object-cover"></video>
+                    <canvas id="canvasRekamWajah" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
+
+                    <div id="statusRekamWajahBox" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik AI...
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+                <button type="button" onclick="tutupModalRekamWajah()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
+                <button type="button" onclick="simpanBiometrikWajah()" id="btnSimpanWajah" disabled class="px-5 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan Data Wajah</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL STEP 1: VERIFIKASI BIOMETRIK WAJAH & GPS (PRESENSI HARIAN) --}}
     <div id="modalAbsensi" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
 
@@ -355,34 +412,46 @@
                     </div>
                 </div>
 
-                {{-- Container Video Kamera --}}
+                {{-- Container Video Kamera Verifikasi Wajah --}}
                 <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 shadow-inner shrink-0">
                     <video id="webcamVideo"
                         autoplay
                         playsinline
+                        muted
                         style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;"
                         class="w-full h-full object-cover"></video>
 
-                    <canvas id="webcamCanvas" class="hidden"></canvas>
-                    <div id="cameraStatus" class="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm z-10">
-                        Mempersiapkan kamera...
+                    <canvas id="webcamCanvas" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
+                    
+                    <div id="cameraStatus" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan verifikasi biometrik...
                     </div>
+                </div>
+
+                <div id="facePromptNotice" class="hidden p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-info text-amber-600 text-sm"></i>
+                        <span>Belum ada data wajah biometrik terdaftar.</span>
+                    </div>
+                    <button type="button" onclick="tutupModalAbsen(); bukaModalRekamWajah();" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[10px]">
+                        Rekam Sekarang
+                    </button>
                 </div>
             </div>
 
             {{-- Footer Tombol --}}
             <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
                 <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="button" onclick="tangkapFotoDanLanjut()" id="btnTangkapFoto" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm">
-                    <i class="fa-solid fa-camera"></i>
-                    <span>Ambil Foto</span>
+                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Lanjutkan Presensi</span>
                 </button>
             </div>
 
         </div>
     </div>
 
-    {{-- MODAL STEP 2: PRATINJAU FOTO & KONFIRMASI DETAIL ABSENSI --}}
+    {{-- MODAL STEP 2: KONFIRMASI DETAIL ABSENSI, ALASAN WAJIB & BUKTI WATERMARK --}}
     <div id="modalKonfirmasiAbsen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
 
@@ -395,25 +464,17 @@
             </div>
 
             {{-- Form & Isian Modal --}}
-            <form id="formAbsensi" onsubmit="submitAbsensi(event)" class="flex flex-col flex-1 overflow-y-auto">
+            <form id="formAbsensi" onsubmit="submitAbsensi(event)" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-y-auto">
                 @csrf
                 <input type="hidden" id="absen_type" name="type" value="in">
                 <input type="hidden" id="absen_lat" name="latitude">
                 <input type="hidden" id="absen_long" name="longitude">
-                <input type="hidden" id="absen_face_image" name="face_image">
+                <input type="hidden" id="absen_is_face_verified" name="is_face_verified" value="1">
 
-                <div class="p-5 space-y-3 flex-1 overflow-y-auto">
-                    {{-- Container Foto Hasil Tangkapan --}}
-                    <div class="relative w-full h-44 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-sm shrink-0">
-                        <img id="imgPratinjauFoto" src="" class="w-full h-full object-cover" alt="Foto Absensi">
-                        <button type="button" onclick="kembaliKeKamera()" class="absolute top-2 right-2 px-2.5 py-1 bg-black/60 hover:bg-black/80 text-white text-[10px] font-semibold rounded-lg backdrop-blur-sm transition-all flex items-center space-x-1">
-                            <i class="fa-solid fa-rotate-left"></i>
-                            <span>Foto Ulang</span>
-                        </button>
-                    </div>
+                <div class="p-5 space-y-3.5 flex-1 overflow-y-auto">
 
                     {{-- Informasi Detail Rincian Absen --}}
-                    <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+                    <div class="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
                         <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                             <span class="text-slate-500 font-medium">Status Lokasi:</span>
                             <span id="txtStatusRadius" class="font-bold text-emerald-600">Di Dalam Area kerja</span>
@@ -421,6 +482,12 @@
                         <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                             <span class="text-slate-500 font-medium">Lokasi GPS:</span>
                             <span id="txtNamaLokasiConfirm" class="font-semibold text-slate-800 truncate max-w-[180px]">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
+                            <span class="text-slate-500 font-medium">Verifikasi Wajah:</span>
+                            <span id="txtStatusBiometrik" class="font-bold text-sky-600 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check text-sky-500"></i> Terverifikasi AI
+                            </span>
                         </div>
                         <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                             <span class="text-slate-500 font-medium">Waktu Absen:</span>
@@ -435,23 +502,64 @@
                     </div>
 
                     {{-- Status Peringatan Terlambat / Di Luar Radius --}}
-                    <div id="boxWarningStatus" class="hidden p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-start space-x-2">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5 shrink-0"></i>
-                        <span id="txtWarningMessage">Harap lengkapi alasan di bawah ini sebelum mengirim absensi.</span>
+                    <div id="boxWarningStatus" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-start space-x-2.5">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
+                        <span id="txtWarningMessage" class="leading-relaxed">Harap lengkapi alasan di bawah ini sebelum mengirim absensi.</span>
                     </div>
 
                     {{-- Input Alasan Khusus --}}
-                    <div id="wrapperAlasan" class="space-y-1">
+                    <div id="wrapperAlasan" class="space-y-1.5">
                         <label id="labelAlasan" class="text-xs font-bold text-rose-700 block">Alasan Khusus / Keterangan:</label>
-                        <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-2 text-xs border border-rose-200 bg-rose-50/30 rounded-xl focus:ring-2 focus:ring-rose-400 outline-none resize-none" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
+                        <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-2.5 text-xs border border-rose-200 bg-rose-50/30 rounded-xl focus:ring-2 focus:ring-rose-400 outline-none resize-none" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
                         <span id="errorAlasanMsg" class="text-[11px] text-rose-600 hidden font-semibold">* Alasan wajib diisi!</span>
                     </div>
+
+                    {{-- Input Bukti Pendukung (Opsional dengan Watermark) --}}
+                    <div id="wrapperBukti" class="space-y-2 pt-1 border-t border-slate-100">
+                        <label class="text-xs font-bold text-slate-700 block flex items-center justify-between">
+                            <span>Lampiran Bukti Pendukung <span class="text-slate-400 font-normal">(Opsional):</span></span>
+                            <span id="txtNamaFileTerpilih" class="text-[10px] text-sky-600 font-semibold truncate max-w-[150px]"></span>
+                        </label>
+
+                        <input type="file" id="inputEvidenceFile" name="evidence" accept="image/*,.pdf" class="hidden" onchange="handleEvidenceFileChange(this)">
+
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="ambilFotoBuktiKamera()" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200">
+                                <i class="fa-solid fa-camera text-sky-600"></i>
+                                <span>Kamera Langsung</span>
+                            </button>
+                            <button type="button" onclick="pilihDokumenBukti()" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200">
+                                <i class="fa-solid fa-folder-open text-amber-600"></i>
+                                <span>Galeri / File</span>
+                            </button>
+                        </div>
+
+                        {{-- Preview Thumbnail Bukti Jika Ada --}}
+                        <div id="previewBuktiContainer" class="hidden relative p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5 overflow-hidden">
+                                <img id="imgPreviewBukti" src="" class="w-10 h-10 object-cover rounded-lg border border-slate-200 hidden" alt="Preview Bukti">
+                                <div id="iconPdfBukti" class="w-10 h-10 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center text-lg hidden">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <span id="labelFileNameBukti" class="text-xs font-medium text-slate-700 truncate max-w-[200px]">file.jpg</span>
+                            </div>
+                            <button type="button" onclick="hapusBuktiTerpilih()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs cursor-pointer">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 italic flex items-start gap-1.5 leading-snug">
+                            <i class="fa-solid fa-circle-info text-sky-500 mt-0.5 shrink-0"></i>
+                            <span>Dokumen/Foto pendukung bersifat opsional. Foto yang dilampirkan akan otomatis diberi watermark tanggal, waktu, dan nama karyawan.</span>
+                        </p>
+                    </div>
+
                 </div>
 
                 {{-- Footer Tombol Aksi --}}
                 <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
                     <button type="button" onclick="kembaliKeKamera()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm">
+                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm cursor-pointer">
                         Kirim Absensi Sekarang
                     </button>
                 </div>
@@ -790,8 +898,9 @@
 @endsection
 
 @push('scripts')
-{{-- Load Pustaka SweetAlert2 CDN --}}
+{{-- Load Pustaka SweetAlert2 & Face-API Biometrik CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 
 <script>
     // 1. DETAIL KALENDER JADWAL
@@ -987,8 +1096,15 @@
         });
     });
 
-    // 4. WEBCAM & GPS ABSENSI (ALUR 2 LANGKAH)
+    // 4. BIOMETRIC FACE RECOGNITION & GPS GEOFENCING ATTENDANCE
     let mediaStream = null;
+    let rekamMediaStream = null;
+    let faceApiModelsLoaded = false;
+    let faceDetectionInterval = null;
+    let rekamFaceDetectionInterval = null;
+    let latestRecordedDescriptor = null;
+    let isFaceVerified = false;
+
     let countdownInterval = null;
     let secondsLeft = 5;
     let isUserInRadius = false;
@@ -996,7 +1112,217 @@
 
     const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
     const todaySchedule = JSON.parse('{!! json_encode($todaySchedule ?? []) !!}');
+    let userFaceDescriptor = {!! json_encode(auth()->user()->face_descriptor) !!};
 
+    const FACE_API_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+
+    async function ensureFaceApiLoaded() {
+        if (faceApiModelsLoaded) return true;
+        if (typeof faceapi === 'undefined') {
+            console.warn("Library face-api.js belum terpasang atau sedang memuat.");
+            return false;
+        }
+
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(FACE_API_MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(FACE_API_MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(FACE_API_MODEL_URL)
+            ]);
+            faceApiModelsLoaded = true;
+            console.log("Model AI Biometrik Wajah berhasil dimuat.");
+            return true;
+        } catch (err) {
+            console.error("Gagal memuat model face-api:", err);
+            return false;
+        }
+    }
+
+    // ==========================================
+    // ALUR PEREKAMAN BIOMETRIK WAJAH (REGISTRATION)
+    // ==========================================
+    async function bukaModalRekamWajah() {
+        const modal = document.getElementById('modalRekamWajah');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        const statusBox = document.getElementById('statusRekamWajahBox');
+        const btnSimpan = document.getElementById('btnSimpanWajah');
+        if (btnSimpan) btnSimpan.disabled = true;
+        latestRecordedDescriptor = null;
+
+        if (statusBox) {
+            statusBox.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium";
+            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan model biometrik AI...`;
+        }
+
+        const isMobile = window.innerWidth < 640;
+        const constraints = {
+            audio: false,
+            video: {
+                facingMode: "user",
+                width: { ideal: isMobile ? 720 : 1280 },
+                height: { ideal: isMobile ? 1280 : 720 }
+            }
+        };
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            rekamMediaStream = stream;
+            const video = document.getElementById('videoRekamWajah');
+            if (video) {
+                video.srcObject = stream;
+                await video.play();
+            }
+
+            await ensureFaceApiLoaded();
+            if (statusBox) {
+                statusBox.innerHTML = `<i class="fa-solid fa-camera mr-1"></i> Posisikan wajah Anda tepat di tengah frame...`;
+            }
+
+            mulaiDeteksiWajahPerekaman();
+        } catch (err) {
+            console.error("Gagal akses kamera untuk perekaman:", err);
+            if (statusBox) {
+                statusBox.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Izin kamera ditolak atau tidak tersedia.`;
+            }
+        }
+    }
+
+    function mulaiDeteksiWajahPerekaman() {
+        const video = document.getElementById('videoRekamWajah');
+        const canvas = document.getElementById('canvasRekamWajah');
+        const statusBox = document.getElementById('statusRekamWajahBox');
+        const btnSimpan = document.getElementById('btnSimpanWajah');
+
+        if (!video || !canvas) return;
+
+        if (rekamFaceDetectionInterval) {
+            clearInterval(rekamFaceDetectionInterval);
+        }
+
+        rekamFaceDetectionInterval = setInterval(async () => {
+            if (!faceApiModelsLoaded || video.paused || video.ended || !video.videoWidth) return;
+
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (detection) {
+                latestRecordedDescriptor = Array.from(detection.descriptor);
+                if (btnSimpan) btnSimpan.disabled = false;
+
+                if (statusBox) {
+                    statusBox.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                    statusBox.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terdeteksi Jelas! Klik Simpan Data Wajah.`;
+                }
+
+                const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                faceapi.draw.drawDetections(canvas, resizedDetections);
+            } else {
+                latestRecordedDescriptor = null;
+                if (btnSimpan) btnSimpan.disabled = true;
+
+                if (statusBox) {
+                    statusBox.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium";
+                    statusBox.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Arahkan wajah ke kamera...`;
+                }
+            }
+        }, 300);
+    }
+
+    function tutupModalRekamWajah() {
+        if (rekamFaceDetectionInterval) {
+            clearInterval(rekamFaceDetectionInterval);
+            rekamFaceDetectionInterval = null;
+        }
+
+        if (rekamMediaStream) {
+            rekamMediaStream.getTracks().forEach(t => t.stop());
+            rekamMediaStream = null;
+        }
+
+        const video = document.getElementById('videoRekamWajah');
+        if (video) video.srcObject = null;
+
+        const modal = document.getElementById('modalRekamWajah');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    async function simpanBiometrikWajah() {
+        if (!latestRecordedDescriptor || latestRecordedDescriptor.length === 0) {
+            Swal.fire({
+                title: 'Wajah Belum Terdeteksi',
+                text: 'Pastikan wajah Anda terdeteksi dengan jelas di dalam kamera sebelum menyimpan.',
+                icon: 'warning',
+                confirmButtonColor: '#0284c7'
+            });
+            return;
+        }
+
+        const btnSimpan = document.getElementById('btnSimpanWajah');
+        btnSimpan.disabled = true;
+        btnSimpan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
+
+        try {
+            const response = await fetch('/user/face/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    face_descriptor: latestRecordedDescriptor
+                })
+            });
+
+            const res = await response.json();
+
+            if (response.ok) {
+                userFaceDescriptor = latestRecordedDescriptor;
+                tutupModalRekamWajah();
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: res.message || 'Perekaman biometrik wajah berhasil disimpan!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#059669'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error(res.message || 'Gagal menyimpan biometrik wajah.');
+            }
+        } catch (err) {
+            console.error("Gagal simpan biometrik wajah:", err);
+            Swal.fire({
+                title: 'Gagal Menyimpan',
+                text: err.message || 'Terjadi kesalahan saat menyimpan data biometrik.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+            btnSimpan.disabled = false;
+            btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>Simpan Data Wajah</span>`;
+        }
+    }
+
+    // ==========================================
+    // ALUR VERIFIKASI PRESENSI HARIAN (CHECK IN / OUT)
+    // ==========================================
     function calculateDistanceMeter(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const radLat1 = lat1 * Math.PI / 180;
@@ -1028,6 +1354,7 @@
                     document.getElementById('absen_long').value = userLng;
 
                     let matchedStation = null;
+                    let closestDistance = Infinity;
 
                     if (Array.isArray(daftarStasiun) && daftarStasiun.length > 0) {
                         for (let station of daftarStasiun) {
@@ -1042,6 +1369,7 @@
 
                                 if (distance <= radiusLimit) {
                                     matchedStation = station;
+                                    closestDistance = distance;
                                     break;
                                 }
                             }
@@ -1055,7 +1383,7 @@
                             iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-emerald-700";
                             textLokasi.innerText = "Lokasi: " + matchedStation.name;
-                            document.getElementById('txtNamaLokasiConfirm').innerText = matchedStation.name;
+                            document.getElementById('txtNamaLokasiConfirm').innerText = matchedStation.name + " (" + Math.round(closestDistance) + "m)";
 
                             if (reloadContainer) reloadContainer.classList.add('hidden');
                             stopGpsTimer();
@@ -1064,7 +1392,7 @@
                             statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between transition-all";
                             iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
                             textLokasi.className = "text-xs font-bold text-rose-700";
-                            textLokasi.innerText = "Lokasi berada di luar area Kerja";
+                            textLokasi.innerText = "Lokasi berada di luar area stasiun kerja";
                             document.getElementById('txtNamaLokasiConfirm').innerText = "Di Luar Radius Stasiun";
 
                             if (reloadContainer) reloadContainer.classList.remove('hidden');
@@ -1090,7 +1418,6 @@
 
     function startGpsTimer() {
         if (countdownInterval) return;
-
         secondsLeft = 5;
         const reloadCountdown = document.getElementById('reloadCountdown');
         if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
@@ -1098,7 +1425,6 @@
         countdownInterval = setInterval(() => {
             secondsLeft--;
             if (reloadCountdown) reloadCountdown.innerText = secondsLeft + 's';
-
             if (secondsLeft <= 0) {
                 secondsLeft = 5;
                 if (reloadCountdown) reloadCountdown.innerText = '5s';
@@ -1114,20 +1440,33 @@
         }
     }
 
-    function bukaModalAbsen(type) {
+    async function bukaModalAbsen(type) {
         document.getElementById('absen_type').value = type;
         document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
+
+        isFaceVerified = false;
+        const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+        if (btnLanjut) btnLanjut.disabled = false; // Enabled so user can advance once face matches or with camera active
 
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
         const iconLokasi = document.getElementById('iconLokasi');
         const reloadContainer = document.getElementById('reloadContainer');
+        const faceNotice = document.getElementById('facePromptNotice');
 
         if (statusBox && textLokasi && iconLokasi) {
             statusBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all";
             iconLokasi.className = "fa-solid fa-spinner fa-spin text-slate-400 text-sm";
             textLokasi.innerText = "Mendeteksi posisi GPS Anda...";
             if (reloadContainer) reloadContainer.classList.add('hidden');
+        }
+
+        if (faceNotice) {
+            if (!userFaceDescriptor || userFaceDescriptor.length === 0) {
+                faceNotice.classList.remove('hidden');
+            } else {
+                faceNotice.classList.add('hidden');
+            }
         }
 
         const modal = document.getElementById('modalAbsensi');
@@ -1148,44 +1487,101 @@
             }
         };
 
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then((stream) => {
-                mediaStream = stream;
-                const video = document.getElementById('webcamVideo');
-                if (video) video.srcObject = stream;
+        const camStatus = document.getElementById('cameraStatus');
 
-                const camStatus = document.getElementById('cameraStatus');
-                if (camStatus) camStatus.innerText = 'Kamera Aktif';
-            })
-            .catch((err) => {
-                console.error("Gagal Akses Kamera:", err);
-                const camStatus = document.getElementById('cameraStatus');
-                if (camStatus) camStatus.innerText = 'Kamera tidak dapat diakses';
-            });
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            mediaStream = stream;
+            const video = document.getElementById('webcamVideo');
+            if (video) {
+                video.srcObject = stream;
+                await video.play();
+            }
+
+            if (camStatus) {
+                camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
+                camStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat AI Biometrik...`;
+            }
+
+            await ensureFaceApiLoaded();
+            mulaiVerifikasiWajahRealtime();
+        } catch (err) {
+            console.error("Gagal Akses Kamera:", err);
+            if (camStatus) {
+                camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Kamera tidak dapat diakses`;
+            }
+        }
     }
 
-    function tangkapFotoDanLanjut() {
+    function mulaiVerifikasiWajahRealtime() {
         const video = document.getElementById('webcamVideo');
         const canvas = document.getElementById('webcamCanvas');
+        const camStatus = document.getElementById('cameraStatus');
+
         if (!video || !canvas) return;
 
-        const context = canvas.getContext('2d');
+        if (faceDetectionInterval) {
+            clearInterval(faceDetectionInterval);
+        }
 
-        const maxWidth = 640;
-        const scale = Math.min(1, maxWidth / (video.videoWidth || 640));
-        canvas.width = (video.videoWidth || 640) * scale;
-        canvas.height = (video.videoHeight || 480) * scale;
+        faceDetectionInterval = setInterval(async () => {
+            if (!faceApiModelsLoaded || video.paused || video.ended || !video.videoWidth) return;
 
-        context.save();
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        context.restore();
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
 
-        const base64Photo = canvas.toDataURL('image/jpeg', 0.6);
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+                .withFaceLandmarks()
+                .withFaceDescriptor();
 
-        document.getElementById('absen_face_image').value = base64Photo;
-        document.getElementById('imgPratinjauFoto').src = base64Photo;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (detection) {
+                const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                faceapi.draw.drawDetections(canvas, resizedDetections);
+
+                if (userFaceDescriptor && userFaceDescriptor.length > 0) {
+                    const distance = faceapi.euclideanDistance(detection.descriptor, userFaceDescriptor);
+                    const confidence = Math.max(0, Math.min(100, Math.round((1 - distance) * 100)));
+
+                    // Threshold Euclidean Distance: <= 0.55 adalah MATCH
+                    if (distance <= 0.55) {
+                        isFaceVerified = true;
+                        if (camStatus) {
+                            camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                            camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terverifikasi AI (${confidence}%)`;
+                        }
+                    } else {
+                        isFaceVerified = false;
+                        if (camStatus) {
+                            camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                            camStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Wajah Tidak Cocok (${confidence}%). Harap hadap kamera langsung.`;
+                        }
+                    }
+                } else {
+                    // Jika belum terdaftar descriptor, deteksi wajah aktif
+                    isFaceVerified = true;
+                    if (camStatus) {
+                        camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                        camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terdeteksi di Kamera`;
+                    }
+                }
+            } else {
+                if (camStatus) {
+                    camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
+                    camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Posisikan wajah Anda di depan kamera...`;
+                }
+            }
+        }, 300);
+    }
+
+    function verifikasiDanLanjut() {
+        if (faceDetectionInterval) {
+            clearInterval(faceDetectionInterval);
+            faceDetectionInterval = null;
+        }
 
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
@@ -1214,6 +1610,15 @@
             txtStatusRadius.innerText = "Di Luar Area Kerja";
         }
 
+        const txtStatusBiometrik = document.getElementById('txtStatusBiometrik');
+        if (isFaceVerified) {
+            txtStatusBiometrik.className = "font-bold text-emerald-600 flex items-center gap-1";
+            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi AI`;
+        } else {
+            txtStatusBiometrik.className = "font-bold text-amber-600 flex items-center gap-1";
+            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-500"></i> Kamera Aktif`;
+        }
+
         isLateOrEarly = false;
         let warningText = "";
 
@@ -1226,7 +1631,7 @@
 
                 if (currentMinutes > schedInMinutes) {
                     isLateOrEarly = true;
-                    warningText += "Anda melakukan absen masuk MELEBIHI jam kerja yang ditentukan (Terlambat). ";
+                    warningText += "Anda melakukan absen masuk MELEBIHI batas jam masuk kerja (Terlambat). ";
                 }
             } else if (type === 'out' && todaySchedule.scheduled_out) {
                 const [hOut, mOut] = todaySchedule.scheduled_out.split(':');
@@ -1235,43 +1640,36 @@
                 const schedOutMinutes = parseInt(hOut) * 60 + parseInt(mOut);
                 const schedInMinutes = parseInt(hIn) * 60 + parseInt(mIn);
 
-                // Cek apakah Shift Malam / Lintas Hari (Contoh: Masuk 19:00, Pulang 07:00)
                 const isCrossDayShift = schedOutMinutes < schedInMinutes;
 
                 if (isCrossDayShift) {
-                    // Untuk Shift Malam, jika absen dilakukan pada malam hari (setelah jam masuk)
-                    // atau di pagi hari SEBELUM jam 07:00, maka terdeteksi Pulang Cepat.
                     if (currentMinutes >= schedInMinutes || currentMinutes < schedOutMinutes) {
                         isLateOrEarly = true;
-                        warningText += "Anda melakukan absen pulang SEBELUM jam pulang selesai (Pulang Cepat). ";
+                        warningText += "Anda melakukan absen pulang SEBELUM jam kerja berakhir (Pulang Cepat). ";
                     }
                 } else {
-                    // Shift Normal (misal 08:00 - 17:00)
                     if (currentMinutes < schedOutMinutes) {
                         isLateOrEarly = true;
-                        warningText += "Anda melakukan absen pulang SEBELUM jam pulang selesai (Pulang Cepat). ";
+                        warningText += "Anda melakukan absen pulang SEBELUM jam kerja berakhir (Pulang Cepat). ";
                     }
                 }
             }
         }
 
         if (!isUserInRadius) {
-            warningText += "Posisi GPS Anda berada di luar area kerja. ";
+            warningText += "Posisi GPS Anda berada di luar radius stasiun kerja. ";
         }
 
         const boxWarning = document.getElementById('boxWarningStatus');
         const txtWarningMessage = document.getElementById('txtWarningMessage');
-        const wrapperAlasan = document.getElementById('wrapperAlasan');
         const inputAlasan = document.getElementById('inputAlasan');
 
         if (!isUserInRadius || isLateOrEarly) {
             boxWarning.classList.remove('hidden');
-            txtWarningMessage.innerText = warningText + "Harap isi alasan wajib di bawah ini.";
-            wrapperAlasan.classList.remove('hidden');
+            txtWarningMessage.innerText = warningText + "Harap lengkapi alasan wajib di bawah ini sebelum mengirim absensi.";
             inputAlasan.required = true;
         } else {
             boxWarning.classList.add('hidden');
-            wrapperAlasan.classList.remove('hidden');
             inputAlasan.required = false;
         }
     }
@@ -1284,18 +1682,23 @@
     function tutupModalAbsen() {
         stopGpsTimer();
 
+        if (faceDetectionInterval) {
+            clearInterval(faceDetectionInterval);
+            faceDetectionInterval = null;
+        }
+
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
             mediaStream = null;
         }
 
         const video = document.getElementById('webcamVideo');
-        if (video) {
-            video.srcObject = null;
-        }
+        if (video) video.srcObject = null;
 
         const inputAlasan = document.getElementById('inputAlasan');
         if (inputAlasan) inputAlasan.value = '';
+
+        hapusBuktiTerpilih();
 
         document.getElementById('modalAbsensi').classList.remove('flex');
         document.getElementById('modalAbsensi').classList.add('hidden');
@@ -1303,6 +1706,66 @@
         document.getElementById('modalKonfirmasiAbsen').classList.add('hidden');
     }
 
+    // ==========================================
+    // HANDLER LAMPIRAN BUKTI DOKUMEN / FOTO WATERMARK
+    // ==========================================
+    function ambilFotoBuktiKamera() {
+        const fileInput = document.getElementById('inputEvidenceFile');
+        fileInput.setAttribute('capture', 'environment');
+        fileInput.click();
+    }
+
+    function pilihDokumenBukti() {
+        const fileInput = document.getElementById('inputEvidenceFile');
+        fileInput.removeAttribute('capture');
+        fileInput.click();
+    }
+
+    function handleEvidenceFileChange(input) {
+        if (!input.files || input.files.length === 0) {
+            hapusBuktiTerpilih();
+            return;
+        }
+
+        const file = input.files[0];
+        const previewContainer = document.getElementById('previewBuktiContainer');
+        const imgPreview = document.getElementById('imgPreviewBukti');
+        const iconPdf = document.getElementById('iconPdfBukti');
+        const labelName = document.getElementById('labelFileNameBukti');
+        const txtTerpilih = document.getElementById('txtNamaFileTerpilih');
+
+        previewContainer.classList.remove('hidden');
+        labelName.innerText = file.name;
+        if (txtTerpilih) txtTerpilih.innerText = file.name;
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imgPreview.src = e.target.result;
+                imgPreview.classList.remove('hidden');
+                iconPdf.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imgPreview.classList.add('hidden');
+            iconPdf.classList.remove('hidden');
+        }
+    }
+
+    function hapusBuktiTerpilih() {
+        const fileInput = document.getElementById('inputEvidenceFile');
+        if (fileInput) fileInput.value = '';
+
+        const previewContainer = document.getElementById('previewBuktiContainer');
+        if (previewContainer) previewContainer.classList.add('hidden');
+
+        const txtTerpilih = document.getElementById('txtNamaFileTerpilih');
+        if (txtTerpilih) txtTerpilih.innerText = '';
+    }
+
+    // ==========================================
+    // SUBMIT FORM ABSENSI (MULTIPART FORMDATA)
+    // ==========================================
     function submitAbsensi(e) {
         e.preventDefault();
 
@@ -1318,27 +1781,31 @@
 
         const btnSubmit = document.getElementById('btnSubmitAbsen');
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengirim...`;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengirim Presensi...`;
 
         const type = document.getElementById('absen_type').value;
         const url = type === 'in' ? '/attendance/check-in' : '/attendance/check-out';
 
-        const payload = {
-            _token: '{{ csrf_token() }}',
-            latitude: document.getElementById('absen_lat').value,
-            longitude: document.getElementById('absen_long').value,
-            face_image: document.getElementById('absen_face_image').value,
-            reason_out_of_radius: inputAlasan.value,
-            reason_checkout: inputAlasan.value,
-        };
+        const formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('latitude', document.getElementById('absen_lat').value || '0');
+        formData.append('longitude', document.getElementById('absen_long').value || '0');
+        formData.append('is_face_verified', isFaceVerified ? '1' : '0');
+        formData.append('reason', inputAlasan.value);
+        formData.append('reason_out_of_radius', inputAlasan.value);
+        formData.append('reason_checkout', inputAlasan.value);
+
+        const evidenceInput = document.getElementById('inputEvidenceFile');
+        if (evidenceInput && evidenceInput.files.length > 0) {
+            formData.append('evidence', evidenceInput.files[0]);
+        }
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: formData
         })
         .then(async res => {
             const data = await res.json();
@@ -1348,10 +1815,9 @@
             if (res.status === 200) {
                 tutupModalAbsen();
 
-                // Pop-Up Sukses Menggunakan SweetAlert2
                 Swal.fire({
                     title: 'Berhasil!',
-                    text: res.body.message || 'Absensi berhasil dikirim!',
+                    text: res.body.message || 'Presensi berhasil dicatat!',
                     icon: 'success',
                     confirmButtonText: 'Selesai',
                     confirmButtonColor: '#059669'
@@ -1360,10 +1826,9 @@
                 });
 
             } else {
-                // Pop-Up Gagal Menggunakan SweetAlert2
                 Swal.fire({
                     title: 'Gagal!',
-                    text: res.body.message || 'Gagal mengirim absensi.',
+                    text: res.body.message || 'Gagal mengirim presensi.',
                     icon: 'error',
                     confirmButtonText: 'Coba Lagi',
                     confirmButtonColor: '#e11d48'
@@ -1374,11 +1839,11 @@
             }
         })
         .catch(err => {
-            console.error("Detail Error:", err);
+            console.error("Detail Error Absensi:", err);
 
             Swal.fire({
                 title: 'Kesalahan Sistem!',
-                text: 'Gagal mengirim data. Silakan cek koneksi atau hubungi admin.',
+                text: 'Gagal mengirim data presensi. Silakan coba lagi.',
                 icon: 'warning',
                 confirmButtonText: 'Tutup',
                 confirmButtonColor: '#d97706'

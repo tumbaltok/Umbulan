@@ -79,7 +79,7 @@
                         <th class="p-4">Jam Masuk</th>
                         <th class="p-4">Jam Pulang</th>
                         <th class="p-4">Status & Lokasi</th>
-                        <th class="p-4">Foto Absensi</th>
+                        <th class="p-4 text-center">Verifikasi & Bukti</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -118,9 +118,10 @@
                                 }
                             }
 
-                            // Ambil alasan terpisah
-                            $reasonIn = $absen->reason_out_of_radius_in ?? null;
-                            $reasonOut = $absen->reason_checkout ?? null;
+                            // Ambil alasan
+                            $reasonIn = $absen->reason_in ?: ($absen->reason_out_of_radius_in ?? null);
+                            $reasonOut = $absen->reason_out ?: ($absen->reason_checkout ?? null);
+                            $roleLabel = $item['user']->roles->pluck('role_name')->implode(' / ') ?: ($item['user']->role->role_name ?? 'STAFF');
                         @endphp
 
                         <tr class="hover:bg-slate-50/80 transition-colors">
@@ -131,7 +132,7 @@
                                     </div>
                                     <div>
                                         <p class="font-bold text-slate-800 leading-tight">{{ $item['user']->name }}</p>
-                                        <p class="text-[10px] text-slate-400 uppercase mt-0.5">{{ $item['user']->role->role_name ?? 'STAFF' }}</p>
+                                        <p class="text-[10px] text-slate-400 uppercase mt-0.5">{{ $roleLabel }}</p>
                                     </div>
                                 </div>
                             </td>
@@ -153,7 +154,7 @@
                                 @endif
                             </td>
                             
-                            {{-- KOLOM STATUS & LOKASI PERBAIKAN --}}
+                            {{-- KOLOM STATUS & LOKASI --}}
                             <td class="p-4">
                                 <div class="space-y-2 max-w-xs">
                                     {{-- BUBBLE / BADGE STATUS --}}
@@ -214,26 +215,48 @@
                                 </div>
                             </td>
 
-                            <td class="p-4">
-                                <div class="flex items-center gap-2">
-                                    @if(!empty($absen->face_photo_in))
+                            {{-- KOLOM VERIFIKASI & BUKTI WATERMARK --}}
+                            <td class="p-4 text-center">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    {{-- Badge Verifikasi Biometrik Wajah --}}
+                                    @if($absen->is_face_verified_in || $absen->is_face_verified_out)
+                                        <span class="inline-flex items-center text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                                            <i class="fa-solid fa-shield-check text-sky-600 mr-1"></i> Biometrik Valid
+                                        </span>
+                                    @endif
+
+                                    {{-- Tombol Bukti Alasan Masuk (Watermark) --}}
+                                    @if(!empty($absen->evidence_in))
                                         <button type="button" 
-                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_in) }}', 'Foto Absen Masuk - {{ addslashes($item['user']->name) }}')" 
-                                                class="text-sky-600 hover:text-sky-700 hover:bg-sky-50 px-2 py-1 rounded-lg font-semibold flex items-center gap-1 text-[11px] transition-colors cursor-pointer">
-                                            <i class="fa-solid fa-image"></i> Masuk
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->evidence_in) }}', 'Bukti Alasan Masuk - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/70 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[10px] transition-colors cursor-pointer shadow-2xs">
+                                            <i class="fa-solid fa-file-invoice"></i> Bukti Masuk
+                                        </button>
+                                    @elseif(!empty($absen->face_photo_in))
+                                        <button type="button" 
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_in) }}', 'Foto Masuk (Legacy) - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1 text-[10px] transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-image"></i> Masuk (Legacy)
                                         </button>
                                     @endif
 
-                                    @if(!empty($absen->face_photo_out))
+                                    {{-- Tombol Bukti Alasan Pulang (Watermark) --}}
+                                    @if(!empty($absen->evidence_out))
                                         <button type="button" 
-                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_out) }}', 'Foto Absen Pulang - {{ addslashes($item['user']->name) }}')" 
-                                                class="text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded-lg font-semibold flex items-center gap-1 text-[11px] transition-colors cursor-pointer">
-                                            <i class="fa-solid fa-image"></i> Pulang
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->evidence_out) }}', 'Bukti Alasan Pulang - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/70 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[10px] transition-colors cursor-pointer shadow-2xs">
+                                            <i class="fa-solid fa-file-invoice"></i> Bukti Pulang
+                                        </button>
+                                    @elseif(!empty($absen->face_photo_out))
+                                        <button type="button" 
+                                                onclick="openPhotoModal('{{ asset('storage/' . $absen->face_photo_out) }}', 'Foto Pulang (Legacy) - {{ addslashes($item['user']->name) }}')" 
+                                                class="text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1 text-[10px] transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-image"></i> Pulang (Legacy)
                                         </button>
                                     @endif
 
-                                    @if(empty($absen->face_photo_in) && empty($absen->face_photo_out))
-                                        <span class="text-slate-400">-</span>
+                                    @if(empty($absen->evidence_in) && empty($absen->evidence_out) && empty($absen->face_photo_in) && empty($absen->face_photo_out) && !$absen->is_face_verified_in && !$absen->is_face_verified_out)
+                                        <span class="text-slate-400 text-[11px]">-</span>
                                     @endif
                                 </div>
                             </td>
