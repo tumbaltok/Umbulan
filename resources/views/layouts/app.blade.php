@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | PT META Adhya Tirta Umbulan</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo-circle.png') }}">
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
