@@ -42,7 +42,7 @@
                     </div>
 
                     {{-- Tanda Tangan Digital (TTD) --}}
-                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                    <div id="signature" class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
                         <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2">
                             @if($user->signature)
                                 <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
@@ -850,6 +850,11 @@
         if (backdropSig) backdropSig.addEventListener("click", hideSigModal);
 
         if (modalSig && modalSig.dataset.hasError === 'true') {
+            showSigModal();
+        }
+
+        const urlParamsSig = new URLSearchParams(window.location.search);
+        if (urlParamsSig.get('signature_required') === '1' || window.location.hash === '#signature' || window.location.hash === '#signatureModal') {
             showSigModal();
         }
 

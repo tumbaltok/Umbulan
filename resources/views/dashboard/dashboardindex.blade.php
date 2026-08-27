@@ -8,12 +8,13 @@
     @php
         $accStatus = auth()->user()->getAccountCompletionStatus();
         $completedCount = collect([
-            $accStatus['phone_verified'],
             $accStatus['email_verified'],
+            $accStatus['phone_verified'],
+            $accStatus['face_registered'],
+            $accStatus['signature_set'],
             $accStatus['schedule_set'],
-            $accStatus['face_registered']
         ])->filter()->count();
-        $percentComplete = round(($completedCount / 4) * 100);
+        $percentComplete = round(($completedCount / 5) * 100);
     @endphp
 
     @if(!$accStatus['is_complete'])
@@ -27,11 +28,11 @@
                         <div class="flex items-center gap-2">
                             <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Peringatan Kelengkapan Akun Karyawan</h4>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-300">
-                                {{ $completedCount }}/4 Syarat Selesai ({{ $percentComplete }}%)
+                                {{ $completedCount }}/5 Syarat Selesai ({{ $percentComplete }}%)
                             </span>
                         </div>
                         <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed max-w-2xl">
-                            Akses pembuatan formulir pengajuan (Cuti, CAR, & MPR) <strong>terkunci</strong> sampai seluruh 4 syarat kepegawaian di bawah ini diverifikasi dan dilengkapi.
+                            Akses pembuatan formulir pengajuan (Cuti, CAR, & MPR) <strong>terkunci</strong> sampai seluruh 5 syarat kepegawaian di bawah ini diverifikasi dan dilengkapi.
                         </p>
                     </div>
                 </div>
@@ -48,104 +49,83 @@
                 </div>
             </div>
 
-            {{-- 4 Checklist Items Grid --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4">
-                {{-- 1. Alamat Email --}}
+            {{-- 5 Checklist Items Grid Sesuai Urutan Baku --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
+                {{-- 1. Verifikasi Email --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['email_verified'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-envelope text-base {{ $accStatus['email_verified'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Verifikasi Email</span>
+                    <div>
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-envelope text-base {{ $accStatus['email_verified'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Verifikasi Email</span>
+                            </div>
+                            @if($accStatus['email_verified'])
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            @else
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+                            @endif
                         </div>
-                        @if($accStatus['email_verified'])
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        @else
-                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
-                        @endif
-                    </div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                        {{ $accStatus['email_verified'] ? 'Alamat email aktif & valid' : 'Tautan konfirmasi email belum dibuka' }}
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                            {{ $accStatus['email_verified'] ? 'Alamat email aktif & valid' : 'Tautan konfirmasi email belum dibuka' }}
+                        </div>
                     </div>
                     @if(!$accStatus['email_verified'])
                         <a href="{{ route('verification.notice') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
-                            Kirim Email Verifikasi
+                            Belum Verifikasi
                         </a>
                     @else
                         <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Sudah Terverifikasi
+                            <i class="fa-solid fa-check text-xs"></i> Terverifikasi
                         </span>
                     @endif
                 </div>
 
                 {{-- 2. Nomor Telepon / WA --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['phone_verified'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-whatsapp text-base {{ $accStatus['phone_verified'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">No. WhatsApp</span>
+                    <div>
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-brands fa-whatsapp text-base {{ $accStatus['phone_verified'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">No. WhatsApp</span>
+                            </div>
+                            @if($accStatus['phone_verified'])
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            @else
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+                            @endif
                         </div>
-                        @if($accStatus['phone_verified'])
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        @else
-                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
-                        @endif
-                    </div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                        {{ $accStatus['phone_verified'] ? 'Nomor telah diverifikasi OTP' : 'Nomor WhatsApp belum terverifikasi' }}
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                            {{ $accStatus['phone_verified'] ? 'Nomor telah diverifikasi OTP' : 'Nomor WhatsApp belum terverifikasi' }}
+                        </div>
                     </div>
                     @if(!$accStatus['phone_verified'])
                         <a href="{{ url('/profile?phone_required=1#phone_number') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
-                            Verifikasi Sekarang
+                            Belum Verifikasi
                         </a>
                     @else
                         <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Sudah Terverifikasi
+                            <i class="fa-solid fa-check text-xs"></i> Terverifikasi
                         </span>
                     @endif
                 </div>
 
-                {{-- 3. Jadwal Kerja --}}
-                <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['schedule_set'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-calendar-week text-base {{ $accStatus['schedule_set'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Jadwal Kerja</span>
-                        </div>
-                        @if($accStatus['schedule_set'])
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        @else
-                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
-                        @endif
-                    </div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                        {{ $accStatus['schedule_set'] ? 'Sistem kerja ' . strtoupper(auth()->user()->schedule_type) : 'Jadwal kerja (Normal/Roster) belum diset' }}
-                    </div>
-                    @if(!$accStatus['schedule_set'])
-                        <a href="{{ url('/profile?schedule_required=1#schedule_setting') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
-                            Atur Jadwal Kerja
-                        </a>
-                    @else
-                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Jadwal Aktif
-                        </span>
-                    @endif
-                </div>
-
-                {{-- 4. Biometrik Wajah AI --}}
+                {{-- 3. Biometrik Wajah AI --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['face_registered'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-face-viewfinder text-base {{ $accStatus['face_registered'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Biometrik Wajah</span>
+                    <div>
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-face-viewfinder text-base {{ $accStatus['face_registered'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Biometrik Wajah</span>
+                            </div>
+                            @if($accStatus['face_registered'])
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            @else
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+                            @endif
                         </div>
-                        @if($accStatus['face_registered'])
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        @else
-                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
-                        @endif
-                    </div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                        {{ $accStatus['face_registered'] ? 'Embedding biometrik AI aktif' : 'Wajah belum direkam untuk presensi' }}
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                            {{ $accStatus['face_registered'] ? 'Embedding biometrik AI aktif' : 'Wajah belum direkam untuk presensi' }}
+                        </div>
                     </div>
                     @if(!$accStatus['face_registered'])
                         <button type="button" onclick="bukaModalRekamWajah()" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs cursor-pointer">
@@ -153,7 +133,65 @@
                         </button>
                     @else
                         <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Biometrik Aktif
+                            <i class="fa-solid fa-check text-xs"></i> Sudah Direkam
+                        </span>
+                    @endif
+                </div>
+
+                {{-- 4. Tanda Tangan Digital (TTD) --}}
+                <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['signature_set'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
+                    <div>
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-file-signature text-base {{ $accStatus['signature_set'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Tanda Tangan Digital</span>
+                            </div>
+                            @if($accStatus['signature_set'])
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            @else
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+                            @endif
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                            {{ $accStatus['signature_set'] ? 'Tanda tangan digital tersimpan' : 'Tanda tangan belum diunggah' }}
+                        </div>
+                    </div>
+                    @if(!$accStatus['signature_set'])
+                        <a href="{{ url('/profile?signature_required=1#signature') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
+                            Unggah TTD
+                        </a>
+                    @else
+                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-check text-xs"></i> Sudah Ada TTD
+                        </span>
+                    @endif
+                </div>
+
+                {{-- 5. Jadwal Kerja --}}
+                <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['schedule_set'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
+                    <div>
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-calendar-week text-base {{ $accStatus['schedule_set'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Jadwal Kerja</span>
+                            </div>
+                            @if($accStatus['schedule_set'])
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            @else
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
+                            @endif
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                            {{ $accStatus['schedule_set'] ? 'Sistem kerja ' . strtoupper(auth()->user()->schedule_type) : 'Jadwal kerja belum diatur' }}
+                        </div>
+                    </div>
+                    @if(!$accStatus['schedule_set'])
+                        <a href="{{ url('/profile?schedule_required=1#schedule_setting') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
+                            Belum Diatur
+                        </a>
+                    @else
+                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-check text-xs"></i> Jadwal Aktif
                         </span>
                     @endif
                 </div>

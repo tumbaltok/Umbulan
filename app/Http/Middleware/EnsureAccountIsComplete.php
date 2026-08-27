@@ -21,13 +21,14 @@ class EnsureAccountIsComplete
             return redirect()->route('login');
         }
 
-        // Cek 4 syarat kelengkapan akun:
-        // 1. Phone number & phone_verified_at
-        // 2. Email verified
-        // 3. Jadwal kerja (schedule_type)
-        // 4. Biometrik wajah (face_descriptor)
+        // Cek 5 syarat kelengkapan akun:
+        // 1. Verifikasi Email (email_verified_at)
+        // 2. Nomor WhatsApp (phone_number & phone_verified_at)
+        // 3. Biometrik Wajah AI (face_descriptor)
+        // 4. Tanda Tangan Digital (signature)
+        // 5. Jadwal Kerja (schedule_type)
         if (!$user->isAccountComplete()) {
-            $pesanDitolak = 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.';
+            $pesanDitolak = 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.';
 
             if ($request->expectsJson()) {
                 return response()->json([

@@ -259,37 +259,46 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Memeriksa apakah data akun user telah lengkap memenuhi 4 kriteria kelayakan:
-     * 1. Nomor WhatsApp / Telepon terisi dan terverifikasi.
-     * 2. Email terverifikasi.
-     * 3. Jadwal kerja / shift telah dikonfigurasi.
-     * 4. Biometrik wajah AI telah direkam.
+     * Memeriksa apakah data akun user telah lengkap memenuhi 5 kriteria kelayakan sesuai urutan baku:
+     * 1. Email terverifikasi.
+     * 2. Nomor WhatsApp terisi dan terverifikasi.
+     * 3. Biometrik wajah AI telah direkam.
+     * 4. Tanda tangan digital (TTD) telah diunggah.
+     * 5. Jadwal kerja aktif terisi (normal atau roster).
      */
     public function isAccountComplete(): bool
     {
-        return !empty($this->phone_number)
+        return !is_null($this->email_verified_at)
+            && !empty($this->phone_number)
             && !is_null($this->phone_verified_at)
-            && !is_null($this->email_verified_at)
-            && !empty($this->schedule_type)
-            && !empty($this->face_descriptor);
+            && !empty($this->face_descriptor)
+            && !empty($this->signature)
+            && !empty($this->schedule_type);
     }
 
     /**
-     * Mendapatkan status rincian kelengkapan akun pengguna.
+     * Mendapatkan status rincian kelengkapan akun pengguna sesuai urutan baku 5 syarat:
+     * 1. Verifikasi Email
+     * 2. Nomor WhatsApp
+     * 3. Biometrik Wajah AI
+     * 4. Tanda Tangan Digital (TTD)
+     * 5. Jadwal Kerja
      */
     public function getAccountCompletionStatus(): array
     {
-        $hasPhone = !empty($this->phone_number) && !is_null($this->phone_verified_at);
         $hasEmail = !is_null($this->email_verified_at);
-        $hasSchedule = !empty($this->schedule_type);
+        $hasPhone = !empty($this->phone_number) && !is_null($this->phone_verified_at);
         $hasFace = !empty($this->face_descriptor);
+        $hasSignature = !empty($this->signature);
+        $hasSchedule = !empty($this->schedule_type);
 
         return [
-            'phone_verified'  => $hasPhone,
             'email_verified'  => $hasEmail,
-            'schedule_set'    => $hasSchedule,
+            'phone_verified'  => $hasPhone,
             'face_registered' => $hasFace,
-            'is_complete'     => $hasPhone && $hasEmail && $hasSchedule && $hasFace,
+            'signature_set'   => $hasSignature,
+            'schedule_set'    => $hasSchedule,
+            'is_complete'     => $hasEmail && $hasPhone && $hasFace && $hasSignature && $hasSchedule,
         ];
     }
 

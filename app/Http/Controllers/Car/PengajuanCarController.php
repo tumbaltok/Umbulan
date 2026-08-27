@@ -26,7 +26,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
@@ -37,7 +37,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $request->validate([
