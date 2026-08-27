@@ -135,14 +135,23 @@ class JadwalController extends Controller
             ->with('success', 'Jadwal kerja berhasil diperbarui.');
     }
 
-    /**
-     * Merekam Vektor Biometrik Wajah (128-float Descriptor) Karyawan
-     */
     public function registerFace(Request $request)
     {
         $request->validate([
             'face_descriptor' => 'required',
         ]);
+
+        $user = $request->user();
+
+        // PROTEKSI KETAT ANTI-CHEATING BIOMETRIC LOCK:
+        // Perekaman mandiri hanya diizinkan 1x seumur hidup akun saat kelengkapan profil awal.
+        // Jika face_descriptor sudah terisi, tolak pengubahan dengan HTTP 403 Forbidden!
+        if (!empty($user->face_descriptor)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data biometrik wajah Anda sudah terkunci dan tidak dapat diubah kembali demi keamanan.',
+            ], 403);
+        }
 
         $descriptor = $request->face_descriptor;
         if (is_string($descriptor)) {
@@ -152,7 +161,7 @@ class JadwalController extends Controller
             }
         }
 
-        $request->user()->update([
+        $user->update([
             'face_descriptor' => $descriptor,
         ]);
 

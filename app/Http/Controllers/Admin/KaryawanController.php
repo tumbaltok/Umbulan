@@ -162,11 +162,43 @@ class KaryawanController extends Controller
                         'sisa_saldo' => $saldo->sisa_saldo,
                     ];
                 }) : [],
+                'is_face_registered' => ! empty($karyawan->face_descriptor),
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan server: '.$e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Reset Data Biometrik Wajah Karyawan (Khusus Administrator Level 1)
+     */
+    public function resetBiometric(Request $request, int $id): JsonResponse
+    {
+        $currentUser = Auth::user();
+
+        // Otoritas khusus Admin / Superadmin (Level 1 / Role ID 1)
+        $isAdmin = $currentUser->roles->contains('id', 1)
+            || $currentUser->hasRole(1)
+            || $currentUser->hasRole('Administrator')
+            || $currentUser->hasRole('Admin');
+
+        if (! $isAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya Administrator (Level 1) yang berwenang mereset biometrik wajah.',
+            ], 403);
+        }
+
+        $karyawan = User::findOrFail($id);
+        $karyawan->update([
+            'face_descriptor' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Data biometrik wajah karyawan {$karyawan->name} berhasil di-reset. Karyawan kini dapat melakukan perekaman wajah ulang 1x.",
+        ]);
     }
 
     public function updateSaldoCuti(Request $request, int $id)

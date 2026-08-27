@@ -322,6 +322,23 @@
                     </div>
                 </div>
 
+                {{-- Biometrik Wajah & Tombol Reset Khusus Admin (Level 1) --}}
+                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
+                    <span class="text-slate-400 font-medium">Biometrik Wajah</span>
+                    <div class="col-span-2 flex items-center justify-between gap-2">
+                        <span id="detail_biometric_badge" class="px-2.5 py-1 rounded-lg text-xs font-bold"></span>
+                        @php
+                            $canResetBio = Auth::user()->roles->contains('id', 1) || Auth::user()->hasRole(1) || Auth::user()->hasRole('Administrator') || Auth::user()->hasRole('Admin');
+                        @endphp
+                        @if($canResetBio)
+                            <button type="button" id="btnResetBiometric" onclick="confirmResetBiometric()" class="hidden text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer shadow-2xs">
+                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                <span>Reset Biometrik</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-2">
                     <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sistem Jadwal Kerja</span>
@@ -877,6 +894,21 @@
                     const initials = data.name ? data.name.substring(0, 2).toUpperCase() : '??';
                     photoContainer.textContent = initials;
                 }
+
+                // Render Status Biometrik Wajah & Tombol Reset
+                const biometricBadge = document.getElementById("detail_biometric_badge");
+                const btnResetBiometric = document.getElementById("btnResetBiometric");
+                if (biometricBadge) {
+                    if (data.is_face_registered) {
+                        biometricBadge.innerHTML = `<i class="fa-solid fa-lock text-emerald-600 mr-1"></i> Terkunci & Aktif`;
+                        biometricBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+                        if (btnResetBiometric) btnResetBiometric.classList.remove("hidden");
+                    } else {
+                        biometricBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Belum Terdaftar / Kosong`;
+                        biometricBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
+                        if (btnResetBiometric) btnResetBiometric.classList.add("hidden");
+                    }
+                }
             })
             .catch(error => {
                 console.error(error);
@@ -889,6 +921,60 @@
                     customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
                 });
             });
+    }
+
+    function confirmResetBiometric() {
+        if (!activeKaryawanId) return;
+
+        Swal.fire({
+            title: 'Reset Biometrik Wajah?',
+            text: 'Data descriptor biometrik wajah karyawan ini akan dihapus. Karyawan akan diizinkan merekam wajahnya 1x lagi melalui dashboard.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Reset Biometrik',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold', cancelButton: 'px-5 py-2.5 rounded-xl font-bold' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Sedang mereset data biometrik wajah...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                fetch(`/admin/karyawan/${activeKaryawanId}/reset-biometric`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(resData => {
+                    if (resData.success) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: resData.message,
+                            icon: 'success',
+                            confirmButtonColor: '#0284c7',
+                            customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+                        }).then(() => {
+                            loadDetailKaryawan(activeKaryawanId);
+                        });
+                    } else {
+                        Swal.fire('Gagal!', resData.message || 'Terjadi kesalahan.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+                });
+            }
+        });
     }
 
     function bukaModalEditSaldoBtn(button) {

@@ -279,7 +279,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * Memeriksa apakah data akun user telah lengkap memenuhi 5 kriteria kelayakan sesuai urutan baku:
      * 1. Email terverifikasi.
      * 2. Nomor WhatsApp terisi dan terverifikasi.
-     * 3. Biometrik wajah AI telah direkam.
+     * 3. Biometrik wajah telah direkam.
      * 4. Tanda tangan digital (TTD) telah diunggah.
      * 5. Jadwal kerja aktif terisi (normal atau roster).
      */
@@ -297,7 +297,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * Mendapatkan status rincian kelengkapan akun pengguna sesuai urutan baku 5 syarat:
      * 1. Verifikasi Email
      * 2. Nomor WhatsApp
-     * 3. Biometrik Wajah AI
+     * 3. Biometrik Wajah
      * 4. Tanda Tangan Digital (TTD)
      * 5. Jadwal Kerja
      */

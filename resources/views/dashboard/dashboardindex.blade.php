@@ -109,7 +109,7 @@
                     @endif
                 </div>
 
-                {{-- 3. Biometrik Wajah AI --}}
+                {{-- 3. Biometrik Wajah --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['face_registered'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
                     <div>
                         <div class="flex items-start justify-between mb-2">
@@ -118,22 +118,22 @@
                                 <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Biometrik Wajah</span>
                             </div>
                             @if($accStatus['face_registered'])
-                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                                <i class="fa-solid fa-lock text-emerald-600 text-sm"></i>
                             @else
                                 <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
                             @endif
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                            {{ $accStatus['face_registered'] ? 'Embedding biometrik AI aktif' : 'Wajah belum direkam untuk presensi' }}
+                            {{ $accStatus['face_registered'] ? 'Data biometrik wajah aktif & terkunci' : 'Wajah belum direkam untuk presensi' }}
                         </div>
                     </div>
                     @if(!$accStatus['face_registered'])
                         <button type="button" onclick="bukaModalRekamWajah()" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs cursor-pointer">
-                            Rekam Wajah AI
+                            Rekam Wajah
                         </button>
                     @else
-                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Sudah Direkam
+                        <span class="w-full text-center py-1.5 px-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1.5 cursor-default select-none shadow-xs" title="Data biometrik terkunci permanen demi keamanan">
+                            <i class="fa-solid fa-lock text-xs text-emerald-600"></i> Biometrik Terkunci / Aktif
                         </span>
                     @endif
                 </div>
@@ -334,10 +334,10 @@
                 <div class="flex flex-wrap items-center gap-2">
                     {{-- Status / Tombol Rekam Wajah Biometrik --}}
                     @if(!empty($user->face_descriptor))
-                        <button type="button" onclick="bukaModalRekamWajah()" title="Klik untuk merekam ulang / memperbarui data wajah biometrik" class="bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-[11px] font-bold py-2 px-3 rounded-xl transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs">
-                            <i class="fa-solid fa-shield-check text-sky-600 dark:text-sky-400"></i>
-                            <span>Biometrik Aktif</span>
-                        </button>
+                        <span title="Data biometrik wajah telah terkunci & aktif demi keamanan presensi" class="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold py-2 px-3 rounded-xl flex items-center space-x-1.5 cursor-default select-none shadow-2xs">
+                            <i class="fa-solid fa-lock text-emerald-600 dark:text-emerald-400"></i>
+                            <span>Biometrik Terkunci / Aktif</span>
+                        </span>
                     @else
                         <button type="button" onclick="bukaModalRekamWajah()" class="bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-[11px] font-bold py-2 px-3 rounded-xl transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs animate-pulse">
                             <i class="fa-solid fa-camera text-amber-600 dark:text-amber-400"></i>
@@ -502,7 +502,7 @@
                     <canvas id="canvasRekamWajah" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
 
                     <div id="statusRekamWajahBox" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium">
-                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik AI...
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...
                     </div>
                 </div>
             </div>
@@ -621,7 +621,7 @@
                         <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
                             <span class="text-slate-500 dark:text-slate-400 font-medium">Verifikasi Wajah:</span>
                             <span id="txtStatusBiometrik" class="font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check text-sky-500"></i> Terverifikasi AI
+                                <i class="fa-solid fa-circle-check text-sky-500"></i> Terverifikasi
                             </span>
                         </div>
                         <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
@@ -1298,7 +1298,7 @@
                 faceapi.nets.faceRecognitionNet.loadFromUri(FACE_API_MODEL_URL)
             ]);
             faceApiModelsLoaded = true;
-            console.log("Model AI Biometrik Wajah berhasil dimuat.");
+            console.log("Model Biometrik Wajah berhasil dimuat.");
             return true;
         } catch (err) {
             console.error("Gagal memuat model face-api:", err);
@@ -1310,6 +1310,17 @@
     // ALUR PEREKAMAN BIOMETRIK WAJAH (REGISTRATION)
     // ==========================================
     async function bukaModalRekamWajah() {
+        @if(!empty($user->face_descriptor))
+            Swal.fire({
+                icon: 'info',
+                title: 'Biometrik Terkunci',
+                text: 'Data biometrik wajah Anda telah terverifikasi dan terkunci demi keamanan presensi. Hubungi Administrator / HRD jika memerlukan kalibrasi ulang.',
+                confirmButtonColor: '#0284c7',
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+            });
+            return;
+        @endif
+
         const modal = document.getElementById('modalRekamWajah');
         if (modal) {
             modal.classList.remove('hidden');
@@ -1325,7 +1336,7 @@
 
         if (statusBox) {
             statusBox.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium";
-            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan model biometrik AI...`;
+            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan model biometrik wajah...`;
         }
 
         const isMobile = window.innerWidth < 640;
@@ -1703,7 +1714,7 @@
 
             if (camStatus) {
                 camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
-                camStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat AI Biometrik...`;
+                camStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...`;
             }
 
             await ensureFaceApiLoaded();
@@ -1789,7 +1800,7 @@
                             // Auto-Submit Presensi Langsung (Tanpa harus klik submit manual)
                             if (camStatus) {
                                 camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
-                                camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Terverifikasi AI (${confidence}%)! Memproses presensi otomatis...`;
+                                camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Terverifikasi (${confidence}%)! Memproses presensi otomatis...`;
                             }
                             setTimeout(() => {
                                 if (mediaStream) {
@@ -1802,7 +1813,7 @@
                     } else if (!isAutoSubmittingAttendance) {
                         if (camStatus) {
                             camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
-                            camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terverifikasi AI (${confidence}%)! Tahan posisi...`;
+                            camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terverifikasi (${confidence}%)! Tahan posisi...`;
                         }
                     }
                 } else {
@@ -1859,7 +1870,7 @@
         const txtStatusBiometrik = document.getElementById('txtStatusBiometrik');
         if (isFaceVerified) {
             txtStatusBiometrik.className = "font-bold text-emerald-600 flex items-center gap-1";
-            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi AI`;
+            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi`;
         } else {
             txtStatusBiometrik.className = "font-bold text-amber-600 flex items-center gap-1";
             txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-500"></i> Kamera Aktif`;

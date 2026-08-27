@@ -59,28 +59,34 @@
                         </button>
                     </div>
 
-                    {{-- Biometrik Wajah AI --}}
+                    {{-- Biometrik Wajah --}}
                     <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }} flex items-center justify-center text-2xl shadow-sm">
-                            <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-face-viewfinder' : 'fa-camera-rotate' }}"></i>
+                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }} flex items-center justify-center text-2xl shadow-sm">
+                            <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-lock' : 'fa-camera-rotate' }}"></i>
                         </div>
 
                         <div class="mt-2">
                             @if(!empty($user->face_descriptor))
-                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Biometrik Aktif
+                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <i class="fa-solid fa-lock text-emerald-600 mr-1.5"></i> Biometrik Terkunci / Aktif
                                 </span>
                             @else
-                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
-                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Belum Terdaftar
+                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Belum Terdaftar
                                 </span>
                             @endif
                         </div>
 
-                        <a href="{{ route('dashboard') }}" class="mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center space-x-1">
-                            <i class="fa-solid fa-rotate"></i>
-                            <span>{{ !empty($user->face_descriptor) ? 'Update di Dashboard' : 'Rekam di Dashboard' }}</span>
-                        </a>
+                        @if(!empty($user->face_descriptor))
+                            <div class="mt-2.5 p-2 bg-sky-50/70 border border-sky-100 rounded-xl text-[10.5px] text-slate-600 leading-snug text-center">
+                                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i> Data biometrik wajah Anda telah terverifikasi dan terkunci demi keamanan presensi. Hubungi Administrator / HRD jika memerlukan kalibrasi ulang.
+                            </div>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>Rekam di Dashboard</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
