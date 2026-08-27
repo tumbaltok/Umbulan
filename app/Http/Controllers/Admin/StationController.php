@@ -20,6 +20,7 @@ class StationController extends Controller
 
     private function parseGoogleMapsUrl(string $url): ?array
     {
+        $url = trim($url);
         if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
@@ -29,7 +30,13 @@ class StationController extends Controller
         if (preg_match('/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
+        if (preg_match('/[?&]center=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
+            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
+        }
         if (preg_match('/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/', $url, $matches)) {
+            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
+        }
+        if (preg_match('/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/', $url, $matches)) {
             return ['latitude' => $matches[1], 'longitude' => $matches[2]];
         }
         return null;
@@ -69,7 +76,7 @@ class StationController extends Controller
             'kode_stasiun' => 'required|string|unique:stations,kode_stasiun',
             'name' => 'required|string|max:255',
             'type' => 'required|in:kantor,stasiun,rumah_meter',
-            'maps_url' => 'nullable|url',
+            'maps_url' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'radius_meters' => 'required|numeric|min:10',
