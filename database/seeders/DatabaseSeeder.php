@@ -195,6 +195,8 @@ class DatabaseSeeder extends Seeder
             'gender_id'         => $pria->id,
             'station_id'        => $stBooster->id,
             'phone_number'      => '081234567890',
+            'face_descriptor'   => array_fill(0, 128, 0.05),
+            'signature'         => 'signatures/dummy_signature.png',
             'schedule_type'     => 'roster',
             'roster_start_date' => '2026-08-01',
             'normal_work_days'  => null,
@@ -312,19 +314,19 @@ class DatabaseSeeder extends Seeder
             // Logika Evaluasi Jadwal Berdasarkan NIP
             if (in_array($nip, $rosterGroupA)) {
                 $scheduleType    = 'roster';
-                $rosterStartDate = '2020-08-04';
+                $rosterStartDate = '2026-08-01';
                 $normalWorkDays  = null;
                 $normalCheckIn   = null;
                 $normalCheckOut  = null;
             } elseif (in_array($nip, $rosterGroupB)) {
                 $scheduleType    = 'roster';
-                $rosterStartDate = '2020-08-11';
+                $rosterStartDate = '2026-08-01';
                 $normalWorkDays  = null;
                 $normalCheckIn   = null;
                 $normalCheckOut  = null;
             } elseif (in_array($nip, $rosterGroupC)) {
                 $scheduleType    = 'roster';
-                $rosterStartDate = '2020-08-18';
+                $rosterStartDate = '2026-08-01';
                 $normalWorkDays  = null;
                 $normalCheckIn   = null;
                 $normalCheckOut  = null;
@@ -332,8 +334,8 @@ class DatabaseSeeder extends Seeder
                 $scheduleType    = 'normal';
                 $rosterStartDate = null;
                 $normalWorkDays  = '1,2,3,4,5';
-                $normalCheckIn   = '07:00';
-                $normalCheckOut  = '16:00';
+                $normalCheckIn   = '07:00:00';
+                $normalCheckOut  = '16:00:00';
             }
 
             $user = User::create([
@@ -346,6 +348,8 @@ class DatabaseSeeder extends Seeder
                 'gender_id'         => $userData['gender_id'],
                 'station_id'        => $userData['station_id'],
                 'phone_number'      => '0812' . rand(10000000, 99999999),
+                'face_descriptor'   => array_fill(0, 128, 0.05),
+                'signature'         => 'signatures/dummy_signature.png',
                 'schedule_type'     => $scheduleType,
                 'roster_start_date' => $rosterStartDate,
                 'normal_work_days'  => $normalWorkDays,
