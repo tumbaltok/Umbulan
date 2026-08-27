@@ -12,6 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nomor_mpr')->unique();
+            $table->enum('priority', ['Normal', 'Urgent', 'Emergency'])->default('Normal');
+            $table->string('department')->default('Operation');
+            $table->string('delivery_point')->default('Site Umbulan');
+            $table->date('latest_mpr_date')->nullable();
             $table->date('tanggal_pengajuan');
             $table->text('keperluan_urgensi');
             $table->string('dokumen_pendukung')->nullable();
@@ -29,10 +33,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('pengajuan_mpr_id')->constrained('pengajuan_mprs')->onDelete('cascade');
             $table->string('nama_barang');
+            $table->text('keterangan_item')->nullable();
             $table->integer('jumlah');
             $table->string('satuan');
-            $table->decimal('estimasi_harga', 15, 2)->default(0);
-            $table->text('keterangan_item')->nullable();
+            $table->decimal('estimasi_harga', 15, 2)->default(0)->nullable();
             $table->timestamps();
         });
     }

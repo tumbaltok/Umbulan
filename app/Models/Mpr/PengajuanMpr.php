@@ -10,11 +10,29 @@ class PengajuanMpr extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'user_id',
+        'nomor_mpr',
+        'priority',
+        'department',
+        'delivery_point',
+        'latest_mpr_date',
+        'tanggal_pengajuan',
+        'keperluan_urgensi',
+        'dokumen_pendukung',
+        'status_tahap_1',
+        'approver_tahap_1_id',
+        'status_tahap_2',
+        'approver_tahap_2_id',
+        'status_akhir',
+        'catatan_penolakan',
+        'last_notified_at',
+    ];
 
     protected $casts = [
-        'last_notified_at' => 'datetime',
+        'last_notified_at'  => 'datetime',
         'tanggal_pengajuan' => 'date',
+        'latest_mpr_date'   => 'date',
     ];
 
     public function user()

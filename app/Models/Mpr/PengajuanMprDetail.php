@@ -9,7 +9,14 @@ class PengajuanMprDetail extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'pengajuan_mpr_id',
+        'nama_barang',
+        'keterangan_item',
+        'jumlah',
+        'satuan',
+        'estimasi_harga',
+    ];
 
     // Relasi balik ke header PengajuanMpr
     public function pengajuanMpr()

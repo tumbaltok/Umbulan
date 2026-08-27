@@ -2,18 +2,23 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Material Purchase Request - {{ $mpr->nomor_mpr }}</title>
+    <title>Material/Service Procurement Request - {{ $mpr->nomor_mpr }}</title>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm 15mm 12mm 15mm;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 11px;
-            color: #222;
-            line-height: 1.4;
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 9.5pt;
+            line-height: 1.3;
+            color: #000;
             margin: 0;
             padding: 0;
         }
 
-        /* Header Table */
+        /* Top Header Table */
         .header-table {
             width: 100%;
             border-collapse: collapse;
@@ -21,269 +26,310 @@
         }
         .header-table td {
             vertical-align: middle;
-            border: 1px solid #000;
-            padding: 6px;
+            border: none;
+            padding: 0;
         }
-        .title-main {
-            font-size: 15px;
+        .doc-title {
+            font-size: 13.5pt;
             font-weight: bold;
-            text-transform: uppercase;
             text-align: center;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-        .company-logo {
-            text-align: center;
+            letter-spacing: 0.3px;
         }
 
-        /* Meta Info Table */
-        .info-table {
+        /* Metadata Table */
+        .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            font-size: 9.5pt;
         }
-        .info-table td {
-            border: 1px solid #000;
-            padding: 5px 8px;
-            font-size: 10.5px;
-        }
-        .info-label {
-            font-weight: bold;
-            background-color: #f8fafc;
-            width: 20%;
-        }
-        .info-value {
-            width: 30%;
+        .meta-table td {
+            border: none;
+            padding: 2.5px 0;
+            vertical-align: top;
         }
 
-        /* Items Content Table */
-        .content-table {
+        /* Section Title */
+        .section-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 10.5pt;
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        /* Items Table */
+        .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        .content-table th {
-            background-color: #f1f5f9;
             border: 1px solid #000;
+        }
+        .items-table th {
+            border: 1px solid #000;
+            font-size: 9.5pt;
             font-weight: bold;
             text-align: center;
-            padding: 7px 5px;
-            font-size: 10.5px;
-        }
-        .content-table td {
-            border: 1px solid #000;
-            padding: 6px;
+            padding: 6px 4px;
             vertical-align: middle;
         }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .font-bold { font-weight: bold; }
-
-        /* Approval Matrix Table */
-        .approval-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        .approval-table td {
+        .items-table td {
             border: 1px solid #000;
-            width: 25%;
-            text-align: center;
+            padding: 6px 8px;
             vertical-align: top;
-            padding: 4px;
-            font-size: 10px;
+            font-size: 9.5pt;
         }
-        .approval-title {
+
+        /* Delivery Point */
+        .delivery-point {
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-size: 9.5pt;
+        }
+
+        /* Note & Explanation Box */
+        .note-box {
+            border: 1px solid #000;
+            padding: 6px 10px;
+            font-size: 9pt;
+            margin-bottom: 14px;
+            line-height: 1.35;
+        }
+
+        /* Signature Outer Table */
+        .signature-table {
+            width: 100%;
+            border: 1px solid #000;
+            border-collapse: collapse;
+        }
+        .signature-table td {
+            vertical-align: top;
+        }
+        .sub-header {
+            font-size: 8.5pt;
             font-weight: bold;
-            background-color: #f8fafc;
-            border-bottom: 1px solid #000;
-            padding: 4px 0;
+            margin-bottom: 4px;
         }
-        .signature-space {
-            height: 60px;
+        .role-title {
+            font-size: 8.5pt;
+            margin-bottom: 2px;
         }
         .signer-name {
-            font-weight: bold;
-            text-decoration: underline;
+            font-size: 8.5pt;
+            white-space: nowrap;
         }
-
-        /* Footer Terms */
-        .footer-terms {
-            margin-top: 20px;
-            font-size: 9px;
-            color: #475569;
-            border-top: 1px dashed #94a3b8;
-            padding-top: 8px;
+        .sig-space {
+            height: 48px;
+            text-align: center;
+            vertical-align: middle;
         }
-        .footer-terms h4 {
-            margin: 0 0 3px 0;
-            font-size: 9.5px;
-            text-transform: uppercase;
-        }
-        .footer-terms ol {
-            margin: 0;
-            padding-left: 14px;
-        }
-        .footer-terms li {
-            margin-bottom: 2px;
+        .sig-img {
+            max-height: 44px;
+            max-width: 110px;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
 
-    <!-- KOP HEADER UTAMA -->
+    <!-- 1. HEADER & LOGO -->
     <table class="header-table">
         <tr>
-            <td rowspan="2" class="company-logo" style="width: 18%;">
-                <img src="{{ public_path('images/iconfav.png') }}" style="max-width: 100%; max-height: 48px; object-fit: contain;">
+            <td style="width: 82%; text-align: center; padding-left: 18%;">
+                <div class="doc-title">Material/Service Procurement Request</div>
             </td>
-            <td rowspan="2" style="width: 47%;">
-                <h1 class="title-main">Material Purchase Request</h1>
-                <div style="text-align: center; font-size: 9px; color: #64748b; margin-top: 2px;">PT META ADHYA TIRTA UMBULAN</div>
-            </td>
-            <td style="width: 35%;">
-                <strong>Nomor Dokumen:</strong> <br>
-                <span style="font-size: 11px; font-weight: bold; color: #0284c7;">{{ $mpr->nomor_mpr }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <strong>Tanggal Pengajuan:</strong> {{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d F Y') }}
+            <td style="width: 18%; text-align: right;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" style="height: 54px; width: auto;" alt="META">
+                @else
+                    <div style="font-size: 14pt; font-weight: bold; color: #0284c7;">META</div>
+                @endif
             </td>
         </tr>
     </table>
 
-    <!-- INFORMASI PEMOHON & STASIUN -->
-    <table class="info-table">
+    <!-- 2. METADATA PEMOHON -->
+    <table class="meta-table">
         <tr>
-            <td class="info-label">Nama Pemohon</td>
-            <td class="info-value">{{ $mpr->user->name ?? '-' }}</td>
-            <td class="info-label">Stasiun Kerja / Unit</td>
-            <td class="info-value">{{ $mpr->user->station->name ?? 'Stasiun Umbulan' }}</td>
+            <td style="width: 17%;">Number</td>
+            <td style="width: 3%;">:</td>
+            <td style="width: 44%;">{{ $mpr->nomor_mpr }}</td>
+            <td style="width: 12%;">Priority</td>
+            <td style="width: 3%;">:</td>
+            <td style="width: 21%;">{{ $mpr->priority ?? 'Normal' }}</td>
         </tr>
         <tr>
-            <td class="info-label">Jabatan / Role</td>
-            <td class="info-value">{{ strtoupper($mpr->user->role->role_name ?? '-') }} {{ $mpr->user->job_title }}</td>
-            <td class="info-label">NIP Karyawan</td>
-            <td class="info-value">{{ $mpr->user->nip ?? '-' }}</td>
+            <td>Date</td>
+            <td>:</td>
+            <td>{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d-M-y') }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Requester Name</td>
+            <td>:</td>
+            <td>{{ $mpr->user->name ?? '-' }}</td>
+            <td>Title</td>
+            <td>:</td>
+            <td>{{ $requesterRole }}</td>
+        </tr>
+        <tr>
+            <td>Department</td>
+            <td>:</td>
+            <td>{{ $departmentName }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 
-    <div style="margin-bottom: 6px; font-weight: bold; font-size: 11px; color: #1e293b;">
-        Keperluan / Urgensi Pemakaian Material:
-    </div>
-    <div style="border: 1px solid #000; padding: 8px; margin-bottom: 12px; background-color: #fafafa; font-size: 10.5px; border-radius: 4px;">
-        {{ $mpr->keperluan_urgensi }}
-    </div>
+    <!-- 3. SECTION TITLE -->
+    <div class="section-title">Requested Material/Service</div>
 
-    <!-- TABEL DETAIL RINCIAN MATERIAL -->
-    <table class="content-table">
+    <!-- 4. TABEL DETAIL MATERIAL -->
+    <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 4%;">No</th>
-                <th style="width: 36%;">Nama Barang / Material</th>
-                <th style="width: 10%;">Qty</th>
-                <th style="width: 10%;">Satuan</th>
-                <th style="width: 15%;">Est. Harga Satuan</th>
-                <th style="width: 15%;">Subtotal</th>
-                <th style="width: 10%;">Ket. Spec</th>
+                <th style="width: 6%;">No</th>
+                <th style="width: 34%;">Item</th>
+                <th style="width: 45%;">Description/Specification/Part<br>number</th>
+                <th style="width: 15%;">Quantity</th>
             </tr>
         </thead>
         <tbody>
-            @php $grandTotal = 0; @endphp
             @foreach($mpr->items as $index => $item)
-                @php
-                    $subtotal = $item->jumlah * $item->estimasi_harga;
-                    $grandTotal += $subtotal;
-                @endphp
                 <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="font-bold">{{ $item->nama_barang }}</td>
-                    <td class="text-center font-bold">{{ $item->jumlah }}</td>
-                    <td class="text-center">{{ $item->satuan }}</td>
-                    <td class="text-right">Rp {{ number_format($item->estimasi_harga, 0, ',', '.') }}</td>
-                    <td class="text-right font-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
-                    <td style="font-size: 9.5px; color: #475569;">{{ $item->keterangan_item ?? '-' }}</td>
+                    <td style="text-align: center;">{{ $index + 1 }}</td>
+                    <td>{{ $item->nama_barang }}</td>
+                    <td>{{ $item->keterangan_item ?? '-' }}</td>
+                    <td style="text-align: center;">
+                        {{ $item->jumlah }}
+                    </td>
                 </tr>
             @endforeach
 
-            <tr>
-                <td colspan="5" class="text-right font-bold" style="background-color: #f8fafc;">Estimasi Grand Total Material:</td>
-                <td class="text-right font-bold" style="background-color: #f8fafc; font-size: 11.5px; color: #0284c7;">
-                    Rp {{ number_format($grandTotal, 0, ',', '.') }}
-                </td>
-                <td style="background-color: #f8fafc;"></td>
-            </tr>
+            @php
+                $itemCount = count($mpr->items);
+                $fillerHeight = max(0, 240 - ($itemCount * 45));
+            @endphp
+            @if($fillerHeight > 0)
+                <tr>
+                    <td style="height: {{ $fillerHeight }}px; border: 1px solid #000;"></td>
+                    <td style="border: 1px solid #000;"></td>
+                    <td style="border: 1px solid #000;"></td>
+                    <td style="border: 1px solid #000;"></td>
+                </tr>
+            @endif
         </tbody>
     </table>
 
-    <table class="approval-table">
+    <!-- 5. DELIVERY POINT -->
+    <div class="delivery-point">
+        Delivery Point &nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;&nbsp; {{ $deliveryPoint }}
+    </div>
+
+    <!-- 6. NOTE & EXPLANATION -->
+    <div class="note-box">
+        <div style="font-weight: bold; margin-bottom: 2px;">Note & Explanation :</div>
+        @php
+            $rawNotes = trim($mpr->keperluan_urgensi ?? '');
+            $lines = preg_split('/\r\n|\r|\n/', $rawNotes);
+        @endphp
+        @foreach($lines as $line)
+            @if(trim($line))
+                <div>{{ str_starts_with(trim($line), '-') ? trim($line) : '- ' . trim($line) }}</div>
+            @endif
+        @endforeach
+        @if(!empty($latestMprDate))
+            <div>- latest MPR Issued date : {{ $latestMprDate }}</div>
+        @endif
+    </div>
+
+    <!-- 7. MATRIKS TANDA TANGAN -->
+    <table class="signature-table">
+        <!-- BARIS ATAS: Requested By & Checked & Proceed By -->
         <tr>
-            {{-- 1. PEMOHON MATERIAL --}}
-            <td>
-                <div class="approval-title">Diajukan Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Pemohon Material</div>
-                <div class="signature-space" style="text-align: center; vertical-align: middle;">
-                    @if(optional($mpr->user)->signature && file_exists(public_path('storage/' . $mpr->user->signature)))
-                        <img src="{{ public_path('storage/' . $mpr->user->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
-                    @endif
-                </div>
-                <div class="signer-name">{{ $mpr->user->name ?? '-' }}</div>
-                <div style="font-size: 8.5px; color: #475569;">{{ $mpr->user->job_title ?? 'Karyawan' }}</div>
+            <!-- KIRI: Requested By (55%) -->
+            <td style="width: 55%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 8px 6px 8px;">
+                <div class="sub-header">Requested By</div>
+                <table style="width: 100%; border: none; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 48%; text-align: center; border: none; padding: 0;">
+                            <div class="role-title">Requester</div>
+                            <div class="sig-space">
+                                @if(!empty($requesterSignature))
+                                    <img src="{{ $requesterSignature }}" class="sig-img">
+                                @endif
+                            </div>
+                            <div class="signer-name">( {{ $mpr->user->name ?? 'Requester' }} )</div>
+                        </td>
+                        <td style="width: 4%; border: none;"></td>
+                        <td style="width: 48%; text-align: center; border: none; padding: 0;">
+                            <div class="role-title">Operation Manager</div>
+                            <div class="sig-space">
+                                @if(!empty($operationManagerSignature))
+                                    <img src="{{ $operationManagerSignature }}" class="sig-img">
+                                @endif
+                            </div>
+                            <div class="signer-name">( {{ $operationManagerName }} )</div>
+                        </td>
+                    </tr>
+                </table>
             </td>
 
-            {{-- 2. DIVERIFIKASI SUPERVISOR --}}
-            <td>
-                <div class="approval-title">Diverifikasi Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Supervisor</div>
-                <div class="signature-space" style="text-align: center; vertical-align: middle;">
-                    @if(optional($mpr->supervisor)->signature && file_exists(public_path('storage/' . $mpr->supervisor->signature)))
-                        <img src="{{ public_path('storage/' . $mpr->supervisor->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
-                    @endif
+            <!-- KANAN: Checked & Proceed By (45%) -->
+            <td style="width: 45%; border-bottom: 1px solid #000; padding: 4px 8px 6px 8px;">
+                <div class="sub-header">Checked & Proceed By</div>
+                <div style="text-align: center;">
+                    <div class="role-title">Procurement</div>
+                    <div class="sig-space">
+                        @if(!empty($procurementSignature))
+                            <img src="{{ $procurementSignature }}" class="sig-img">
+                        @endif
+                    </div>
+                    <div class="signer-name">
+                        ( {{ !empty($procurementSignature) ? $procurementName : '...........................' }} )
+                    </div>
                 </div>
-                <div class="signer-name">
-                    {{ $mpr->supervisor->name ?? '...........................' }}
-                </div>
-                <div style="font-size: 8.5px; color: #475569;">Supervisor</div>
             </td>
+        </tr>
 
-            {{-- 3. DISETUJUI MANAGER --}}
-            <td>
-                <div class="approval-title">Disetujui Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Manager</div>
-                <div class="signature-space" style="text-align: center; vertical-align: middle;">
-                    @if(optional($mpr->manager)->signature && file_exists(public_path('storage/' . $mpr->manager->signature)))
-                        <img src="{{ public_path('storage/' . $mpr->manager->signature) }}" style="max-height: 50px; max-width: 100px; object-fit: contain;">
-                    @endif
-                </div>
-                <div class="signer-name">
-                    {{ $mpr->manager->name ?? '...........................' }}
-                </div>
-                <div style="font-size: 8.5px; color: #475569;">General Manager</div>
-            </td>
-
-            {{-- 4. PROCUREMENT --}}
-            <td>
-                <div class="approval-title">Diketahui Oleh</div>
-                <div style="font-size: 8.5px; margin-top: 2px; color: #64748b; visibility: hidden;">Procurement / Finance</div>
-                <div class="signature-space"></div>
-                <div class="signer-name">...........................</div>
-                <div style="font-size: 8.5px; color: #475569;">Procurement Manager</div>
+        <!-- BARIS BAWAH: Approved By -->
+        <tr>
+            <td colspan="2" style="padding: 4px 8px 6px 8px;">
+                <div class="sub-header">Approved By</div>
+                <table style="width: 100%; border: none; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 48%; text-align: center; border: none; padding: 0;">
+                            <div class="role-title">Director</div>
+                            <div class="sig-space">
+                                @if(!empty($directorSignature))
+                                    <img src="{{ $directorSignature }}" class="sig-img">
+                                @endif
+                            </div>
+                            <div class="signer-name">
+                                ( {{ !empty($directorSignature) ? $directorName : $directorName }} )
+                            </div>
+                        </td>
+                        <td style="width: 4%; border: none;"></td>
+                        <td style="width: 48%; text-align: center; border: none; padding: 0;">
+                            <div class="role-title">Director/President Director</div>
+                            <div class="sig-space">
+                                @if(!empty($presidentDirectorSignature))
+                                    <img src="{{ $presidentDirectorSignature }}" class="sig-img">
+                                @endif
+                            </div>
+                            <div class="signer-name">
+                                ( {{ !empty($presidentDirectorSignature) ? $presidentDirectorName : '...........................' }} )
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 
-    <!-- SYARAT & KETENTUAN MPR -->
-    <div class="footer-terms">
-        <h4>Ketentuan Pengadaan Material Purchase Request (MPR):</h4>
-        <ol>
-            <li>Permintaan barang/material wajib melampirkan spesifikasi teknis yang jelas agar tidak terjadi kesalahan pemesanan.</li>
-            <li>Barang/material yang telah diterima oleh pemohon wajib diperiksa kuantitas dan kualitasnya serta dilaporkan ke bagian Logistik/Gudang.</li>
-            <li>Dokumen MPR yang telah disetujui sepenuhnya menjadi dasar penerbitan Purchase Order (PO) oleh bagian Logistik/Pengadaan.</li>
-        </ol>
-    </div>
-
-    <!-- DOKUMEN PENDUKUNG UTAMA (JIKA ADA UPLOAD BERKAS) -->
+    <!-- 8. LAMPIRAN DOKUMEN PENDUKUNG (JIKA ADA) -->
     @if($mpr->dokumen_pendukung)
         @php
             $pathFile = storage_path('app/public/' . $mpr->dokumen_pendukung);
@@ -291,22 +337,22 @@
         @endphp
 
         @if(file_exists($pathFile))
-            <div style="page-break-before: always; margin-top: 20px;">
-                <div style="font-size: 11px; font-weight: bold; color: #1e293b; border-bottom: 2px solid #0284c7; padding-bottom: 5px; margin-bottom: 15px;">
+            <div style="page-break-before: always; margin-top: 15px;">
+                <div style="font-size: 10pt; font-weight: bold; color: #000; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 12px;">
                     LAMPIRAN DOKUMEN PENDUKUNG MPR (NO: {{ $mpr->nomor_mpr }})
                 </div>
 
                 @if(in_array($ekstensi, ['jpg', 'jpeg', 'png', 'webp']))
-                    <div style="text-align: center; padding: 10px; background-color: #f8fafc; border-radius: 6px;">
-                        <img src="{{ public_path('storage/' . $mpr->dokumen_pendukung) }}" style="max-width: 100%; max-height: 550px; object-fit: contain; border-radius: 4px;">
+                    <div style="text-align: center; padding: 8px;">
+                        <img src="{{ public_path('storage/' . $mpr->dokumen_pendukung) }}" style="max-width: 100%; max-height: 520px; object-fit: contain;">
                     </div>
                 @elseif($ekstensi === 'pdf')
-                    <div style="text-align: center; padding: 20px; background-color: #f8fafc; border-radius: 6px;">
-                        <p style="font-size: 11px; font-weight: bold; color: #334155; margin: 0 0 4px 0;">
-                            Dokumen Pendukung Berupa File PDF
+                    <div style="text-align: center; padding: 15px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px;">
+                        <p style="font-size: 10pt; font-weight: bold; color: #1e293b; margin: 0 0 4px 0;">
+                            Dokumen Pendukung Berupa Berkas PDF
                         </p>
-                        <p style="font-size: 10px; color: #64748b; margin: 0;">
-                            Silakan unduh atau tinjau berkas PDF langsung melalui sistem aplikasi web.
+                        <p style="font-size: 9pt; color: #64748b; margin: 0;">
+                            Silakan tinjau berkas PDF lampiran langsung melalui sistem aplikasi web.
                         </p>
                     </div>
                 @endif

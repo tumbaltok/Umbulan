@@ -29,6 +29,7 @@
             <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-y border-slate-100">
                 <tr>
                     <th class="py-3 px-4">No. MPR / Tanggal</th>
+                    <th class="py-3 px-4">Priority & Lokasi</th>
                     <th class="py-3 px-4">Keperluan / Urgensi</th>
                     <th class="py-3 px-4">Rincian Material</th>
                     <th class="py-3 px-4">Status Akhir</th>
@@ -42,8 +43,18 @@
                             <span class="font-bold text-slate-800 block text-xs">{{ $mpr->nomor_mpr }}</span>
                             <span class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d M Y') }}</span>
                         </td>
-                        <td class="py-3.5 px-4 text-xs font-medium text-slate-700 max-w-xs">
-                            {{ $mpr->keperluan_urgensi }}
+                        <td class="py-3.5 px-4">
+                            @if($mpr->priority === 'Emergency')
+                                <span class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-md text-[10px] font-bold uppercase">Emergency</span>
+                            @elseif($mpr->priority === 'Urgent')
+                                <span class="px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 rounded-md text-[10px] font-bold uppercase">Urgent</span>
+                            @else
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-md text-[10px] font-semibold uppercase">Normal</span>
+                            @endif
+                            <span class="block text-[11px] text-slate-500 mt-1 font-medium">{{ $mpr->delivery_point ?? 'Site Umbulan' }}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs font-medium text-slate-700 max-w-xs whitespace-pre-line">
+                            {{ \Illuminate\Support\Str::limit($mpr->keperluan_urgensi, 80) }}
                         </td>
                         <td class="py-3.5 px-4 text-xs">
                             <ul class="list-disc pl-4 space-y-0.5">
@@ -75,7 +86,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-8 text-slate-400 text-xs">
+                        <td colspan="6" class="text-center py-8 text-slate-400 text-xs">
                             Belum ada riwayat pengajuan MPR.
                         </td>
                     </tr>

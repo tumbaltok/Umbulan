@@ -33,7 +33,32 @@ class PengajuanMprController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
-        return view('mpr.mprcreate');
+        $now = Carbon::now();
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+        $bulanRomawi = $romawi[$now->month] ?? 'I';
+
+        $urutan = PengajuanMpr::whereYear('tanggal_pengajuan', $now->year)->count() + 1;
+        $nomorMpr = "{$urutan} / META / PAS / MPR / {$bulanRomawi} / {$now->year}";
+
+        // Default department
+        $defaultDepartment = 'Operation';
+        if ($user->station && str_contains(strtolower($user->station->type ?? ''), 'kantor')) {
+            $defaultDepartment = $user->role->role_name ?? 'Management';
+        }
+
+        // Default delivery point
+        $defaultDeliveryPoint = 'Site Umbulan';
+        if ($user->station) {
+            $stName = $user->station->name;
+            $defaultDeliveryPoint = str_starts_with($stName, 'Stasiun ') 
+                ? str_replace('Stasiun ', 'Site ', $stName) 
+                : $stName;
+        }
+
+        return view('mpr.mprcreate', compact('nomorMpr', 'defaultDepartment', 'defaultDeliveryPoint'));
     }
 
     public function store(Request $request)
@@ -44,22 +69,26 @@ class PengajuanMprController extends Controller
         }
 
         $request->validate([
+            'nomor_mpr' => 'nullable|string|max:100',
+            'priority' => 'required|in:Normal,Urgent,Emergency',
+            'department' => 'required|string|max:100',
+            'delivery_point' => 'required|string|max:150',
+            'latest_mpr_date' => 'nullable|date',
             'keperluan_urgensi' => 'required|string',
             'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'items' => 'required|array|min:1',
-            'items.*.nama_barang' => 'required|string',
+            'items.*.nama_barang' => 'required|string|max:255',
+            'items.*.keterangan_item' => 'nullable|string',
             'items.*.jumlah' => 'required|numeric|min:1',
-            'items.*.satuan' => 'required|string',
+            'items.*.satuan' => 'required|string|max:50',
+            'items.*.estimasi_harga' => 'nullable|numeric|min:0',
         ]);
-
-        $user = Auth::user();
 
         $namaDokumen = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
         }
 
-        $user = Auth::user();
         $isTopLevel = $user->isTopLevel();
 
         // Cari rule MPR dari seluruh roles yang dimiliki user
@@ -98,37 +127,45 @@ class PengajuanMprController extends Controller
             $statusAkhir  = 'pending';
         }
 
-        // Format nomor MPR: MPR/YYYY/MM/XXX
         $now = Carbon::now();
-        $urutan = PengajuanMpr::whereYear('created_at', $now->year)
-            ->whereMonth('created_at', $now->month)
-            ->count() + 1;
-
-        $nomorMpr = 'MPR/' . $now->format('Y/m/') . sprintf('%03d', $urutan);
+        $nomorMpr = $request->nomor_mpr;
+        if (empty($nomorMpr)) {
+            $romawi = [
+                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            ];
+            $bulanRomawi = $romawi[$now->month] ?? 'I';
+            $urutan = PengajuanMpr::whereYear('tanggal_pengajuan', $now->year)->count() + 1;
+            $nomorMpr = "{$urutan} / META / PAS / MPR / {$bulanRomawi} / {$now->year}";
+        }
 
         DB::beginTransaction();
         try {
             $mpr = PengajuanMpr::create([
-                'user_id'           => $user->id,
-                'nomor_mpr'         => $nomorMpr,
-                'tanggal_pengajuan' => $now->format('Y-m-d'),
-                'keperluan_urgensi' => $request->keperluan_urgensi,
-                'dokumen_pendukung' => $namaDokumen,
-                'status_tahap_1'    => $statusTahap1,
+                'user_id'             => $user->id,
+                'nomor_mpr'           => $nomorMpr,
+                'priority'            => $request->priority ?? 'Normal',
+                'department'          => $request->department ?? 'Operation',
+                'delivery_point'      => $request->delivery_point ?? 'Site Umbulan',
+                'latest_mpr_date'     => $request->latest_mpr_date,
+                'tanggal_pengajuan'   => $now->format('Y-m-d'),
+                'keperluan_urgensi'   => $request->keperluan_urgensi,
+                'dokumen_pendukung'   => $namaDokumen,
+                'status_tahap_1'      => $statusTahap1,
                 'approver_tahap_1_id' => $statusTahap1 === 'approved' ? $user->id : null,
-                'status_tahap_2'    => $statusTahap2,
+                'status_tahap_2'      => $statusTahap2,
                 'approver_tahap_2_id' => $statusTahap2 === 'approved' ? $user->id : null,
-                'status_akhir'      => $statusAkhir,
+                'status_akhir'        => $statusAkhir,
             ]);
 
             foreach ($request->items as $item) {
                 PengajuanMprDetail::create([
                     'pengajuan_mpr_id' => $mpr->id,
                     'nama_barang'      => $item['nama_barang'],
+                    'keterangan_item'  => $item['keterangan_item'] ?? null,
                     'jumlah'           => $item['jumlah'],
                     'satuan'           => $item['satuan'],
                     'estimasi_harga'   => $item['estimasi_harga'] ?? 0,
-                    'keterangan_item'  => $item['keterangan_item'] ?? null,
                 ]);
             }
 
