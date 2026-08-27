@@ -27,7 +27,8 @@ Sistem ini dirancang untuk menangani operasional perusahaan air minum (PAMS) yan
   * **Backend**: Laravel 13 Framework (PHP 8.3+).
   * **Database**: MySQL / MariaDB / SQLite.
   * **Frontend**: Blade Templating, Tailwind CSS, JavaScript Native.
-  * **Eksternal API**: Gateway Fonnte (WhatsApp OTP & Notifications), Nager.Date API (Kalender Hari Libur Nasional).
+  * **WhatsApp Gateway**: Self-Hosted Baileys Microservice (@whiskeysockets/baileys on Node.js Express).
+  * **Eksternal API**: Nager.Date API (Kalender Hari Libur Nasional).
   * **PDF Generator**: DomPDF.
 
 ---
@@ -53,7 +54,7 @@ Untuk mengakomodasi dinamisnya struktur organisasi tanpa merusak logika aplikasi
    * System secara otomatis mengaitkan User ke **Supervisor (`supervisor_id`)** dan **Manager (`manager_id`)** terkait berdasarkan stasiun dan sektor.
 2. **Verifikasi Dua Arah (2-FA)**:
    * **Email Link**: Verifikasi email standar Laravel (`MustVerifyEmail`).
-   * **WhatsApp OTP**: Mengirimkan kode 6 angka melalui Fonnte API (`sendOtpPhone`).
+   * **WhatsApp OTP**: Mengirimkan kode 6 angka melalui Baileys WhatsApp Gateway (`sendOtpPhone`).
 3. **Perekaman Presensi Wajah**:
    * Mengambil sampel foto wajah melalui `JadwalController@registerFace` untuk menyimpan data visual (*descriptor*) sebagai verifikasi absensi.
 
@@ -138,7 +139,7 @@ Didesain khusus untuk pengadaan material darurat / barang operasional stasiun de
 
 
 1. **Direct Notification (WhatsApp)**:
-   * Saat MPR dibuat, sistem langsung memicu *broadcast notification* via WhatsApp Fonnte API ke seluruh atasan di stasiun kerja terkait.
+   * Saat MPR dibuat, sistem langsung memicu *broadcast notification* via Self-Hosted WhatsApp Gateway ke atasan terkait.
 2. **Direct Approval (Bypass)**:
    * Pengajuan MPR **langsung masuk ke antrean semua atasan (Level 1, 2, dan 3) secara bersamaan**.
    * Siapa pun atasan yang melakukan *action* (Approve/Reject) lebih dahulu, `status_akhir` **LANGSUNG berubah menjadi `approved` / `rejected`** tanpa perlu menunggu persetujuan berjenjang.
@@ -197,7 +198,7 @@ Konfigurasi Environment (.env):
 Bash
 cp .env.example .env
 nano .env
-Atur variabel penting seperti DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL, dan FONNTE_TOKEN.
+Atur variabel penting seperti DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL, dan WHATSAPP_SERVICE_URL.
 
 Generate App Key & Migration:
 

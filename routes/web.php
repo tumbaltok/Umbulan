@@ -18,6 +18,7 @@ use App\Http\Controllers\Mpr\PersetujuanMprController;
 use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\Admin\WhatsAppSettingController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -172,6 +173,13 @@ Route::middleware(['auth', 'atasan'])->group(function () {
 
     // Rekap Absensi Harian
     Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
+
+    // WhatsApp Gateway
+    Route::get('/admin/whatsapp', [WhatsAppSettingController::class, 'index'])->name('admin.whatsapp.index');
+    Route::get('/admin/whatsapp/status', [WhatsAppSettingController::class, 'status'])->name('admin.whatsapp.status');
+    Route::get('/admin/whatsapp/qr', [WhatsAppSettingController::class, 'qr'])->name('admin.whatsapp.qr');
+    Route::post('/admin/whatsapp/send-test', [WhatsAppSettingController::class, 'sendTest'])->name('admin.whatsapp.send_test');
+    Route::post('/admin/whatsapp/disconnect', [WhatsAppSettingController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
 
     // Update Hierarchy Matrix
     Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');

@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Mpr;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mpr\PengajuanMpr;
+use App\Models\User\User;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PersetujuanMprController extends Controller
 {
@@ -124,6 +127,39 @@ class PersetujuanMprController extends Controller
                 $pengajuan->update($updateData);
 
                 DB::commit();
+
+                // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
+                if (!$isSingleLevel) {
+                    try {
+                        $submitter = $pengajuan->user;
+                        $mprRules = [];
+                        $rules = [];
+                        foreach ($submitter->roles as $r) {
+                            if (!empty($r->approval_rules['mpr'])) {
+                                $mprRules = $r->approval_rules['mpr'];
+                                $rules = $r->approval_rules;
+                                break;
+                            }
+                        }
+                        if (empty($mprRules) && $submitter->role) {
+                            $rules = $submitter->role->approval_rules ?? [];
+                            $mprRules = $rules['mpr'] ?? [];
+                        }
+                        $approver2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+                        if ($approver2RoleId) {
+                            $step2Approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver2RoleId))
+                                ->where('id', '!=', $submitter->id)
+                                ->whereNotNull('phone_verified_at')
+                                ->get();
+                            $waService = app(WhatsAppService::class);
+                            foreach ($step2Approvers as $app2) {
+                                $waService->sendNewSubmissionNotification('mpr', $pengajuan, $app2, 2);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Gagal kirim WA persetujuan tahap 2 MPR: ' . $e->getMessage());
+                    }
+                }
 
                 return redirect()->back()->with('success', $isSingleLevel
                     ? 'Pengajuan MPR berhasil disetujui (Final).'

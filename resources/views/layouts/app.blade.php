@@ -361,6 +361,12 @@
                                     </a>
                                 </div>
                             </div>
+
+                            <!-- WHATSAPP GATEWAY -->
+                            <a href="{{ route('admin.whatsapp.index') }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/whatsapp*') ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                                <i class="fa-brands fa-whatsapp text-xs text-emerald-400"></i>
+                                <span class="hide-on-collapse">WhatsApp Gateway</span>
+                            </a>
                         </div>
                     </div>
                 @endif
@@ -444,6 +450,37 @@
         </header>
 
         <main class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6">
+            {{-- ALERT BANNER: WHATSAPP GATEWAY BELUM TERHUBUNG (KHUSUS LEVEL 1 / ADMIN) --}}
+            @if($isAdminRole && !request()->routeIs('admin.whatsapp.*'))
+                @php
+                    $waStatusData = \App\Services\WhatsAppService::getStatusCached();
+                @endphp
+                @if(($waStatusData['status'] ?? 'disconnected') !== 'connected')
+                    <div class="mb-6 p-4.5 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border border-amber-300/80 dark:border-amber-700/60 rounded-2xl shadow-sm backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
+                        <div class="flex items-start sm:items-center space-x-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-amber-500/20 mt-0.5 sm:mt-0">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <span>⚠️ WhatsApp Gateway Belum Terhubung</span>
+                                    <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                        {{ strtoupper($waStatusData['status'] ?? 'TERPUTUS') }}
+                                    </span>
+                                </h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                    Sistem tidak dapat mengirim OTP & notifikasi persetujuan. Sambungkan perangkat sekarang.
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span>Sambungkan Perangkat</span>
+                        </a>
+                    </div>
+                @endif
+            @endif
+
             @yield('content')
         </main>
     </div>

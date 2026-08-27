@@ -11,6 +11,7 @@ use App\Models\User\User;
 use App\Services\CalendarScheduleService;
 use App\Services\ScheduleService;
 use App\Traits\CutiHelperTrait;
+use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -57,35 +58,6 @@ class PengajuanCutiController extends Controller
             $currentDate->addDay();
         }
 
-        return $totalHariKerja;
-    }
-
-    private function sendWhatsAppNotification(?string $targetPhone, string $message)
-    {
-        if (! $targetPhone) {
-            return false;
-        }
-
-        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
-        if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
-            $cleanPhone = '62'.substr($cleanPhone, 1);
-        }
-
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => env('FONNTE_TOKEN'),
-            ])->post('https://api.fonnte.com/send', [
-                'target' => $cleanPhone,
-                'message' => $message,
-                'all' => 'true',
-            ]);
-
-            return $response->successful();
-        } catch (\Exception $e) {
-            Log::error('Gagal mengirim WA: '.$e->getMessage());
-
-            return false;
-        }
     }
 
     public function create()
@@ -282,6 +254,23 @@ class PengajuanCutiController extends Controller
             }
 
             DB::commit();
+
+            // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
+            if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
+                try {
+                    $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
+                        ->where('id', '!=', $user->id)
+                        ->whereNotNull('phone_verified_at')
+                        ->get();
+
+                    $waService = app(WhatsAppService::class);
+                    foreach ($approvers as $approver) {
+                        $waService->sendNewSubmissionNotification('cuti', $pengajuan, $approver, 1);
+                    }
+                } catch (\Exception $waEx) {
+                    Log::error('Gagal mengirim notifikasi WA cuti baru: ' . $waEx->getMessage());
+                }
+            }
 
             return redirect()->route('cuti.riwayat')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
         } catch (\Exception $e) {

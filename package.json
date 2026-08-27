@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "concurrently -k -n \"vite,whatsapp\" -c \"cyan,green\" \"vite\" \"npm run start --prefix whatsapp-service\"",
+        "whatsapp": "npm run start --prefix whatsapp-service"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

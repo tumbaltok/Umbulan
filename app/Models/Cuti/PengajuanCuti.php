@@ -26,6 +26,13 @@ class PengajuanCuti extends Model
         'approver_tahap_2_id',
         'status_akhir',
         'catatan_penolakan',
+        'last_notified_at',
+    ];
+
+    protected $casts = [
+        'tanggal_mulai'   => 'date',
+        'tanggal_selesai' => 'date',
+        'last_notified_at'=> 'datetime',
     ];
 
     public function user(): BelongsTo

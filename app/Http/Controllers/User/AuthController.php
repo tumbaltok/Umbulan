@@ -265,9 +265,9 @@ class AuthController extends Controller
     }
 
     /**
-     * 1. Fungsi untuk mengirim OTP via WhatsApp (Fonnte) dengan Checking Ownership & Rate Limiting
+     * 1. Fungsi untuk mengirim OTP via WhatsApp Gateway Baileys dengan Checking Ownership & Rate Limiting
      */
-    public function sendOtpPhone(Request $request)
+    public function sendOtpPhone(Request $request, \App\Services\WhatsAppService $whatsAppService)
     {
         $request->validate([
             'phone_number' => 'required|numeric|digits_between:10,14',
@@ -306,32 +306,25 @@ class AuthController extends Controller
             'otp_expires_at' => now()->addMinutes(5),
         ]);
 
-        $message = "Kode verifikasi (OTP) Anda adalah: *{$otp}*.\nJangan bagikan kode ini kepada siapapun. Kode berlaku selama 5 menit.";
-        $fonnteToken = config('services.fonnte.token');
+        $message = "🔐 *VERIFIKASI NOMOR WHATSAPP*\n\n"
+            . "Kode OTP Anda adalah: *{$otp}*\n\n"
+            . "Jangan bagikan kode ini kepada siapa pun. Kode berlaku selama 5 menit.\n\n"
+            . "_Sistem ERP META Adhya Tirta Umbulan._";
 
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => $fonnteToken,
-            ])->post('https://api.fonnte.com/send', [
-                'target' => $phone,
-                'message' => $message,
-                'all' => 'true',
+        $result = $whatsAppService->sendMessage($phone, $message);
+
+        if ($result['success'] ?? false) {
+            Log::info("OTP WA berhasil dikirim ke nomor {$phone} oleh User ID: ".Auth::id());
+            return response()->json([
+                'success' => true,
+                'message' => 'Kode OTP berhasil dikirim ke WhatsApp Anda!'
             ]);
-
-            if ($response->successful()) {
-                $result = $response->json();
-                if (isset($result['status']) && $result['status'] == true) {
-                    Log::info("OTP WA berhasil dikirim ke nomor {$phone} oleh User ID: ".Auth::id());
-                    return response()->json(['success' => true, 'message' => 'Kode OTP berhasil dikirim ke WhatsApp Anda!']);
-                }
-
-                return response()->json(['success' => false, 'message' => $result['reason'] ?? 'Gagal mengirim pesan dari gateway.'], 422);
-            }
-        } catch (\Exception $e) {
-            Log::error("Gagal terhubung ke Fonnte API: ".$e->getMessage());
         }
 
-        return response()->json(['success' => false, 'message' => 'Gagal terhubung ke server WhatsApp. Coba lagi nanti.'], 500);
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'] ?? 'Gagal mengirim OTP dari WhatsApp Gateway. Pastikan gateway terhubung.',
+        ], 500);
     }
 
     /**

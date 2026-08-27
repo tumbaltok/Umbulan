@@ -12,6 +12,11 @@ class PengajuanMpr extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'last_notified_at' => 'datetime',
+        'tanggal_pengajuan' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

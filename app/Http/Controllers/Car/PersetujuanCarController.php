@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
+use App\Models\User\User;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PersetujuanCarController extends Controller
 {
@@ -121,6 +124,39 @@ class PersetujuanCarController extends Controller
                 $pengajuan->update($updateData);
 
                 DB::commit();
+
+                // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
+                if (!$isSingleLevel) {
+                    try {
+                        $submitter = $pengajuan->user;
+                        $carRules = [];
+                        $rules = [];
+                        foreach ($submitter->roles as $r) {
+                            if (!empty($r->approval_rules['car'])) {
+                                $carRules = $r->approval_rules['car'];
+                                $rules = $r->approval_rules;
+                                break;
+                            }
+                        }
+                        if (empty($carRules) && $submitter->role) {
+                            $rules = $submitter->role->approval_rules ?? [];
+                            $carRules = $rules['car'] ?? [];
+                        }
+                        $approver2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+                        if ($approver2RoleId) {
+                            $step2Approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver2RoleId))
+                                ->where('id', '!=', $submitter->id)
+                                ->whereNotNull('phone_verified_at')
+                                ->get();
+                            $waService = app(WhatsAppService::class);
+                            foreach ($step2Approvers as $app2) {
+                                $waService->sendNewSubmissionNotification('car', $pengajuan, $app2, 2);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Gagal kirim WA persetujuan tahap 2 CAR: ' . $e->getMessage());
+                    }
+                }
 
                 return redirect()->back()->with('success', $isSingleLevel
                     ? 'Pengajuan CAR berhasil disetujui (Final).'

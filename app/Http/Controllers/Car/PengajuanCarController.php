@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Car;
 use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
 use App\Models\User\Station;
+use App\Models\User\User;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PengajuanCarController extends Controller
 {
@@ -120,6 +123,24 @@ class PengajuanCarController extends Controller
             }
 
             DB::commit();
+
+            // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
+            if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
+                try {
+                    $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
+                        ->where('id', '!=', $user->id)
+                        ->whereNotNull('phone_verified_at')
+                        ->get();
+
+                    $waService = app(WhatsAppService::class);
+                    foreach ($approvers as $approver) {
+                        $waService->sendNewSubmissionNotification('car', $carHeader, $approver, 1);
+                    }
+                } catch (\Exception $waEx) {
+                    Log::error('Gagal mengirim notifikasi WA CAR baru: ' . $waEx->getMessage());
+                }
+            }
+
             return redirect()->route('car.riwayat')->with('success', 'Pengajuan CAR berhasil dikirim.');
         } catch (\Exception $e) {
             DB::rollBack();

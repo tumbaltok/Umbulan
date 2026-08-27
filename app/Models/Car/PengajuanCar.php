@@ -23,6 +23,11 @@ class PengajuanCar extends Model
         'approver_tahap_2_id',
         'status_akhir',
         'catatan_penolakan',
+        'last_notified_at',
+    ];
+
+    protected $casts = [
+        'last_notified_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

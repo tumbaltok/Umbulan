@@ -24,6 +24,7 @@ return new class extends Migration
             $table->foreignId('approver_tahap_2_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status_akhir', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('catatan_penolakan')->nullable();
+            $table->timestamp('last_notified_at')->nullable();
             $table->timestamps();
         });
     }

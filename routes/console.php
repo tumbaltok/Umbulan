@@ -1,13 +1,7 @@
 <?php
 
-use App\Models\Cuti\PengajuanCuti;
-use App\Models\User\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 // Bawaan Laravel: Menampilkan quotes inspiratif
@@ -21,109 +15,9 @@ Schedule::command('saldo:reset-haid')->monthlyOn(1, '00:00');
 // 2. Reset Saldo Tahunan otomatis setiap tanggal 1 Januari jam 00:00
 Schedule::command('saldo:reset-tahunan')->yearlyOn(1, 1, '00:00');
 
-// 3. JADWAL: Pengingat WhatsApp Cuti Pending (Dinamis Sesuai Jam Kerja Database)
-Schedule::call(function () {
-    // Ambil pengajuan yang secara keseluruhan masih 'pending'
-    $pengajuanPending = PengajuanCuti::with(['user.station', 'jenisCuti', 'subCuti'])
-        ->where('status_akhir', 'pending')
-        ->get();
-
-    if ($pengajuanPending->isEmpty()) {
-        return;
-    }
-
-    foreach ($pengajuanPending as $pengajuan) {
-        $user = $pengajuan->user;
-        if (! $user) {
-            continue;
-        }
-
-        // Tentukan Role Atasan mana yang harus dihubungi berdasarkan kondisi persetujuan
-        $targetRole = null;
-
-        if ($pengajuan->status_supervisor === 'pending') {
-            $targetRole = 'supervisor';
-        } elseif ($pengajuan->status_supervisor === 'approved' && $pengajuan->status_manager === 'pending') {
-            $targetRole = 'manager';
-        }
-
-        if (! $targetRole) {
-            continue;
-        }
-
-        // Cari atasan yang sesuai dengan targetRole di station yang sama
-        $targetAtasan = User::where('station_id', $user->station_id)
-            ->whereHas('roles', function ($query) use ($targetRole) {
-                $query->where(DB::raw('LOWER(role_name)'), 'LIKE', '%'.strtolower($targetRole).'%');
-            })
-            ->whereNotNull('phone_verified_at')
-            ->get();
-
-        $namaStation = $user->station->name ?? 'Pusat / Utama';
-        $perihal = $pengajuan->sub_cuti_id && $pengajuan->subCuti ? $pengajuan->subCuti->nama_sub_cuti : ($pengajuan->jenisCuti->name_cuti ?? 'Cuti/Izin');
-
-        // Template Pesan WhatsApp
-        $labelAtasan = strtoupper($targetRole);
-        $templatePesan = '⏳ *PENGINGAT: PENGAJUAN '.strtoupper($perihal)." PERLU PERSETUJUAN {$labelAtasan}*\n\n"
-            ."Halo Bapak/Ibu {$labelAtasan},\n"
-            ."Mohon segera tinjau dokumen pengajuan berikut yang menunggu persetujuan Anda.\n\n"
-            ."▪ *Nama Karyawan:* {$user->name}\n"
-            .'▪ *NIP:* '.($user->nip ?? '-')."\n"
-            ."▪ *Station:* {$namaStation}\n"
-            ."▪ *Tanggal:* {$pengajuan->tanggal_mulai} s/d {$pengajuan->tanggal_selesai} ({$pengajuan->total_hari} Hari)\n"
-            .'▪ *Alasan:* '.($pengajuan->alasan_cuti ?? '-')."\n\n"
-            ."Silakan kelola pengajuan ini melalui menu *Persetujuan Cuti* pada website.\n"
-            .'Link: '.url('/admin/persetujuan/cuti')."\n\n"
-            .'_Pesan pengingat otomatis sistem Tirta Umbulan._';
-
-        // Kirim ke nomor HP masing-masing atasan
-        foreach ($targetAtasan as $atasan) {
-            $targetPhone = $atasan->phone_number;
-            if (! $targetPhone) {
-                continue;
-            }
-
-            $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
-            if (isset($cleanPhone[0]) && $cleanPhone[0] === '0') {
-                $cleanPhone = '62'.substr($cleanPhone, 1);
-            }
-
-            try {
-                Http::withHeaders([
-                    'Authorization' => env('FONNTE_TOKEN'),
-                ])->post('https://api.fonnte.com/send', [
-                    'target' => $cleanPhone,
-                    'message' => $templatePesan,
-                    'all' => 'true',
-                ]);
-            } catch (Exception $e) {
-                Log::error('Gagal mengirim WA scheduler berjenjang: '.$e->getMessage());
-            }
-        }
-    }
-})
+// 3. JADWAL: Pengingat WhatsApp Berkala untuk Seluruh Pengajuan Pending (Cuti, CAR, MPR)
+// Dilengkapi Work Hours Guard (Staf Normal & Staf Roster) serta proteksi anti-spam ganda.
+Schedule::command('pengajuan:followup-wa')
     ->everyTenMinutes()
-    ->timezone('Asia/Jakarta')
-    ->when(function () {
-        // --- PENGECEKAN JAM KERJA DINAMIS DARI DATABASE ---
-        $now = Carbon::now('Asia/Jakarta');
+    ->timezone('Asia/Jakarta');
 
-        // Ambil setting jam kerja dari database (Contoh: tabel/pengaturan jadwal kerja)
-        // Silakan sesuaikan nama tabel/model pencarian sesuai aplikasi Anda
-        $scheduleSetting = DB::table('settings')->where('key', 'jam_kerja')->first();
-
-        // Nilai Fallback/Default jika setting database belum diisi
-        $jamMasuk = '08:00';
-        $jamPulang = '17:00';
-
-        if ($scheduleSetting && isset($scheduleSetting->jam_masuk, $scheduleSetting->jam_pulang)) {
-            $jamMasuk = $scheduleSetting->jam_masuk;
-            $jamPulang = $scheduleSetting->jam_pulang;
-        }
-
-        $startWork = Carbon::createFromTimeString($jamMasuk, 'Asia/Jakarta');
-        $endWork = Carbon::createFromTimeString($jamPulang, 'Asia/Jakarta');
-
-        // Kembalikan 'true' HANYA jika waktu sekarang berada di antara Jam Masuk & Jam Pulang
-        return $now->between($startWork, $endWork);
-    });
