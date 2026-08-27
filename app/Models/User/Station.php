@@ -33,4 +33,14 @@ class Station extends Model
     {
         return $this->hasMany(User::class, 'station_id', 'id');
     }
+
+    public function assignedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'station_user',
+            'station_id',
+            'user_id'
+        )->withTimestamps();
+    }
 }

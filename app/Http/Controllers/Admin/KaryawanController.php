@@ -108,15 +108,16 @@ class KaryawanController extends Controller
 
         // Ambil data pendukung filter pohon organisasi
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
+        $daftarRumahMeter = Station::where('type', 'rumah_meter')->orderBy('kode_stasiun', 'asc')->get();
         $daftarJobdesk = collect();
 
-        return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk', 'daftarRole'));
+        return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk', 'daftarRole', 'daftarRumahMeter'));
     }
 
     public function showDetail(int $id): JsonResponse
     {
         try {
-            $karyawan = User::with(['roles', 'station', 'saldoCuti.jenisCuti'])->find($id);
+            $karyawan = User::with(['roles', 'station', 'assignedStations', 'saldoCuti.jenisCuti'])->find($id);
 
             if (! $karyawan) {
                 return response()->json(['message' => 'Karyawan tidak ditemukan'], 404);
@@ -138,6 +139,14 @@ class KaryawanController extends Controller
                 'role_ids' => $karyawan->roles->pluck('id')->toArray(),
                 'roles' => $karyawan->roles,
                 'nama_stasiun' => optional($karyawan->station)->name ?? '-',
+                'is_pipeline' => $karyawan->hasRole('AREA (PIPELINE)') || $karyawan->hasRole(14),
+                'assigned_stations' => $karyawan->assignedStations->map(function ($st) {
+                    return [
+                        'id' => $st->id,
+                        'name' => $st->name,
+                        'kode_stasiun' => $st->kode_stasiun,
+                    ];
+                }),
                 'schedule_type' => $karyawan->schedule_type ?? 'normal',
                 'normal_work_days' => is_array($karyawan->normal_work_days) ? implode(', ', $karyawan->normal_work_days) : ($karyawan->normal_work_days ?? 'Senin - Jumat'),
                 'normal_check_in' => $karyawan->normal_check_in ? Carbon::parse($karyawan->normal_check_in)->format('H:i') : '08:00',
@@ -182,6 +191,8 @@ class KaryawanController extends Controller
         $request->validate([
             'roles' => 'required|array|min:1',
             'roles.*' => 'exists:roles,id',
+            'assigned_stations' => 'nullable|array',
+            'assigned_stations.*' => 'exists:stations,id',
         ]);
 
         $karyawan = User::findOrFail($id);
@@ -197,11 +208,22 @@ class KaryawanController extends Controller
             $karyawan->update(['role_id' => $roleIds[0]]);
         }
 
+        // Sinkronisasi Rumah Meter jika karyawan memegang role AREA (PIPELINE)
+        $isPipeline = $karyawan->fresh()->hasRole('AREA (PIPELINE)') || $karyawan->fresh()->hasRole(14);
+        if ($isPipeline) {
+            if ($request->has('assigned_stations')) {
+                $karyawan->assignedStations()->sync($request->assigned_stations ?? []);
+            }
+        } else {
+            $karyawan->assignedStations()->detach();
+        }
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Peran / Jabatan karyawan berhasil disinkronkan!',
                 'roles' => $karyawan->fresh()->roles,
+                'assigned_stations' => $karyawan->fresh()->assignedStations,
             ]);
         }
 

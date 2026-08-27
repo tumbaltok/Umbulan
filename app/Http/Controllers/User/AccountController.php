@@ -29,10 +29,16 @@ class AccountController extends Controller
             ->orderBy('role_name', 'asc')
             ->get();
 
+        // 3. Ambil Seluruh Rumah Meter untuk Penugasan Khusus Role Pipeline
+        $daftarRumahMeter = Station::where('type', 'rumah_meter')
+            ->orderBy('kode_stasiun', 'asc')
+            ->get();
+
         return view('pengaturan.index', compact(
             'user',
             'daftarStasiun',
-            'daftarRole'
+            'daftarRole',
+            'daftarRumahMeter'
         ));
     }
 
@@ -74,6 +80,8 @@ class AccountController extends Controller
             'role_id' => 'nullable|integer|exists:roles,id',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
+            'assigned_stations' => 'nullable|array',
+            'assigned_stations.*' => 'exists:stations,id',
             'phone_number' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -199,6 +207,14 @@ class AccountController extends Controller
         }
 
         $user->update($updateData);
+
+        // SINKRONISASI RUMAH METER (KHUSUS ROLE AREA (PIPELINE))
+        $isPipeline = $user->fresh()->hasRole('AREA (PIPELINE)') || $user->fresh()->hasRole(14);
+        if ($isPipeline) {
+            if ($request->has('assigned_stations')) {
+                $user->assignedStations()->sync($request->assigned_stations ?? []);
+            }
+        }
 
         return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
     }

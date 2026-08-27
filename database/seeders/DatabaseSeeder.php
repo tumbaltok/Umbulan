@@ -261,14 +261,13 @@ class DatabaseSeeder extends Seeder
             // OPERATIONAL BRANCHES
             ['id' => 29, 'nip' => 'EMP-029', 'name' => 'Wahyu S.', 'email' => 'wahyus@meta.com', 'role_id' => 13, 'station_id' => $stUmbulan->id, 'gender_id' => $pria->id],
             ['id' => 30, 'nip' => 'EMP-030', 'name' => 'M. Iqbal', 'email' => 'iqbalm@meta.com', 'role_id' => 13, 'station_id' => $stUmbulan->id, 'gender_id' => $pria->id],
-            ['id' => 31, 'nip' => 'EMP-031', 'name' => 'Mat Dawud', 'email' => 'dawud@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
-            ['id' => 32, 'nip' => 'EMP-032', 'name' => 'Ulin Nuha', 'email' => 'ulin@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
-            ['id' => 33, 'nip' => 'EMP-033', 'name' => 'Ikhwan', 'email' => 'ikhwan@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
-            ['id' => 34, 'nip' => 'EMP-034', 'name' => 'Okik', 'email' => 'okik@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
+            ['id' => 31, 'nip' => 'EMP-031', 'name' => 'Mat Dawud', 'email' => 'dawud@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id, 'assigned_rm' => ['RM_01', 'RM_02', 'RM_03', 'RM_04', 'RM_05', 'RM_06', 'RM_07', 'RM_08', 'RM_09']],
+            ['id' => 32, 'nip' => 'EMP-032', 'name' => 'Ulin Nuha', 'email' => 'ulin@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id, 'assigned_rm' => ['RM_10', 'RM_11', 'RM_12', 'RM_13', 'RM_14', 'RM_15', 'RM_16', 'RM_17', 'RM_18']],
+            ['id' => 33, 'nip' => 'EMP-033', 'name' => 'Ikhwan', 'email' => 'ikhwan@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id, 'assigned_rm' => ['RM_01', 'RM_02', 'RM_03', 'RM_04', 'RM_05', 'RM_06', 'RM_07', 'RM_08', 'RM_09']],
+            ['id' => 34, 'nip' => 'EMP-034', 'name' => 'Okik', 'email' => 'okik@meta.com', 'role_id' => 14, 'station_id' => $stBooster->id, 'gender_id' => $pria->id, 'assigned_rm' => ['RM_10', 'RM_11', 'RM_12', 'RM_13', 'RM_14', 'RM_15', 'RM_16', 'RM_17', 'RM_18']],
             ['id' => 35, 'nip' => 'EMP-035', 'name' => 'Erwin C. H.', 'email' => 'erwin@meta.com', 'role_id' => 15, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
 
             // SUB-DEPARTEMEN
-            // Multi-Role: Agung Dwi Nugroho (GENERAL AFFAIRS & ASSET)
             ['id' => 21, 'nip' => 'EMP-021', 'name' => 'Agung Dwi Nugroho', 'email' => 'agung@meta.com', 'role_id' => 16, 'roles' => [16, 17], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 25, 'nip' => 'EMP-025', 'name' => 'Pontas Nipitulu', 'email' => 'pontas@meta.com', 'role_id' => 18, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 26, 'nip' => 'EMP-026', 'name' => 'Erry K.', 'email' => 'erry@meta.com', 'role_id' => 18, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
@@ -364,6 +363,11 @@ class DatabaseSeeder extends Seeder
                 $syncData[$rId] = ['is_primary' => ($idx === 0)];
             }
             $user->roles()->sync($syncData);
+
+            if (!empty($userData['assigned_rm'])) {
+                $rmStationIds = Station::whereIn('kode_stasiun', $userData['assigned_rm'])->pluck('id')->toArray();
+                $user->assignedStations()->sync($rmStationIds);
+            }
 
             SaldoCuti::create([
                 'user_id'       => $user->id,

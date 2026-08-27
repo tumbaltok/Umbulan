@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Absen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absen\Kehadiran;
+use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
@@ -65,23 +66,12 @@ class KehadiranController extends Controller
                 ], 400);
             }
 
-            // 3. Hitung Radius GPS Stasiun Kerja (Haversine Formula)
-            $station = $user->station ?? null;
-            $isInRadius = true;
-            $distanceMeters = 0.0;
-
-            if ($station && !empty($station->latitude) && !empty($station->longitude)) {
-                $distanceMeters = $this->calculateDistance(
-                    (float) $request->latitude,
-                    (float) $request->longitude,
-                    (float) $station->latitude,
-                    (float) $station->longitude
-                );
-                $radiusLimit = (float) ($station->radius_meters ?? 100);
-                $isInRadius = $distanceMeters <= $radiusLimit;
-            } else {
-                $isInRadius = false;
-            }
+            // 3. Hitung Radius GPS Multi-Titik Terdekat (Kantor, Stasiun, & 18 Rumah Meter)
+            $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
+            $isInRadius = $geo['isInRadius'];
+            $matchedStation = $geo['matchedStation'];
+            $nearestStation = $geo['nearestStation'];
+            $distanceMeters = $geo['distanceMeters'];
 
             // 4. Evaluasi Keterlambatan
             $isLate = false;
@@ -98,12 +88,15 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 5. Validasi Alasan Wajib jika Terlambat atau di Luar Radius
+            // 5. Validasi Alasan Wajib jika Terlambat atau di Luar Seluruh Radius Resmi
             $reason = trim((string) ($request->reason ?? $request->reason_out_of_radius));
             if ((!$isInRadius || $isLate) && empty($reason)) {
                 $kondisi = [];
                 if ($isLate) $kondisi[] = 'terlambat';
-                if (!$isInRadius) $kondisi[] = 'berada di luar radius stasiun (' . round($distanceMeters) . 'm)';
+                if (!$isInRadius) {
+                    $stName = $nearestStation ? $nearestStation->name : 'stasiun terdekat';
+                    $kondisi[] = 'berada di luar radius seluruh stasiun & Rumah Meter (' . round($distanceMeters) . 'm dari ' . $stName . ')';
+                }
 
                 return response()->json([
                     'message' => 'Harap isi alasan wajib karena Anda terdeteksi ' . implode(' dan ', $kondisi) . '!',
@@ -117,7 +110,8 @@ class KehadiranController extends Controller
             if ($evidenceFile) {
                 $statusWatermark = $isLate ? 'TERLAMBAT' : 'TEPAT WAKTU';
                 if (!$isInRadius) {
-                    $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm)';
+                    $stName = $nearestStation ? $nearestStation->name : 'Stasiun';
+                    $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm dari ' . $stName . ')';
                 }
                 $evidencePath = $this->processAndWatermarkEvidence($evidenceFile, 'checkin', $user, $statusWatermark, $now);
             }
@@ -149,9 +143,10 @@ class KehadiranController extends Controller
                 ]
             );
 
+            $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil melakukan absen masuk. Selamat bekerja!',
+                'message' => 'Berhasil melakukan absen masuk di ' . $locName . '. Selamat bekerja!',
                 'data'    => $absensi,
             ], 200);
 
@@ -207,20 +202,12 @@ class KehadiranController extends Controller
             }
 
             // 2. Hitung Radius GPS Pulang (Haversine Formula)
-            $station = $user->station ?? null;
-            $isInRadius = true;
-            $distanceMeters = 0.0;
-
-            if ($station && !empty($station->latitude) && !empty($station->longitude)) {
-                $distanceMeters = $this->calculateDistance(
-                    (float) $request->latitude,
-                    (float) $request->longitude,
-                    (float) $station->latitude,
-                    (float) $station->longitude
-                );
-                $radiusLimit = (float) ($station->radius_meters ?? 100);
-                $isInRadius = $distanceMeters <= $radiusLimit;
-            }
+            // 2. Hitung Radius GPS Multi-Titik Terdekat (Kantor, Stasiun, & 18 Rumah Meter)
+            $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
+            $isInRadius = $geo['isInRadius'];
+            $matchedStation = $geo['matchedStation'];
+            $nearestStation = $geo['nearestStation'];
+            $distanceMeters = $geo['distanceMeters'];
 
             // 3. Evaluasi Pulang Awal
             $isEarly = false;
@@ -248,12 +235,15 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 4. Validasi Alasan Wajib jika Pulang Awal atau di Luar Radius
+            // 4. Validasi Alasan Wajib jika Pulang Awal atau di Luar Seluruh Radius Resmi
             $reason = trim((string) ($request->reason ?? $request->reason_checkout));
             if ((!$isInRadius || $isEarly) && empty($reason)) {
                 $kondisi = [];
                 if ($isEarly) $kondisi[] = 'pulang sebelum jam selesai kerja';
-                if (!$isInRadius) $kondisi[] = 'berada di luar radius stasiun (' . round($distanceMeters) . 'm)';
+                if (!$isInRadius) {
+                    $stName = $nearestStation ? $nearestStation->name : 'stasiun terdekat';
+                    $kondisi[] = 'berada di luar radius seluruh stasiun & Rumah Meter (' . round($distanceMeters) . 'm dari ' . $stName . ')';
+                }
 
                 return response()->json([
                     'message' => 'Harap isi alasan wajib karena Anda ' . implode(' dan ', $kondisi) . '!',
@@ -267,7 +257,8 @@ class KehadiranController extends Controller
             if ($evidenceFile) {
                 $statusWatermark = $isEarly ? 'PULANG AWAL' : 'SELESAI SHIFT';
                 if (!$isInRadius) {
-                    $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm)';
+                    $stName = $nearestStation ? $nearestStation->name : 'Stasiun';
+                    $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm dari ' . $stName . ')';
                 }
                 $evidencePath = $this->processAndWatermarkEvidence($evidenceFile, 'checkout', $user, $statusWatermark, $now);
             }
@@ -288,9 +279,10 @@ class KehadiranController extends Controller
                 'evidence_out'           => $evidencePath,
             ]);
 
+            $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil melakukan absen pulang. Hati-hati di jalan!',
+                'message' => 'Berhasil melakukan absen pulang di ' . $locName . '. Hati-hati di jalan!',
                 'data'    => $attendance,
             ], 200);
 
@@ -301,6 +293,57 @@ class KehadiranController extends Controller
                 'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Mengevaluasi koordinat GPS pengguna terhadap seluruh titik stasiun resmi di database
+     * (Kantor, Stasiun Booster, Stasiun Umbulan, dan seluruh 18 Rumah Meter).
+     *
+     * @return array{isInRadius: bool, matchedStation: ?Station, nearestStation: ?Station, distanceMeters: float}
+     */
+    public function evaluateGeofence(float $userLat, float $userLng): array
+    {
+        $allStations = Station::all();
+        $matchedStation = null;
+        $nearestStation = null;
+        $shortestDistance = PHP_FLOAT_MAX;
+        $isInRadius = false;
+        $distanceMeters = 0.0;
+
+        foreach ($allStations as $st) {
+            if (!empty($st->latitude) && !empty($st->longitude)) {
+                $dist = $this->calculateDistance(
+                    $userLat,
+                    $userLng,
+                    (float) $st->latitude,
+                    (float) $st->longitude
+                );
+
+                if ($dist < $shortestDistance) {
+                    $shortestDistance = $dist;
+                    $nearestStation = $st;
+                }
+
+                $radiusLimit = (float) ($st->radius_meters ?? 100);
+                if ($dist <= $radiusLimit) {
+                    $matchedStation = $st;
+                    $isInRadius = true;
+                    $distanceMeters = $dist;
+                    break;
+                }
+            }
+        }
+
+        if (!$isInRadius) {
+            $distanceMeters = $shortestDistance !== PHP_FLOAT_MAX ? $shortestDistance : 0.0;
+        }
+
+        return [
+            'isInRadius'     => $isInRadius,
+            'matchedStation' => $matchedStation,
+            'nearestStation' => $nearestStation,
+            'distanceMeters' => $distanceMeters,
+        ];
     }
 
     /**

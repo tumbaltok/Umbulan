@@ -10,12 +10,30 @@ class StationController extends Controller
 {
     public function index()
     {
-        $daftarStasiun = Station::withCount(['users as total_karyawan'])
+        $daftarStasiunUtama = Station::where('type', '!=', 'rumah_meter')
+            ->withCount('users')
+            ->with(['users' => function ($q) {
+                $q->select('users.id', 'users.name', 'users.nip', 'users.station_id');
+            }])
+            ->orderBy('type', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $daftarRumahMeter = Station::where('type', 'rumah_meter')
+            ->withCount('assignedUsers')
+            ->with(['assignedUsers' => function ($q) {
+                $q->select('users.id', 'users.name', 'users.nip');
+            }])
+            ->orderBy('kode_stasiun', 'asc')
+            ->get();
+
+        $daftarStasiun = Station::withCount(['users', 'assignedUsers'])
+            ->with(['users:users.id,users.name,users.nip,users.station_id', 'assignedUsers:users.id,users.name,users.nip'])
             ->orderBy('type', 'asc')
             ->orderBy('kode_stasiun', 'asc')
             ->get();
 
-        return view('admin.daftar.stationindex', compact('daftarStasiun'));
+        return view('admin.daftar.stationindex', compact('daftarStasiunUtama', 'daftarRumahMeter', 'daftarStasiun'));
     }
 
     private function parseGoogleMapsUrl(string $url): ?array
@@ -160,19 +178,24 @@ class StationController extends Controller
     public function getKaryawan(int $id)
     {
         try {
-            $stasiun = Station::with('users.role')->find($id);
+            $stasiun = Station::with(['users.role', 'users.roles', 'assignedUsers.role', 'assignedUsers.roles'])->find($id);
 
             if (! $stasiun) {
                 return response()->json(['status' => 'error', 'message' => 'Stasiun tidak ditemukan.'], 404);
             }
 
-            $data = $stasiun->users->map(function ($user) {
+            // Jika tipe stasiun adalah rumah_meter, ambil staf terikat (assignedUsers)
+            $karyawanList = $stasiun->type === 'rumah_meter'
+                ? $stasiun->assignedUsers->merge($stasiun->users)->unique('id')
+                : $stasiun->users;
+
+            $data = $karyawanList->values()->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'nip' => $user->nip ?? '-',
                     'profile_photo' => $user->profile_photo,
-                    'role_name' => $user->role ? $user->role->role_name : 'Staff',
+                    'role_name' => $user->role ? $user->role->role_name : ($user->roles->pluck('role_name')->first() ?? 'Staff'),
                 ];
             });
 

@@ -62,11 +62,11 @@
 
     @php
         // Pemisahan koleksi data stasiun berdasarkan tipe
-        $stasiunUtama = $daftarStasiun->filter(function($s) {
+        $stasiunUtama = isset($daftarStasiunUtama) ? $daftarStasiunUtama : $daftarStasiun->filter(function($s) {
             return ($s->type ?? 'stasiun') !== 'rumah_meter';
         });
 
-        $stasiunRumahMeter = $daftarStasiun->filter(function($s) {
+        $stasiunRumahMeter = isset($daftarRumahMeter) ? $daftarRumahMeter : $daftarStasiun->filter(function($s) {
             return ($s->type ?? 'stasiun') === 'rumah_meter';
         });
     @endphp
@@ -140,12 +140,45 @@
                             </td>
 
                             <td class="px-6 py-4 text-center">
-                                @php $totalStaf = $stasiun->total_karyawan ?? ($stasiun->users_count ?? 0); @endphp
-                                <span data-id="{{ $stasiun->id }}" data-name="{{ $stasiun->name }}"
-                                    class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200
-                                    {{ $totalStaf > 0 ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/60 cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 cursor-not-allowed' }}">
-                                    {{ $totalStaf }} Orang
-                                </span>
+                                @php
+                                    $totalStaf = $stasiun->users_count ?? ($stasiun->total_karyawan ?? 0);
+                                    $staffList = $stasiun->users ?? collect();
+                                    $staffNames = $staffList->pluck('name')->implode(', ');
+                                @endphp
+                                <div class="relative inline-block group">
+                                    <span data-id="{{ $stasiun->id }}" data-name="{{ $stasiun->name }}"
+                                        title="{{ $staffNames ? 'Staf: ' . $staffNames : ($totalStaf > 0 ? 'Klik untuk melihat staf' : 'Belum ada staf') }}"
+                                        class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200 inline-flex items-center gap-1.5
+                                        {{ $totalStaf > 0 ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/60 cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 cursor-not-allowed' }}">
+                                        @if($totalStaf > 0)
+                                            <i class="fa-solid fa-users text-[10px] text-sky-500"></i>
+                                        @endif
+                                        <span>{{ $totalStaf }} Orang</span>
+                                    </span>
+
+                                    @if($totalStaf > 0 && $staffList->count() > 0)
+                                    <!-- Popover Hover Mini Modern -->
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none transition-all duration-200 animate-in fade-in zoom-in-95">
+                                        <div class="bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-medium py-2 px-3.5 rounded-xl shadow-xl border border-slate-700 whitespace-nowrap min-w-[150px] text-left backdrop-blur-xs">
+                                            <p class="font-bold text-sky-400 text-[10px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5 border-b border-slate-700/80 pb-1">
+                                                <i class="fa-solid fa-user-check text-[9px]"></i> Staf Penempatan ({{ $totalStaf }})
+                                            </p>
+                                            <ul class="text-slate-200 space-y-0.5">
+                                                @foreach($staffList->take(5) as $staf)
+                                                    <li class="flex items-center gap-1.5 truncate max-w-[200px]">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0"></span>
+                                                        <span class="truncate">{{ $staf->name }}</span>
+                                                    </li>
+                                                @endforeach
+                                                @if($staffList->count() > 5)
+                                                    <li class="text-slate-400 text-[10px] italic pt-0.5">+{{ $staffList->count() - 5 }} staf lainnya (klik untuk detail)</li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                        <div class="w-2 h-2 bg-slate-900/95 dark:bg-slate-800 rotate-45 -mt-1 border-r border-b border-slate-700"></div>
+                                    </div>
+                                    @endif
+                                </div>
                             </td>
 
                             @if(Auth::user()->role && Auth::user()->role->level == 1)
@@ -254,12 +287,46 @@
                             </td>
 
                             <td class="px-6 py-4 text-center">
-                                @php $totalStaf = $stasiun->total_karyawan ?? ($stasiun->users_count ?? 0); @endphp
-                                <span data-id="{{ $stasiun->id }}" data-name="{{ $stasiun->name }}"
-                                    class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200
-                                    {{ $totalStaf > 0 ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 cursor-not-allowed' }}">
-                                    {{ $totalStaf }} Orang
-                                </span>
+                                @php
+                                    $rm = $stasiun;
+                                    $totalStafRm = $rm->assigned_users_count ?? ($rm->assignedUsers ? $rm->assignedUsers->count() : ($rm->users_count ?? 0));
+                                    $staffRmList = $rm->assignedUsers ?? collect();
+                                    $staffRmNames = $staffRmList->pluck('name')->implode(', ');
+                                @endphp
+                                <div class="relative inline-block group">
+                                    <span data-id="{{ $rm->id }}" data-name="{{ $rm->name }}"
+                                        title="{{ $staffRmNames ? 'Staf Terikat: ' . $staffRmNames : ($totalStafRm > 0 ? 'Klik untuk melihat staf' : 'Belum ada staf') }}"
+                                        class="btn-view-staff px-3 py-1 rounded-full text-xs font-bold font-mono transition-all duration-200 inline-flex items-center gap-1.5
+                                        {{ $totalStafRm > 0 ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 cursor-not-allowed' }}">
+                                        @if($totalStafRm > 0)
+                                            <i class="fa-solid fa-users text-[10px] text-amber-500"></i>
+                                        @endif
+                                        <span>{{ $totalStafRm }} Orang</span>
+                                    </span>
+
+                                    @if($totalStafRm > 0 && $staffRmList->count() > 0)
+                                    <!-- Popover Hover Mini Modern -->
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none transition-all duration-200 animate-in fade-in zoom-in-95">
+                                        <div class="bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-medium py-2 px-3.5 rounded-xl shadow-xl border border-slate-700 whitespace-nowrap min-w-[150px] text-left backdrop-blur-xs">
+                                            <p class="font-bold text-amber-400 text-[10px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5 border-b border-slate-700/80 pb-1">
+                                                <i class="fa-solid fa-shield-halved text-[9px]"></i> Staf Terikat ({{ $totalStafRm }})
+                                            </p>
+                                            <ul class="text-slate-200 space-y-0.5">
+                                                @foreach($staffRmList->take(5) as $staf)
+                                                    <li class="flex items-center gap-1.5 truncate max-w-[200px]">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                                                        <span class="truncate">{{ $staf->name }}</span>
+                                                    </li>
+                                                @endforeach
+                                                @if($staffRmList->count() > 5)
+                                                    <li class="text-slate-400 text-[10px] italic pt-0.5">+{{ $staffRmList->count() - 5 }} staf lainnya (klik untuk detail)</li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                        <div class="w-2 h-2 bg-slate-900/95 dark:bg-slate-800 rotate-45 -mt-1 border-r border-b border-slate-700"></div>
+                                    </div>
+                                    @endif
+                                </div>
                             </td>
 
                             @if(Auth::user()->role && Auth::user()->role->level == 1)

@@ -726,6 +726,27 @@
                         <p class="font-bold text-sky-600 dark:text-sky-400">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</p>
                     </div>
 
+                    @if(Auth::user()->hasRole('AREA (PIPELINE)') || Auth::user()->hasRole(14))
+                        <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-1.5 shadow-xs col-span-1 sm:col-span-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area Cakupan (Rumah Meter)</span>
+                                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                                    {{ Auth::user()->assignedStations->count() }} Checkpoint
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 pt-0.5">
+                                @forelse(Auth::user()->assignedStations as $rm)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 rounded-lg text-xs font-semibold shadow-2xs">
+                                        <i class="fa-solid fa-gauge-high text-amber-500 text-[10px]"></i>
+                                        <span><strong class="font-bold font-mono">{{ $rm->kode_stasiun }}</strong> - {{ $rm->name }}</span>
+                                    </span>
+                                @empty
+                                    <span class="text-slate-400 text-xs italic">Belum ada penugasan Rumah Meter khusus.</span>
+                                @endforelse
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tipe Jadwal Kerja</span>
                         <p class="font-bold text-indigo-600 dark:text-indigo-400">

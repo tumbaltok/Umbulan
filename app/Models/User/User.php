@@ -120,6 +120,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Relasi Many-to-Many ke seluruh stasiun / Rumah Meter penugasan (Khusus Role AREA (PIPELINE)).
+     */
+    public function assignedStations(): BelongsToMany
+    {
+        return $this->belongsToMany(Station::class, 'station_user', 'user_id', 'station_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Memeriksa apakah pengguna memiliki role AREA (PIPELINE).
+     */
+    public function isPipeline(): bool
+    {
+        return $this->hasRole('AREA (PIPELINE)') || $this->hasRole(14);
+    }
+
+    /**
      * Mengambil Primary Role (role utama pengguna).
      */
     public function getPrimaryRoleAttribute(): ?Role

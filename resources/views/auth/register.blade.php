@@ -275,6 +275,45 @@
                                 </div>
                                 <span id="role-selection-error" class="text-xs text-rose-500 mt-1 hidden font-semibold">* Silakan pilih setidaknya satu peran/jabatan kerja.</span>
                             </div>
+
+                            <!-- Cakupan Wilayah Rumah Meter (Khusus Role AREA (PIPELINE)) -->
+                            <div class="md:col-span-2 hidden transition-all duration-300" id="pipelineRumahMeterContainer">
+                                <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                <i class="fa-solid fa-gauge-high text-amber-600"></i> Cakupan Rumah Meter (Role Pipeline)
+                                            </label>
+                                            <p class="text-[11px] text-amber-700/80 dark:text-amber-400 font-medium mt-0.5">
+                                                Pilih satu atau beberapa Checkpoint Rumah Meter yang menjadi wilayah tugas Anda:
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center gap-2 self-end sm:self-auto">
+                                            <button type="button" onclick="selectAllRumahMeter(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 dark:text-amber-300 underline cursor-pointer">Pilih Semua</button>
+                                            <span class="text-amber-300 text-xs">|</span>
+                                            <button type="button" onclick="selectAllRumahMeter(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 underline cursor-pointer">Reset</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                                        @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
+                                            @foreach($daftarRumahMeter as $rm)
+                                                @php
+                                                    $isRmChecked = is_array(old('assigned_stations')) && in_array($rm->id, old('assigned_stations'));
+                                                @endphp
+                                                <label class="flex items-center space-x-2 p-2 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-900/50 rounded-xl cursor-pointer hover:border-amber-400 transition-all text-xs select-none shadow-2xs">
+                                                    <input type="checkbox" name="assigned_stations[]" value="{{ $rm->id }}"
+                                                        {{ $isRmChecked ? 'checked' : '' }}
+                                                        class="rounded border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer rm-checkbox">
+                                                    <span class="font-medium text-slate-700 dark:text-slate-200 truncate">
+                                                        <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -478,6 +517,29 @@
                 pillsContainer.innerHTML = `<span id="rolePlaceholder" class="text-slate-400 text-xs sm:text-sm py-1">Pilih satu atau beberapa jabatan...</span>`;
                 if (countBadge) countBadge.classList.add('hidden');
             }
+
+            // Cek apakah role AREA (PIPELINE) dipilih
+            const isPipelineSelected = checkedBoxes.some(cb => {
+                const label = (cb.getAttribute('data-label') || '').toLowerCase();
+                return label.includes('pipeline') || cb.value === '14';
+            });
+
+            const rmContainer = document.getElementById('pipelineRumahMeterContainer');
+            if (rmContainer) {
+                if (isPipelineSelected) {
+                    rmContainer.classList.remove('hidden');
+                } else {
+                    rmContainer.classList.add('hidden');
+                    // Reset centang jika uncheck pipeline
+                    document.querySelectorAll('.rm-checkbox').forEach(c => c.checked = false);
+                }
+            }
+        }
+
+        function selectAllRumahMeter(selectAll = true) {
+            document.querySelectorAll('.rm-checkbox').forEach(cb => {
+                cb.checked = selectAll;
+            });
         }
 
         function uncheckRole(roleId, event) {

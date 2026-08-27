@@ -38,8 +38,8 @@ class DashboardController extends Controller
         $tahunSekarang = $now->year;
         $today = $now->format('Y-m-d');
 
-        // 1. Ambil Seluruh Data Stasiun untuk Pengecekan Radius Geolocation di Frontend
-        $daftarStasiun = Station::select('id', 'name', 'latitude', 'longitude', 'radius_meters')->get();
+        // 1. Ambil Seluruh Data Stasiun Resmi (Kantor, Stasiun, & Seluruh 18 Rumah Meter) untuk Geofencing
+        $daftarStasiun = Station::select('id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters')->get();
 
         // 2. Parameter Navigasi Bulan & Tahun Kalender Activity
         $selectedMonth = (int) $request->get('month', $now->month);

@@ -33,7 +33,11 @@ class AuthController extends Controller
             ->orderBy('role_name', 'asc')
             ->get();
 
-        return view('auth.register', compact('daftarStasiun', 'daftarRole'));
+        $daftarRumahMeter = Station::where('type', 'rumah_meter')
+            ->orderBy('kode_stasiun', 'asc')
+            ->get();
+
+        return view('auth.register', compact('daftarStasiun', 'daftarRole', 'daftarRumahMeter'));
     }
 
     /**
@@ -51,6 +55,8 @@ class AuthController extends Controller
             'role_id' => 'nullable|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
+            'assigned_stations' => 'nullable|array',
+            'assigned_stations.*' => 'exists:stations,id',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
@@ -82,6 +88,17 @@ class AuthController extends Controller
                 $syncData[$rId] = ['is_primary' => ($idx === 0)];
             }
             $user->roles()->sync($syncData);
+        }
+
+        // 4. SINKRONISASI RUMAH METER JIKA USER MEMILIKI ROLE PIPELINE
+        $isPipelineRole = Role::whereIn('id', $roleIds)
+            ->where(function ($q) {
+                $q->where('role_name', 'LIKE', '%PIPELINE%')
+                  ->orWhere('id', 14);
+            })->exists();
+
+        if ($isPipelineRole && $request->has('assigned_stations')) {
+            $user->assignedStations()->sync($request->assigned_stations ?? []);
         }
 
         // Audit Log Registrasi

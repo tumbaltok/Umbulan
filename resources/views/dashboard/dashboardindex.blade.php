@@ -1544,6 +1544,8 @@
 
                     let matchedStation = null;
                     let closestDistance = Infinity;
+                    let nearestStation = null;
+                    let nearestDistance = Infinity;
 
                     if (Array.isArray(daftarStasiun) && daftarStasiun.length > 0) {
                         for (let station of daftarStasiun) {
@@ -1556,10 +1558,16 @@
                                 );
                                 const radiusLimit = parseFloat(station.radius_meters) || 100;
 
+                                if (distance < nearestDistance) {
+                                    nearestDistance = distance;
+                                    nearestStation = station;
+                                }
+
                                 if (distance <= radiusLimit) {
-                                    matchedStation = station;
-                                    closestDistance = distance;
-                                    break;
+                                    if (!matchedStation || distance < closestDistance) {
+                                        matchedStation = station;
+                                        closestDistance = distance;
+                                    }
                                 }
                             }
                         }
@@ -1568,21 +1576,25 @@
                     if (statusBox && textLokasi && iconLokasi) {
                         if (matchedStation) {
                             isUserInRadius = true;
-                            statusBox.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between transition-all";
-                            iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 text-sm";
-                            textLokasi.className = "text-xs font-bold text-emerald-700";
-                            textLokasi.innerText = "Lokasi: " + matchedStation.name;
-                            document.getElementById('txtNamaLokasiConfirm').innerText = matchedStation.name + " (" + Math.round(closestDistance) + "m)";
+                            statusBox.className = "p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl flex items-center justify-between transition-all";
+                            iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm";
+                            textLokasi.className = "text-xs font-bold text-emerald-700 dark:text-emerald-300";
+                            const stLabel = (matchedStation.type === 'rumah_meter' && matchedStation.kode_stasiun)
+                                ? `${matchedStation.kode_stasiun} - ${matchedStation.name}`
+                                : matchedStation.name;
+                            textLokasi.innerText = "📍 Lokasi Terdeteksi: " + stLabel + " (Jarak: " + Math.round(closestDistance) + " meter)";
+                            document.getElementById('txtNamaLokasiConfirm').innerText = stLabel + " (" + Math.round(closestDistance) + "m)";
 
                             if (reloadContainer) reloadContainer.classList.add('hidden');
                             stopGpsTimer();
                         } else {
                             isUserInRadius = false;
-                            statusBox.className = "p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between transition-all";
-                            iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
-                            textLokasi.className = "text-xs font-bold text-rose-700";
-                            textLokasi.innerText = "Lokasi berada di luar area stasiun kerja";
-                            document.getElementById('txtNamaLokasiConfirm').innerText = "Di Luar Radius Stasiun";
+                            statusBox.className = "p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl flex items-center justify-between transition-all";
+                            iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-sm";
+                            textLokasi.className = "text-xs font-bold text-rose-700 dark:text-rose-300";
+                            const nearestMsg = nearestStation ? " (Terdekat: " + nearestStation.name + ", " + Math.round(nearestDistance) + "m)" : "";
+                            textLokasi.innerText = "⚠️ Lokasi berada di luar seluruh area stasiun kerja resmi" + nearestMsg;
+                            document.getElementById('txtNamaLokasiConfirm').innerText = "Di Luar Radius Resmi" + (nearestStation ? " (" + Math.round(nearestDistance) + "m dari " + nearestStation.name + ")" : "");
 
                             if (reloadContainer) reloadContainer.classList.remove('hidden');
                             startGpsTimer();

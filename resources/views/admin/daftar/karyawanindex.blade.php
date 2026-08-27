@@ -163,13 +163,14 @@
                                     @php
                                         $roleNames = $karyawan->roles->pluck('role_name')->implode(' / ');
                                         $roleIdsJson = json_encode($karyawan->roles->pluck('id')->toArray());
+                                        $assignedRmIdsJson = json_encode($karyawan->assignedStations->pluck('id')->toArray());
                                     @endphp
                                     <div class="flex flex-col items-center gap-1.5">
                                         <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 text-slate-700 border border-slate-200/50 role-label-{{ $karyawan->id }}">
                                             {{ $roleNames ?: 'Tidak Ada Role' }}
                                         </span>
                                         <button type="button"
-                                            onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }})'
+                                            onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }}, {{ $assignedRmIdsJson }})'
                                             class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer">
                                             <i class="fa-solid fa-user-tag text-[10px]"></i> Kelola Role
                                         </button>
@@ -177,16 +178,25 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    @if(($karyawan->station && !empty($karyawan->station->name)))
-                                        <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
-                                            <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
-                                            {{ $karyawan->station->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-xl italic border border-rose-100">
-                                            ⚠️ Stasiun Belum Diatur
-                                        </span>
-                                    @endif
+                                    <div class="flex flex-col items-center gap-1">
+                                        @if(($karyawan->station && !empty($karyawan->station->name)))
+                                            <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
+                                                <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
+                                                {{ $karyawan->station->name }}
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-xl italic border border-rose-100">
+                                                ⚠️ Stasiun Belum Diatur
+                                            </span>
+                                        @endif
+
+                                        @if(($karyawan->hasRole('AREA (PIPELINE)') || $karyawan->hasRole(14)) && $karyawan->assignedStations->count() > 0)
+                                            <span class="inline-flex items-center text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 font-semibold cursor-default" title="{{ $karyawan->assignedStations->pluck('name')->implode(', ') }}">
+                                                <i class="fa-solid fa-gauge-high mr-1 text-[9px] text-amber-500"></i>
+                                                {{ $karyawan->assignedStations->count() }} Rumah Meter
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
@@ -306,6 +316,12 @@
                     <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
                 </div>
 
+                <div id="detail_pipeline_area_container" class="hidden grid grid-cols-3 border-b border-slate-50 pb-2">
+                    <span class="text-slate-400 font-medium">Wilayah Pipeline</span>
+                    <div id="detail_pipeline_stations" class="col-span-2 flex flex-wrap gap-1.5 pt-0.5">
+                    </div>
+                </div>
+
                 <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-2">
                     <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sistem Jadwal Kerja</span>
@@ -412,6 +428,33 @@
                     @endforeach
                 </div>
                 <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
+
+                <!-- Input Penugasan Multi-Select Rumah Meter (Khusus Role AREA (PIPELINE)) -->
+                <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all mt-3 pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high text-amber-600"></i> Penugasan Rumah Meter (Pipeline)
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="selectAllKelolaRm(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer">Pilih Semua</button>
+                            <span class="text-amber-300 text-xs">|</span>
+                            <button type="button" onclick="selectAllKelolaRm(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 underline cursor-pointer">Reset</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-2.5 bg-amber-50/50 border border-amber-200/80 rounded-xl">
+                        @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
+                            @foreach($daftarRumahMeter as $rm)
+                                <label class="flex items-center space-x-2 p-1.5 bg-white border border-amber-200/60 rounded-lg cursor-pointer hover:border-amber-400 text-xs select-none shadow-2xs">
+                                    <input type="checkbox" name="assigned_stations[]" value="{{ $rm->id }}"
+                                        class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer kelola-rm-checkbox">
+                                    <span class="font-medium text-slate-700 truncate text-[11px]">
+                                        <strong class="font-mono text-amber-700">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
             </div>
 
             <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
@@ -737,6 +780,27 @@
                 document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
                 document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
 
+                // Render Cakupan Rumah Meter jika Role Pipeline
+                const pipelineBox = document.getElementById("detail_pipeline_area_container");
+                const pipelineStations = document.getElementById("detail_pipeline_stations");
+                if (pipelineBox && pipelineStations) {
+                    if (data.is_pipeline && Array.isArray(data.assigned_stations) && data.assigned_stations.length > 0) {
+                        pipelineBox.classList.remove("hidden");
+                        pipelineStations.innerHTML = data.assigned_stations.map(st => `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                                <i class="fa-solid fa-gauge-high text-[10px] text-amber-500"></i>
+                                <span><strong class="font-mono font-bold text-amber-700">${st.kode_stasiun}</strong> ${st.name}</span>
+                            </span>
+                        `).join('');
+                    } else if (data.is_pipeline) {
+                        pipelineBox.classList.remove("hidden");
+                        pipelineStations.innerHTML = `<span class="text-slate-400 text-xs italic">Belum ada penugasan Rumah Meter khusus.</span>`;
+                    } else {
+                        pipelineBox.classList.add("hidden");
+                        pipelineStations.innerHTML = '';
+                    }
+                }
+
                 const emailSpan = document.getElementById("detail_email");
                 const emailLink = document.getElementById("detail_email_link");
                 if (data.email) {
@@ -903,7 +967,7 @@
     }
 
     // HANDLER MODAL KELOLA MULTI-ROLE KARYAWAN
-    function bukaModalKelolaRole(userId, userName, roleIds) {
+    function bukaModalKelolaRole(userId, userName, roleIds, assignedStationIds = []) {
         document.getElementById('kelola_role_user_id').value = userId;
         document.getElementById('labelKelolaRoleNama').innerText = 'Karyawan: ' + userName;
 
@@ -913,6 +977,16 @@
             cb.checked = roleIdsArr.includes(parseInt(cb.value));
         });
 
+        // Set status centang Rumah Meter
+        const assignedRmArr = Array.isArray(assignedStationIds) ? assignedStationIds.map(Number) : [];
+        const rmCheckboxes = document.querySelectorAll('.kelola-rm-checkbox');
+        rmCheckboxes.forEach(cb => {
+            cb.checked = assignedRmArr.includes(parseInt(cb.value));
+        });
+
+        // Evaluasi visibilitas Rumah Meter untuk role Pipeline
+        evalKelolaRolePipeline();
+
         const errorMsg = document.getElementById('kelola-role-error');
         if (errorMsg) errorMsg.classList.add('hidden');
 
@@ -920,6 +994,37 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
+
+    function evalKelolaRolePipeline() {
+        const checkedRoleCbs = Array.from(document.querySelectorAll('.kelola-role-checkbox:checked'));
+        const isPipelineChecked = checkedRoleCbs.some(cb => {
+            const label = cb.closest('label')?.innerText.toLowerCase() || '';
+            return label.includes('pipeline') || cb.value === '14';
+        });
+
+        const rmContainer = document.getElementById('kelolaRoleRumahMeterContainer');
+        if (rmContainer) {
+            if (isPipelineChecked) {
+                rmContainer.classList.remove('hidden');
+            } else {
+                rmContainer.classList.add('hidden');
+                document.querySelectorAll('.kelola-rm-checkbox').forEach(cb => cb.checked = false);
+            }
+        }
+    }
+
+    function selectAllKelolaRm(selectAll = true) {
+        document.querySelectorAll('.kelola-rm-checkbox').forEach(cb => {
+            cb.checked = selectAll;
+        });
+    }
+
+    // Pasang listener untuk perubahan checkbox role di modal kelola role
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.kelola-role-checkbox').forEach(cb => {
+            cb.addEventListener('change', evalKelolaRolePipeline);
+        });
+    });
 
     function tutupModalKelolaRole() {
         const modal = document.getElementById('modalKelolaRole');
@@ -931,6 +1036,7 @@
         e.preventDefault();
         const userId = document.getElementById('kelola_role_user_id').value;
         const checked = Array.from(document.querySelectorAll('.kelola-role-checkbox:checked')).map(cb => cb.value);
+        const checkedRm = Array.from(document.querySelectorAll('.kelola-rm-checkbox:checked')).map(cb => cb.value);
 
         const errorMsg = document.getElementById('kelola-role-error');
         if (checked.length === 0) {
@@ -952,7 +1058,7 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({ roles: checked })
+                body: JSON.stringify({ roles: checked, assigned_stations: checkedRm })
             });
 
             const res = await response.json();
