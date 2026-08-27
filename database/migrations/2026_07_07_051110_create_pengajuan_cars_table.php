@@ -11,8 +11,12 @@ return new class extends Migration
         Schema::create('pengajuan_cars', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('nomor_car')->nullable();
+            $table->date('tanggal_pengajuan')->nullable();
             $table->text('alasan_pembelian')->nullable();
+            $table->text('note_explanation')->nullable();
             $table->string('receiving_account')->nullable();
+            $table->tinyInteger('total_approval_levels')->default(1);
             $table->enum('status_tahap_1', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('approver_tahap_1_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status_tahap_2', ['pending', 'approved', 'rejected', 'not_required'])->default('pending');
@@ -30,6 +34,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->string('satuan')->default('PCS');
             $table->decimal('estimasi_harga', 15, 2);
+            $table->decimal('ongkir', 15, 2)->default(0);
             $table->decimal('total_harga', 15, 2);
             $table->string('dokumen_nota_or_proposal')->nullable();
             $table->timestamps();

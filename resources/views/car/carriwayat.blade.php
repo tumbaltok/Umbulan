@@ -20,7 +20,10 @@
             <tbody class="divide-y divide-slate-100 text-slate-700">
                 @forelse($riwayatCar as $car)
                 <tr>
-                    <td class="p-4 whitespace-nowrap align-middle">{{ $car->created_at->format('d M Y') }}</td>
+                    <td class="p-4 whitespace-nowrap align-middle">
+                        <span class="font-medium block text-slate-800">{{ $car->tanggal_pengajuan ? \Carbon\Carbon::parse($car->tanggal_pengajuan)->format('d M Y') : $car->created_at->format('d M Y') }}</span>
+                        <span class="text-[11px] text-sky-600 font-semibold block">{{ $car->nomor_car ?? ('CAR #' . sprintf('%03d', $car->id)) }}</span>
+                    </td>
 
                     {{-- Loop data barang dari relasi details --}}
                     <td class="p-4 align-top">
@@ -31,10 +34,14 @@
                                         <span class="font-medium text-slate-900 block">{{ $detail->nama_barang }}</span>
                                         <div class="text-xs text-slate-500 flex flex-wrap items-center gap-1.5">
                                             <span class="font-semibold text-slate-700">Rp {{ number_format($detail->estimasi_harga ?? 0, 0, ',', '.') }}</span>
-                                            <span class="text-slate-400">x {{ $detail->jumlah }} Qty</span>
+                                            <span class="text-slate-400">x {{ $detail->jumlah }} {{ $detail->satuan }}</span>
+                                            @if(($detail->ongkir ?? 0) > 0)
+                                                <span class="text-slate-300">|</span>
+                                                <span class="text-amber-600 font-medium">+ Ongkir: Rp {{ number_format($detail->ongkir, 0, ',', '.') }}</span>
+                                            @endif
                                             <span class="text-slate-300">|</span>
                                             <span class="text-slate-400">Total:</span>
-                                            <span class="font-bold text-slate-700">Rp {{ number_format(($detail->total_harga ?? ($detail->estimasi_harga * $detail->jumlah)), 0, ',', '.') }}</span>
+                                            <span class="font-bold text-slate-700">Rp {{ number_format($detail->total_harga, 0, ',', '.') }}</span>
                                         </div>
                                     </div>
 
@@ -42,11 +49,9 @@
                                         <button type="button"
                                                 data-url="{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}"
                                                 onclick="bukaPratinjauLampiran(this.dataset.url)"
-                                                class="...">
-                                            <span>Lihat Lampiran</span>
+                                                class="self-start sm:self-auto inline-flex items-center gap-1 text-xs bg-white hover:bg-slate-100 text-sky-600 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-file-invoice"></i> Nota
                                         </button>
-                                    @else
-                                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg w-fit self-start sm:self-center shrink-0">Tanpa Nota</span>
                                     @endif
                                 </li>
                             @endforeach
@@ -55,10 +60,18 @@
 
                     {{-- Menghitung akumulasi grand total biaya dari semua detail barang --}}
                     <td class="p-4 font-bold text-emerald-600 align-middle whitespace-nowrap">
-                        Rp {{ number_format($car->details->sum('total_harga'), 0, ',', '.') }}
+                        <div>
+                            Rp {{ number_format($car->details->sum('total_harga'), 0, ',', '.') }}
+                        </div>
+                        @php $totalOngkirCar = $car->details->sum('ongkir'); @endphp
+                        @if($totalOngkirCar > 0)
+                            <span class="block text-[10px] text-amber-600 font-medium">
+                                Termasuk Ongkir: Rp {{ number_format($totalOngkirCar, 0, ',', '.') }}
+                            </span>
+                        @endif
                     </td>
 
-                    {{-- Menampilkan Status Akhir beserta tombol cetak popup --}}
+                    {{-- Menampilkan Status Akhir beserta tombol edit/cetak --}}
                     <td class="p-4 text-center align-middle whitespace-nowrap">
                         <div class="flex flex-col items-center justify-center gap-2">
                             {{-- Status Badge --}}
@@ -76,14 +89,24 @@
                                 </span>
                             @endif
 
-                            {{-- Tombol Cetak PDF --}}
-                            @if(trim(strtolower($car->status_akhir)) === 'approved')
-                                <button type="button"
-                                        onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
-                                        class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
-                                    <i class="fa-solid fa-print"></i> Cetak PDF
-                                </button>
-                            @endif
+                            <div class="flex items-center gap-1.5">
+                                {{-- Tombol Edit (Hanya jika status Pending) --}}
+                                @if(trim(strtolower($car->status_akhir)) === 'pending')
+                                    <a href="{{ route('car.edit', $car->id) }}"
+                                       class="inline-flex items-center gap-1 text-xs bg-sky-50 hover:bg-sky-100 text-sky-600 font-bold px-2.5 py-1 rounded-lg border border-sky-200 transition-colors">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </a>
+                                @endif
+
+                                {{-- Tombol Cetak PDF (Hanya jika status Approved) --}}
+                                @if(trim(strtolower($car->status_akhir)) === 'approved')
+                                    <button type="button"
+                                            onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
+                                            class="inline-flex items-center gap-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-print"></i> Cetak PDF
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </td>
                 </tr>

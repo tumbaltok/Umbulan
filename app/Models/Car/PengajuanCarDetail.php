@@ -17,8 +17,16 @@ class PengajuanCarDetail extends Model
         'jumlah',
         'satuan',
         'estimasi_harga',
+        'ongkir',
         'total_harga',
         'dokumen_nota_or_proposal',
+    ];
+
+    protected $casts = [
+        'jumlah'         => 'float',
+        'estimasi_harga' => 'float',
+        'ongkir'         => 'float',
+        'total_harga'    => 'float',
     ];
 
     /**

@@ -14,7 +14,10 @@ class PengajuanCar extends Model
 
     protected $fillable = [
         'user_id',
+        'nomor_car',
+        'tanggal_pengajuan',
         'alasan_pembelian',
+        'note_explanation',
         'receiving_account',
         'total_approval_levels',
         'status_tahap_1',
@@ -27,7 +30,8 @@ class PengajuanCar extends Model
     ];
 
     protected $casts = [
-        'last_notified_at' => 'datetime',
+        'last_notified_at'  => 'datetime',
+        'tanggal_pengajuan' => 'date',
     ];
 
     public function user(): BelongsTo

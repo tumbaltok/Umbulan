@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
+use App\Models\Car\PengajuanCarDetail;
 use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\WhatsAppService;
@@ -32,8 +33,22 @@ class PengajuanCarController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
+        // Format Otomatis Nomor CAR: [No] / META / PAS / CAR / [Romawi] / [Tahun]
+        $tahunSekarang = date('Y');
+        $bulanAngka = (int) date('m');
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
+        ];
+        $bulanRomawi = $romawi[$bulanAngka] ?? 'I';
+
+        $totalTahunIni = PengajuanCar::whereYear('created_at', $tahunSekarang)->count();
+        $nomorUrut = $totalTahunIni + 1;
+        $nomorCar = "{$nomorUrut} / META / PAS / CAR / {$bulanRomawi} / {$tahunSekarang}";
+
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
-        return view('car.carcreate', compact('daftarStasiun'));
+
+        return view('car.carcreate', compact('nomorCar', 'daftarStasiun'));
     }
 
     public function store(Request $request)
@@ -44,14 +59,18 @@ class PengajuanCarController extends Controller
         }
 
         $request->validate([
-            'alasan_pembelian' => 'required|string',
-            'receiving_account' => 'required|string',
-            'items' => 'required|array|min:1',
-            'items.*.nama_barang' => 'required|string|max:255',
-            'items.*.jumlah' => 'required|integer|min:1',
-            'items.*.satuan' => 'required|string',
-            'items.*.estimasi_harga' => 'required|numeric|min:0',
-            'items.*.dokumen_pendukung' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'nomor_car'                 => 'nullable|string|max:100',
+            'tanggal_pengajuan'         => 'nullable|date',
+            'alasan_pembelian'          => 'required|string',
+            'note_explanation'          => 'nullable|string',
+            'receiving_account'         => 'required|string|max:255',
+            'items'                     => 'required|array|min:1',
+            'items.*.nama_barang'       => 'required|string|max:255',
+            'items.*.jumlah'            => 'required|numeric|min:1',
+            'items.*.satuan'            => 'required|string|max:50',
+            'items.*.estimasi_harga'    => 'required|numeric|min:0',
+            'items.*.ongkir'            => 'nullable|numeric|min:0',
+            'items.*.dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $isTopLevel = $user->isTopLevel();
@@ -76,28 +95,41 @@ class PengajuanCarController extends Controller
         $approver2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
 
         if (empty($approver1RoleId) && $isTopLevel) {
-            // Top Level tanpa approver otomatis approved
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';
             $statusAkhir  = 'approved';
         } elseif ($levels === 2 && !empty($approver2RoleId)) {
-            // Alur 2 Step Berjenjang
             $statusTahap1 = 'pending';
             $statusTahap2 = 'pending';
             $statusAkhir  = 'pending';
         } else {
-            // Alur 1 Step
             $statusTahap1 = 'pending';
             $statusTahap2 = 'not_required';
             $statusAkhir  = 'pending';
         }
 
+        // Format nomor CAR jika belum terisi
+        $tahunSekarang = date('Y');
+        $bulanAngka = (int) date('m');
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
+        ];
+        $bulanRomawi = $romawi[$bulanAngka] ?? 'I';
+        $totalTahunIni = PengajuanCar::whereYear('created_at', $tahunSekarang)->count();
+        $nomorUrut = $totalTahunIni + 1;
+        $nomorCarAuto = "{$nomorUrut} / META / PAS / CAR / {$bulanRomawi} / {$tahunSekarang}";
+
         DB::beginTransaction();
         try {
             $carHeader = PengajuanCar::create([
                 'user_id'               => $user->id,
+                'nomor_car'             => $request->nomor_car ?: $nomorCarAuto,
+                'tanggal_pengajuan'     => $request->tanggal_pengajuan ?: now()->toDateString(),
                 'alasan_pembelian'      => $request->alasan_pembelian,
+                'note_explanation'      => $request->note_explanation ?: $request->alasan_pembelian,
                 'receiving_account'     => $request->receiving_account,
+                'total_approval_levels' => $levels,
                 'status_tahap_1'        => $statusTahap1,
                 'approver_tahap_1_id'   => $statusTahap1 === 'approved' ? $user->id : null,
                 'status_tahap_2'        => $statusTahap2,
@@ -112,19 +144,24 @@ class PengajuanCarController extends Controller
                     $pathDokumen = $file->store('dokumen_car', 'public');
                 }
 
+                $qty = (float) $item['jumlah'];
+                $harga = (float) $item['estimasi_harga'];
+                $ongkir = (float) ($item['ongkir'] ?? 0);
+
                 $carHeader->details()->create([
-                    'nama_barang' => $item['nama_barang'],
-                    'jumlah' => $item['jumlah'],
-                    'satuan' => $item['satuan'],
-                    'estimasi_harga' => $item['estimasi_harga'],
-                    'total_harga' => $item['jumlah'] * $item['estimasi_harga'],
+                    'nama_barang'              => $item['nama_barang'],
+                    'jumlah'                   => $qty,
+                    'satuan'                   => $item['satuan'],
+                    'estimasi_harga'           => $harga,
+                    'ongkir'                   => $ongkir,
+                    'total_harga'              => ($qty * $harga) + $ongkir,
                     'dokumen_nota_or_proposal' => $pathDokumen,
                 ]);
             }
 
             DB::commit();
 
-            // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
+            // Kirim notifikasi WhatsApp ke Atasan
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
                     $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
@@ -145,6 +182,88 @@ class PengajuanCarController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Gagal menyimpan pengajuan CAR: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    public function edit(int $id)
+    {
+        $user = Auth::user();
+        $car = PengajuanCar::with('details')->where('user_id', $user->id)->findOrFail($id);
+
+        if ($car->status_akhir !== 'pending') {
+            return redirect()->route('car.riwayat')->with('error', 'Akses Ditolak: Dokumen CAR yang sudah disetujui atau ditolak tidak dapat diubah.');
+        }
+
+        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+
+        return view('car.caredit', compact('car', 'daftarStasiun'));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $user = Auth::user();
+        $car = PengajuanCar::with('details')->where('user_id', $user->id)->findOrFail($id);
+
+        if ($car->status_akhir !== 'pending') {
+            return redirect()->route('car.riwayat')->with('error', 'Akses Ditolak: Dokumen CAR yang sudah disetujui atau ditolak tidak dapat diubah.');
+        }
+
+        $request->validate([
+            'tanggal_pengajuan'         => 'nullable|date',
+            'alasan_pembelian'          => 'required|string',
+            'note_explanation'          => 'nullable|string',
+            'receiving_account'         => 'required|string|max:255',
+            'items'                     => 'required|array|min:1',
+            'items.*.nama_barang'       => 'required|string|max:255',
+            'items.*.jumlah'            => 'required|numeric|min:1',
+            'items.*.satuan'            => 'required|string|max:50',
+            'items.*.estimasi_harga'    => 'required|numeric|min:0',
+            'items.*.ongkir'            => 'nullable|numeric|min:0',
+            'items.*.dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'items.*.existing_dokumen'  => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $car->update([
+                'tanggal_pengajuan' => $request->tanggal_pengajuan ?: $car->tanggal_pengajuan,
+                'alasan_pembelian'  => $request->alasan_pembelian,
+                'note_explanation'  => $request->note_explanation ?: $request->alasan_pembelian,
+                'receiving_account' => $request->receiving_account,
+            ]);
+
+            // Hapus detail lama dan masukkan detail yang diperbarui
+            $car->details()->delete();
+
+            foreach ($request->items as $index => $item) {
+                $pathDokumen = $item['existing_dokumen'] ?? null;
+                if ($request->hasFile("items.{$index}.dokumen_pendukung")) {
+                    $file = $request->file("items.{$index}.dokumen_pendukung");
+                    $pathDokumen = $file->store('dokumen_car', 'public');
+                }
+
+                $qty = (float) $item['jumlah'];
+                $harga = (float) $item['estimasi_harga'];
+                $ongkir = (float) ($item['ongkir'] ?? 0);
+
+                PengajuanCarDetail::create([
+                    'pengajuan_car_id'         => $car->id,
+                    'nama_barang'              => $item['nama_barang'],
+                    'jumlah'                   => $qty,
+                    'satuan'                   => $item['satuan'],
+                    'estimasi_harga'           => $harga,
+                    'ongkir'                   => $ongkir,
+                    'total_harga'              => ($qty * $harga) + $ongkir,
+                    'dokumen_nota_or_proposal' => $pathDokumen,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('car.riwayat')->with('success', 'Pengajuan CAR berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Gagal memperbarui pengajuan CAR: ' . $e->getMessage()])->withInput();
         }
     }
 }

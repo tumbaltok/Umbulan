@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Ajukan CAR Baru')
+@section('title', 'Edit Pengajuan CAR')
 
 @section('content')
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 max-w-5xl mx-auto m-2 sm:m-6">
     <div class="flex items-center space-x-3 mb-6">
         <div class="bg-sky-50 p-3 rounded-xl text-sky-600">
-            <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
+            <i class="fa-solid fa-pen-to-square text-xl"></i>
         </div>
         <div>
-            <h2 class="text-lg sm:text-xl font-bold text-slate-800">Form Pengajuan CAR</h2>
-            <p class="text-xs text-slate-400">Cash Advance Request (Pengajuan Dana Muka Operasional & Pembelian Material)</p>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-800">Edit Pengajuan CAR</h2>
+            <p class="text-xs text-slate-400">Ubah formulir pengajuan dana muka operasional: {{ $car->nomor_car ?? sprintf('%03d', $car->id) }}</p>
         </div>
     </div>
 
@@ -23,8 +23,9 @@
         </div>
     @endif
 
-    <form id="formCar" action="{{ route('car.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form id="formCar" action="{{ route('car.update', $car->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
+        @method('PUT')
 
         {{-- Section 1: Header Dokumen & Akun Pencairan --}}
         <div class="bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-100 space-y-4">
@@ -35,23 +36,22 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {{-- Nomor CAR (Readonly) --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor CAR (Otomatis)</label>
-                    <input type="text" name="nomor_car" value="{{ $nomorCar }}" readonly
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor CAR (Readonly)</label>
+                    <input type="text" name="nomor_car" value="{{ $car->nomor_car }}" readonly
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-600 text-sm font-semibold cursor-not-allowed focus:outline-none">
-                    <p class="text-[10px] text-slate-400 mt-1">Format resmi: [No] / META / PAS / CAR / [Bulan] / [Tahun]</p>
                 </div>
 
                 {{-- Tanggal Pengajuan --}}
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pengajuan <span class="text-rose-500">*</span></label>
-                    <input type="date" name="tanggal_pengajuan" value="{{ old('tanggal_pengajuan', date('Y-m-d')) }}" required
+                    <input type="date" name="tanggal_pengajuan" value="{{ old('tanggal_pengajuan', $car->tanggal_pengajuan ? $car->tanggal_pengajuan->format('Y-m-d') : date('Y-m-d')) }}" required
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer">
                 </div>
 
                 {{-- Rekening Penerima Dana (Receiving Account) --}}
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Rekening Penerima Dana <span class="text-rose-500">*</span></label>
-                    <input type="text" name="receiving_account" value="{{ old('receiving_account') }}" required
+                    <input type="text" name="receiving_account" value="{{ old('receiving_account', $car->receiving_account) }}" required
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                            placeholder="Contoh: BCA 1234567890 a.n. Nama Karyawan">
                     <p class="text-[10px] text-slate-400 mt-1">Format: Nama Bank - No Rekening - Atas Nama Penerima</p>
@@ -62,16 +62,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Alasan Pembelian / Urgensi Operasional <span class="text-rose-500">*</span></label>
-                    <textarea name="alasan_pembelian" rows="3" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Jelaskan kebutuhan pengajuan dana muka operasional secara lengkap...">{{ old('alasan_pembelian') }}</textarea>
+                    <textarea name="alasan_pembelian" rows="3" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Jelaskan kebutuhan pengajuan dana muka operasional secara lengkap...">{{ old('alasan_pembelian', $car->alasan_pembelian) }}</textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Note & Explanation (Opsional)</label>
-                    <textarea name="note_explanation" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Catatan tambahan teknis, sisa kas, atau keterangan pelaporan jika ada...">{{ old('note_explanation') }}</textarea>
+                    <textarea name="note_explanation" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Catatan tambahan teknis atau keterangan pelaporan...">{{ old('note_explanation', $car->note_explanation) }}</textarea>
                 </div>
             </div>
         </div>
 
-        {{-- Section 2: Rincian Barang / Multi-Item (Requested Cash Advance) --}}
+        {{-- Section 2: Rincian Barang / Multi-Item --}}
         <div class="space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-2">
                 <div>
@@ -87,32 +87,32 @@
 
             {{-- Container Baris Item --}}
             <div id="container-item" class="space-y-4">
-                {{-- Baris Default Pertama --}}
+                @foreach($car->details as $index => $detail)
                 <div class="baris-item bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 relative shadow-xs space-y-3">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                         {{-- Nama Barang --}}
                         <div class="md:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
-                            <input type="text" name="items[0][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch AW">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Description / Nama Barang <span class="text-rose-500">*</span></label>
+                            <input type="text" name="items[{{ $index }}][nama_barang]" value="{{ $detail->nama_barang }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Nama barang">
                         </div>
 
-                        {{-- Qty, Satuan, Harga Satuan, Ongkir --}}
+                        {{-- Qty, Satuan, Harga, Ongkir --}}
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:col-span-6">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Qty <span class="text-rose-500">*</span></label>
-                                <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
+                                <input type="number" name="items[{{ $index }}][jumlah]" value="{{ $detail->jumlah }}" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan <span class="text-rose-500">*</span></label>
-                                <input type="text" name="items[0][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
+                                <input type="text" name="items[{{ $index }}][satuan]" value="{{ $detail->satuan }}" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="items[0][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Satuan (Rp) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="items[{{ $index }}][estimasi_harga]" value="{{ (int) $detail->estimasi_harga }}" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-amber-700 mb-1"><i class="fa-solid fa-truck-fast"></i> Ongkir (Rp)</label>
-                                <input type="number" name="items[0][ongkir]" min="0" value="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 bg-amber-50/20 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
+                                <input type="number" name="items[{{ $index }}][ongkir]" value="{{ (int) ($detail->ongkir ?? 0) }}" min="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 bg-amber-50/20 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
                             </div>
                         </div>
 
@@ -120,9 +120,9 @@
                         <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t border-slate-50 md:border-none">
                             <div class="text-left md:text-right">
                                 <span class="block text-[10px] text-slate-400 uppercase font-bold">Subtotal Baris</span>
-                                <span class="text-sm font-bold text-slate-700 label-subtotal">Rp 0</span>
+                                <span class="text-sm font-bold text-slate-700 label-subtotal">Rp {{ number_format($detail->total_harga, 0, ',', '.') }}</span>
                             </div>
-                            <button type="button" class="btn-hapus-item text-slate-300 cursor-not-allowed p-2 rounded-lg md:mt-4" disabled>
+                            <button type="button" class="btn-hapus-item {{ $car->details->count() <= 1 ? 'text-slate-300 cursor-not-allowed' : 'text-rose-500 hover:text-rose-700 cursor-pointer' }} p-2 rounded-lg md:mt-4 transition-colors" {{ $car->details->count() <= 1 ? 'disabled' : '' }}>
                                 <i class="fa-solid fa-trash-can text-base"></i>
                             </button>
                         </div>
@@ -131,10 +131,15 @@
                     {{-- Upload Dokumen Pendukung Khusus Item Ini --}}
                     <div class="border-t border-slate-100 pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div class="w-full sm:w-2/3">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Lampiran Nota / Proposal / Foto Barang (Opsional)</label>
-                            <input type="file" name="items[0][dokumen_pendukung]"
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Unggah Nota Baru / Pengganti (Opsional)</label>
+                            <input type="file" name="items[{{ $index }}][dokumen_pendukung]"
                                    class="input-file-dokumen w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer">
-                            <p class="text-[10px] text-slate-400 mt-0.5">* Format: PDF, JPG, JPEG, PNG (Maks 2MB)</p>
+                            @if($detail->dokumen_nota_or_proposal)
+                                <input type="hidden" name="items[{{ $index }}][existing_dokumen]" value="{{ $detail->dokumen_nota_or_proposal }}">
+                                <p class="text-[11px] text-emerald-600 mt-1 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-check"></i> File lama tersimpan: {{ basename($detail->dokumen_nota_or_proposal) }}
+                                </p>
+                            @endif
                         </div>
 
                         {{-- Container Preview --}}
@@ -147,6 +152,7 @@
                         </div>
                     </div>
                 </div>
+                @endforeach
             </div>
 
             {{-- Datalist Satuan Standar --}}
@@ -169,7 +175,7 @@
         <div class="p-5 bg-slate-900 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-white shadow-lg shadow-slate-900/10">
             <div>
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Estimasi Grand Total CAR:</span>
-                <span class="text-xs text-slate-400 font-medium" id="label-jumlah-item">1 Macam Item</span>
+                <span class="text-xs text-slate-400 font-medium" id="label-jumlah-item">{{ $car->details->count() }} Macam Item</span>
             </div>
             <div class="text-left sm:text-right">
                 <span id="grand_total" class="text-xl sm:text-2xl font-black text-emerald-400">Rp 0</span>
@@ -177,10 +183,13 @@
             </div>
         </div>
 
-        {{-- Tombol Submit --}}
-        <div class="pt-2 flex justify-end">
+        {{-- Tombol Batal & Simpan --}}
+        <div class="pt-2 flex justify-between items-center">
+            <a href="{{ route('car.riwayat') }}" class="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-100 transition-colors">
+                Batal
+            </a>
             <button type="submit" class="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm px-8 py-3 rounded-xl shadow-md shadow-sky-600/10 transition-colors cursor-pointer flex items-center justify-center gap-2">
-                <i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan CAR
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan CAR
             </button>
         </div>
     </form>
@@ -190,24 +199,6 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-@if(session('success'))
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        Swal.fire({
-            title: 'BERHASIL!',
-            text: "{{ session('success') }}",
-            icon: 'success',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#0284c7',
-            customClass: {
-                popup: 'rounded-2xl',
-                confirmButton: 'px-5 py-2.5 rounded-xl font-bold'
-            }
-        });
-    });
-</script>
-@endif
-
 <script>
     const containerItem = document.getElementById('container-item');
     const btnTambahItem = document.getElementById('btn-tambah-item');
@@ -215,10 +206,9 @@
     const labelJumlahItem = document.getElementById('label-jumlah-item');
     const labelRincianTotal = document.getElementById('label-rincian-total');
 
-    let itemIndex = 1;
+    let itemIndex = {{ $car->details->count() }};
     let isConfirmed = false;
 
-    // Inisialisasi & Form Submit Handler
     document.addEventListener("DOMContentLoaded", function () {
         hitungAkumulasi();
 
@@ -228,13 +218,13 @@
                 if (!isConfirmed) {
                     e.preventDefault();
                     Swal.fire({
-                        title: 'Konfirmasi Pengajuan CAR',
-                        text: 'Apakah Anda yakin rincian barang, ongkos kirim per item, dan rekening penerima sudah sesuai?',
+                        title: 'Simpan Perubahan CAR',
+                        text: 'Apakah Anda yakin ingin memperbarui data pengajuan CAR ini?',
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonColor: '#0284c7',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Ya, Kirim Sekarang',
+                        confirmButtonText: 'Ya, Simpan',
                         cancelButtonText: 'Batal',
                         customClass: {
                             popup: 'rounded-2xl',
@@ -251,9 +241,7 @@
             });
         }
 
-        // Pasang preview file untuk baris pertama
-        const firstFile = containerItem.querySelector('.input-file-dokumen');
-        if (firstFile) setupPreviewListener(firstFile);
+        containerItem.querySelectorAll('.input-file-dokumen').forEach(setupPreviewListener);
     });
 
     function setupPreviewListener(inputElement) {
@@ -321,7 +309,7 @@
             labelRincianTotal.textContent = `Barang: Rp ${totalHargaBarang.toLocaleString('id-ID')} + Total Ongkir: Rp ${totalOngkir.toLocaleString('id-ID')}`;
         }
 
-        // Atur status tombol hapus jika hanya ada 1 baris
+        // Atur status tombol hapus
         semuaBaris.forEach(baris => {
             const btn = baris.querySelector('.btn-hapus-item');
             if (semuaBaris.length === 1) {
@@ -347,7 +335,7 @@
         barisBaru.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                 <div class="md:col-span-3">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Description / Nama Barang <span class="text-rose-500">*</span></label>
                     <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Nama barang">
                 </div>
 
@@ -361,7 +349,7 @@
                         <input type="text" name="items[${itemIndex}][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Satuan (Rp) <span class="text-rose-500">*</span></label>
                         <input type="number" name="items[${itemIndex}][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
                     </div>
                     <div>
