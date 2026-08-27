@@ -329,6 +329,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Gender::class, 'gender_id', 'id');
     }
 
+    /**
+     * Memeriksa apakah user adalah karyawan perempuan / wanita
+     */
+    public function isPerempuan(): bool
+    {
+        $genderName = strtolower($this->gender?->name ?? '');
+        return $this->gender_id === 2 || in_array($genderName, ['wanita', 'perempuan', 'female', 'p']);
+    }
+
     public function supervisor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'atasan_langsung_id', 'id');

@@ -200,7 +200,7 @@
     @endif
 
     {{-- Statistik Ringkasan --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isPerempuan ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-4">
         <div class="bg-white dark:bg-slate-800/90 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs flex items-center space-x-4 transition-colors">
             <div class="p-3 bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 rounded-xl">
                 <i class="fa-solid fa-calendar-days text-xl w-6 text-center"></i>
@@ -242,6 +242,18 @@
                 <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">{{ $sisaKuota }} Hari</h3>
             </div>
         </div>
+
+        @if($isPerempuan)
+        <div class="bg-white dark:bg-slate-800/90 p-5 rounded-2xl border border-rose-100 dark:border-rose-900/40 shadow-xs flex items-center space-x-4 transition-colors">
+            <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
+                <i class="fa-solid fa-person-dress text-xl w-6 text-center"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 dark:text-slate-400 font-medium uppercase tracking-wider">Saldo Cuti Haid (Bulan Ini)</p>
+                <h3 class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-0.5">{{ $saldoCutiHaid }} Hari</h3>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Widget Absensi & Jadwal Kerja --}}

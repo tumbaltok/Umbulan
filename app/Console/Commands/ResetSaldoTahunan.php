@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\User\User;
 use Carbon\Carbon;
@@ -9,35 +10,41 @@ use Illuminate\Console\Command;
 
 class ResetSaldoTahunan extends Command
 {
-    protected $signature = 'saldo:reset-tahunan';
+    protected $signature = 'saldo:reset-tahunan {--year= : Tahun yang ingin di-generate/reset (default: tahun berjalan)}';
 
-    protected $description = 'Generate saldo cuti tahunan untuk tahun depan';
+    protected $description = 'Generate atau reset saldo cuti tahunan (12 hari) untuk seluruh karyawan';
 
     public function handle()
     {
-        $tahunDepan = Carbon::now()->addYear()->year;
+        $tahun = (int) ($this->option('year') ?: Carbon::now()->year);
 
-        // Perbaikan 1: Gunakan konstanta terpusat dari Model User (ID: 4)
-        $jenisCutiTahunanId = User::CUTI_TAHUNAN_ID;
+        $jenisCutiTahunan = JenisCuti::where('kode_cuti', 'CT')
+            ->orWhere('id', User::CUTI_TAHUNAN_ID)
+            ->first();
 
-        // Perbaikan 2: Ambil semua user (karena tidak ada kolom status_aktif di skema tabel user Anda)
+        $jenisCutiTahunanId = $jenisCutiTahunan ? $jenisCutiTahunan->id : User::CUTI_TAHUNAN_ID;
+
         $karyawan = User::all();
+        $count = 0;
 
         foreach ($karyawan as $user) {
-            SaldoCuti::firstOrCreate(
+            SaldoCuti::updateOrCreate(
                 [
                     'user_id' => $user->id,
                     'jenis_cuti_id' => $jenisCutiTahunanId,
-                    'tahun' => $tahunDepan,
+                    'tahun' => $tahun,
                 ],
                 [
-                    // Perbaikan 3: Masukkan kuota_awal sesuai blueprint migrasi
                     'kuota_awal' => 12,
                     'sisa_saldo' => 12,
+                    'bulan' => null,
                 ]
             );
+            $count++;
         }
 
-        $this->info('Saldo tahunan berhasil dibuat untuk tahun '.$tahunDepan);
+        $this->info("Saldo cuti tahunan (12 hari) berhasil diinisialisasi/reset untuk {$count} karyawan pada tahun {$tahun}.");
+
+        return 0;
     }
 }

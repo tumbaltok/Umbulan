@@ -143,7 +143,28 @@ class DashboardController extends Controller
         // 7. Hitung Sisa Kuota Real-Time
         $sisaKuota = $saldoTahunan->sisa_saldo ?? max(0, $kuotaTahunan - $totalCutiDiambil);
 
-        // 8. Riwayat Cuti, CAR, & MPR
+        // 8. Sisa Saldo Cuti Haid (Khusus Karyawan Perempuan)
+        $isPerempuan = $user->isPerempuan();
+        $saldoCutiHaid = 0;
+
+        if ($isPerempuan) {
+            $subHaid = DB::table('sub_cutis')
+                ->where('nama_sub_cuti', 'LIKE', '%Haid%')
+                ->first();
+            $subHaidId = $subHaid ? $subHaid->id : 2;
+
+            $haidDiambilBulanIni = (int) DB::table('pengajuan_cutis')
+                ->where('user_id', $user->id)
+                ->where('sub_cuti_id', $subHaidId)
+                ->where('status_akhir', 'approved')
+                ->whereMonth('tanggal_mulai', $now->month)
+                ->whereYear('tanggal_mulai', $now->year)
+                ->sum('total_hari');
+
+            $saldoCutiHaid = max(0, 2 - $haidDiambilBulanIni);
+        }
+
+        // 9. Riwayat Cuti, CAR, & MPR
         $riwayatCuti = DB::table('pengajuan_cutis')
             ->join('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
             ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
@@ -174,6 +195,8 @@ class DashboardController extends Controller
             'totalCutiDiambil',
             'totalPending',
             'sisaKuota',
+            'isPerempuan',
+            'saldoCutiHaid',
             'riwayatCuti',
             'riwayatCar',
             'riwayatMpr',
