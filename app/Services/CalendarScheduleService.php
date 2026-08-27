@@ -12,49 +12,20 @@ use Illuminate\Support\Facades\Log;
 class CalendarScheduleService
 {
     protected ScheduleService $scheduleService;
+    protected HolidayService $holidayService;
 
-    public function __construct(ScheduleService $scheduleService)
+    public function __construct(ScheduleService $scheduleService, HolidayService $holidayService)
     {
         $this->scheduleService = $scheduleService;
+        $this->holidayService = $holidayService;
     }
 
     /**
-     * Ambil Data Hari Libur Nasional via Nager.Date API
+     * Ambil Data Hari Libur Nasional via HolidayService (SKB 3 Menteri)
      */
-    public function getNationalHolidays(int|string $year)
+    public function getNationalHolidays(int|string $year): array
     {
-        return Cache::remember("national_holidays_nager_{$year}", 86400, function () use ($year) {
-            try {
-                // Endpoint resmi Nager.Date API untuk Indonesia (ID)
-                $response = Http::timeout(5)->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/ID");
-
-                if ($response->successful()) {
-                    $holidays = [];
-                    foreach ($response->json() as $holiday) {
-                        // Tentukan nama libur (prioritaskan nama lokal/localName)
-                        $holidayName = $holiday['localName'] ?? $holiday['name'];
-                        $formattedDate = Carbon::parse($holiday['date'])->format('Y-m-d');
-
-                        $holidays[$formattedDate] = $holidayName;
-                    }
-
-                    if (! empty($holidays)) {
-                        return $holidays;
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::warning('Gagal mengambil data libur dari Nager API: '.$e->getMessage());
-            }
-
-            // Fallback Data Libur Standar (Jika API Offline)
-            return [
-                "{$year}-01-01" => 'Tahun Baru Masehi',
-                "{$year}-05-01" => 'Hari Buruh Internasional',
-                "{$year}-06-01" => 'Hari Lahir Pancasila',
-                "{$year}-08-17" => 'Hari Kemerdekaan RI',
-                "{$year}-12-25" => 'Hari Raya Natal',
-            ];
-        });
+        return $this->holidayService->getNationalHolidays($year);
     }
 
     /**

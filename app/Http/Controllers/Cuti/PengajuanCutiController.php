@@ -44,13 +44,17 @@ class PengajuanCutiController extends Controller
             $dateString = $currentDate->format('Y-m-d');
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
 
-            if ($user->schedule_type === 'normal') {
+            if ($user->schedule_type === 'normal' || empty($user->schedule_type)) {
+                // USER NORMAL:
+                // Akhir pekan (is_day_off) dan Tanggal Merah Libur Nasional TIDAK DIHITUNG
                 $isNationalHoliday = isset($holidays[$dateString]);
-                if (! $daySchedule['is_day_off'] && ! $isNationalHoliday) {
+                if (!$daySchedule['is_day_off'] && !$isNationalHoliday) {
                     $totalHariKerja++;
                 }
             } else {
-                if (! $daySchedule['is_day_off']) {
+                // USER ROSTER (24/7 Continuous Shift):
+                // Abaikan libur nasional. Hanya hitung hari yang bukan Hari Libur Roster (Off Day).
+                if (!$daySchedule['is_day_off'] && ($daySchedule['shift_type'] ?? '') !== 'libur') {
                     $totalHariKerja++;
                 }
             }
@@ -58,6 +62,7 @@ class PengajuanCutiController extends Controller
             $currentDate->addDay();
         }
 
+        return $totalHariKerja;
     }
 
     public function create()
@@ -126,7 +131,11 @@ class PengajuanCutiController extends Controller
         $totalHari = $this->hitungHariKerjaEfektif($user, $mulai, $selesai);
 
         if ($totalHari === 0) {
-            return back()->withErrors(['error' => 'Tanggal yang Anda pilih seluruhnya adalah hari libur.'])->withInput();
+            $pesanPeringatan = ($user->schedule_type === 'roster')
+                ? '⚠️ Rentang tanggal yang Anda pilih bertepatan dengan Hari Libur Roster (Off Day) Anda dan tidak memotong kuota.'
+                : '⚠️ Rentang tanggal yang Anda pilih bertepatan dengan Hari Libur Resmi / Tanggal Merah dan tidak memotong kuota.';
+
+            return back()->withErrors(['error' => $pesanPeringatan])->withInput();
         }
 
         $jenisCutiId = $request->jenis_cuti_id;
@@ -151,13 +160,14 @@ class PengajuanCutiController extends Controller
         }
 
         if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
+            $cutiTahunanId = $this->getCutiTahunanId();
             $saldo = SaldoCuti::where('user_id', $user->id)
-                ->where('jenis_cuti_id', $jenisCutiId)
+                ->where('jenis_cuti_id', $cutiTahunanId)
                 ->where('tahun', $tahunSekarang)
                 ->first();
 
             if (! $saldo) {
-                return redirect()->back()->withErrors(['error' => 'Sisa kuota cuti Anda belum diatur oleh admin.'])->withInput();
+                return redirect()->back()->withErrors(['error' => 'Sisa kuota cuti tahunan Anda belum diatur oleh admin.'])->withInput();
             }
 
             try {

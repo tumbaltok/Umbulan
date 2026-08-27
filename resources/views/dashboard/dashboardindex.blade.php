@@ -415,24 +415,24 @@
             @if($user->schedule_type === 'roster')
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
-                    <span>Shift Pagi</span>
+                    <span>Shift Pagi (07:00 - 19:00)</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-indigo-600"></span>
-                    <span>Shift Malam</span>
+                    <span>Shift Malam (19:00 - 07:00)</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-rose-500"></span>
-                    <span>Libur</span>
+                    <span>Libur Roster (Off Day)</span>
                 </div>
             @else
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
-                    <span>Masuk Kerja</span>
+                    <span>Masuk Kerja Normal</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-rose-500"></span>
-                    <span>Libur / Libur Nasional</span>
+                    <span>Akhir Pekan / Tanggal Merah</span>
                 </div>
             @endif
 
