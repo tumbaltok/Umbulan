@@ -135,6 +135,8 @@ class KaryawanController extends Controller
                 'phone_number' => $karyawan->phone_number ?? null,
                 'profile_photo' => $karyawan->profile_photo ?? null,
                 'role_name' => $roleNames ?: 'Tidak Ada Role',
+                'role_ids' => $karyawan->roles->pluck('id')->toArray(),
+                'roles' => $karyawan->roles,
                 'nama_stasiun' => optional($karyawan->station)->name ?? '-',
                 'schedule_type' => $karyawan->schedule_type ?? 'normal',
                 'normal_work_days' => is_array($karyawan->normal_work_days) ? implode(', ', $karyawan->normal_work_days) : ($karyawan->normal_work_days ?? 'Senin - Jumat'),
@@ -173,5 +175,36 @@ class KaryawanController extends Controller
             'success' => true,
             'message' => 'Sisa saldo cuti berhasil diperbarui!',
         ]);
+    }
+
+    public function updateRoles(Request $request, int $id)
+    {
+        $request->validate([
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
+        ]);
+
+        $karyawan = User::findOrFail($id);
+        $roleIds = array_map('intval', $request->roles);
+
+        $syncData = [];
+        foreach ($roleIds as $idx => $rId) {
+            $syncData[$rId] = ['is_primary' => ($idx === 0)];
+        }
+
+        $karyawan->roles()->sync($syncData);
+        if (!empty($roleIds)) {
+            $karyawan->update(['role_id' => $roleIds[0]]);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Peran / Jabatan karyawan berhasil disinkronkan!',
+                'roles' => $karyawan->fresh()->roles,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Peran / Jabatan karyawan berhasil disinkronkan!');
     }
 }

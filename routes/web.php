@@ -90,8 +90,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
     Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
-    // Fitur Internal (Wajib Verified)
-    Route::middleware(['verified', 'phone.verified'])->group(function () {
+    // Fitur Internal (Wajib Terverifikasi & Akun Lengkap: Email, No. WA, Jadwal, & Biometrik Wajah)
+    Route::middleware(['verified', 'phone.verified', 'account.complete'])->group(function () {
         // Form Cuti
         Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
         Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
@@ -149,6 +149,7 @@ Route::middleware(['auth', 'atasan'])->group(function () {
     Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
     Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
     Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
+    Route::put('/admin/karyawan/{id}/roles', [KaryawanController::class, 'updateRoles'])->name('admin.karyawan.roles.update');
 
     // CRUD Stasiun Kerja
     Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');

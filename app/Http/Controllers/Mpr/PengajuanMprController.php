@@ -25,11 +25,21 @@ class PengajuanMprController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         return view('mpr.mprcreate');
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         $request->validate([
             'keperluan_urgensi' => 'required|string',
             'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',

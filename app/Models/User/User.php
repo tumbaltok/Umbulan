@@ -258,6 +258,41 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->roles->contains(fn($r) => empty($r->parent_role_id));
     }
 
+    /**
+     * Memeriksa apakah data akun user telah lengkap memenuhi 4 kriteria kelayakan:
+     * 1. Nomor WhatsApp / Telepon terisi dan terverifikasi.
+     * 2. Email terverifikasi.
+     * 3. Jadwal kerja / shift telah dikonfigurasi.
+     * 4. Biometrik wajah AI telah direkam.
+     */
+    public function isAccountComplete(): bool
+    {
+        return !empty($this->phone_number)
+            && !is_null($this->phone_verified_at)
+            && !is_null($this->email_verified_at)
+            && !empty($this->schedule_type)
+            && !empty($this->face_descriptor);
+    }
+
+    /**
+     * Mendapatkan status rincian kelengkapan akun pengguna.
+     */
+    public function getAccountCompletionStatus(): array
+    {
+        $hasPhone = !empty($this->phone_number) && !is_null($this->phone_verified_at);
+        $hasEmail = !is_null($this->email_verified_at);
+        $hasSchedule = !empty($this->schedule_type);
+        $hasFace = !empty($this->face_descriptor);
+
+        return [
+            'phone_verified'  => $hasPhone,
+            'email_verified'  => $hasEmail,
+            'schedule_set'    => $hasSchedule,
+            'face_registered' => $hasFace,
+            'is_complete'     => $hasPhone && $hasEmail && $hasSchedule && $hasFace,
+        ];
+    }
+
     public function station(): BelongsTo
     {
         return $this->belongsTo(Station::class, 'station_id', 'id');

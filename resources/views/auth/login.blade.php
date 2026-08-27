@@ -148,7 +148,7 @@
                     </div>
 
                     <div class="flex items-center">
-                        <input id="remember-me" name="remember" type="checkbox"
+                        <input id="remember-me" name="remember" type="checkbox" checked
                             class="h-4.5 w-4.5 text-sky-600 focus:ring-sky-500 border-slate-300 rounded-lg cursor-pointer">
                         <label for="remember-me" class="ml-2 block text-sm text-slate-600 select-none cursor-pointer">
                             Ingat saya di perangkat ini

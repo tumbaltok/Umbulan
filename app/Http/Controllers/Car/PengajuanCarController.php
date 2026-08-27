@@ -24,12 +24,22 @@ class PengajuanCarController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
         return view('car.carcreate', compact('daftarStasiun'));
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         $request->validate([
             'alasan_pembelian' => 'required|string',
             'receiving_account' => 'required|string',

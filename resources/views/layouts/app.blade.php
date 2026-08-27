@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | PT META Adhya Tirta Umbulan</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}?v=2">
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        tailwind = { config: { darkMode: 'class' } };
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -111,7 +123,7 @@
 
     @stack('styles')
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 flex overflow-hidden">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-100 flex overflow-hidden transition-colors duration-200">
 
     @php
         $authUser    = Auth::user();
@@ -360,7 +372,7 @@
 
         <!-- Logout Button -->
         <div class="p-3 border-t border-slate-800/60 bg-slate-950/20 shrink-0">
-            <form action="/logout" method="POST">
+            <form action="/logout" method="POST" data-turbo="false">
                 @csrf
                 <button type="submit" title="Keluar Aplikasi" class="w-full flex items-center space-x-3 hover:bg-rose-500/10 text-rose-400 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors group">
                     <div class="w-9 h-9 flex items-center justify-center shrink-0">
@@ -376,40 +388,52 @@
     <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 opacity-0 pointer-events-none md:hidden"></div>
 
     <!-- MAIN CONTENT AREA -->
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- HEADER UTAMA DENGAN JAM DIGITAL -->
-        <header class="bg-white border-b border-slate-100 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+        <!-- HEADER UTAMA DENGAN JAM DIGITAL & THEME SWITCHER -->
+        <header class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-xs transition-colors">
             <div class="flex items-center space-x-3">
-                <button id="toggleSidebarBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 border border-slate-100 active:scale-95 transition-transform">
+                <button id="toggleSidebarBtn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Tempat Kerja,</p>
-                    <h1 class="text-base font-bold text-slate-800 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tempat Kerja,</p>
+                    <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>
 
-            <div class="fixed bottom-4 right-4 z-20 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 text-white sm:text-slate-800 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
-                <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
+            <div class="fixed bottom-4 right-4 z-20 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 dark:sm:bg-slate-800 text-white sm:text-slate-800 dark:sm:text-slate-100 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 dark:sm:border-slate-700 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
+                <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 dark:sm:text-sky-400 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
                     <i class="fa-solid fa-clock text-[10px] sm:text-xs text-sky-400 sm:text-sky-500"></i>
                     <span id="headerDigitalClock">00:00:00 WIB</span>
                 </div>
-                <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 font-medium tracking-tight">--</span>
+                <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 dark:sm:text-slate-400 font-medium tracking-tight">--</span>
             </div>
 
-            <div onclick="openProfileDetailModal()" class="flex items-center space-x-3 cursor-pointer group p-1.5 rounded-2xl hover:bg-slate-100/80 transition-all" title="Klik untuk lihat detail akun">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-slate-800 leading-tight group-hover:text-sky-600 transition-colors">{{ Auth::user()->name }}</p>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {{ Auth::user()->role->role_name ?? 'USER' }}
-                    </p>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
-                    @if(Auth::user()->profile_photo)
-                        <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
-                    @else
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    @endif
+            <div class="flex items-center space-x-3">
+                {{-- TOMBOL THEME SWITCHER DARK / LIGHT MODE ELEGAN --}}
+                <button type="button"
+                    id="themeToggleBtn"
+                    onclick="toggleThemeMode()"
+                    class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-amber-400 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                    title="Ganti Mode Tema (Dark / Light)">
+                    <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
+                </button>
+
+                {{-- PROFILE BADGE & POPUP TRIGGER --}}
+                <div onclick="openProfileDetailModal()" class="flex items-center space-x-3 cursor-pointer group p-1 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all" title="Klik untuk lihat detail akun">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ Auth::user()->name }}</p>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                            {{ Auth::user()->role->role_name ?? 'USER' }}
+                        </p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 dark:border-slate-700 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
+                        @if(Auth::user()->profile_photo)
+                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
+                        @else
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        @endif
+                    </div>
                 </div>
             </div>
         </header>
@@ -437,10 +461,27 @@
             if (dateElement) dateElement.innerText = dateString;
         }
 
-        setInterval(updateHeaderClock, 1000);
+        function toggleThemeMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            syncThemeIcon();
+        }
 
-        document.addEventListener("DOMContentLoaded", function () {
+        function syncThemeIcon() {
+            const icon = document.getElementById('themeToggleIcon');
+            if (!icon) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                icon.className = 'fa-solid fa-moon text-slate-300 text-sm';
+            } else {
+                icon.className = 'fa-solid fa-sun text-amber-400 text-sm';
+            }
+        }
+
+        function initLayoutHandlers() {
             updateHeaderClock();
+            syncThemeIcon();
 
             const sidebar = document.getElementById("sidebarApp");
             const backdrop = document.getElementById("sidebarBackdrop");
@@ -579,20 +620,25 @@
             if (toggleBtn) toggleBtn.addEventListener("click", openSidebarMobile);
             if (closeBtn) closeBtn.addEventListener("click", closeSidebarMobile);
             if (backdrop) backdrop.addEventListener("click", closeSidebarMobile);
-        });
+        }
+
+        setInterval(updateHeaderClock, 1000);
+        document.addEventListener("DOMContentLoaded", initLayoutHandlers);
+        document.addEventListener("turbo:load", initLayoutHandlers);
+        document.addEventListener("app:navigated", initLayoutHandlers);
     </script>
 
     <!-- MODAL POPUP DETAIL AKUN USER -->
     <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-        <div id="profileDetailModalCard" class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 transform transition-all duration-300 scale-95 opacity-0">
+        <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
 
             <!-- HEADER MODAL -->
-            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-id-card text-lg"></i>
                     <h3 class="text-xs font-bold tracking-wide uppercase">Detail Informasi Akun Karyawan</h3>
                 </div>
-                <button onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors">
+                <button onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -600,8 +646,8 @@
             <!-- BODY MODAL -->
             <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                 <!-- RINGKASAN AVATAR & NAMA -->
-                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md overflow-hidden shrink-0 border-2 border-white">
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md overflow-hidden shrink-0 border-2 border-white dark:border-slate-700">
                         @if(Auth::user()->profile_photo)
                             <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User Photo" class="w-full h-full object-cover">
                         @else
@@ -609,14 +655,23 @@
                         @endif
                     </div>
                     <div class="text-center sm:text-left space-y-1">
-                        <h4 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight">{{ Auth::user()->name }}</h4>
-                        <p class="text-xs text-slate-500 font-semibold">{{ Auth::user()->email }}</p>
-                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start mt-1">
-                            <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                {{ Auth::user()->role->role_name ?? 'STAFF' }}
-                            </span>
+                        <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-tight">{{ Auth::user()->name }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold">{{ Auth::user()->email }}</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start mt-1.5">
+                            @if(Auth::user()->roles && Auth::user()->roles->count() > 0)
+                                @foreach(Auth::user()->roles as $r)
+                                    <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300 rounded-md text-[10px] font-bold uppercase tracking-wider border border-sky-200 dark:border-sky-800">
+                                        {{ $r->role_name }}
+                                    </span>
+                                @endforeach
+                            @else
+                                <span class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                    {{ Auth::user()->role->role_name ?? 'Karyawan' }}
+                                </span>
+                            @endif
+
                             @if(Auth::user()->nip)
-                                <span class="px-2.5 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[10px] font-mono font-bold">
+                                <span class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-[10px] font-mono font-bold">
                                     NIP: {{ Auth::user()->nip }}
                                 </span>
                             @endif
@@ -626,58 +681,58 @@
 
                 <!-- GRID DETAIL INFORMASI LENGKAP -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">NIP</span>
-                        <p class="font-bold text-slate-800 font-mono text-xs sm:text-sm">{{ Auth::user()->nip ?? '-' }}</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 font-mono text-xs sm:text-sm">{{ Auth::user()->nip ?? '-' }}</p>
                     </div>
 
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nomor Telepon</span>
-                        <p class="font-bold text-slate-800">{{ Auth::user()->phone_number ?? '-' }}</p>
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nomor WhatsApp</span>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                            <span>{{ Auth::user()->phone_number ?? '-' }}</span>
+                            @if(Auth::user()->phone_verified_at)
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                    <i class="fa-solid fa-circle-check mr-0.5"></i> Terverifikasi
+                                </span>
+                            @else
+                                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">Belum Verifikasi</span>
+                            @endif
+                        </p>
                     </div>
 
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Alamat Email</span>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 truncate flex items-center justify-between">
+                            <span class="truncate">{{ Auth::user()->email }}</span>
+                            @if(Auth::user()->email_verified_at)
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded ml-1 shrink-0 border border-emerald-200 dark:border-emerald-800">
+                                    <i class="fa-solid fa-circle-check mr-0.5"></i> Terverifikasi
+                                </span>
+                            @else
+                                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-1.5 py-0.5 rounded ml-1 shrink-0 border border-amber-200 dark:border-amber-800">Belum Verifikasi</span>
+                            @endif
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
-                        <p class="font-bold text-slate-800">
-                            {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Wanita' : 'Laki-Laki') }}
+                        <p class="font-bold text-slate-800 dark:text-slate-100">
+                            {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Perempuan' : 'Laki-Laki') }}
                         </p>
                     </div>
 
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Divisi</span>
-                        <p class="font-bold text-slate-800">{{ Auth::user()->role->divisi ?? 'Operasional' }}</p>
-                    </div>
-
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Stasiun Penempatan</span>
-                        <p class="font-bold text-sky-700">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</p>
+                        <p class="font-bold text-sky-600 dark:text-sky-400">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</p>
                     </div>
 
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sektor / Area</span>
-                        <p class="font-bold text-slate-800">{{ Auth::user()->sektor ?? '-' }}</p>
-                    </div>
-
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jobdesk / Title</span>
-                        <p class="font-bold text-slate-800">
-                            @php
-                                $userAuth = Auth::user();
-                                $jobText = $userAuth->jobdesk
-                                    ?? $userAuth->job_title
-                                    ?? optional($userAuth->jobTitle)->job_title;
-                            @endphp
-                            {{ !empty($jobText) ? $jobText : '-' }}
-                        </p>
-                    </div>
-
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl space-y-0.5 shadow-sm">
+                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tipe Jadwal Kerja</span>
-                        <p class="font-bold text-indigo-700">
+                        <p class="font-bold text-indigo-600 dark:text-indigo-400">
                             @if(Auth::user()->schedule_type === 'roster')
-                                Sistem Roster (12 Jam)
+                                Sistem Roster / Shift 12 Jam
                             @elseif(Auth::user()->schedule_type === 'normal')
-                                Jam Kerja Normal
+                                Normal ({{ Auth::user()->normal_check_in ?? '08:00' }} - {{ Auth::user()->normal_check_out ?? '17:00' }})
                             @else
                                 Belum Diatur
                             @endif
@@ -687,12 +742,12 @@
             </div>
 
             <!-- FOOTER MODAL -->
-            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                <a href="{{ route('account.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between">
+                <a href="{{ route('account.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-xs">
                     <i class="fa-solid fa-gear"></i>
                     <span>Pengaturan Akun</span>
                 </a>
-                <button onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                <button onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
                     Tutup
                 </button>
             </div>

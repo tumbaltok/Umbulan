@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'atasan' => CekAtasan::class,
             'role' => CheckRole::class,
             'phone.verified' => EnsurePhoneIsVerified::class,
+            'account.complete' => \App\Http\Middleware\EnsureAccountIsComplete::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

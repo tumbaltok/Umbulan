@@ -23,10 +23,10 @@ class AccountController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        // 2. Ambil Peran / Jabatan KECUALI Admin (Filter out level 1 / 'Admin')
-        $daftarRole = Role::where('level', '>', 1)
-            ->where('role_name', '!=', 'Admin')
+        // 2. Ambil Seluruh Peran / Jabatan KECUALI Admin
+        $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')
             ->orderBy('level', 'asc')
+            ->orderBy('role_name', 'asc')
             ->get();
 
         return view('pengaturan.index', compact(
@@ -70,9 +70,10 @@ class AccountController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'gender_id' => 'nullable|integer',
-            'sektor' => 'nullable|string|max:255',
             'station_id' => 'nullable|integer|exists:stations,id',
             'role_id' => 'nullable|integer|exists:roles,id',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,id',
             'phone_number' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -177,7 +178,7 @@ class AccountController extends Controller
             if ($request->has('roles') && is_array($request->roles)) {
                 $validRoleIds = Role::whereIn('id', $request->roles)
                     ->where('id', '!=', 1)
-                    ->where('level', '>', 1)
+                    ->where('role_name', 'NOT LIKE', '%admin%')
                     ->pluck('id')
                     ->toArray();
                 if (!empty($validRoleIds)) {
@@ -190,7 +191,7 @@ class AccountController extends Controller
                 }
             } elseif ($request->has('role_id') && ! empty($request->role_id)) {
                 $selectedRole = Role::find($request->role_id);
-                if ($selectedRole && strtolower($selectedRole->role_name) !== 'admin' && $selectedRole->level > 1) {
+                if ($selectedRole && strtolower($selectedRole->role_name) !== 'admin') {
                     $updateData['role_id'] = $request->role_id;
                     $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
                 }

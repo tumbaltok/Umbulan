@@ -91,6 +91,10 @@ class PengajuanCutiController extends Controller
     public function create()
     {
         $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         $jenisCuti = JenisCuti::with('subCutis')->get();
 
         $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')
@@ -112,6 +116,11 @@ class PengajuanCutiController extends Controller
 
     public function storeWeb(Request $request)
     {
+        $user = Auth::user();
+        if (!$user->isAccountComplete()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi nomor WhatsApp, verifikasi email, pengaturan jadwal kerja, dan biometrik wajah sebelum dapat membuat pengajuan.');
+        }
+
         $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';
         $request->validate([
             'jenis_cuti_id' => 'required|exists:jenis_cutis,id',

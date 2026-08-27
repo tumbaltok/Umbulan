@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\User\Jobdesk;
 use App\Models\User\Role;
 use App\Models\User\Station;
 use App\Models\User\User;
@@ -34,9 +33,7 @@ class AuthController extends Controller
             ->orderBy('role_name', 'asc')
             ->get();
 
-        $daftarJobdesk = Jobdesk::orderBy('job_title', 'asc')->get();
-
-        return view('auth.register', compact('daftarStasiun', 'daftarRole', 'daftarJobdesk'));
+        return view('auth.register', compact('daftarStasiun', 'daftarRole'));
     }
 
     /**
@@ -44,88 +41,51 @@ class AuthController extends Controller
      */
     public function registerWeb(Request $request)
     {
-        // 1. ATURAN VALIDASI DIPERBAIKI
+        // 1. ATURAN VALIDASI MULTI-ROLE & DATA UTAMA
         $request->validate([
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'role_id' => 'required|exists:roles,id',
+            'roles' => 'required_without:role_id|array|min:1',
+            'roles.*' => 'exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
             'gender_id' => 'required|exists:genders,id',
             'station_id' => 'required|exists:stations,id',
-            'sektor' => 'nullable|in:manajemen,operasional',
-            'jobdesk' => 'required|array|min:1',
-            'jobdesk.*' => 'required',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
-        $sektorInput = strtolower($request->sektor ?? 'operasional');
-        $roleSelected = Role::find($request->role_id);
-        $roleName = strtolower($roleSelected->role_name ?? '');
-
-        $jobdeskFormatted = is_array($request->jobdesk) ? implode(', ', $request->jobdesk) : $request->jobdesk;
-
-        $supervisorId = null;
-        $managerId = null;
-
-        // -------------------------------------------------------------
-        // LOGIKA PENENTUAN ATASAN LANGSUNG BERJENJANG (LINIER)
-        // -------------------------------------------------------------
-        if (str_contains($roleName, 'staff')) {
-            $supervisor = User::whereHas('role', function ($q) {
-                $q->where('role_name', 'LIKE', '%Supervisor%');
-            })
-                ->where('sektor', $sektorInput)
-                ->where('station_id', $request->station_id)
-                ->where('job_title', $jobdeskFormatted)
-                ->first();
-
-            if (! $supervisor) {
-                $supervisor = User::whereHas('role', function ($q) {
-                    $q->where('role_name', 'LIKE', '%Supervisor%');
-                })
-                    ->where('sektor', $sektorInput)
-                    ->where('station_id', $request->station_id)
-                    ->first();
-            }
-
-            $supervisorId = $supervisor ? $supervisor->id : null;
-
-            $manager = User::whereHas('role', function ($q) {
-                $q->where('role_name', 'LIKE', '%Manager%');
-            })
-                ->where('sektor', $sektorInput)
-                ->first();
-
-            $managerId = $manager ? $manager->id : null;
-
-        } elseif (str_contains($roleName, 'supervisor')) {
-            $manager = User::whereHas('role', function ($q) {
-                $q->where('role_name', 'LIKE', '%Manager%');
-            })
-                ->where('sektor', $sektorInput)
-                ->first();
-
-            $supervisorId = null;
-            $managerId = $manager ? $manager->id : null;
+        // Ambil daftar ID role terpilih
+        $roleIds = [];
+        if ($request->has('roles') && is_array($request->roles)) {
+            $roleIds = array_map('intval', $request->roles);
+        } elseif ($request->filled('role_id')) {
+            $roleIds = [(int)$request->role_id];
         }
 
-        // 3. SIMPAN USER BARU
+        $primaryRoleId = !empty($roleIds) ? $roleIds[0] : null;
+
+        // 2. SIMPAN USER BARU
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
-            'role_id' => $request->role_id,
+            'role_id' => $primaryRoleId,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
-            // 'supervisor_id' => $supervisorId,
-            // 'manager_id' => $managerId,
             'password' => Hash::make($request->password),
         ]);
 
-        $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
+        // 3. SINKRONISASI SELURUH ROLES KE PIVOT ROLE_USER
+        if (!empty($roleIds)) {
+            $syncData = [];
+            foreach ($roleIds as $idx => $rId) {
+                $syncData[$rId] = ['is_primary' => ($idx === 0)];
+            }
+            $user->roles()->sync($syncData);
+        }
 
         // Audit Log Registrasi
-        Log::info("User baru berhasil terdaftar: ID {$user->id}, Email: {$user->email}, IP: {$request->ip()}");
+        Log::info("User baru berhasil terdaftar (Multi-Role): ID {$user->id}, Email: {$user->email}, Roles: " . implode(',', $roleIds));
 
         // Kirim Notifikasi Verifikasi Email Bawaan Laravel
         $user->sendEmailVerificationNotification();
@@ -156,7 +116,8 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
-        $remember = $request->boolean('remember');
+        // Opsi Remember Me aktif secara default untuk sesi panjang
+        $remember = $request->boolean('remember', true);
 
         if (Auth::attempt($credentials, $remember)) {
             RateLimiter::clear($throttleKey);

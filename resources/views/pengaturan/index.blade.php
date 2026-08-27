@@ -144,37 +144,88 @@
                         @error('station_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Jabatan / Role --}}
-                    <div class="md:col-span-2">
-                        <label for="role_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jabatan / Peran</label>
+                    {{-- Jabatan / Role (Multi-Role Support Dropdown Elegan) --}}
+                    <div class="md:col-span-2 relative" id="pengaturanRoleWrapper">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Peran / Jabatan yang Diemban</label>
+                            <span class="text-[10px] text-slate-400 font-medium">* Dapat memiliki lebih dari satu peran</span>
+                        </div>
 
                         @php
                             $isAdmin = ($user->role && strtolower($user->role->role_name) === 'admin') || $user->role_id == 1;
-                            $userRoleValue = old('role_id', $user->role_id ?? '');
+                            $currentRoleIds = old('roles', $user->roles->pluck('id')->toArray() ?: [$user->role_id]);
                         @endphp
 
                         @if($isAdmin)
-                            <div class="relative">
-                                <input type="text"
-                                    value="Admin (Akses Penuh System)"
-                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm cursor-not-allowed select-none"
-                                    readonly
-                                    disabled>
+                            <div class="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 rounded-lg text-xs font-bold uppercase tracking-wider border border-rose-200 dark:border-rose-800/80">
+                                        Admin (Akses Penuh System)
+                                    </span>
+                                </div>
                                 <input type="hidden" name="role_id" value="{{ $user->role_id }}">
+                                <p class="text-[10px] text-slate-400 mt-1.5">* Hak akses Administrator terkunci demi keamanan sistem.</p>
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">* Role Admin terkunci demi keamanan sistem.</p>
                         @else
-                            <select id="role_id" name="role_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('role_id') ? 'border-rose-500' : 'border-slate-200' }}">
-                                <option value="" disabled {{ empty($userRoleValue) ? 'selected' : '' }}>Pilih Peran Jabatan</option>
-                                @if(isset($daftarRole) && count($daftarRole) > 0)
-                                    @foreach($daftarRole as $role)
-                                        <option value="{{ $role->id }}" {{ (string)$userRoleValue === (string)$role->id ? 'selected' : '' }}>
-                                            {{ $role->role_name }}
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            @error('role_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            <!-- Trigger Dropdown (Tampilan Luar) -->
+                            <div id="pengaturanRoleTrigger" onclick="togglePengaturanRoleDropdown()"
+                                 class="min-h-[42px] w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none shadow-2xs hover:border-sky-400 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500">
+                                <div id="selectedPengaturanRolesPills" class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
+                                    <span id="pengaturanRolePlaceholder" class="text-slate-400 text-xs sm:text-sm py-1">Pilih satu atau beberapa jabatan...</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-slate-400 shrink-0 pl-1">
+                                    <span id="pengaturanRoleCountBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">0</span>
+                                    <i id="pengaturanRoleChevronIcon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                                </div>
+                            </div>
+
+                            <!-- Panel Dropdown Melayang (Floating Panel) -->
+                            <div id="pengaturanRolePanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-2.5 animate-in fade-in zoom-in-95 duration-150">
+                                <!-- Input Pencarian Cepat (Search Role) -->
+                                <div class="relative mb-2">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                                    </div>
+                                    <input type="text" id="pengaturanRoleSearchInput" onkeyup="filterPengaturanRoleList(this.value)" placeholder="Cari nama jabatan..."
+                                           class="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all">
+                                    <button type="button" onclick="clearPengaturanRoleSearch()" id="clearPengaturanRoleSearchBtn" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                        <i class="fa-solid fa-circle-xmark text-xs"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Action Bar: Status & Reset -->
+                                <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span id="pengaturanRoleFilterSummary">Daftar Jabatan:</span>
+                                    <button type="button" onclick="resetPengaturanRoles()" class="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-semibold cursor-pointer text-[10px]">
+                                        Reset Pilihan
+                                    </button>
+                                </div>
+
+                                <!-- Daftar Pilihan Role -->
+                                <div id="pengaturanRoleItemsContainer" class="max-h-52 overflow-y-auto space-y-1 pt-1.5 pr-0.5">
+                                    @if(isset($daftarRole) && count($daftarRole) > 0)
+                                        @foreach($daftarRole as $role)
+                                            <label class="pengaturan-role-item flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors text-xs select-none" data-name="{{ strtolower($role->role_name) }}">
+                                                <div class="flex items-center space-x-2.5 min-w-0">
+                                                    <input type="checkbox" name="roles[]" value="{{ $role->id }}" data-label="{{ $role->role_name }}"
+                                                           {{ in_array($role->id, (array)$currentRoleIds) ? 'checked' : '' }}
+                                                           onchange="onPengaturanRoleCheckboxChange()"
+                                                           class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer pengaturan-role-checkbox">
+                                                    <span class="font-medium text-slate-700 dark:text-slate-200 truncate">{{ $role->role_name }}</span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400 font-mono">#{{ $role->id }}</span>
+                                            </label>
+                                        @endforeach
+                                    @else
+                                        <p class="text-xs text-slate-400 p-3 text-center">Tidak ada data role tersedia</p>
+                                    @endif
+                                    <div id="noPengaturanRoleFound" class="hidden text-center py-4 text-xs text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass mb-1 block text-sm"></i>
+                                        Tidak ada jabatan yang cocok
+                                    </div>
+                                </div>
+                            </div>
+                            @error('roles') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         @endif
                     </div>
 
@@ -919,6 +970,149 @@
                 }
             }, 1000);
         }
+    });
+
+    // ==========================================
+    // MULTI-SELECT DROPDOWN HANDLER (PENGATURAN PROFIL)
+    // ==========================================
+    function togglePengaturanRoleDropdown(forceState = null) {
+        const panel = document.getElementById('pengaturanRolePanel');
+        const chevron = document.getElementById('pengaturanRoleChevronIcon');
+        const searchInput = document.getElementById('pengaturanRoleSearchInput');
+
+        if (!panel) return;
+
+        const isCurrentlyOpen = !panel.classList.contains('hidden');
+        const shouldOpen = forceState !== null ? forceState : !isCurrentlyOpen;
+
+        if (shouldOpen) {
+            panel.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+            if (searchInput) {
+                setTimeout(() => searchInput.focus(), 50);
+            }
+        } else {
+            panel.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function filterPengaturanRoleList(query) {
+        const cleanQuery = (query || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.pengaturan-role-item');
+        const noFound = document.getElementById('noPengaturanRoleFound');
+        const clearBtn = document.getElementById('clearPengaturanRoleSearchBtn');
+        const summary = document.getElementById('pengaturanRoleFilterSummary');
+
+        if (clearBtn) {
+            if (cleanQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+
+        let visibleCount = 0;
+        items.forEach(item => {
+            const name = item.getAttribute('data-name') || '';
+            if (name.includes(cleanQuery)) {
+                item.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+
+        if (noFound) {
+            if (visibleCount === 0) {
+                noFound.classList.remove('hidden');
+            } else {
+                noFound.classList.add('hidden');
+            }
+        }
+
+        if (summary) {
+            summary.innerText = cleanQuery.length > 0
+                ? `Ditemukan: ${visibleCount} jabatan`
+                : 'Daftar Jabatan:';
+        }
+    }
+
+    function clearPengaturanRoleSearch() {
+        const input = document.getElementById('pengaturanRoleSearchInput');
+        if (input) {
+            input.value = '';
+            filterPengaturanRoleList('');
+            input.focus();
+        }
+    }
+
+    function onPengaturanRoleCheckboxChange() {
+        const checkedBoxes = Array.from(document.querySelectorAll('.pengaturan-role-checkbox:checked'));
+        const pillsContainer = document.getElementById('selectedPengaturanRolesPills');
+        const countBadge = document.getElementById('pengaturanRoleCountBadge');
+
+        if (!pillsContainer) return;
+
+        if (checkedBoxes.length > 0) {
+            if (countBadge) {
+                countBadge.innerText = checkedBoxes.length;
+                countBadge.classList.remove('hidden');
+            }
+
+            let pillsHtml = '';
+            checkedBoxes.forEach(cb => {
+                const label = cb.getAttribute('data-label') || 'Role';
+                const val = cb.value;
+                pillsHtml += `
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 shadow-2xs transition-all">
+                        <span class="truncate max-w-[120px] sm:max-w-[160px]">${escapeHtmlPengaturan(label)}</span>
+                        <button type="button" onclick="uncheckPengaturanRole('${val}', event)" class="text-sky-500 hover:text-rose-500 dark:hover:text-rose-400 p-0.5 rounded transition-colors cursor-pointer" title="Hapus ${escapeHtmlPengaturan(label)}">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    </span>
+                `;
+            });
+            pillsContainer.innerHTML = pillsHtml;
+        } else {
+            pillsContainer.innerHTML = `<span id="pengaturanRolePlaceholder" class="text-slate-400 text-xs sm:text-sm py-1">Pilih satu atau beberapa jabatan...</span>`;
+            if (countBadge) countBadge.classList.add('hidden');
+        }
+    }
+
+    function uncheckPengaturanRole(roleId, event) {
+        if (event) event.stopPropagation();
+        const cb = document.querySelector(`.pengaturan-role-checkbox[value="${roleId}"]`);
+        if (cb) {
+            cb.checked = false;
+            onPengaturanRoleCheckboxChange();
+        }
+    }
+
+    function resetPengaturanRoles() {
+        const checkedBoxes = document.querySelectorAll('.pengaturan-role-checkbox:checked');
+        checkedBoxes.forEach(cb => cb.checked = false);
+        onPengaturanRoleCheckboxChange();
+    }
+
+    function escapeHtmlPengaturan(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('click', function(e) {
+        const wrapper = document.getElementById('pengaturanRoleWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            togglePengaturanRoleDropdown(false);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        onPengaturanRoleCheckboxChange();
     });
 </script>
 @endpush

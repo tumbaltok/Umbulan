@@ -162,10 +162,18 @@
                                 <td class="px-6 py-4 text-center">
                                     @php
                                         $roleNames = $karyawan->roles->pluck('role_name')->implode(' / ');
+                                        $roleIdsJson = json_encode($karyawan->roles->pluck('id')->toArray());
                                     @endphp
-                                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 text-slate-700 border border-slate-200/50">
-                                        {{ $roleNames ?: 'Tidak Ada Role' }}
-                                    </span>
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 text-slate-700 border border-slate-200/50 role-label-{{ $karyawan->id }}">
+                                            {{ $roleNames ?: 'Tidak Ada Role' }}
+                                        </span>
+                                        <button type="button"
+                                            onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }})'
+                                            class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                            <i class="fa-solid fa-user-tag text-[10px]"></i> Kelola Role
+                                        </button>
+                                    </div>
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
@@ -360,6 +368,59 @@
             <div class="flex justify-end space-x-2 pt-2">
                 <button type="button" onclick="tutupModalEditSaldo()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
                 <button type="submit" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL KELOLA MULTI-ROLE KARYAWAN --}}
+<div id="modalKelolaRole" class="fixed inset-0 z-50 items-center justify-center hidden">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalKelolaRole()"></div>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 m-4">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div>
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-sky-600"></i> Kelola Peran / Jabatan Karyawan
+                </h3>
+                <p id="labelKelolaRoleNama" class="text-xs text-slate-500 font-semibold mt-0.5"></p>
+            </div>
+            <button type="button" onclick="tutupModalKelolaRole()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form id="formKelolaRole" onsubmit="submitKelolaRole(event)" class="space-y-4">
+            @csrf
+            @method('PUT')
+            <input type="hidden" id="kelola_role_user_id" name="user_id">
+
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Pilih Peran yang Diemban (Multi-Role)
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-medium">Bisa pilih lebih dari satu peran</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    @foreach($daftarRole as $r)
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-all text-xs">
+                            <input type="checkbox" name="roles[]" value="{{ $r->id }}"
+                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer kelola-role-checkbox">
+                            <span class="font-semibold text-slate-700 leading-tight">{{ $r->role_name }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="tutupModalKelolaRole()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors">
+                    Batal
+                </button>
+                <button type="submit" id="btnSimpanKelolaRole" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Sinkronisasi Role
+                </button>
             </div>
         </form>
     </div>
@@ -839,6 +900,90 @@
                 customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
             });
         });
+    }
+
+    // HANDLER MODAL KELOLA MULTI-ROLE KARYAWAN
+    function bukaModalKelolaRole(userId, userName, roleIds) {
+        document.getElementById('kelola_role_user_id').value = userId;
+        document.getElementById('labelKelolaRoleNama').innerText = 'Karyawan: ' + userName;
+
+        const roleIdsArr = Array.isArray(roleIds) ? roleIds.map(Number) : [];
+        const checkboxes = document.querySelectorAll('.kelola-role-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = roleIdsArr.includes(parseInt(cb.value));
+        });
+
+        const errorMsg = document.getElementById('kelola-role-error');
+        if (errorMsg) errorMsg.classList.add('hidden');
+
+        const modal = document.getElementById('modalKelolaRole');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function tutupModalKelolaRole() {
+        const modal = document.getElementById('modalKelolaRole');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    async function submitKelolaRole(e) {
+        e.preventDefault();
+        const userId = document.getElementById('kelola_role_user_id').value;
+        const checked = Array.from(document.querySelectorAll('.kelola-role-checkbox:checked')).map(cb => cb.value);
+
+        const errorMsg = document.getElementById('kelola-role-error');
+        if (checked.length === 0) {
+            if (errorMsg) errorMsg.classList.remove('hidden');
+            return;
+        }
+        if (errorMsg) errorMsg.classList.add('hidden');
+
+        const btnSubmit = document.getElementById('btnSimpanKelolaRole');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            const response = await fetch(`/admin/karyawan/${userId}/roles`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ roles: checked })
+            });
+
+            const res = await response.json();
+            if (response.ok && res.success) {
+                tutupModalKelolaRole();
+
+                Swal.fire({
+                    title: 'BERHASIL!',
+                    text: res.message || 'Peran karyawan berhasil disinkronkan!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0284c7',
+                    customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error(res.message || 'Gagal memperbarui peran karyawan.');
+            }
+        } catch (err) {
+            Swal.fire({
+                title: 'Gagal!',
+                text: err.message || 'Terjadi kesalahan sistem.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+            });
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Sinkronisasi Role`;
+        }
     }
 </script>
 @endpush
