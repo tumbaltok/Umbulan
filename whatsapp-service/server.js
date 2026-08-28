@@ -30,6 +30,7 @@ let sock = null;
 let currentQr = null;
 let currentQrDataUrl = null;
 let isConnecting = false;
+let isSocketConnected = false;
 let manualLogoutRequested = false;
 
 // Pastikan direktori sesi autentikasi tersedia
@@ -66,7 +67,7 @@ async function enqueueMessage(targetJid, textMessage) {
     return new Promise((resolve, reject) => {
         sendQueue = sendQueue
             .then(async () => {
-                if (!sock || !sock.user || !sock.user.id) {
+                if (!isSocketConnected || !sock || !sock.user || !sock.user.id) {
                     throw new Error('WhatsApp Gateway belum terhubung.');
                 }
                 const sent = await sock.sendMessage(targetJid, { text: textMessage });
@@ -90,6 +91,31 @@ async function startWhatsAppSocket() {
     try {
         ensureAuthDir();
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_PATH);
+
+        // DETEKSI SESI CORRUPT / ZOMBIE:
+        // Jika file sesi memiliki objek 'me' tetapi 'registered === false',
+        // Baileys akan macet mencoba login (generateLoginNode) alih-alih registrasi (generateRegistrationNode).
+        // Kondisi ini membuat WhatsApp tidak pernah mengirimkan QR code. Bersihkan agar meminta pairing baru.
+        if (state.creds && state.creds.me && state.creds.registered === false) {
+            console.warn('[WhatsApp Gateway] ⚠️ Terdeteksi sesi corrupt/unregistered di disk. Membersihkan sesi otomatis...');
+            clearAuthSession();
+            isConnecting = false;
+            return setTimeout(() => startWhatsAppSocket(), 500);
+        }
+
+        // Bersihkan instance socket lama sebelum membuat yang baru untuk mencegah socket/listener leak
+        if (sock) {
+            try {
+                sock.ev?.removeAllListeners();
+                if (typeof sock.end === 'function') {
+                    sock.end(undefined);
+                }
+            } catch (cleanupErr) {
+                // Abaikan jika socket sudah tertutup
+            }
+            sock = null;
+        }
+
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
         console.log(`[WhatsApp Gateway] 🔄 Menginisialisasi socket Baileys v${version.join('.')}...`);
@@ -135,8 +161,13 @@ async function startWhatsAppSocket() {
                 console.log('[WhatsApp Gateway] 📱 QR Code baru siap untuk di-scan.');
             }
 
+            if (connection === 'connecting') {
+                isSocketConnected = false;
+            }
+
             if (connection === 'open') {
                 isConnecting = false;
+                isSocketConnected = true;
                 manualLogoutRequested = false;
                 currentQr = null;
                 currentQrDataUrl = null;
@@ -148,21 +179,27 @@ async function startWhatsAppSocket() {
 
             if (connection === 'close') {
                 isConnecting = false;
+                isSocketConnected = false;
 
                 const statusCode = (lastDisconnect?.error instanceof Boom)
                     ? lastDisconnect.error.output?.statusCode
                     : lastDisconnect?.error?.statusCode;
 
-                const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+                // Status pemutusan permanen di mana sesi lokal tidak lagi valid:
+                // - loggedOut (401): perangkat di-unpair dari WhatsApp smartphone
+                // - forbidden (403): akun dilarang/diblokir oleh WhatsApp
+                // - multideviceMismatch (411): versi protokol multi-device tidak cocok
+                // - badSession (500): stream error / sesi corrupt tak terpulihkan
+                const isPermanentDisconnect = manualLogoutRequested
+                    || statusCode === DisconnectReason.loggedOut
+                    || statusCode === DisconnectReason.forbidden
+                    || statusCode === DisconnectReason.multideviceMismatch
+                    || statusCode === DisconnectReason.badSession;
 
-                console.warn(`[WhatsApp Gateway] ⚠️ Koneksi terputus. Status Code: ${statusCode}. Manual Logout: ${manualLogoutRequested}`);
+                console.warn(`[WhatsApp Gateway] ⚠️ Koneksi terputus. Status Code: ${statusCode}. Permanent: ${isPermanentDisconnect}. Manual Logout: ${manualLogoutRequested}`);
 
-                // STRICT DISCONNECT PROTECTION:
-                // Sesi di disk HANYA BOLEH DIHAPUS jika:
-                // 1. Admin secara eksplisit memicu POST /disconnect (manualLogoutRequested === true)
-                // 2. ATAU perangkat secara resmi di-unpair dari WhatsApp smartphone (isLoggedOut === true / 401)
-                if (manualLogoutRequested || isLoggedOut) {
-                    console.log('[WhatsApp Gateway] 🗑️ Menghapus sesi kredensial karena logout permanen...');
+                if (isPermanentDisconnect) {
+                    console.log(`[WhatsApp Gateway] 🗑️ Menghapus sesi kredensial karena pemutusan permanen / invalid (Status ${statusCode})...`);
                     currentQr = null;
                     currentQrDataUrl = null;
                     clearAuthSession();
@@ -170,7 +207,8 @@ async function startWhatsAppSocket() {
                     setTimeout(() => startWhatsAppSocket(), 2000);
                 } else {
                     // SILENT AUTO-RECONNECT:
-                    // JANGAN hapus folder sesi! Cukup sambungkan ulang socket secara transparan di background
+                    // Timeout (408), connectionClosed (428), restartRequired (515), dll.
+                    // Hubungkan kembali socket secara transparan di background
                     console.log(`[WhatsApp Gateway] 🔄 Silent auto-reconnect (Status ${statusCode}). Menghubungkan ulang dalam 3 detik...`);
                     setTimeout(() => startWhatsAppSocket(), 3000);
                 }
@@ -180,6 +218,7 @@ async function startWhatsAppSocket() {
     } catch (err) {
         console.error('[WhatsApp Gateway Init Error]:', err);
         isConnecting = false;
+        isSocketConnected = false;
         setTimeout(() => startWhatsAppSocket(), 5000);
     }
 }
@@ -193,16 +232,17 @@ async function startWhatsAppSocket() {
  * Status koneksi real-time untuk dashboard & scheduler
  */
 app.get('/status', (req, res) => {
-    const isConnected = !!(sock && sock.user && sock.user.id);
-    const phone = isConnected ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '') : null;
+    const phone = isSocketConnected && sock?.user?.id
+        ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '')
+        : null;
 
     res.json({
         success: true,
         online: true,
-        status: isConnected ? 'connected' : (currentQr ? 'connecting' : 'disconnected'),
+        status: isSocketConnected ? 'connected' : (currentQr ? 'connecting' : 'disconnected'),
         phone: phone,
-        qr: currentQrDataUrl,
-        raw: currentQr,
+        qr: isSocketConnected ? null : currentQrDataUrl,
+        raw: isSocketConnected ? null : currentQr,
         uptime: process.uptime()
     });
 });
@@ -212,10 +252,11 @@ app.get('/status', (req, res) => {
  * Mengembalikan string Data URL QR Code
  */
 app.get('/qr', (req, res) => {
-    const isConnected = !!(sock && sock.user && sock.user.id);
-    const phone = isConnected ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '') : null;
+    const phone = isSocketConnected && sock?.user?.id
+        ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '')
+        : null;
 
-    if (isConnected) {
+    if (isSocketConnected) {
         return res.json({
             success: true,
             status: 'connected',
@@ -248,8 +289,7 @@ app.post('/send-message', async (req, res) => {
         });
     }
 
-    const isConnected = !!(sock && sock.user && sock.user.id);
-    if (!isConnected) {
+    if (!isSocketConnected || !sock || !sock.user || !sock.user.id) {
         return res.status(503).json({
             success: false,
             message: 'WhatsApp Gateway belum terhubung. Silakan sambungkan perangkat terlebih dahulu.'
@@ -290,26 +330,37 @@ app.post('/send-message', async (req, res) => {
 
 /**
  * POST /disconnect
- * Manual Disconnect dari Admin (Satu-satunya pemicu penghapusan sesi lokal)
+ * Manual Disconnect dari Admin (Satu-satunya pemicu penghapusan sesi lokal secara eksplisit)
  */
 app.post('/disconnect', async (req, res) => {
     try {
         console.log('[WhatsApp Gateway] 🛑 Permintaan manual disconnect diterima dari Admin...');
         manualLogoutRequested = true;
+        isSocketConnected = false;
         currentQr = null;
         currentQrDataUrl = null;
 
         if (sock) {
-            await sock.logout().catch(() => {});
+            try {
+                sock.ev?.removeAllListeners();
+                await sock.logout().catch(() => {});
+                if (typeof sock.end === 'function') {
+                    sock.end(undefined);
+                }
+            } catch (sockErr) {
+                // Abaikan error saat cleanup socket
+            }
+            sock = null;
         }
 
         clearAuthSession();
         manualLogoutRequested = false;
+        isConnecting = false;
 
         // Restart socket untuk langsung menyiapkan QR pairing baru
         setTimeout(() => {
             startWhatsAppSocket();
-        }, 1500);
+        }, 1000);
 
         return res.json({
             success: true,

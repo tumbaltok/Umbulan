@@ -104,6 +104,8 @@ class WhatsAppService
                     'online'  => true,
                     'status'  => $data['status'] ?? 'disconnected',
                     'phone'   => $data['phone'] ?? null,
+                    'qr'      => $data['qr'] ?? null,
+                    'raw'     => $data['raw'] ?? null,
                     'uptime'  => $data['uptime'] ?? 0,
                 ];
             }
@@ -115,6 +117,8 @@ class WhatsAppService
             'online'  => false,
             'status'  => 'disconnected',
             'phone'   => null,
+            'qr'      => null,
+            'raw'     => null,
             'uptime'  => 0,
             'error'   => 'Service WhatsApp Gateway offline / tidak aktif.',
         ];

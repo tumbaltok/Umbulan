@@ -61,10 +61,15 @@
                                 <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                 TERHUBUNG
                             </span>
-                        @elseif(($statusData['status'] ?? '') === 'connecting')
+                        @elseif(!empty($statusData['qr']) || ($statusData['status'] ?? '') === 'connecting')
                             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                 <span class="h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
-                                MENGHUBUNGKAN
+                                MENGHUBUNGKAN (SIAP SCAN)
+                            </span>
+                        @elseif(!($statusData['online'] ?? false))
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                                SERVICE OFFLINE
                             </span>
                         @else
                             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
@@ -90,9 +95,15 @@
                     </div>
 
                     <div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1">
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Port & Host Service</span>
-                        <p class="font-bold text-sm sm:text-base text-sky-600 dark:text-sky-400 font-mono">
-                            http://127.0.0.1:3001
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Microservice Engine (Port 3001)</span>
+                        <p id="microserviceStatusDisplay" class="font-bold text-sm sm:text-base font-mono flex items-center gap-2">
+                            @if($statusData['online'] ?? false)
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-bold">Online (Aktif)</span>
+                            @else
+                                <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                                <span class="text-rose-600 dark:text-rose-400 font-bold">Offline (Mati)</span>
+                            @endif
                         </p>
                     </div>
                 </div>
@@ -104,7 +115,7 @@
                     </p>
                     <button onclick="confirmDisconnect()" id="disconnectBtn" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 dark:text-rose-400 rounded-xl text-xs font-bold transition-all border border-rose-200 dark:border-rose-800/80 flex items-center justify-center space-x-2 cursor-pointer active:scale-95 whitespace-nowrap">
                         <i class="fa-solid fa-power-off"></i>
-                        <span>Putuskan Koneksi / Logout</span>
+                        <span>Putuskan Sesi / Reset QR</span>
                     </button>
                 </div>
             </div>
@@ -122,7 +133,7 @@
                         </div>
                     </div>
 
-                    <div id="qrLiveIndicator" class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    <div id="qrLiveIndicator" class="{{ ($statusData['status'] ?? '') === 'connected' ? 'hidden' : 'flex' }} items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                         <span>Live Sync</span>
                     </div>
@@ -130,17 +141,27 @@
 
                 {{-- AREA TAMPILAN QR ATAU KONEKSI SUKSES --}}
                 <div class="flex flex-col items-center justify-center py-6 px-4">
-                    {{-- WIDGET QR CODE --}}
-                    <div id="qrBox" class="relative p-4 bg-white rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center min-w-[260px] min-h-[260px]">
-                        <img id="qrImage" src="" alt="WhatsApp QR Code" class="hidden w-60 h-60 rounded-2xl object-contain transition-all duration-300">
-                        <div id="qrPlaceholder" class="flex flex-col items-center justify-center space-y-3 text-slate-400 p-8 text-center">
+                    {{-- WIDGET QR CODE (SSR READY) --}}
+                    @php
+                        $isAlreadyConnected = ($statusData['status'] ?? '') === 'connected';
+                        $initialQr = $statusData['qr'] ?? null;
+                    @endphp
+                    <div id="qrBox" class="{{ $isAlreadyConnected ? 'hidden' : '' }} relative p-4 bg-white rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center min-w-[260px] min-h-[260px]">
+                        <img id="qrImage" src="{{ $initialQr ?? '' }}" alt="WhatsApp QR Code" class="{{ !empty($initialQr) ? '' : 'hidden' }} w-60 h-60 rounded-2xl object-contain transition-all duration-300">
+                        <div id="qrPlaceholder" class="{{ !empty($initialQr) ? 'hidden' : 'flex' }} flex-col items-center justify-center space-y-3 text-slate-400 p-8 text-center">
                             <div class="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span class="text-xs font-semibold">Memuat QR Code dari Gateway...</span>
+                            <span id="qrPlaceholderText" class="text-xs font-semibold">
+                                @if(!($statusData['online'] ?? false))
+                                    Microservice WhatsApp Gateway (Port 3001) belum aktif
+                                @else
+                                    Menyiapkan QR Code dari Gateway...
+                                @endif
+                            </span>
                         </div>
                     </div>
 
                     {{-- PESAN SUKSES SAAT TERHUBUNG --}}
-                    <div id="connectedNotice" class="hidden text-center py-6 space-y-3">
+                    <div id="connectedNotice" class="{{ $isAlreadyConnected ? '' : 'hidden' }} text-center py-6 space-y-3">
                         <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
                             <i class="fa-solid fa-check"></i>
                         </div>
@@ -151,7 +172,7 @@
                     </div>
 
                     {{-- PETUNJUK PAIRING --}}
-                    <div id="pairingGuide" class="mt-6 w-full max-w-md bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div id="pairingGuide" class="{{ $isAlreadyConnected ? 'hidden' : '' }} mt-6 w-full max-w-md bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-400">
                         <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-circle-info text-sky-500"></i> Cara Menautkan Perangkat:
                         </p>
@@ -274,15 +295,24 @@
         }, 6000);
     }
 
-    function updateUiState(status, phone, qrUrl) {
+    function updateUiState(status, phone, qrUrl, isOnline = true) {
         const badgeContainer = document.getElementById('statusBadgeContainer');
         const phoneDisplay = document.getElementById('connectedPhoneDisplay');
+        const microserviceDisplay = document.getElementById('microserviceStatusDisplay');
         const qrBox = document.getElementById('qrBox');
         const qrImage = document.getElementById('qrImage');
         const qrPlaceholder = document.getElementById('qrPlaceholder');
+        const qrPlaceholderText = document.getElementById('qrPlaceholderText');
         const connectedNotice = document.getElementById('connectedNotice');
         const pairingGuide = document.getElementById('pairingGuide');
         const qrLiveIndicator = document.getElementById('qrLiveIndicator');
+
+        // Update indikator engine microservice
+        if (microserviceDisplay) {
+            microserviceDisplay.innerHTML = isOnline
+                ? `<span class="h-2 w-2 rounded-full bg-emerald-500"></span><span class="text-emerald-600 dark:text-emerald-400 font-bold">Online (Aktif)</span>`
+                : `<span class="h-2 w-2 rounded-full bg-rose-500"></span><span class="text-rose-600 dark:text-rose-400 font-bold">Offline (Mati)</span>`;
+        }
 
         if (status === 'connected') {
             isConnected = true;
@@ -300,12 +330,12 @@
             pairingGuide.classList.add('hidden');
             connectedNotice.classList.remove('hidden');
             qrLiveIndicator.classList.add('hidden');
-        } else if (status === 'connecting') {
+        } else if (status === 'connecting' || qrUrl) {
             isConnected = false;
             badgeContainer.innerHTML = `
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                     <span class="h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
-                    MENGHUBUNGKAN
+                    MENGHUBUNGKAN (SIAP SCAN)
                 </span>
             `;
             phoneDisplay.innerHTML = `<span class="text-slate-400 font-normal italic">Menyiapkan koneksi...</span>`;
@@ -319,30 +349,40 @@
                 qrImage.src = qrUrl;
                 qrImage.classList.remove('hidden');
                 qrPlaceholder.classList.add('hidden');
+            } else {
+                qrImage.classList.add('hidden');
+                qrPlaceholder.classList.remove('hidden');
+                if (qrPlaceholderText) qrPlaceholderText.innerText = 'Menyiapkan QR Code dari Gateway...';
             }
         } else {
             isConnected = false;
-            badgeContainer.innerHTML = `
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                    <span class="h-2 w-2 rounded-full bg-rose-500"></span>
-                    TERPUTUS
-                </span>
-            `;
-            phoneDisplay.innerHTML = `<span class="text-slate-400 font-normal italic">Belum terhubung</span>`;
+            if (!isOnline) {
+                badgeContainer.innerHTML = `
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                        <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                        SERVICE OFFLINE
+                    </span>
+                `;
+                phoneDisplay.innerHTML = `<span class="text-rose-500 font-medium italic">Service Node.js Offline</span>`;
+                if (qrPlaceholderText) qrPlaceholderText.innerText = 'Microservice WhatsApp Gateway (Port 3001) belum aktif';
+            } else {
+                badgeContainer.innerHTML = `
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                        <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                        TERPUTUS
+                    </span>
+                `;
+                phoneDisplay.innerHTML = `<span class="text-slate-400 font-normal italic">Belum terhubung</span>`;
+                if (qrPlaceholderText) qrPlaceholderText.innerText = 'Menyiapkan QR Code dari Gateway...';
+            }
 
             qrBox.classList.remove('hidden');
             pairingGuide.classList.remove('hidden');
             connectedNotice.classList.add('hidden');
-            qrLiveIndicator.classList.remove('hidden');
+            qrLiveIndicator.classList.add('hidden');
 
-            if (qrUrl) {
-                qrImage.src = qrUrl;
-                qrImage.classList.remove('hidden');
-                qrPlaceholder.classList.add('hidden');
-            } else {
-                qrImage.classList.add('hidden');
-                qrPlaceholder.classList.remove('hidden');
-            }
+            qrImage.classList.add('hidden');
+            qrPlaceholder.classList.remove('hidden');
         }
     }
 
@@ -352,19 +392,35 @@
             if (!statusRes.ok) throw new Error('Gateway Offline');
             const statusData = await statusRes.json();
 
+            const isOnline = statusData.online ?? false;
+
             if (statusData.status === 'connected') {
-                updateUiState('connected', statusData.phone, null);
+                updateUiState('connected', statusData.phone, null, isOnline);
                 return;
             }
 
-            // Jika belum terhubung, ambil QR code
-            const qrRes = await fetch('{{ route("admin.whatsapp.qr") }}');
-            if (qrRes.ok) {
-                const qrData = await qrRes.json();
-                updateUiState(statusData.status, statusData.phone, qrData.qr);
+            // Jika status response sudah menyertakan QR data URL
+            if (statusData.qr) {
+                updateUiState('connecting', statusData.phone, statusData.qr, isOnline);
+                return;
             }
+
+            // Fallback: Jika belum ada QR di status, lakukan fetch ke endpoint /qr
+            try {
+                const qrRes = await fetch('{{ route("admin.whatsapp.qr") }}');
+                if (qrRes.ok) {
+                    const qrData = await qrRes.json();
+                    const finalStatus = qrData.qr ? 'connecting' : (statusData.status || 'disconnected');
+                    updateUiState(finalStatus, statusData.phone, qrData.qr, isOnline);
+                    return;
+                }
+            } catch (qrErr) {
+                // Abaikan jika endpoint qr sementara belum merespons
+            }
+
+            updateUiState(statusData.status || 'disconnected', statusData.phone, null, isOnline);
         } catch (e) {
-            updateUiState('disconnected', null, null);
+            updateUiState('disconnected', null, null, false);
         }
     }
 
