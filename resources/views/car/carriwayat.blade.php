@@ -2,14 +2,14 @@
 @section('title', 'Riwayat Pengajuan CAR')
 
 @section('content')
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 max-w-6xl mx-auto m-2 sm:m-6">
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm p-4 sm:p-6 max-w-6xl mx-auto m-2 sm:m-6 transition-colors">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div class="flex items-center space-x-3">
-            <div class="bg-sky-50 p-3 rounded-xl text-sky-600">
+            <div class="bg-sky-50 dark:bg-sky-950/50 p-3 rounded-xl text-sky-600 dark:text-sky-400">
                 <i class="fa-solid fa-receipt text-xl"></i>
             </div>
             <div>
-                <h2 class="text-lg sm:text-xl font-bold text-slate-800">Riwayat Pengajuan Uang Material (CAR)</h2>
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">Riwayat Pengajuan Uang Material (CAR)</h2>
                 <p class="text-xs text-slate-400">Daftar pemantauan status persetujuan berkas pembelian barang Anda</p>
             </div>
         </div>
@@ -19,19 +19,19 @@
     </div>
 
     @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl">
+        <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 text-sm rounded-xl">
             {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
+        <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 text-sm rounded-xl">
             {{ session('error') }}
         </div>
     @endif
 
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-600">
-            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-y border-slate-100">
+        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider border-y border-slate-100 dark:border-slate-700">
                 <tr>
                     <th class="py-3 px-4" style="width: 18%;">No. CAR / Tanggal</th>
                     <th class="py-3 px-4" style="width: 42%;">Rincian Barang & Nota</th>
@@ -40,11 +40,11 @@
                     <th class="py-3 px-4 text-center" style="width: 10%;">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                 @forelse($riwayatCar as $car)
-                <tr class="hover:bg-slate-50/50 transition-colors">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                     <td class="py-3.5 px-4 align-top">
-                        <span class="font-bold text-slate-800 block text-xs">{{ $car->nomor_car ?? ('CAR #' . sprintf('%03d', $car->id)) }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-100 block text-xs">{{ $car->nomor_car ?? ('CAR #' . sprintf('%03d', $car->id)) }}</span>
                         <span class="text-[11px] text-slate-400 block mt-0.5">{{ $car->tanggal_pengajuan ? \Carbon\Carbon::parse($car->tanggal_pengajuan)->format('d M Y') : $car->created_at->format('d M Y') }}</span>
                     </td>
 
@@ -52,19 +52,19 @@
                     <td class="py-3.5 px-4 align-top">
                         <ul class="space-y-2">
                             @foreach($car->details as $detail)
-                                <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                                <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60">
                                     <div class="space-y-0.5">
-                                        <span class="font-medium text-slate-900 block text-xs">{{ $detail->nama_barang }}</span>
-                                        <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-1.5">
-                                            <span class="font-semibold text-slate-700">Rp {{ number_format($detail->estimasi_harga ?? 0, 0, ',', '.') }}</span>
+                                        <span class="font-medium text-slate-900 dark:text-slate-100 block text-xs">{{ $detail->nama_barang }}</span>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-1.5">
+                                            <span class="font-semibold text-slate-700 dark:text-slate-300">Rp {{ number_format($detail->estimasi_harga ?? 0, 0, ',', '.') }}</span>
                                             <span class="text-slate-400">x {{ $detail->jumlah }} {{ $detail->satuan }}</span>
                                             @if(($detail->ongkir ?? 0) > 0)
-                                                <span class="text-slate-300">|</span>
-                                                <span class="text-amber-600 font-medium">+ Ongkir: Rp {{ number_format($detail->ongkir, 0, ',', '.') }}</span>
+                                                <span class="text-slate-300 dark:text-slate-600">|</span>
+                                                <span class="text-amber-600 dark:text-amber-400 font-medium">+ Ongkir: Rp {{ number_format($detail->ongkir, 0, ',', '.') }}</span>
                                             @endif
-                                            <span class="text-slate-300">|</span>
+                                            <span class="text-slate-300 dark:text-slate-600">|</span>
                                             <span class="text-slate-400">Total:</span>
-                                            <span class="font-bold text-slate-700">Rp {{ number_format($detail->total_harga, 0, ',', '.') }}</span>
+                                            <span class="font-bold text-slate-700 dark:text-slate-200">Rp {{ number_format($detail->total_harga, 0, ',', '.') }}</span>
                                         </div>
                                     </div>
 
@@ -72,7 +72,7 @@
                                         <button type="button"
                                                 data-url="{{ asset('storage/' . $detail->dokumen_nota_or_proposal) }}"
                                                 onclick="bukaPratinjauLampiran(this.dataset.url)"
-                                                class="self-start sm:self-auto inline-flex items-center gap-1 text-[11px] bg-white hover:bg-slate-100 text-sky-600 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer">
+                                                class="self-start sm:self-auto inline-flex items-center gap-1 text-[11px] bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs transition-colors cursor-pointer">
                                             <i class="fa-solid fa-file-invoice"></i> Nota
                                         </button>
                                     @endif
@@ -83,12 +83,12 @@
 
                     {{-- Menghitung akumulasi grand total biaya dari semua detail barang --}}
                     <td class="py-3.5 px-4 align-top whitespace-nowrap">
-                        <div class="font-bold text-emerald-600 text-xs">
+                        <div class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
                             Rp {{ number_format($car->details->sum('total_harga'), 0, ',', '.') }}
                         </div>
                         @php $totalOngkirCar = $car->details->sum('ongkir'); @endphp
                         @if($totalOngkirCar > 0)
-                            <span class="block text-[10px] text-amber-600 font-medium mt-0.5">
+                            <span class="block text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
                                 Termasuk Ongkir: Rp {{ number_format($totalOngkirCar, 0, ',', '.') }}
                             </span>
                         @endif
@@ -97,16 +97,16 @@
                     {{-- Status Persetujuan --}}
                     <td class="py-3.5 px-4 text-center align-top whitespace-nowrap">
                         @if(trim(strtolower($car->status_akhir)) === 'approved')
-                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-[10px] font-bold uppercase">Disetujui</span>
+                            <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[10px] font-bold uppercase">Disetujui</span>
                         @elseif(trim(strtolower($car->status_akhir)) === 'rejected')
-                            <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-[10px] font-bold uppercase">Ditolak</span>
+                            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded-lg text-[10px] font-bold uppercase">Ditolak</span>
                             @if(!empty($car->catatan_penolakan))
-                                <span class="block text-[11px] text-rose-600 font-medium italic max-w-[180px] whitespace-normal mx-auto mt-1.5 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+                                <span class="block text-[11px] text-rose-600 dark:text-rose-400 font-medium italic max-w-[180px] whitespace-normal mx-auto mt-1.5 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-800">
                                     {{ $car->catatan_penolakan }}
                                 </span>
                             @endif
                         @else
-                            <span class="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded-lg text-[10px] font-bold uppercase">Menunggu</span>
+                            <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-[10px] font-bold uppercase">Menunggu</span>
                         @endif
                     </td>
 
@@ -115,7 +115,7 @@
                         @if(trim(strtolower($car->status_akhir)) === 'approved')
                             <button type="button"
                                     onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}')"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
                                 <i class="fa-solid fa-print"></i> Cetak PDF
                             </button>
                         @else
@@ -137,20 +137,20 @@
 
 {{-- MODAL POPUP PRATINJAU LAMPIRAN & CETAK --}}
 <div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
         {{-- Header Modal --}}
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-2">
-                <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
-                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800">Pratinjau Lampiran Dokumen</h3>
+                <i class="fa-solid fa-file-lines text-sky-600 dark:text-sky-400 text-base"></i>
+                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800 dark:text-slate-100">Pratinjau Lampiran Dokumen</h3>
             </div>
-            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors">
+            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         {{-- Konten Utama / Tempat Render File --}}
-        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
+        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-2 sm:p-4 overflow-auto">
         </div>
     </div>
 </div>

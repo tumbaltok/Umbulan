@@ -10,13 +10,13 @@
         </div>
     @endif
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
         {{-- Header & Panel Filter / Export --}}
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-4">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-4">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-800">Record Riwayat Cuti Karyawan</h2>
-                    <p class="text-sm text-slate-500 mt-0.5">Daftar staf yang memiliki riwayat cuti beserta detail pengajuannya.</p>
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Record Riwayat Cuti Karyawan</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Daftar staf yang memiliki riwayat cuti beserta detail pengajuannya.</p>
                 </div>
 
                 <div class="w-full md:w-auto flex items-center justify-end">
@@ -33,12 +33,12 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                     </span>
-                    <input type="text" id="table-search" placeholder="Cari nama karyawan, NIP, atau jabatan..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all">
+                    <input type="text" id="table-search" placeholder="Cari nama karyawan, NIP, atau jabatan..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-700 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all">
                 </div>
 
                 <form action="{{ route('admin.record.cuti') }}" method="GET" id="form-filter" class="w-full md:w-auto flex flex-wrap items-center justify-end gap-2 m-0">
                     <div class="w-full sm:w-36">
-                        <select name="bulan" id="filter_bulan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
+                        <select name="bulan" id="filter_bulan" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
                             <option value="">Semua Bulan</option>
                             @foreach(range(1, 12) as $m)
                                 <option value="{{ $m }}" {{ request('bulan') == $m ? 'selected' : '' }}>
@@ -49,7 +49,7 @@
                     </div>
 
                     <div class="w-full sm:w-28">
-                        <select name="tahun" id="filter_tahun" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
+                        <select name="tahun" id="filter_tahun" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-100 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
                             @php $tahunSekarang = date('Y'); @endphp
                             @foreach(range($tahunSekarang, $tahunSekarang - 5) as $y)
                                 <option value="{{ $y }}" {{ request('tahun', $tahunSekarang) == $y ? 'selected' : '' }}>
@@ -71,14 +71,14 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse" id="cuti-table">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors group" onclick="sortTable(0)">
+                    <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 select-none">
+                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800 hover:text-slate-600 transition-colors group" onclick="sortTable(0)">
                             <div class="flex items-center gap-1.5">
                                 Nama Lengkap
                                 <i class="fa-solid fa-sort text-[10px] text-slate-300 group-hover:text-slate-400 transition-colors"></i>
                             </div>
                         </th>
-                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors group" onclick="sortTable(1)">
+                        <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800 hover:text-slate-600 transition-colors group" onclick="sortTable(1)">
                             <div class="flex items-center gap-1.5">
                                 Jabatan
                                 <i class="fa-solid fa-sort text-[10px] text-slate-300 group-hover:text-slate-400 transition-colors"></i>
@@ -89,7 +89,7 @@
                         <th class="px-6 py-4 text-center w-36">Aksi History</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700" id="table-body">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300" id="table-body">
                     @forelse($groupedCuti as $userId => $items)
                         @php
                             $karyawan = $items->first()->user;
@@ -108,11 +108,11 @@
                                 ];
                             });
                         @endphp
-                        <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors table-row-item">
                             {{-- Kolom Nama & Foto Profil --}}
-                            <td class="px-6 py-4 font-medium text-slate-900 data-name" data-value="{{ strtolower($karyawan->name ?? '') }} {{ strtolower($karyawan->nip ?? '') }}">
+                            <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100 data-name" data-value="{{ strtolower($karyawan->name ?? '') }} {{ strtolower($karyawan->nip ?? '') }}">
                                 <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id ?? '' }}">
-                                    <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
+                                    <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700 shrink-0">
                                         @if($karyawan && $karyawan->profile_photo)
                                             <img src="{{ asset('storage/' . $karyawan->profile_photo) }}" alt="Foto" class="w-full h-full object-cover">
                                         @else
@@ -120,7 +120,7 @@
                                         @endif
                                     </div>
                                     <div class="flex flex-col">
-                                        <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors">{{ $karyawan->name ?? '-' }}</span>
+                                        <span class="text-slate-800 dark:text-slate-100 font-semibold text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:underline transition-colors">{{ $karyawan->name ?? '-' }}</span>
                                         <span class="text-xs text-slate-400">NIP: {{ $karyawan->nip ?? '-' }}</span>
                                     </div>
                                 </div>
@@ -185,13 +185,13 @@
 <div id="modalHistoryCuti" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalHistory()"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 relative z-10 transform transition-all m-4 max-h-[85vh] flex flex-col border border-slate-100">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl p-6 relative z-10 transform transition-all m-4 max-h-[85vh] flex flex-col border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4">
             <div>
-                <h3 class="font-bold text-slate-800 text-base" id="judulModalHistory">History Pengajuan Cuti</h3>
-                <p id="subjudulModalHistory" class="text-xs text-sky-600 font-medium mt-0.5"></p>
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base" id="judulModalHistory">History Pengajuan Cuti</h3>
+                <p id="subjudulModalHistory" class="text-xs text-sky-600 dark:text-sky-400 font-medium mt-0.5"></p>
             </div>
-            <button type="button" onclick="tutupModalHistory()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+            <button type="button" onclick="tutupModalHistory()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -199,20 +199,20 @@
         <div class="overflow-y-auto flex-1 pr-1 space-y-3">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 select-none">
+                    <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 select-none">
                         <th class="px-4 py-3">Jenis Cuti</th>
                         <th class="px-4 py-3">Sub Cuti / Alasan</th>
                         <th class="px-4 py-3 text-center">Durasi</th>
                         <th class="px-4 py-3 text-center">Rentang Tanggal</th>
                     </tr>
                 </thead>
-                <tbody id="historyTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <tbody id="historyTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                 </tbody>
             </table>
         </div>
 
-        <div class="flex items-center justify-end border-t border-slate-100 pt-4 mt-4">
-            <button type="button" onclick="tutupModalHistory()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl cursor-pointer">
+        <div class="flex items-center justify-end border-t border-slate-100 dark:border-slate-700 pt-4 mt-4">
+            <button type="button" onclick="tutupModalHistory()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl cursor-pointer">
                 Tutup
             </button>
         </div>
@@ -223,53 +223,53 @@
 <div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="detailModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-800 text-base">Detail Lengkap Karyawan</h3>
-            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 cursor-pointer">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Detail Lengkap Karyawan</h3>
+            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         <div id="modalLoading" class="py-12 text-center">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-sky-600 mb-2"></div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-sky-600 mb-2"></div>
             <p class="text-xs text-slate-400">Memuat data...</p>
         </div>
 
         <div id="modalDataContent" class="hidden space-y-6">
             <div class="flex flex-col items-center justify-center text-center">
-                <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white ring-4 ring-sky-50"></div>
-                <h4 id="detail_name" class="font-bold text-lg text-slate-800"></h4>
-                <p id="detail_role" class="text-xs font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100"></p>
+                <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white dark:border-slate-700 ring-4 ring-sky-50 dark:ring-sky-950"></div>
+                <h4 id="detail_name" class="font-bold text-lg text-slate-800 dark:text-slate-100"></h4>
+                <p id="detail_role" class="text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100 dark:border-sky-800"></p>
             </div>
 
-            <div class="border-t border-slate-100 pt-4 grid grid-cols-1 gap-y-4 text-sm">
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-4 grid grid-cols-1 gap-y-4 text-sm">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">NIP</span>
-                    <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_nip" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">Email</span>
-                    <span id="detail_email" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_email" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">No. Telepon</span>
-                    <a id="detail_phone_link" href="#" target="_blank" class="col-span-2 text-slate-800 font-semibold hover:text-emerald-600 transition-colors hidden">-</a>
-                    <span id="detail_phone" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <a id="detail_phone_link" href="#" target="_blank" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold hover:text-emerald-600 transition-colors hidden">-</a>
+                    <span id="detail_phone" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">Jobdesk</span>
-                    <span id="detail_job" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_job" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
                 <div class="grid grid-cols-3 pb-2">
                     <span class="text-slate-400 font-medium">Stasiun</span>
-                    <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_station" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center mt-6 justify-end border-t border-slate-100 pt-4">
-            <button type="button" id="closeDetailModalBtn2" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors cursor-pointer">
+        <div class="flex items-center mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
+            <button type="button" id="closeDetailModalBtn2" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-sm font-medium rounded-xl transition-colors cursor-pointer">
                  Tutup
             </button>
         </div>
@@ -291,15 +291,15 @@
         if (historyData && historyData.length > 0) {
             historyData.forEach(item => {
                 html += `
-                    <tr class="hover:bg-slate-50/80 transition-colors">
-                        <td class="px-4 py-3 font-semibold text-slate-800">
-                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">${item.jenis}</span>
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
+                        <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                            <span class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600">${item.jenis}</span>
                         </td>
-                        <td class="px-4 py-3 text-slate-600 font-medium">${item.sub}</td>
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300 font-medium">${item.sub}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-bold">${item.durasi} Hari</span>
+                            <span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 rounded-md font-bold">${item.durasi} Hari</span>
                         </td>
-                        <td class="px-4 py-3 text-center text-slate-500 font-mono text-[11px]">
+                        <td class="px-4 py-3 text-center text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                             ${item.mulai} s/d ${item.selesai}
                         </td>
                     </tr>

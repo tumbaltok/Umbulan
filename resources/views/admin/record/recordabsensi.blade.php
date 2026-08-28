@@ -6,20 +6,20 @@
 <div class="space-y-6">
 
     <!-- HEADER PAGE -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
         <div>
-            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-user-check text-sky-600"></i>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-user-check text-sky-600 dark:text-sky-400"></i>
                 Rekap Absensi Harian Karyawan
             </h1>
-            <p class="text-xs text-slate-400 mt-1">Pantau karyawan yang sudah dan belum melakukan absensi secara real-time.</p>
+            <p class="text-xs text-slate-400 dark:text-slate-400 mt-1">Pantau karyawan yang sudah dan belum melakukan absensi secara real-time.</p>
         </div>
 
         <!-- FILTER TANGGAL -->
         <form method="GET" action="{{ route('admin.absensi.index') }}" class="flex items-center gap-2">
             <input type="date" name="tanggal" value="{{ $tanggal }}" 
-                   class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500">
-            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition-all">
+                   class="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-700 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer">
                 <i class="fa-solid fa-filter mr-1"></i> Filter
             </button>
         </form>
@@ -27,45 +27,45 @@
 
     <!-- CARDS STATISTIK SUMMARY -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Karyawan</p>
-                <h3 class="text-2xl font-extrabold text-slate-800 mt-1">{{ count($karyawan) }}</h3>
+                <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-1">{{ count($karyawan) }}</h3>
             </div>
-            <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-lg">
+            <div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center text-lg">
                 <i class="fa-solid fa-users"></i>
             </div>
         </div>
 
-        <div class="p-5 bg-white rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between">
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-emerald-100 dark:border-emerald-900/50 shadow-sm flex items-center justify-between transition-colors">
             <div>
-                <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Sudah Absen</p>
-                <h3 class="text-2xl font-extrabold text-emerald-700 mt-1">{{ count($sudahAbsen) }}</h3>
+                <p class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Sudah Absen</p>
+                <h3 class="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">{{ count($sudahAbsen) }}</h3>
             </div>
-            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-lg">
+            <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center text-lg">
                 <i class="fa-solid fa-user-check"></i>
             </div>
         </div>
 
-        <div class="p-5 bg-white rounded-2xl border border-rose-100 shadow-sm flex items-center justify-between">
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-rose-100 dark:border-rose-900/50 shadow-sm flex items-center justify-between transition-colors">
             <div>
-                <p class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Belum Absen</p>
-                <h3 class="text-2xl font-extrabold text-rose-600 mt-1">{{ count($belumAbsen) }}</h3>
+                <p class="text-[11px] font-bold text-rose-500 dark:text-rose-400 uppercase tracking-wider">Belum Absen</p>
+                <h3 class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">{{ count($belumAbsen) }}</h3>
             </div>
-            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center text-lg">
+            <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 rounded-2xl flex items-center justify-center text-lg">
                 <i class="fa-solid fa-user-xmark"></i>
             </div>
         </div>
     </div>
 
     <!-- TABEL 1: DAFTAR KARYAWAN SUDAH ABSEN -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-emerald-50/50 flex items-center justify-between">
-            <h2 class="font-bold text-sm text-emerald-900 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center justify-between">
+            <h2 class="font-bold text-sm text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
                 Sudah Absen Hari Ini ({{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }})
             </h2>
-            <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">
+            <span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-full text-[10px] font-bold">
                 {{ count($sudahAbsen) }} Karyawan
             </span>
         </div>
@@ -73,7 +73,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                    <tr class="border-b border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-slate-900/60">
                         <th class="p-4">Karyawan</th>
                         <th class="p-4">Stasiun / Sektor</th>
                         <th class="p-4">Jam Masuk</th>
@@ -82,7 +82,7 @@
                         <th class="p-4 text-center">Verifikasi & Bukti</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
                     @forelse($sudahAbsen as $item)
                         @php
                             $absen = $item['absen'];
@@ -124,29 +124,29 @@
                             $roleLabel = $item['user']->roles->pluck('role_name')->implode(' / ') ?: ($item['user']->role->role_name ?? 'STAFF');
                         @endphp
 
-                        <tr class="hover:bg-slate-50/80 transition-colors">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
                             <td class="p-4">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">
                                         {{ strtoupper(substr($item['user']->name, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <p class="font-bold text-slate-800 leading-tight">{{ $item['user']->name }}</p>
+                                        <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">{{ $item['user']->name }}</p>
                                         <p class="text-[10px] text-slate-400 uppercase mt-0.5">{{ $roleLabel }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4 font-semibold text-slate-600">
+                            <td class="p-4 font-semibold text-slate-600 dark:text-slate-300">
                                 {{ $item['user']->station->name ?? 'Stasiun Umbulan' }}
                             </td>
                             <td class="p-4">
-                                <span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-mono font-bold border border-emerald-100">
+                                <span class="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 rounded-lg font-mono font-bold border border-emerald-100 dark:border-emerald-800">
                                     {{ $absen->check_in ?? '--:--' }} WIB
                                 </span>
                             </td>
                             <td class="p-4">
                                 @if(!empty($absen->check_out))
-                                    <span class="px-2 py-1 bg-sky-50 text-sky-700 rounded-lg font-mono font-bold border border-sky-100">
+                                    <span class="px-2 py-1 bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 rounded-lg font-mono font-bold border border-sky-100 dark:border-sky-800">
                                         {{ $absen->check_out }} WIB
                                     </span>
                                 @else
@@ -272,13 +272,13 @@
     </div>
 
     <!-- TABEL 2: DAFTAR KARYAWAN BELUM ABSEN -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-rose-50/50 flex items-center justify-between">
-            <h2 class="font-bold text-sm text-rose-900 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-rose-50/50 dark:bg-rose-950/20 flex items-center justify-between">
+            <h2 class="font-bold text-sm text-rose-900 dark:text-rose-300 flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
                 Belum Absen Hari Ini
             </h2>
-            <span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-full text-[10px] font-bold">
+            <span class="px-2.5 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-full text-[10px] font-bold">
                 {{ count($belumAbsen) }} Karyawan
             </span>
         </div>
@@ -286,42 +286,42 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                    <tr class="border-b border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-slate-900/60">
                         <th class="p-4">Karyawan</th>
                         <th class="p-4">Stasiun Kerja</th>
                         <th class="p-4">Role / Jabatan</th>
                         <th class="p-4">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
                     @forelse($belumAbsen as $user)
-                        <tr class="hover:bg-slate-50/80 transition-colors">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
                             <td class="p-4">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center shrink-0">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold flex items-center justify-center shrink-0">
                                         {{ strtoupper(substr($user->name, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <p class="font-bold text-slate-800 leading-tight">{{ $user->name }}</p>
+                                        <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">{{ $user->name }}</p>
                                         <p class="text-[10px] text-slate-400 mt-0.5">{{ $user->email }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4 font-semibold text-slate-600">
+                            <td class="p-4 font-semibold text-slate-600 dark:text-slate-300">
                                 {{ $user->station->name ?? 'Stasiun Umbulan' }}
                             </td>
-                            <td class="p-4 font-semibold text-slate-500 uppercase">
+                            <td class="p-4 font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                 {{ $user->role->role_name ?? 'STAFF' }}
                             </td>
                             <td class="p-4">
-                                <span class="px-2.5 py-1 bg-rose-50 text-rose-600 font-bold rounded-lg border border-rose-100 text-[10px]">
+                                <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 font-bold rounded-lg border border-rose-100 dark:border-rose-900/50 text-[10px]">
                                     Belum Hadir / Tanpa Keterangan
                                 </span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="p-6 text-center text-emerald-600 font-bold">Luar biasa! Semua karyawan sudah melakukan absen hari ini.</td>
+                            <td colspan="4" class="p-6 text-center text-emerald-600 dark:text-emerald-400 font-bold">Luar biasa! Semua karyawan sudah melakukan absen hari ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -333,24 +333,24 @@
 
 <!-- MODAL POPUP LIGHTBOX FOTO ABSENSI -->
 <div id="photoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-    <div id="photoModalCard" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 transform transition-all duration-300 scale-95 opacity-0">
+    <div id="photoModalCard" class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0">
         <!-- HEADER MODAL -->
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-            <h3 id="photoModalTitle" class="text-xs font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-image text-sky-600"></i>
+        <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
+            <h3 id="photoModalTitle" class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-image text-sky-600 dark:text-sky-400"></i>
                 <span>Foto Absensi</span>
             </h3>
-            <button onclick="closePhotoModal()" class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-rose-100 hover:text-rose-600 text-slate-500 flex items-center justify-center transition-colors">
+            <button onclick="closePhotoModal()" class="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-900/50 hover:text-rose-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
         <!-- BODY MODAL (FOTO) -->
-        <div class="p-4 flex items-center justify-center bg-slate-900/5 min-h-[250px]">
+        <div class="p-4 flex items-center justify-center bg-slate-900/5 dark:bg-slate-900/40 min-h-[250px]">
             <img id="photoModalImage" src="" alt="Foto Absensi" class="max-h-[70vh] w-auto rounded-xl object-contain shadow-md">
         </div>
         <!-- FOOTER MODAL -->
-        <div class="p-3 border-t border-slate-100 bg-white flex justify-end">
-            <button onclick="closePhotoModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
+        <div class="p-3 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-end">
+            <button onclick="closePhotoModal()" class="px-4 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
                 Tutup
             </button>
         </div>

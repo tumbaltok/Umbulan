@@ -6,6 +6,14 @@
     <title>Sistem Informasi Cuti Karyawan - PT.META</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -28,9 +36,9 @@
     <!-- PWA Head -->
     @pwaHead
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden transition-colors">
 
-    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:min-h-[600px] transition-all duration-300 my-4 md:my-0">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:min-h-[600px] border border-slate-100 dark:border-slate-700 transition-all duration-300 my-4 md:my-0">
 
         <div class="w-full md:w-1/2 wave-bg text-white p-6 sm:p-8 md:p-12 flex flex-col justify-between relative overflow-hidden shrink-0">
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
@@ -74,29 +82,29 @@
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white">
+        <div class="w-full md:w-1/2 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white dark:bg-slate-800 transition-colors">
 
             {{-- NOTIFIKASI SUKSES SETELAH REGISTRASI --}}
             @if (session('success'))
-                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-start space-x-3 shadow-sm transition-all">
+                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm flex items-start space-x-3 shadow-sm transition-all">
                     <div class="text-emerald-500 mt-0.5 shrink-0">
                         <i class="fa-solid fa-circle-check text-base sm:text-lg"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold mb-0.5 text-emerald-900">Pendaftaran Berhasil!</h4>
-                        <p class="text-emerald-700 leading-relaxed">{{ session('success') }}</p>
+                        <h4 class="font-bold mb-0.5 text-emerald-900 dark:text-emerald-200">Pendaftaran Berhasil!</h4>
+                        <p class="text-emerald-700 dark:text-emerald-300 leading-relaxed">{{ session('success') }}</p>
                     </div>
                 </div>
             @endif
 
             <div class="w-full my-auto">
                 <div class="mb-6">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Selamat Datang</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-1">Silakan masuk menggunakan akun kepegawaian Anda.</p>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Selamat Datang</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Silakan masuk menggunakan akun kepegawaian Anda.</p>
                 </div>
 
                 @if ($errors->any())
-                    <div class="mb-6 p-4 rounded-2xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800 animate-fade-in">
+                    <div class="mb-6 p-4 rounded-2xl border flex items-center space-x-3 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 animate-fade-in">
                         <div>
                             <i class="fa-solid fa-circle-exclamation text-rose-500 text-lg"></i>
                         </div>
@@ -115,22 +123,22 @@
                     <?php echo csrf_field(); ?>
 
                     <div>
-                        <label for="employee-id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">EMAIL</label>
+                        <label for="employee-id" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2">EMAIL</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-id-card text-base"></i>
                             </div>
                             <input type="email" id="employee-id" name="email" required
                                 value="{{ old('email') }}"
-                                class="block w-full pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white"
+                                class="block w-full pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-900"
                                 placeholder="Contoh: nama@meta.com">
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Kata Sandi</label>
-                            <a href="{{ route('forgot') }}" tabindex="-1" class="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">
+                            <label for="password" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Kata Sandi</label>
+                            <a href="{{ route('forgot') }}" tabindex="-1" class="text-xs font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors">
                                 Lupa kata sandi?
                             </a>
                         </div>
@@ -139,9 +147,9 @@
                                 <i class="fa-solid fa-lock text-base"></i>
                             </div>
                             <input type="password" id="password" name="password" required
-                                class="block w-full pl-11 pr-11 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white"
+                                class="block w-full pl-11 pr-11 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-900"
                                 placeholder="Masukkan kata sandi Anda">
-                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                                 <i id="password-toggle-icon" class="fa-solid fa-eye text-sm"></i>
                             </button>
                         </div>
@@ -149,25 +157,25 @@
 
                     <div class="flex items-center">
                         <input id="remember-me" name="remember" type="checkbox" checked
-                            class="h-4.5 w-4.5 text-sky-600 focus:ring-sky-500 border-slate-300 rounded-lg cursor-pointer">
-                        <label for="remember-me" class="ml-2 block text-sm text-slate-600 select-none cursor-pointer">
+                            class="h-4.5 w-4.5 text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer">
+                        <label for="remember-me" class="ml-2 block text-sm text-slate-600 dark:text-slate-300 select-none cursor-pointer">
                             Ingat saya di perangkat ini
                         </label>
                     </div>
 
                     <button type="submit" id="submit-btn"
-                        class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3.5 px-4 rounded-2xl shadow-lg shadow-sky-100 hover:shadow-xl hover:shadow-sky-200 transition-all active:scale-[0.98] flex items-center justify-center space-x-2">
+                        class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3.5 px-4 rounded-2xl shadow-lg shadow-sky-100 dark:shadow-none hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center space-x-2 cursor-pointer">
                         <span>Masuk ke Portal Cuti</span>
                         <i class="fa-solid fa-arrow-right text-xs"></i>
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center space-x-2 text-slate-500 text-xs">
+                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-2 text-slate-500 dark:text-slate-400 text-xs">
                         <i class="fa-solid fa-circle-question text-sky-500 text-sm"></i>
                         <span>Butuh bantuan akses login?</span>
                     </div>
-                    <a href="http://wa.me/+6281131132067" target="blank" class="text-xs font-semibold text-sky-600 hover:text-sky-700 border border-sky-100 hover:border-sky-200 bg-sky-50/50 hover:bg-sky-50 px-3 py-1.5 rounded-xl transition-colors">
+                    <a href="http://wa.me/+6281131132067" target="blank" class="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 border border-sky-100 dark:border-sky-800 hover:border-sky-200 dark:hover:border-sky-700 bg-sky-50/50 dark:bg-sky-950/40 hover:bg-sky-50 dark:hover:bg-sky-900/50 px-3 py-1.5 rounded-xl transition-colors">
                         <i class="fa-solid fa-headset mr-1"></i> Kontak HR / IT Helpdesk
                     </a>
                 </div>

@@ -33,19 +33,19 @@
 <div class="max-w-7xl mx-auto mt-8 px-4 space-y-6">
 
     @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-sm font-medium flex items-center">
+        <div class="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 text-rose-800 dark:text-rose-300 rounded-xl text-sm font-medium flex items-center">
             <i class="fa-solid fa-circle-xmark mr-2 text-rose-500"></i>
             {{ session('error') }}
         </div>
     @endif
 
     {{-- NAVIGASI TAB UTAMA (DEFAULT ACTIVATED: POHON ORGANISASI) --}}
-    <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 rounded-2xl shadow-xs">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-xs transition-colors">
         <div class="flex space-x-2">
-            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs">
+            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
                 <i class="fa-solid fa-sitemap mr-1.5"></i> Struktur Organisasi Karyawan
             </button>
-            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
                 <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
             </button>
         </div>
@@ -53,29 +53,29 @@
 
     {{-- TAB 1: POHON ORGANISASI KARYAWAN BERDASARKAN ROLE (DEFAULT OPEN / TAMPIL DULUPAN) --}}
     <div id="tab-karyawan-pohon" class="tab-content space-y-6">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm p-6 space-y-6 transition-colors">
 
             {{-- HEADER & TOMBOL KONTROL ZOOM --}}
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 dark:border-slate-700 pb-4">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-sitemap text-indigo-600"></i> Struktur Organisasi Karyawan
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap text-indigo-600 dark:text-indigo-400"></i> Struktur Organisasi Karyawan
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Skema hirarki role jabatan beserta daftar karyawan terdaftar yang mengisi posisi tersebut.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Skema hirarki role jabatan beserta daftar karyawan terdaftar yang mengisi posisi tersebut.</p>
                 </div>
 
                 {{-- TOMBOL ZOOM CONTROL --}}
-                <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                    <button type="button" id="btnZoomIn" title="Zoom In (+)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button type="button" id="btnZoomIn" title="Zoom In (+)" class="w-8 h-8 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
                         <i class="fa-solid fa-magnifying-glass-plus text-sm"></i>
                     </button>
-                    <button type="button" id="btnZoomOut" title="Zoom Out (-)" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                    <button type="button" id="btnZoomOut" title="Zoom Out (-)" class="w-8 h-8 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
                         <i class="fa-solid fa-magnifying-glass-minus text-sm"></i>
                     </button>
-                    <button type="button" id="btnZoomReset" title="Reset Ukuran" class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
+                    <button type="button" id="btnZoomReset" title="Reset Ukuran" class="w-8 h-8 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer">
                         <i class="fa-solid fa-rotate text-sm"></i>
                     </button>
-                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
+                    <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
                     <button type="button" onclick="renderKaryawanOrgChart()" class="px-3 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-arrows-rotate"></i> Reload
                     </button>
@@ -83,7 +83,7 @@
             </div>
 
             {{-- WADAH RENDER DIAGRAM MERMAID DENGAN ZOOM --}}
-            <div id="mermaidParent" class="mermaid-container flex justify-center items-center">
+            <div id="mermaidParent" class="mermaid-container flex justify-center items-center bg-slate-50 dark:bg-slate-900 rounded-2xl">
                 <div id="karyawanOrgDiagram" class="w-full flex justify-center transition-transform origin-center"></div>
             </div>
         </div>
@@ -91,47 +91,47 @@
 
     {{-- TAB 2: TABEL DAFTAR KARYAWAN (SEMBUNYI DAHULU / DIBERI CLASS HIDDEN) --}}
     <div id="tab-karyawan-tabel" class="tab-content hidden">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-100 bg-sky-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-sky-50/30 dark:bg-slate-800/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="flex items-center gap-2">
-                        <h2 class="text-xl font-bold text-slate-800">Daftar Manajemen Karyawan</h2>
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200/80">
+                        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Daftar Manajemen Karyawan</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800">
                             {{ isset($daftarKaryawan) ? count($daftarKaryawan) : 0 }} Karyawan
                         </span>
                     </div>
-                    <p class="text-sm text-slate-500 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Kelola data seluruh staf, hak akses role, penempatan stasiun kerja, dan informasi akun.</p>
                 </div>
                 <div class="relative w-full md:w-80">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                     </span>
                     <input type="text" id="searchKaryawanInput" placeholder="Cari nama karyawan..."
-                        class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 placeholder-slate-400">
+                        class="w-full pl-9 pr-4 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-slate-700 dark:text-slate-100 placeholder-slate-400">
                 </div>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="karyawanTable">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 select-none">
-                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="0">
+                        <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-400 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 select-none">
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" data-sort="0">
                                 Nama Lengkap <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
-                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors text-center" data-sort="1">
+                            <th class="px-6 py-4 cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 hover:text-slate-600 dark:hover:text-slate-200 transition-colors text-center" data-sort="1">
                                 Jabatan <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
-                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="2">
+                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" data-sort="2">
                                 Stasiun <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                             <th class="px-6 py-4 text-center">Sisa Cuti Utama</th>
                             <th class="px-6 py-4 text-center w-28">Edit Saldo Cuti</th>
-                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 hover:text-slate-600 transition-colors" data-sort="5">
+                            <th class="px-6 py-4 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" data-sort="5">
                                 Status <i class="fa-solid fa-sort ml-1.5 text-slate-300"></i>
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700" id="karyawanTableBody">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300" id="karyawanTableBody">
                         @forelse($daftarKaryawan as $karyawan)
                             @php
                                 $cutiUtama = $karyawan->saldoCuti ? $karyawan->saldoCuti->filter(function($s) {
@@ -142,10 +142,10 @@
                                 $saldoIdVal = $cutiUtama ? $cutiUtama->id : 0;
                                 $namaCutiText = optional(optional($cutiUtama)->jenisCuti)->name_cuti ?? 'Cuti Utama';
                             @endphp
-                            <tr class="hover:bg-slate-50/80 transition-colors table-row-item">
-                                <td class="px-6 py-4 font-medium text-slate-900" data-search-value="{{ strtolower($karyawan->name) }}">
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors table-row-item">
+                                <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100" data-search-value="{{ strtolower($karyawan->name) }}">
                                     <div class="flex items-center space-x-3 btn-detail-karyawan cursor-pointer group" data-id="{{ $karyawan->id }}">
-                                        <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 shrink-0">
+                                        <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700 shrink-0">
                                             @if($karyawan->profile_photo)
                                                 <img src="{{ asset('storage/' . $karyawan->profile_photo) }}" alt="Foto" class="w-full h-full object-cover">
                                             @else
@@ -153,7 +153,7 @@
                                             @endif
                                         </div>
                                         <div class="flex flex-col">
-                                            <span class="text-slate-800 font-semibold text-sm group-hover:text-sky-600 group-hover:underline transition-colors target-search-name">{{ $karyawan->name }}</span>
+                                            <span class="text-slate-800 dark:text-slate-100 font-semibold text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:underline transition-colors target-search-name">{{ $karyawan->name }}</span>
                                             <span class="text-xs text-slate-400">NIP: {{ $karyawan->nip ?? '-' }}</span>
                                         </div>
                                     </div>
@@ -166,12 +166,12 @@
                                         $assignedRmIdsJson = json_encode($karyawan->assignedStations->pluck('id')->toArray());
                                     @endphp
                                     <div class="flex flex-col items-center gap-1.5">
-                                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 text-slate-700 border border-slate-200/50 role-label-{{ $karyawan->id }}">
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-600 role-label-{{ $karyawan->id }}">
                                             {{ $roleNames ?: 'Tidak Ada Role' }}
                                         </span>
                                         <button type="button"
                                             onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }}, {{ $assignedRmIdsJson }})'
-                                            class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                            class="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline inline-flex items-center gap-1 cursor-pointer">
                                             <i class="fa-solid fa-user-tag text-[10px]"></i> Kelola Role
                                         </button>
                                     </div>
@@ -180,18 +180,18 @@
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex flex-col items-center gap-1">
                                         @if(($karyawan->station && !empty($karyawan->station->name)))
-                                            <span class="inline-flex items-center text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
+                                            <span class="inline-flex items-center text-xs text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-slate-600">
                                                 <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
                                                 {{ $karyawan->station->name }}
                                             </span>
                                         @else
-                                            <span class="text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-xl italic border border-rose-100">
+                                            <span class="text-xs text-rose-500 font-medium bg-rose-50 dark:bg-rose-950/40 px-2 py-1 rounded-xl italic border border-rose-100 dark:border-rose-800">
                                                 ⚠️ Stasiun Belum Diatur
                                             </span>
                                         @endif
 
                                         @if(($karyawan->hasRole('AREA (PIPELINE)') || $karyawan->hasRole(14)) && $karyawan->assignedStations->count() > 0)
-                                            <span class="inline-flex items-center text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 font-semibold cursor-default" title="{{ $karyawan->assignedStations->pluck('name')->implode(', ') }}">
+                                            <span class="inline-flex items-center text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 font-semibold cursor-default" title="{{ $karyawan->assignedStations->pluck('name')->implode(', ') }}">
                                                 <i class="fa-solid fa-gauge-high mr-1 text-[9px] text-amber-500"></i>
                                                 {{ $karyawan->assignedStations->count() }} Rumah Meter
                                             </span>
@@ -200,7 +200,7 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $sisaCutiVal }} Hari</span>
+                                    <span class="px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">{{ $sisaCutiVal }} Hari</span>
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
@@ -209,7 +209,7 @@
                                         data-nama="{{ $namaCutiText }}"
                                         data-saldo="{{ $sisaCutiVal }}"
                                         onclick="bukaModalEditSaldoBtn(this)"
-                                        class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
+                                        class="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm cursor-pointer">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
                                 </td>
@@ -217,14 +217,14 @@
                                 <td class="px-6 py-4 text-center whitespace-nowrap">
                                     @if($karyawan->cuti_aktif && $karyawan->cuti_aktif->count() > 0)
                                         @php $cuti = $karyawan->cuti_aktif->first(); @endphp
-                                        <span class="inline-flex items-center text-xs text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold" title="{{ $cuti->alasan_cuti }}">
+                                        <span class="inline-flex items-center text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 px-2.5 py-1 rounded-full font-bold" title="{{ $cuti->alasan_cuti }}">
                                             <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
                                             On Leave (Cuti)
                                         </span>
                                     @else
                                         @php
                                             $statusDetail = $karyawan->status_detail ?? [
-                                                'badge_class' => 'bg-slate-50 text-slate-600 border-slate-200',
+                                                'badge_class' => 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600',
                                                 'dot_class' => 'bg-slate-400',
                                                 'is_on' => false,
                                                 'label' => 'Standby'
@@ -263,36 +263,36 @@
 <div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="detailModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-800 text-base">Detail Lengkap Karyawan</h3>
-            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Detail Lengkap Karyawan</h3>
+            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         <div id="modalLoading" class="py-12 text-center">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-sky-600 mb-2"></div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-sky-600 mb-2"></div>
             <p class="text-xs text-slate-400">Memuat data...</p>
         </div>
 
         <div id="modalDataContent" class="hidden space-y-5">
             <div class="flex flex-col items-center justify-center text-center">
-                <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white ring-4 ring-sky-50"></div>
-                <h4 id="detail_name" class="font-bold text-lg text-slate-800"></h4>
-                <p id="detail_role" class="text-xs font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100"></p>
+                <div id="detail_photo_container" class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden mb-3 border-2 border-white ring-4 ring-sky-50 dark:ring-sky-950/60"></div>
+                <h4 id="detail_name" class="font-bold text-lg text-slate-800 dark:text-slate-100"></h4>
+                <p id="detail_role" class="text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full mt-1 border border-sky-100 dark:border-sky-800"></p>
             </div>
 
-            <div class="border-t border-slate-100 pt-4 grid grid-cols-1 gap-y-3.5 text-sm">
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-4 grid grid-cols-1 gap-y-3.5 text-sm">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">NIP</span>
-                    <span id="detail_nip" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_nip" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
 
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Email</span>
                     <div class="col-span-2 flex items-center space-x-2">
-                        <span id="detail_email" class="text-slate-800 font-semibold truncate">-</span>
+                        <span id="detail_email" class="text-slate-800 dark:text-slate-100 font-semibold truncate">-</span>
                         <a id="detail_email_link" href="#" class="hidden inline-flex items-center space-x-1 px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0">
                             <i class="fa-solid fa-envelope text-xs"></i>
                             <span>Email</span>
@@ -300,10 +300,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">No. Telepon</span>
                     <div class="col-span-2 flex items-center space-x-2">
-                        <span id="detail_phone" class="text-slate-800 font-semibold">-</span>
+                        <span id="detail_phone" class="text-slate-800 dark:text-slate-100 font-semibold">-</span>
                         <a id="detail_phone_link" href="#" target="_blank" class="hidden inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0">
                             <i class="fa-brands fa-whatsapp text-sm"></i>
                             <span>Chat WA</span>
@@ -311,19 +311,19 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">Stasiun</span>
-                    <span id="detail_station" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="detail_station" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
 
-                <div id="detail_pipeline_area_container" class="hidden grid grid-cols-3 border-b border-slate-50 pb-2">
+                <div id="detail_pipeline_area_container" class="hidden grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2">
                     <span class="text-slate-400 font-medium">Wilayah Pipeline</span>
                     <div id="detail_pipeline_stations" class="col-span-2 flex flex-wrap gap-1.5 pt-0.5">
                     </div>
                 </div>
 
                 {{-- Biometrik Wajah & Tombol Reset Khusus Admin (Level 1) --}}
-                <div class="grid grid-cols-3 border-b border-slate-50 pb-2 items-center">
+                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/50 pb-2 items-center">
                     <span class="text-slate-400 font-medium">Biometrik Wajah</span>
                     <div class="col-span-2 flex items-center justify-between gap-2">
                         <span id="detail_biometric_badge" class="px-2.5 py-1 rounded-lg text-xs font-bold"></span>
@@ -339,24 +339,24 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-2">
-                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sistem Jadwal Kerja</span>
+                <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sistem Jadwal Kerja</span>
                         <span id="detail_schedule_badge" class="px-2 py-0.5 text-xs font-bold rounded-md"></span>
                     </div>
 
                     <div id="detail_normal_schedule_box" class="hidden space-y-1.5 text-xs">
                         <div class="flex justify-between">
                             <span class="text-slate-400">Hari Kerja Masuk:</span>
-                            <span id="detail_normal_days" class="font-semibold text-slate-700"></span>
+                            <span id="detail_normal_days" class="font-semibold text-slate-700 dark:text-slate-200"></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Hari Libur Kerja:</span>
-                            <span class="font-semibold text-rose-600">Sabtu & Minggu</span>
+                            <span class="font-semibold text-rose-600 dark:text-rose-400">Sabtu & Minggu</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Jam Operasional:</span>
-                            <span id="detail_normal_hours" class="font-semibold text-emerald-600"></span>
+                            <span id="detail_normal_hours" class="font-semibold text-emerald-600 dark:text-emerald-400"></span>
                         </div>
                     </div>
 
@@ -367,15 +367,15 @@
                         </div>
                         <div id="detail_roster_hours_container" class="flex justify-between">
                             <span class="text-slate-400">Jam Shift Kerja:</span>
-                            <span id="detail_roster_hours" class="font-semibold text-slate-700"></span>
+                            <span id="detail_roster_hours" class="font-semibold text-slate-700 dark:text-slate-200"></span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center mt-6 justify-end border-t border-slate-100 pt-4">
-            <button type="button" id="closeDetailModalBtn2" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-xl transition-colors">
+        <div class="flex items-center mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
+            <button type="button" id="closeDetailModalBtn2" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-sm font-medium rounded-xl transition-colors cursor-pointer">
                 Tutup
             </button>
         </div>
@@ -385,8 +385,8 @@
 {{-- MODAL EDIT SALDO CUTI UTAMA --}}
 <div id="editSaldoModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="tutupModalEditSaldo()"></div>
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200">
-        <h4 class="font-bold text-slate-800 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700">
+        <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
 
         <form id="formEditSaldo" onsubmit="submitEditSaldo(event)" class="space-y-3">
             @csrf
@@ -394,13 +394,13 @@
             <input type="hidden" id="edit_saldo_id" name="saldo_id">
 
             <div>
-                <label id="label_jenis_cuti" class="block text-xs font-semibold text-slate-500 mb-1">Jenis Cuti</label>
-                <input type="number" id="input_sisa_saldo" name="sisa_saldo" min="0" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-sky-500">
+                <label id="label_jenis_cuti" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Jenis Cuti</label>
+                <input type="number" id="input_sisa_saldo" name="sisa_saldo" min="0" required class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold focus:outline-none focus:border-sky-500">
             </div>
 
             <div class="flex justify-end space-x-2 pt-2">
-                <button type="button" onclick="tutupModalEditSaldo()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="submit" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm">Simpan</button>
+                <button type="button" onclick="tutupModalEditSaldo()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer">Simpan</button>
             </div>
         </form>
     </div>
@@ -409,15 +409,15 @@
 {{-- MODAL KELOLA MULTI-ROLE KARYAWAN --}}
 <div id="modalKelolaRole" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalKelolaRole()"></div>
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 m-4">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700 m-4">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
             <div>
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-user-gear text-sky-600"></i> Kelola Peran / Jabatan Karyawan
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-sky-600 dark:text-sky-400"></i> Kelola Peran / Jabatan Karyawan
                 </h3>
-                <p id="labelKelolaRoleNama" class="text-xs text-slate-500 font-semibold mt-0.5"></p>
+                <p id="labelKelolaRoleNama" class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5"></p>
             </div>
-            <button type="button" onclick="tutupModalKelolaRole()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50">
+            <button type="button" onclick="tutupModalKelolaRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -429,43 +429,43 @@
 
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                         Pilih Peran yang Diemban (Multi-Role)
                     </label>
                     <span class="text-[10px] text-slate-400 font-medium">Bisa pilih lebih dari satu peran</span>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                     @foreach($daftarRole as $r)
-                        <label class="flex items-center space-x-2.5 p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-all text-xs">
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all text-xs">
                             <input type="checkbox" name="roles[]" value="{{ $r->id }}"
-                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer kelola-role-checkbox">
-                            <span class="font-semibold text-slate-700 leading-tight">{{ $r->role_name }}</span>
+                                class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer kelola-role-checkbox">
+                            <span class="font-semibold text-slate-700 dark:text-slate-200 leading-tight">{{ $r->role_name }}</span>
                         </label>
                     @endforeach
                 </div>
                 <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
 
                 <!-- Input Penugasan Multi-Select Rumah Meter (Khusus Role AREA (PIPELINE)) -->
-                <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all mt-3 pt-3 border-t border-slate-100">
+                <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                     <div class="flex items-center justify-between mb-2">
-                        <label class="block text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-gauge-high text-amber-600"></i> Penugasan Rumah Meter (Pipeline)
+                        <label class="block text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high text-amber-600 dark:text-amber-400"></i> Penugasan Rumah Meter (Pipeline)
                         </label>
                         <div class="flex items-center gap-2">
-                            <button type="button" onclick="selectAllKelolaRm(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer">Pilih Semua</button>
-                            <span class="text-amber-300 text-xs">|</span>
-                            <button type="button" onclick="selectAllKelolaRm(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 underline cursor-pointer">Reset</button>
+                            <button type="button" onclick="selectAllKelolaRm(true)" class="text-[10px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 underline cursor-pointer">Pilih Semua</button>
+                            <span class="text-amber-300 dark:text-amber-600 text-xs">|</span>
+                            <button type="button" onclick="selectAllKelolaRm(false)" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline cursor-pointer">Reset</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-2.5 bg-amber-50/50 border border-amber-200/80 rounded-xl">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-2.5 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-xl">
                         @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
                             @foreach($daftarRumahMeter as $rm)
-                                <label class="flex items-center space-x-2 p-1.5 bg-white border border-amber-200/60 rounded-lg cursor-pointer hover:border-amber-400 text-xs select-none shadow-2xs">
+                                <label class="flex items-center space-x-2 p-1.5 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-800/60 rounded-lg cursor-pointer hover:border-amber-400 text-xs select-none shadow-2xs">
                                     <input type="checkbox" name="assigned_stations[]" value="{{ $rm->id }}"
-                                        class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer kelola-rm-checkbox">
-                                    <span class="font-medium text-slate-700 truncate text-[11px]">
-                                        <strong class="font-mono text-amber-700">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
+                                        class="rounded border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer kelola-rm-checkbox">
+                                    <span class="font-medium text-slate-700 dark:text-slate-200 truncate text-[11px]">
+                                        <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
                                     </span>
                                 </label>
                             @endforeach
@@ -474,11 +474,11 @@
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-                <button type="button" onclick="tutupModalKelolaRole()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors">
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                <button type="button" onclick="tutupModalKelolaRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" id="btnSimpanKelolaRole" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5">
+                <button type="submit" id="btnSimpanKelolaRole" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-floppy-disk"></i> Simpan Sinkronisasi Role
                 </button>
             </div>

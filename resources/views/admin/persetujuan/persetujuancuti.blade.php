@@ -9,16 +9,16 @@
         </div>
     @endif
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-            <h2 class="text-xl font-bold text-slate-800">Daftar Pengajuan Cuti Karyawan</h2>
-            <p class="text-sm text-slate-500 mt-0.5">Halaman khusus Atasan untuk meninjau dan memproses permohonan cuti staf</p>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Daftar Pengajuan Cuti Karyawan</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Halaman khusus Atasan untuk meninjau dan memproses permohonan cuti staf</p>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                    <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
                         <th class="px-6 py-4 text-center">Karyawan</th>
                         <th class="px-6 py-4 text-center">Jenis Cuti</th>
                         <th class="px-6 py-4 text-center">Tanggal Pelaksanaan</th>
@@ -28,44 +28,44 @@
                         <th class="px-6 py-4 text-center">Aksi Tindakan</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                     @forelse($daftarPengajuan as $item)
-                        <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-6 py-4 font-medium text-slate-900 text-center">{{ $item->user_name }}</td>
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
+                            <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100 text-center">{{ $item->user_name }}</td>
 
                             <td class="px-6 py-4">
-                                <div class="font-medium text-slate-800 text-center">{{ $item->nama_sub_cuti ?? $item->name_cuti }}</div>
+                                <div class="font-medium text-slate-800 dark:text-slate-100 text-center">{{ $item->nama_sub_cuti ?? $item->name_cuti }}</div>
                                 @if(!empty($item->dokumen_pendukung))
-                                    <div class="mt-1">
+                                    <div class="mt-1 flex justify-center">
                                         <button type="button"
                                                 data-url="{{ asset('storage/' . $item->dokumen_pendukung) }}"
                                                 onclick="bukaPratinjauLampiran(this.getAttribute('data-url'))"
-                                                class="inline-flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 w-fit cursor-pointer self-start sm:self-center shrink-0">
+                                                class="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-lg border border-sky-100 dark:border-sky-800 w-fit cursor-pointer self-start sm:self-center shrink-0">
                                             <i class="fa-solid fa-file-invoice"></i> Berkas Cuti
                                         </button>
                                     </div>
                                 @else
-                                    <span class="text-xs text-slate-400 font-normal italic">Tidak ada berkas</span>
+                                    <span class="text-xs text-slate-400 font-normal italic block text-center">Tidak ada berkas</span>
                                 @endif
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-slate-500">
+                            <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 text-center">
                                 {{ \Carbon\Carbon::parse($item->tanggal_mulai)->isoFormat('D MMMM Y') }} -
                                 {{ \Carbon\Carbon::parse($item->tanggal_selesai)->isoFormat('D MMMM Y') }}
                             </td>
 
-                            <td class="px-6 py-4 font-mono font-bold text-center">{{ $item->total_hari }} Hari</td>
+                            <td class="px-6 py-4 font-mono font-bold text-center text-slate-800 dark:text-slate-100">{{ $item->total_hari }} Hari</td>
 
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_tahap_1 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_1 === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700') }}">
+                                    {{ $item->status_tahap_1 === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' : ($item->status_tahap_1 === 'rejected' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400') }}">
                                     {{ $item->status_tahap_1 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_1) }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $item->status_tahap_2 === 'approved' ? 'bg-emerald-50 text-emerald-700' : ($item->status_tahap_2 === 'rejected' ? 'bg-rose-50 text-rose-700' : ($item->status_tahap_2 === 'not_required' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-700')) }}">
+                                    {{ $item->status_tahap_2 === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' : ($item->status_tahap_2 === 'rejected' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400' : ($item->status_tahap_2 === 'not_required' ? 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400')) }}">
                                     {{ $item->status_tahap_2 === 'not_required' ? '-' : ($item->status_tahap_2 === 'pending' ? 'Pending' : ucfirst($item->status_tahap_2)) }}
                                 </span>
                             </td>
@@ -110,19 +110,19 @@
 
 {{-- MODAL POPUP INPUT ALASAN PENOLAKAN CUTI --}}
 <div id="modalTolakCuti" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
-        <h3 class="text-base font-bold text-slate-800 mb-2">Alasan Penolakan Cuti</h3>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100 dark:border-slate-700">
+        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 mb-2">Alasan Penolakan Cuti</h3>
         <p class="text-xs text-slate-400 mb-4">Berikan catatan alasan mengapa permohonan pengajuan cuti karyawan ini ditolak.</p>
 
         <form id="formTolakCuti" action="" method="POST" class="space-y-4">
             @csrf
             <input type="hidden" name="tindakan" value="rejected">
             <div>
-                <textarea name="catatan_penolakan" required rows="3" class="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-sky-500" placeholder="Tulis alasan penolakan di sini..."></textarea>
+                <textarea name="catatan_penolakan" required rows="3" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500" placeholder="Tulis alasan penolakan di sini..."></textarea>
             </div>
             <div class="flex justify-end space-x-2">
-                <button type="button" onclick="tutupModalTolak()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-4 py-2 rounded-xl">Batal</button>
-                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl">Kirim & Tolak</button>
+                <button type="button" onclick="tutupModalTolak()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">Batal</button>
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">Kirim & Tolak</button>
             </div>
         </form>
     </div>
@@ -130,17 +130,17 @@
 
 {{-- MODAL POPUP PRATINJAU LAMPIRAN BERKAS CUTI --}}
 <div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-2">
-                <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
-                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800">Pratinjau Lampiran Dokumen</h3>
+                <i class="fa-solid fa-file-lines text-sky-600 dark:text-sky-400 text-base"></i>
+                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800 dark:text-slate-100">Pratinjau Lampiran Dokumen</h3>
             </div>
-            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors">
+            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
-        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
+        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-2 sm:p-4 overflow-auto">
         </div>
     </div>
 </div>

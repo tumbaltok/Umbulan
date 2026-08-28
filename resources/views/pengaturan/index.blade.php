@@ -9,10 +9,10 @@
         </div>
     @endif
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-            <h2 class="text-xl font-bold text-slate-800">Pengaturan Akun & Keamanan</h2>
-            <p class="text-sm text-slate-500 mt-0.5">Perbarui informasi profil, tanda tangan digital, dan amankan akun dengan kombinasi password baru.</p>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Pengaturan Akun & Keamanan</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Perbarui informasi profil, tanda tangan digital, dan amankan akun dengan kombinasi password baru.</p>
         </div>
 
         {{-- Form data umum, jadwal kerja, & keamanan --}}
@@ -21,13 +21,13 @@
             @method('PUT')
 
             <div>
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Informasi Profil</h3>
+                <h3 class="text-sm font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-4">Informasi Profil</h3>
 
                 {{-- Container Foto Profil, TTD, & Biometrik Wajah --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 border-b border-slate-100 pb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 border-b border-slate-100 dark:border-slate-700 pb-6">
                     {{-- Foto Profil --}}
-                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden border-2 border-white ring-2 ring-sky-100">
+                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
+                        <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden border-2 border-white dark:border-slate-700 ring-2 ring-sky-100 dark:ring-sky-950">
                             @if($user->profile_photo)
                                 <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
                             @else
@@ -35,33 +35,33 @@
                             @endif
                         </div>
 
-                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1 cursor-pointer">
+                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors flex items-center space-x-1 cursor-pointer">
                             <i class="fa-solid fa-camera"></i>
                             <span>Ubah Foto Profil</span>
                         </button>
                     </div>
 
                     {{-- Tanda Tangan Digital (TTD) --}}
-                    <div id="signature" class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <div class="w-36 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2">
+                    <div id="signature" class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
+                        <div class="w-36 h-20 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-2">
                             @if($user->signature)
                                 <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
                                     alt="Tanda Tangan"
-                                    class="max-w-full max-h-full object-contain bg-white">
+                                    class="max-w-full max-h-full object-contain bg-white dark:bg-slate-800">
                             @else
                                 <span class="text-xs text-slate-400 italic">Belum Ada TTD</span>
                             @endif
                         </div>
 
-                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center space-x-1 cursor-pointer">
+                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center space-x-1 cursor-pointer">
                             <i class="fa-solid fa-file-signature"></i>
                             <span>Unggah Tanda Tangan (TTD)</span>
                         </button>
                     </div>
 
                     {{-- Biometrik Wajah --}}
-                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200' }} flex items-center justify-center text-2xl shadow-sm">
+                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
+                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800' }} flex items-center justify-center text-2xl shadow-sm">
                             <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-lock' : 'fa-camera-rotate' }}"></i>
                         </div>
 
@@ -94,22 +94,22 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- NIP --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">NIP</label>
-                        <input type="text" name="nip" value="{{ old('nip', $user->nip) }}" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200' }}">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">NIP</label>
+                        <input type="text" name="nip" value="{{ old('nip', $user->nip) }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                         @error('nip') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Nama Lengkap --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('name') ? 'border-rose-500' : 'border-slate-200' }}" required>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap</label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('name') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
                         @error('name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Jenis Kelamin --}}
                     <div>
-                        <label for="gender_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Kelamin</label>
-                        <select id="gender_id" name="gender_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('gender_id') ? 'border-rose-500' : 'border-slate-200' }}">
+                        <label for="gender_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Jenis Kelamin</label>
+                        <select id="gender_id" name="gender_id" class="block w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('gender_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                             @php
                                 $userGenderValue = old('gender_id', $user->gender_id ?? '');
                             @endphp
@@ -130,8 +130,8 @@
 
                     <!-- Penempatan Kerja / Stasiun -->
                     <div>
-                        <label for="station_id" class="block text-sm font-semibold text-slate-700 mb-1.5">Penempatan Kerja</label>
-                        <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200' }}" required>
+                        <label for="station_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Penempatan Kerja</label>
+                        <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
                             @php
                                 $userStationValue = old('station_id', $user->station_id ?? '');
                             @endphp
@@ -281,14 +281,14 @@
                     {{-- Alamat Email --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Email</label>
                             <div>
                                 @if($user->email_verified_at)
-                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                         <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
                                     </span>
                                 @else
-                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                         Belum Verifikasi
                                     </span>
                                 @endif
@@ -297,7 +297,7 @@
                         <div class="relative">
                             <input type="email"
                                 value="{{ $user->email }}"
-                                class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
+                                class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded-xl cursor-not-allowed select-none font-medium"
                                 readonly
                                 disabled>
                             <input type="hidden" name="email" value="{{ $user->email }}">
@@ -308,22 +308,22 @@
                     {{-- No. WhatsApp / Telepon --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700">No. WhatsApp / Telepon</label>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">No. WhatsApp / Telepon</label>
                             <div class="flex items-center gap-2">
                                 @if($user->hasVerifiedPhone())
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                         <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
                                     </span>
                                     <button type="button"
                                         id="btn-change-phone"
                                         onclick="openChangePhoneModal()"
-                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer"
+                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 border border-sky-200/80 dark:border-sky-800 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer"
                                         title="Ajukan permohonan ganti nomor ke Admin">
                                         <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                         <span>Ganti</span>
                                     </button>
                                 @else
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                         Belum Verifikasi
                                     </span>
                                 @endif
@@ -333,7 +333,7 @@
                             @if($user->hasVerifiedPhone())
                                 <input type="text"
                                     value="{{ $user->phone_number }}"
-                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
+                                    class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded-xl cursor-not-allowed select-none font-medium"
                                     readonly
                                     disabled>
                                 <input type="hidden" name="phone_number" value="{{ $user->phone_number }}">
@@ -342,7 +342,7 @@
                                     name="phone_number"
                                     id="phone_number"
                                     value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 font-medium text-slate-800"
+                                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-sky-500 font-medium text-slate-800 dark:text-slate-100"
                                     placeholder="Contoh: 08123456789">
                             @endif
                         </div>
@@ -357,7 +357,7 @@
                 </div>
             </div>
 
-            <hr class="border-slate-100">
+            <hr class="border-slate-100 dark:border-slate-700">
 
             {{-- PENGATURAN JADWAL KERJA --}}
             <div id="schedule_setting" class="p-4 rounded-2xl transition-all duration-300">
@@ -385,46 +385,46 @@
 
                     {{-- BADGE MODE BACA --}}
                     @if($scheduleAlreadySet)
-                        <div id="schedule_read_mode" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <div id="schedule_read_mode" class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                             <div class="flex items-center gap-3">
                                 @if($user->schedule_type === 'roster')
-                                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm shrink-0">
+                                    <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-sm shrink-0 border border-amber-200 dark:border-amber-800">
                                         <i class="fa-solid fa-rotate"></i>
                                     </div>
                                     <div>
                                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
-                                        <p class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                                             <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                                             Sistem Roster / Shift (12 Jam)
                                         </p>
-                                        <p class="text-[11px] text-slate-500 mt-0.5">
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                             Shift Saat Ini:
                                             @if($currentDbShift === 'pagi')
-                                                <span class="font-bold text-emerald-600">Shift Pagi (07:00 – 19:00 WIB)</span>
+                                                <span class="font-bold text-emerald-600 dark:text-emerald-400">Shift Pagi (07:00 – 19:00 WIB)</span>
                                             @elseif($currentDbShift === 'malam')
-                                                <span class="font-bold text-indigo-600">Shift Malam (19:00 – 07:00 WIB)</span>
+                                                <span class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam (19:00 – 07:00 WIB)</span>
                                             @else
-                                                <span class="font-bold text-rose-600">OFF / Libur</span>
+                                                <span class="font-bold text-rose-600 dark:text-rose-400">OFF / Libur</span>
                                             @endif
                                         </p>
                                     </div>
                                 @else
-                                    <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-sm shrink-0">
+                                    <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center text-sm shrink-0 border border-sky-200 dark:border-sky-800">
                                         <i class="fa-solid fa-business-time"></i>
                                     </div>
                                     <div>
                                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
-                                        <p class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                                             <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                                             Jam Kerja Normal
                                         </p>
-                                        <p class="text-[11px] text-slate-500 mt-0.5">
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                             {{ $user->normal_check_in ?? '08:00' }} – {{ $user->normal_check_out ?? '17:00' }} WIB
                                         </p>
                                     </div>
                                 @endif
                             </div>
-                            <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white border border-slate-300 hover:border-sky-500 hover:text-sky-600 text-slate-600 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:border-sky-500 hover:text-sky-600 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 Ubah Jadwal
                             </button>
@@ -435,8 +435,8 @@
                     <div id="schedule_edit_mode" class="{{ $scheduleAlreadySet ? 'hidden' : '' }} space-y-4">
                         {{-- Pilihan Jenis Jadwal --}}
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Jadwal Kerja</label>
-                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-sky-500 transition-all">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
+                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all">
                                 <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
                                 <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
                                 <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
@@ -444,14 +444,14 @@
                         </div>
 
                         {{-- Form Opsi Jadwal Normal --}}
-                        <div id="section_normal_schedule" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Hari Kerja</label>
+                        <div id="section_normal_schedule" class="hidden p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-4">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Pilih Hari Kerja</label>
                             @php
                                 $workDays = old('normal_work_days', $user->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
                             @endphp
                             <div class="flex flex-wrap gap-3">
                                 @foreach(['Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu', 'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu', 'Sun' => 'Minggu'] as $key => $dayLabel)
-                                    <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+                                    <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
                                         <input type="checkbox" name="normal_work_days[]" value="{{ $key }}" {{ in_array($key, (array)$workDays) ? 'checked' : '' }} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
                                         <span>{{ $dayLabel }}</span>
                                     </label>
@@ -460,66 +460,66 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Masuk</label>
-                                    <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Masuk</label>
+                                    <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
-                                    <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-xs">
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Pulang</label>
+                                    <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs">
                                 </div>
                             </div>
                         </div>
 
                         {{-- Form Opsi Jadwal Roster --}}
-                        <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-4">
+                        <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
-                                <p class="text-[11px] text-amber-700 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
+                                <label class="block text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
+                                <p class="text-[11px] text-amber-700 dark:text-amber-400 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
 
                                 <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
 
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
                                         <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
                                         <div>
-                                            <span class="block text-xs font-bold text-slate-800">Shift Pagi</span>
-                                            <span class="text-[10px] text-slate-500">07:00 - 19:00 WIB</span>
+                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Pagi</span>
+                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">07:00 - 19:00 WIB</span>
                                         </div>
                                     </label>
-                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
+                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
                                         <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
                                         <div>
-                                            <span class="block text-xs font-bold text-slate-800">Shift Malam</span>
-                                            <span class="text-[10px] text-slate-500">19:00 - 07:00 WIB</span>
+                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Malam</span>
+                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">19:00 - 07:00 WIB</span>
                                         </div>
                                     </label>
-                                    <label class="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-red-500 transition-all">
+                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-red-500 transition-all">
                                         <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
                                         <div>
-                                            <span class="block text-xs font-bold text-slate-800">OFF</span>
-                                            <span class="text-[10px] text-slate-500">OFF / Libur</span>
+                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">OFF</span>
+                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">OFF / Libur</span>
                                         </div>
                                     </label>
                                 </div>
                             </div>
 
                             {{-- BOX PRATINJAU HASIL ROTASI --}}
-                            <div id="roster_preview_box" class="p-3 bg-white border border-amber-300 rounded-xl shadow-sm text-xs space-y-2">
-                                <div class="font-bold text-amber-900 border-b border-slate-100 pb-1.5 flex items-center">
+                            <div id="roster_preview_box" class="p-3 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/60 rounded-xl shadow-sm text-xs space-y-2">
+                                <div class="font-bold text-amber-900 dark:text-amber-300 border-b border-slate-100 dark:border-slate-700 pb-1.5 flex items-center">
                                     <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
-                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700 dark:text-slate-300">
+                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
                                         <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
-                                        <span id="preview_week_1" class="font-bold text-sky-600">Shift Pagi</span>
+                                        <span id="preview_week_1" class="font-bold text-sky-600 dark:text-sky-400">Shift Pagi</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
                                         <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
-                                        <span id="preview_week_2" class="font-bold text-indigo-600">Shift Malam</span>
+                                        <span id="preview_week_2" class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam</span>
                                     </div>
-                                    <div class="bg-slate-50 p-2 rounded-lg">
+                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
                                         <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
-                                        <span id="preview_week_3" class="font-bold text-emerald-600">Minggu Libur</span>
+                                        <span id="preview_week_3" class="font-bold text-emerald-600 dark:text-emerald-400">Minggu Libur</span>
                                     </div>
                                 </div>
                             </div>
@@ -528,7 +528,7 @@
                 </div>
             </div>
 
-            <hr class="border-slate-100">
+            <hr class="border-slate-100 dark:border-slate-700">
 
             <div>
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Keamanan Akun</h3>
@@ -537,30 +537,30 @@
                 <div class="space-y-4">
                     {{-- Password Lama --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password Saat Ini (Password Lama)</label>
-                        <input type="password" name="current_password" class="w-full md:w-1/2 px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('current_password') ? 'border-rose-500' : 'border-slate-200' }}" placeholder="••••••••">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Saat Ini (Password Lama)</label>
+                        <input type="password" name="current_password" class="w-full md:w-1/2 px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('current_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="••••••••">
                         @error('current_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{-- Password Baru --}}
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password Baru</label>
-                            <input type="password" name="new_password" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('new_password') ? 'border-rose-500' : 'border-slate-200' }}" placeholder="Minimal 8 karakter">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Baru</label>
+                            <input type="password" name="new_password" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('new_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="Minimal 8 karakter">
                             @error('new_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         {{-- Konfirmasi Password --}}
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Konfirmasi Password Baru</label>
-                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500" placeholder="Ulangi password baru">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Konfirmasi Password Baru</label>
+                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500" placeholder="Ulangi password baru">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="pt-4 flex justify-end border-t border-slate-100">
-                <button type="submit" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors">
+            <div class="pt-4 flex justify-end border-t border-slate-100 dark:border-slate-700">
+                <button type="submit" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors cursor-pointer">
                     <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
                 </button>
             </div>
@@ -573,10 +573,10 @@
      data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}"
      class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-800 text-base">Perbarui Foto Profil</h3>
-            <button type="button" id="closeModalPhotoBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4 border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Perbarui Foto Profil</h3>
+            <button type="button" id="closeModalPhotoBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -588,7 +588,7 @@
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
 
-                <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-sky-400 transition-colors bg-slate-50/50">
+                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center hover:border-sky-400 transition-colors bg-slate-50/50 dark:bg-slate-900/40">
                     <input type="file" name="profile_photo" id="profile_photo_input" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100" required/>
                 </div>
                 @error('profile_photo') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
@@ -596,7 +596,7 @@
             </form>
 
             @if($user->profile_photo)
-                <div class="pt-2 text-center border-t border-slate-100">
+                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700">
                     <form action="{{ route('account.update') }}" method="POST">
                         @csrf
                         @method('PUT')
@@ -609,8 +609,8 @@
             @endif
         </div>
 
-        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 pt-4">
-            <button type="button" id="cancelModalPhotoBtn" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">Batal</button>
+        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
+            <button type="button" id="cancelModalPhotoBtn" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Batal</button>
             <button type="submit" form="uploadPhotoForm" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-sm font-medium hover:bg-sky-700 transition-colors shadow-sm">Simpan Foto</button>
         </div>
     </div>
@@ -621,10 +621,10 @@
      data-has-error="{{ $errors->has('signature') ? 'true' : 'false' }}"
      class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-800 text-base">Unggah Berkas TTD</h3>
-            <button type="button" id="closeModalSignatureBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4 border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Unggah Berkas TTD</h3>
+            <button type="button" id="closeModalSignatureBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -636,7 +636,7 @@
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
 
-                <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors bg-slate-50/50">
+                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors bg-slate-50/50 dark:bg-slate-900/40">
                     <input type="file" name="signature" id="signature_input" accept="image/png,image/jpeg,image/jpg" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" required/>
                 </div>
                 @error('signature') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
@@ -644,7 +644,7 @@
             </form>
 
             @if($user->signature)
-                <div class="pt-2 text-center border-t border-slate-100">
+                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700">
                     <form action="{{ route('account.update') }}" method="POST">
                         @csrf
                         @method('PUT')
@@ -657,8 +657,8 @@
             @endif
         </div>
 
-        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 pt-4">
-            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50">Batal</button>
+        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
+            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Batal</button>
             <button type="submit" form="uploadSignatureForm" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 shadow-sm">Simpan TTD</button>
         </div>
     </div>
@@ -666,24 +666,24 @@
 
 {{-- MODAL HUBUNGI ADMIN UNTUK GANTI NOMOR WHATSAPP --}}
 <div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
-    <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fadeIn">
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
         
         <!-- Modal Header -->
-        <div class="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-gradient-to-r from-slate-50 via-emerald-50/40 to-slate-50">
+        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80">
                     <i class="fa-brands fa-whatsapp text-2xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold text-slate-900 leading-tight">
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
                         Ganti Nomor WhatsApp
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Hubungi Administrator untuk Perubahan Nomor Resmi
                     </p>
                 </div>
             </div>
-            <button type="button" onclick="closeChangePhoneModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+            <button type="button" onclick="closeChangePhoneModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>

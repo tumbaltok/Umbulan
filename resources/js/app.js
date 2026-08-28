@@ -6,7 +6,7 @@ window.Turbo = Turbo;
 // Handler Global Event Turbo Load
 document.addEventListener('turbo:load', () => {
     // Inisialisasi ulang tema Dark / Light
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
     } else {
         document.documentElement.classList.remove('dark');

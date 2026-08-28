@@ -2,31 +2,31 @@
 @section('title', 'Pengajuan Cuti')
 @section('content')
 <div class="max-w-3xl mx-auto mt-8 px-4">
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-            <h2 class="text-xl font-bold text-slate-800">Formulir Pengajuan Cuti</h2>
-            <p class="text-sm text-slate-500 mt-0.5">Silakan isi data di bawah ini untuk mengajukan permohonan cuti resmi</p>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Formulir Pengajuan Cuti</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Silakan isi data di bawah ini untuk mengajukan permohonan cuti resmi</p>
         </div>
 
         <div class="p-6">
             @if($errors->has('error'))
-                <div class="mb-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-sm font-medium">
+                <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 rounded-xl text-sm font-medium">
                     {{ $errors->first('error') }}
                 </div>
             @endif
 
             {{-- ELEMEN PENAMPUNG PESAN ERROR SALDO --}}
-            <div id="pesan-error-saldo" class="mb-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-sm font-medium" style="display: none;"></div>
+            <div id="pesan-error-saldo" class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 rounded-xl text-sm font-medium" style="display: none;"></div>
 
             <form id="formCuti" action="{{ route('cuti.storeWeb') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                 @csrf
 
                 {{-- JENIS CUTI UTAMA --}}
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Jenis Cuti</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Jenis Cuti</label>
                     <select name="jenis_cuti_id"
                         id="jenis_cuti_id"
-                        class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('jenis_cuti_id') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                        class="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('jenis_cuti_id') ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700' }}"
                         required>
                         <option value="" disabled selected hidden>-- Pilih Jenis Cuti --</option>
                         @foreach($jenisCuti as $jenis)
@@ -45,77 +45,77 @@
                             </option>
                         @endforeach
                     </select>
-                    @error('jenis_cuti_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    @error('jenis_cuti_id') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- SUB-CUTI / DETAIL PILIHAN --}}
                 <div id="wrapper_sub_cuti" style="display: none;">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Detail Keperluan / Sub-Cuti</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Detail Keperluan / Sub-Cuti</label>
                     <select id="sub_cuti_id"
                             name="sub_cuti_id"
-                            class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 bg-sky-50/20 {{ $errors->has('sub_cuti_id') ? 'border-rose-500' : 'border-slate-200' }}">
+                            class="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('sub_cuti_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                         <option value="" disabled selected hidden>-- Pilih Detail Perizinan --</option>
                     </select>
-                    @error('sub_cuti_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    @error('sub_cuti_id') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- GRID TANGGAL MULAI & SELESAI --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Mulai</label>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tanggal Mulai</label>
                         <input type="date"
                                name="tanggal_mulai"
                                id="tanggal_mulai"
                                min="{{ date('Y-m-d') }}"
                                value="{{ old('tanggal_mulai') }}"
-                               class="w-full px-4 py-2.5 border rounded-xl bg-white focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_mulai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                               class="w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_mulai') ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700' }}"
                                required>
-                        @error('tanggal_mulai') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                        @error('tanggal_mulai') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Selesai</label>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tanggal Selesai</label>
                         <input type="date"
                                name="tanggal_selesai"
                                id="tanggal_selesai"
                                min="{{ date('Y-m-d') }}"
                                value="{{ old('tanggal_selesai') }}"
-                               class="w-full px-4 py-2.5 border rounded-xl bg-white focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_selesai') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                               class="w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 cursor-pointer {{ $errors->has('tanggal_selesai') ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700' }}"
                                required>
-                        @error('tanggal_selesai') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                        @error('tanggal_selesai') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 {{-- ALASAN CUTI --}}
                 <div>
-                    <label id="label-alasan" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <label id="label-alasan" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Alasan / Catatan Tambahan <span class="text-xs font-normal text-slate-400">(Opsional)</span>
                     </label>
                     <textarea name="alasan_cuti"
                             id="alasan_cuti"
                             rows="3"
-                            class="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('alasan_cuti') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}"
+                            class="w-full px-4 py-2.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border rounded-xl focus:outline-none focus:border-sky-500 {{ $errors->has('alasan_cuti') ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700' }}"
                             placeholder="Contoh: Menikahkan anak pertama di gedung serbaguna kota...">{{ old('alasan_cuti') }}</textarea>
-                    @error('alasan_cuti') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    @error('alasan_cuti') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- DOKUMEN PENDUKUNG --}}
                 <div>
-                    <label id="label-dokumen" class="block text-sm font-semibold text-slate-700 mb-2">Dokumen Pendukung <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
+                    <label id="label-dokumen" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Dokumen Pendukung <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
                     <input type="file"
                            name="dokumen_pendukung"
                            id="input-dokumen"
-                           class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-600 text-sm focus:outline-none focus:border-sky-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 {{ $errors->has('dokumen_pendukung') ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200' }}">
+                           class="w-full px-3 py-2 border rounded-xl bg-slate-50 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 text-sm focus:outline-none focus:border-sky-500 border-slate-200 dark:border-slate-700 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 dark:file:bg-sky-950/50 file:text-sky-700 dark:file:text-sky-300 hover:file:bg-sky-100 {{ $errors->has('dokumen_pendukung') ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700' }}">
                     <p class="text-xs text-slate-400 mt-1.5">* Format yang didukung: PDF, JPG, JPEG, PNG (Maksimal 2MB)</p>
-                    @error('dokumen_pendukung') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    @error('dokumen_pendukung') <span class="text-xs text-rose-600 dark:text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- ACTION BUTTONS --}}
-                <div class="pt-3 border-t border-slate-100 flex justify-end space-x-3">
-                    <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end space-x-3">
+                    <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                         Batal
                     </a>
-                    <button type="submit" id="btn-submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold shadow-sm shadow-sky-100 transition-colors">
+                    <button type="submit" id="btn-submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold shadow-sm shadow-sky-100 transition-colors cursor-pointer">
                         Kirim Pengajuan
                     </button>
                 </div>

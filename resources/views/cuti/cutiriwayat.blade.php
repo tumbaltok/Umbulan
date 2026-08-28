@@ -2,18 +2,18 @@
 @section('title', 'Riwayat Cuti')
 @section('content')
 <div class="max-w-6xl mx-auto mt-8 px-4">
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
             <div>
-                <h2 class="text-xl font-bold text-slate-800">Riwayat Pengajuan Cuti Anda</h2>
-                <p class="text-sm text-slate-500 mt-0.5">Daftar seluruh permohonan cuti yang pernah Anda ajukan</p>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Riwayat Pengajuan Cuti Anda</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Daftar seluruh permohonan cuti yang pernah Anda ajukan</p>
             </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                    <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
                         <th class="px-6 py-4">Jenis Cuti / Detail</th>
                         <th class="px-6 py-4">Tanggal Pelaksanaan</th>
                         <th class="px-6 py-4">Durasi</th>
@@ -22,31 +22,31 @@
                         <th class="px-6 py-4 text-center">Detail</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                     @forelse($pengajuanCuti as $cuti)
-                        <tr class="hover:bg-slate-50/80 transition-colors">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
                             {{-- JENIS CUTI & DETAIL SUB-CUTI --}}
                             <td class="px-6 py-4">
-                                <div class="font-semibold text-slate-800">{{ $cuti->name_cuti }}</div>
+                                <div class="font-semibold text-slate-800 dark:text-slate-100">{{ $cuti->name_cuti }}</div>
 
                                 @if(!empty($cuti->nama_sub_cuti))
-                                    <div class="text-xs text-sky-600 font-medium mt-0.5 bg-sky-50 px-2 py-0.5 rounded w-fit border border-sky-100">
+                                    <div class="text-xs text-sky-600 dark:text-sky-400 font-medium mt-0.5 bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 rounded w-fit border border-sky-100 dark:border-sky-800">
                                         {{ $cuti->nama_sub_cuti }}
                                     </div>
                                 @endif
                             </td>
 
                             {{-- TANGGAL --}}
-                            <td class="px-6 py-4 text-slate-500 text-sm">
+                            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">
                                 {{ \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d M Y') }} -
                                 {{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d M Y') }}
                             </td>
 
                             {{-- DURASI --}}
-                            <td class="px-6 py-4 font-medium text-sm">{{ $cuti->total_hari }} Hari</td>
+                            <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200 text-sm">{{ $cuti->total_hari }} Hari</td>
 
                             {{-- CATATAN TAMBAHAN / ALASAN --}}
-                            <td class="px-6 py-4 text-slate-500 text-sm max-w-xs truncate" title="{{ blank($cuti->alasan_cuti) ? '-' : $cuti->alasan_cuti }}">
+                            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm max-w-xs truncate" title="{{ blank($cuti->alasan_cuti) ? '-' : $cuti->alasan_cuti }}">
                                 {{ blank($cuti->alasan_cuti) ? '-' : $cuti->alasan_cuti }}
                             </td>
 
@@ -54,7 +54,7 @@
                             <td class="px-6 py-4">
                                 @if($cuti->status_akhir == 'approved')
                                     <div class="flex items-center gap-2">
-                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-emerald-200 dark:border-emerald-800">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Disetujui</span>
                                         </span>
@@ -67,20 +67,20 @@
                                     </div>
                                 @elseif($cuti->status_akhir == 'rejected' || $cuti->status_tahap_1 == 'rejected' || $cuti->status_tahap_2 == 'rejected')
                                     <div class="space-y-1.5">
-                                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-rose-200 dark:border-rose-800">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>Ditolak</span>
                                         </span>
                                     </div>
                                 @else
-                                    <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold inline-flex items-center space-x-1">
+                                    <span class="px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-amber-200 dark:border-amber-800">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                         <span>Menunggu Review</span>
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <button type="button" data-id="{{ $cuti->id }}" class="btn-detail-cuti px-3 py-1.5 bg-slate-100 hover:bg-sky-50 text-slate-600 hover:text-sky-700 border border-slate-200/60 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1 shadow-sm">
+                                <button type="button" data-id="{{ $cuti->id }}" class="btn-detail-cuti px-3 py-1.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-sky-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 hover:text-sky-700 border border-slate-200/60 dark:border-slate-600 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1 shadow-sm cursor-pointer">
                                     <i class="fa-solid fa-eye text-xs"></i>
                                     <span>Lihat</span>
                                 </button>
@@ -89,7 +89,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-10 text-center text-slate-400">
-                                <svg class="w-8 h-8 mx-auto text-slate-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                                 Belum ada riwayat pengajuan cuti yang ditemukan.
@@ -106,46 +106,46 @@
 <div id="detailCutiModal" class="fixed inset-0 z-50 items-center justify-center hidden">
     <div id="cutiModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-800 text-base flex items-center space-x-2">
-                <i class="fa-solid fa-file-invoice text-sky-600"></i>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center space-x-2">
+                <i class="fa-solid fa-file-invoice text-sky-600 dark:text-sky-400"></i>
                 <span>Detail Informasi Pengajuan Cuti</span>
             </h3>
-            <button type="button" id="closeCutiModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition-colors">
+            <button type="button" id="closeCutiModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         <div id="cutiModalLoading" class="py-12 text-center">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-sky-600 mb-2"></div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-sky-600 mb-2"></div>
             <p class="text-xs text-slate-400">Sedang menyinkronkan data...</p>
         </div>
 
         <div id="cutiModalContent" class="hidden space-y-4">
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 grid grid-cols-2 gap-3 text-sm">
                 <div>
                     <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">Kategori Utama</span>
-                    <span id="txt_jenis_cuti" class="font-bold text-slate-800 mt-0.5 block">-</span>
+                    <span id="txt_jenis_cuti" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block">-</span>
                 </div>
                 <div>
                     <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">Detail Keperluan</span>
-                    <span id="txt_sub_cuti" class="font-bold text-slate-600 mt-0.5 block">-</span>
+                    <span id="txt_sub_cuti" class="font-bold text-slate-600 dark:text-slate-300 mt-0.5 block">-</span>
                 </div>
             </div>
 
-            <div class="border border-slate-100 rounded-xl divide-y divide-slate-50 text-sm">
+            <div class="border border-slate-100 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700 text-sm">
                 <div class="grid grid-cols-3 p-3">
                     <span class="text-slate-400 font-medium">Rentang Waktu</span>
-                    <span id="txt_rentang_tanggal" class="col-span-2 text-slate-800 font-semibold">-</span>
+                    <span id="txt_rentang_tanggal" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
                 </div>
                 <div class="grid grid-cols-3 p-3">
                     <span class="text-slate-400 font-medium">Total Akumulasi</span>
-                    <span id="txt_total_hari" class="col-span-2 text-slate-800 font-bold">-</span>
+                    <span id="txt_total_hari" class="col-span-2 text-slate-800 dark:text-slate-100 font-bold">-</span>
                 </div>
                 <div class="grid grid-cols-3 p-3">
                     <span class="text-slate-400 font-medium">Alasan Pengiriman</span>
-                    <span id="txt_alasan_cuti" class="col-span-2 text-slate-600 whitespace-pre-line leading-relaxed">-</span>
+                    <span id="txt_alasan_cuti" class="col-span-2 text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed">-</span>
                 </div>
                 <div class="grid grid-cols-3 p-3 items-center">
                     <span class="text-slate-400 font-medium">Status Pengajuan</span>
@@ -153,14 +153,14 @@
                 </div>
             </div>
 
-            <div id="wrapper_dokumen" class="border border-slate-100 rounded-xl p-3.5 space-y-2 bg-sky-50/10">
-                <span class="text-xs font-bold text-slate-700 block uppercase tracking-wider">Berkas Lampiran Pendukung</span>
+            <div id="wrapper_dokumen" class="border border-slate-100 dark:border-slate-700 rounded-xl p-3.5 space-y-2 bg-sky-50/10 dark:bg-sky-950/20">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 block uppercase tracking-wider">Berkas Lampiran Pendukung</span>
                 <div id="dokumen_render_area"></div>
             </div>
         </div>
 
-        <div class="flex items-center mt-6 justify-end border-t border-slate-100 pt-4">
-            <button type="button" id="closeCutiModalBtn2" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-semibold rounded-xl transition-colors">
+        <div class="flex items-center mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
+            <button type="button" id="closeCutiModalBtn2" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-sm font-semibold rounded-xl transition-colors cursor-pointer">
                 Tutup
             </button>
         </div>
@@ -169,18 +169,18 @@
 
 {{-- MODAL 2: PRATINJAU INTEGRASI DOKUMEN CETAK & LAMPIRAN --}}
 <div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-2">
-                <i class="fa-solid fa-file-lines text-sky-600 text-base"></i>
-                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800">Pratinjau Lampiran Dokumen</h3>
+                <i class="fa-solid fa-file-lines text-sky-600 dark:text-sky-400 text-base"></i>
+                <h3 id="judulModalLampiran" class="text-sm font-bold text-slate-800 dark:text-slate-100">Pratinjau Lampiran Dokumen</h3>
             </div>
-            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors">
+            <button type="button" onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 flex items-center justify-center p-2 sm:p-4 overflow-auto">
+        <div id="containerKontenLampiran" class="flex-1 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-2 sm:p-4 overflow-auto">
         </div>
     </div>
 </div>

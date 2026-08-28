@@ -2,19 +2,19 @@
 @section('title', 'Ajukan CAR Baru')
 
 @section('content')
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 max-w-5xl mx-auto m-2 sm:m-6">
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm p-4 sm:p-6 max-w-5xl mx-auto m-2 sm:m-6 transition-colors">
     <div class="flex items-center space-x-3 mb-6">
-        <div class="bg-sky-50 p-3 rounded-xl text-sky-600">
+        <div class="bg-sky-50 dark:bg-sky-950/50 p-3 rounded-xl text-sky-600 dark:text-sky-400">
             <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
         </div>
         <div>
-            <h2 class="text-lg sm:text-xl font-bold text-slate-800">Form Pengajuan CAR</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">Form Pengajuan CAR</h2>
             <p class="text-xs text-slate-400">Cash Advance Request (Pengajuan Dana Muka Operasional & Pembelian Material)</p>
         </div>
     </div>
 
     @if(isset($errors) && $errors->any())
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
+        <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 text-sm rounded-xl">
             <ul class="list-disc pl-5 space-y-1">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -27,32 +27,32 @@
         @csrf
 
         {{-- Section 1: Header Dokumen & Akun Pencairan --}}
-        <div class="bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-100 space-y-4">
-            <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+        <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <i class="fa-solid fa-file-contract text-sky-500"></i> Metadata Dokumen & Akun Pencairan
             </h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {{-- Nomor CAR (Readonly) --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor CAR (Otomatis)</label>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nomor CAR (Otomatis)</label>
                     <input type="text" name="nomor_car" value="{{ $nomorCar }}" readonly
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-600 text-sm font-semibold cursor-not-allowed focus:outline-none">
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-semibold cursor-not-allowed focus:outline-none">
                     <p class="text-[10px] text-slate-400 mt-1">Format resmi: [No] / META / PAS / CAR / [Bulan] / [Tahun]</p>
                 </div>
 
                 {{-- Tanggal Pengajuan --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pengajuan <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Pengajuan <span class="text-rose-500">*</span></label>
                     <input type="date" name="tanggal_pengajuan" value="{{ old('tanggal_pengajuan', date('Y-m-d')) }}" required
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer">
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer">
                 </div>
 
                 {{-- Rekening Penerima Dana (Receiving Account) --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Rekening Penerima Dana <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Rekening Penerima Dana <span class="text-rose-500">*</span></label>
                     <input type="text" name="receiving_account" value="{{ old('receiving_account') }}" required
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                            placeholder="Contoh: BCA 1234567890 a.n. Nama Karyawan">
                     <p class="text-[10px] text-slate-400 mt-1">Format: Nama Bank - No Rekening - Atas Nama Penerima</p>
                 </div>
@@ -61,26 +61,26 @@
             {{-- Alasan Pembelian & Catatan --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Alasan Pembelian / Urgensi Operasional <span class="text-rose-500">*</span></label>
-                    <textarea name="alasan_pembelian" rows="3" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Jelaskan kebutuhan pengajuan dana muka operasional secara lengkap...">{{ old('alasan_pembelian') }}</textarea>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Alasan Pembelian / Urgensi Operasional <span class="text-rose-500">*</span></label>
+                    <textarea name="alasan_pembelian" rows="3" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Jelaskan kebutuhan pengajuan dana muka operasional secara lengkap...">{{ old('alasan_pembelian') }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Note & Explanation (Opsional)</label>
-                    <textarea name="note_explanation" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Catatan tambahan teknis, sisa kas, atau keterangan pelaporan jika ada...">{{ old('note_explanation') }}</textarea>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Note & Explanation (Opsional)</label>
+                    <textarea name="note_explanation" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm leading-relaxed" placeholder="Catatan tambahan teknis, sisa kas, atau keterangan pelaporan jika ada...">{{ old('note_explanation') }}</textarea>
                 </div>
             </div>
         </div>
 
         {{-- Section 2: Rincian Barang / Multi-Item (Requested Cash Advance) --}}
         <div class="space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-2">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-boxes-stacked text-sky-500"></i> Requested Items & Ongkos Kirim per Vendor
                     </h3>
                     <p class="text-xs text-slate-400">Rincian barang, harga satuan, ongkir spesifik toko/vendor, dan upload nota/proposal</p>
                 </div>
-                <button type="button" id="btn-tambah-item" class="w-full sm:w-auto bg-sky-50 hover:bg-sky-100 text-sky-600 font-semibold text-xs px-3.5 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+                <button type="button" id="btn-tambah-item" class="w-full sm:w-auto bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-600 dark:text-sky-400 font-semibold text-xs px-3.5 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border border-sky-100 dark:border-sky-800">
                     <i class="fa-solid fa-plus"></i> Tambah Item
                 </button>
             </div>
@@ -88,60 +88,60 @@
             {{-- Container Baris Item --}}
             <div id="container-item" class="space-y-4">
                 {{-- Baris Default Pertama --}}
-                <div class="baris-item bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 relative shadow-xs space-y-3">
+                <div class="baris-item bg-white dark:bg-slate-800/90 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 relative shadow-xs space-y-3">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                         {{-- Nama Barang --}}
                         <div class="md:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
-                            <input type="text" name="items[0][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch AW">
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
+                            <input type="text" name="items[0][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Contoh: Pipa PVC 2 Inch AW">
                         </div>
 
                         {{-- Qty, Satuan, Harga Satuan, Ongkir --}}
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:col-span-6">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Qty <span class="text-rose-500">*</span></label>
-                                <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Qty <span class="text-rose-500">*</span></label>
+                                <input type="number" name="items[0][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan <span class="text-rose-500">*</span></label>
-                                <input type="text" name="items[0][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Satuan <span class="text-rose-500">*</span></label>
+                                <input type="text" name="items[0][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="items[0][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="items[0][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-amber-700 mb-1"><i class="fa-solid fa-truck-fast"></i> Ongkir (Rp)</label>
-                                <input type="number" name="items[0][ongkir]" min="0" value="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 bg-amber-50/20 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
+                                <label class="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1"><i class="fa-solid fa-truck-fast"></i> Ongkir (Rp)</label>
+                                <input type="number" name="items[0][ongkir]" min="0" value="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-950/20 text-slate-800 dark:text-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
                             </div>
                         </div>
 
                         {{-- Subtotal & Tombol Hapus --}}
-                        <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t border-slate-50 md:border-none">
+                        <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t border-slate-50 dark:border-slate-700 md:border-none">
                             <div class="text-left md:text-right">
                                 <span class="block text-[10px] text-slate-400 uppercase font-bold">Subtotal Baris</span>
-                                <span class="text-sm font-bold text-slate-700 label-subtotal">Rp 0</span>
+                                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 label-subtotal">Rp 0</span>
                             </div>
-                            <button type="button" class="btn-hapus-item text-slate-300 cursor-not-allowed p-2 rounded-lg md:mt-4" disabled>
+                            <button type="button" class="btn-hapus-item text-slate-300 dark:text-slate-600 cursor-not-allowed p-2 rounded-lg md:mt-4" disabled>
                                 <i class="fa-solid fa-trash-can text-base"></i>
                             </button>
                         </div>
                     </div>
 
                     {{-- Upload Dokumen Pendukung Khusus Item Ini --}}
-                    <div class="border-t border-slate-100 pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="border-t border-slate-100 dark:border-slate-700 pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div class="w-full sm:w-2/3">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Lampiran Nota / Proposal / Foto Barang (Opsional)</label>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Lampiran Nota / Proposal / Foto Barang (Opsional)</label>
                             <input type="file" name="items[0][dokumen_pendukung]"
-                                   class="input-file-dokumen w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer">
+                                   class="input-file-dokumen w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 dark:file:bg-sky-950/50 file:text-sky-700 dark:file:text-sky-300 hover:file:bg-sky-100 cursor-pointer">
                             <p class="text-[10px] text-slate-400 mt-0.5">* Format: PDF, JPG, JPEG, PNG (Maks 2MB)</p>
                         </div>
 
                         {{-- Container Preview --}}
-                        <div class="preview-container hidden p-2.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl w-full sm:w-1/3">
+                        <div class="preview-container hidden p-2.5 bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl w-full sm:w-1/3">
                             <div class="flex items-center space-x-2 mb-1.5">
-                                <span class="p-1 bg-sky-50 text-sky-600 rounded-md text-[10px] font-semibold uppercase tracking-wider label-tipe-file">File</span>
-                                <span class="text-[11px] text-slate-600 truncate font-medium nama-file-preview">nama_file.jpg</span>
+                                <span class="p-1 bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 rounded-md text-[10px] font-semibold uppercase tracking-wider label-tipe-file">File</span>
+                                <span class="text-[11px] text-slate-600 dark:text-slate-300 truncate font-medium nama-file-preview">nama_file.jpg</span>
                             </div>
                             <div class="area-preview-visual flex justify-start items-center"></div>
                         </div>
@@ -342,38 +342,38 @@
 
     btnTambahItem.addEventListener('click', function() {
         const barisBaru = document.createElement('div');
-        barisBaru.className = "baris-item bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 relative shadow-xs space-y-3 transition-all";
+        barisBaru.className = "baris-item bg-white dark:bg-slate-800/90 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 relative shadow-xs space-y-3 transition-all";
 
         barisBaru.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
                 <div class="md:col-span-3">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
-                    <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Nama barang">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Item / Nama Barang <span class="text-rose-500">*</span></label>
+                    <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="Nama barang">
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:col-span-6">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Qty <span class="text-rose-500">*</span></label>
-                        <input type="number" name="items[${itemIndex}][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Qty <span class="text-rose-500">*</span></label>
+                        <input type="number" name="items[${itemIndex}][jumlah]" required min="1" class="input-jumlah w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center font-bold" placeholder="1">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan <span class="text-rose-500">*</span></label>
-                        <input type="text" name="items[${itemIndex}][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Satuan <span class="text-rose-500">*</span></label>
+                        <input type="text" name="items[${itemIndex}][satuan]" required list="satuan-list" class="w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-center" placeholder="Pcs">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
-                        <input type="number" name="items[${itemIndex}][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Harga (Rp) <span class="text-rose-500">*</span></label>
+                        <input type="number" name="items[${itemIndex}][estimasi_harga]" required min="0" class="input-harga w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" placeholder="0">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-amber-700 mb-1"><i class="fa-solid fa-truck-fast"></i> Ongkir (Rp)</label>
-                        <input type="number" name="items[${itemIndex}][ongkir]" min="0" value="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 bg-amber-50/20 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
+                        <label class="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1"><i class="fa-solid fa-truck-fast"></i> Ongkir (Rp)</label>
+                        <input type="number" name="items[${itemIndex}][ongkir]" min="0" value="0" class="input-ongkir w-full px-2 py-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-950/20 text-slate-800 dark:text-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" placeholder="0">
                     </div>
                 </div>
 
-                <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t border-slate-50 md:border-none">
+                <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t border-slate-50 dark:border-slate-700 md:border-none">
                     <div class="text-left md:text-right">
                         <span class="block text-[10px] text-slate-400 uppercase font-bold">Subtotal Baris</span>
-                        <span class="text-sm font-bold text-slate-700 label-subtotal">Rp 0</span>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 label-subtotal">Rp 0</span>
                     </div>
                     <button type="button" class="btn-hapus-item text-rose-500 hover:text-rose-700 transition-colors p-2 rounded-lg md:mt-4 cursor-pointer">
                         <i class="fa-solid fa-trash-can text-base"></i>

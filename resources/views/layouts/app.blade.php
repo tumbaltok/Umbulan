@@ -11,12 +11,12 @@
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-circle.png') }}">
     <script>
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-        tailwind = { config: { darkMode: 'class' } };
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -46,15 +46,24 @@
         .dropdown-content, .sub-dropdown-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .chevron-icon, .sub-chevron-icon {
+        .dropdown-container.dropdown-open > .dropdown-content {
+            max-height: 1000px;
+        }
+
+        .sub-dropdown-container.sub-dropdown-open > .sub-dropdown-content {
+            max-height: 500px;
+        }
+
+        .chevron-icon, .sub-chevron-icon, .navbar-profile-chevron {
             transition: transform 0.3s ease;
         }
 
         .dropdown-open > .dropdown-btn .chevron-icon,
-        .sub-dropdown-open > .sub-dropdown-btn .sub-chevron-icon {
+        .sub-dropdown-open > .sub-dropdown-btn .sub-chevron-icon,
+        .navbar-profile-open .navbar-profile-chevron {
             transform: rotate(180deg);
         }
 
@@ -430,20 +439,91 @@
                     <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
                 </button>
 
-                {{-- PROFILE BADGE & POPUP TRIGGER --}}
-                <div onclick="openProfileDetailModal()" class="flex items-center space-x-3 cursor-pointer group p-1 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all" title="Klik untuk lihat detail akun">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ Auth::user()->name }}</p>
-                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                            {{ Auth::user()->role->role_name ?? 'USER' }}
-                        </p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 dark:border-slate-700 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
-                        @if(Auth::user()->profile_photo)
-                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                        @endif
+                {{-- PROFILE DROPDOWN NAVBAR --}}
+                <div class="relative" id="navbarProfileDropdownContainer">
+                    <button type="button"
+                        id="navbarProfileDropdownBtn"
+                        class="flex items-center space-x-2 sm:space-x-3 cursor-pointer group p-1.5 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                        title="Menu Profil Pengguna"
+                        aria-expanded="false"
+                        aria-haspopup="true">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ Auth::user()->name }}</p>
+                            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                                {{ Auth::user()->role->role_name ?? 'USER' }}
+                            </p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-100 overflow-hidden border border-slate-100 dark:border-slate-700 shrink-0 group-hover:ring-2 group-hover:ring-sky-500 transition-all">
+                            @if(Auth::user()->profile_photo)
+                                <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            @endif
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[11px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-transform duration-200 navbar-profile-chevron"></i>
+                    </button>
+
+                    {{-- MENU DROPDOWN MELAYANG (FLOATING PANEL) --}}
+                    <div id="navbarProfileDropdownMenu"
+                        class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/80 py-2 z-50 transition-all duration-200">
+                        {{-- User Header Info --}}
+                        <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700/60 flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-sm overflow-hidden shrink-0">
+                                @if(Auth::user()->profile_photo)
+                                    <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User" class="w-full h-full object-cover">
+                                @else
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                @endif
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ Auth::user()->name }}</p>
+                                <p class="text-xs text-slate-400 truncate">{{ Auth::user()->email }}</p>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                                    {{ Auth::user()->role->role_name ?? 'USER' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Stasiun Info --}}
+                        <div class="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/60 text-xs">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Penempatan Stasiun</span>
+                            <span class="font-semibold text-sky-600 dark:text-sky-400">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</span>
+                        </div>
+
+                        {{-- Dropdown Action Links --}}
+                        <div class="py-1.5 px-1 space-y-0.5">
+                            <button type="button"
+                                onclick="closeNavbarProfileDropdown(); openProfileDetailModal();"
+                                class="w-full flex items-center space-x-3 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-600 dark:hover:text-sky-400 rounded-xl transition-colors cursor-pointer text-left">
+                                <div class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-id-card text-xs"></i>
+                                </div>
+                                <span>Detail Profil Lengkap</span>
+                            </button>
+
+                            <a href="{{ route('account.index') }}"
+                                onclick="closeNavbarProfileDropdown()"
+                                class="flex items-center space-x-3 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-600 dark:hover:text-sky-400 rounded-xl transition-colors">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-gear text-xs"></i>
+                                </div>
+                                <span>Pengaturan Akun</span>
+                            </a>
+                        </div>
+
+                        {{-- Logout Button --}}
+                        <div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-slate-700/60 px-1">
+                            <form action="/logout" method="POST" data-turbo="false">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full flex items-center space-x-3 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer">
+                                    <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                                    </div>
+                                    <span>Keluar Aplikasi</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -458,7 +538,7 @@
                 @if(($waStatusData['status'] ?? 'disconnected') !== 'connected')
                     <div class="mb-6 p-4.5 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border border-amber-300/80 dark:border-amber-700/60 rounded-2xl shadow-sm backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
                         <div class="flex items-start sm:items-center space-x-3.5">
-                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-amber-500/20 mt-0.5 sm:mt-0">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-amber-500/20 mt-0.5 sm:mt-0">
                                 <i class="fa-brands fa-whatsapp"></i>
                             </div>
                             <div>
@@ -473,8 +553,7 @@
                                 </p>
                             </div>
                         </div>
-                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">
-                            <i class="fa-solid fa-qrcode"></i>
+                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">                            <i class="fa-solid fa-qrcode"></i>
                             <span>Sambungkan Perangkat</span>
                         </a>
                     </div>
@@ -506,7 +585,7 @@
         function toggleThemeMode() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
-            localStorage.theme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
             syncThemeIcon();
         }
 
@@ -521,153 +600,171 @@
             }
         }
 
+        // --- NAVBAR PROFILE DROPDOWN ---
+        function toggleNavbarProfileDropdown(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const menu = document.getElementById('navbarProfileDropdownMenu');
+            const btn = document.getElementById('navbarProfileDropdownBtn');
+            if (!menu || !btn) return;
+
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                openNavbarProfileDropdown();
+            } else {
+                closeNavbarProfileDropdown();
+            }
+        }
+
+        function openNavbarProfileDropdown() {
+            const menu = document.getElementById('navbarProfileDropdownMenu');
+            const btn = document.getElementById('navbarProfileDropdownBtn');
+            if (!menu || !btn) return;
+
+            menu.classList.remove('hidden');
+            btn.classList.add('navbar-profile-open');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeNavbarProfileDropdown() {
+            const menu = document.getElementById('navbarProfileDropdownMenu');
+            const btn = document.getElementById('navbarProfileDropdownBtn');
+            if (!menu || !btn) return;
+
+            menu.classList.add('hidden');
+            btn.classList.remove('navbar-profile-open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        // --- SIDEBAR DROPDOWN (ACCORDION) ---
+        function toggleDropdown(container) {
+            if (!container) return;
+            const isOpen = container.classList.contains('dropdown-open');
+            if (isOpen) {
+                container.classList.remove('dropdown-open');
+            } else {
+                container.classList.add('dropdown-open');
+            }
+        }
+
+        function toggleSubDropdown(subContainer) {
+            if (!subContainer) return;
+            const isOpen = subContainer.classList.contains('sub-dropdown-open');
+            if (isOpen) {
+                subContainer.classList.remove('sub-dropdown-open');
+            } else {
+                subContainer.classList.add('sub-dropdown-open');
+            }
+        }
+
+        // --- MOBILE SIDEBAR HANDLER ---
+        function openSidebarMobile() {
+            const sidebar = document.getElementById("sidebarApp");
+            const backdrop = document.getElementById("sidebarBackdrop");
+            if (sidebar && backdrop) {
+                sidebar.classList.remove("-translate-x-full");
+                sidebar.classList.add("translate-x-0");
+                backdrop.classList.remove("pointer-events-none", "opacity-0");
+                backdrop.classList.add("opacity-100");
+            }
+        }
+
+        function closeSidebarMobile() {
+            const sidebar = document.getElementById("sidebarApp");
+            const backdrop = document.getElementById("sidebarBackdrop");
+            if (sidebar && backdrop) {
+                sidebar.classList.remove("translate-x-0");
+                sidebar.classList.add("-translate-x-full");
+                backdrop.classList.remove("opacity-100");
+                backdrop.classList.add("opacity-0", "pointer-events-none");
+            }
+        }
+
+        // --- SINKRONISASI TAMPILAN SAAT NAVIGASI (TURBO / DOM LOAD) ---
         function initLayoutHandlers() {
             updateHeaderClock();
             syncThemeIcon();
+            closeNavbarProfileDropdown();
+            closeSidebarMobile();
 
-            const sidebar = document.getElementById("sidebarApp");
-            const backdrop = document.getElementById("sidebarBackdrop");
-            const toggleBtn = document.getElementById("toggleSidebarBtn");
-            const closeBtn = document.getElementById("closeSidebarBtn");
-
-            // HANDLER DROPDOWN LEVEL 1
-            const dropdownContainers = document.querySelectorAll('.dropdown-container');
-
-            function openDropdown(container) {
-                const content = container.querySelector('.dropdown-content');
+            // Auto-open active dropdowns based on data-active="true"
+            document.querySelectorAll('.dropdown-container[data-active="true"]').forEach(container => {
                 container.classList.add('dropdown-open');
-
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
-
-            function closeDropdown(container) {
-                const content = container.querySelector('.dropdown-content');
-                container.classList.remove('dropdown-open');
-                content.style.maxHeight = "0px";
-            }
-
-            dropdownContainers.forEach(container => {
-                const btn = container.querySelector('.dropdown-btn');
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (window.innerWidth >= 768 && sidebar.matches(':not(:hover)')) return;
-                    const isOpen = container.classList.contains('dropdown-open');
-                    if (isOpen) {
-                        closeDropdown(container);
-                    } else {
-                        openDropdown(container);
-                    }
-                });
             });
-
-            const subDropdownContainers = document.querySelectorAll('.sub-dropdown-container');
-
-            function openSubDropdown(subContainer) {
-                const subContent = subContainer.querySelector('.sub-dropdown-content');
-                subContainer.classList.add('sub-dropdown-open');
-
-                const subHeight = subContent.scrollHeight;
-                subContent.style.maxHeight = subHeight + "px";
-
-                const parentDropdown = subContainer.closest('.dropdown-container');
-                if (parentDropdown) {
-                    const parentContent = parentDropdown.querySelector('.dropdown-content');
-                    requestAnimationFrame(() => {
-                        parentContent.style.maxHeight = (parentContent.scrollHeight + subHeight) + "px";
-                    });
-                }
-            }
-
-            function closeSubDropdown(subContainer) {
-                const subContent = subContainer.querySelector('.sub-dropdown-content');
-                const subHeight = subContent.scrollHeight;
-
-                subContainer.classList.remove('sub-dropdown-open');
-                subContent.style.maxHeight = "0px";
-
-                const parentDropdown = subContainer.closest('.dropdown-container');
-                if (parentDropdown) {
-                    const parentContent = parentDropdown.querySelector('.dropdown-content');
-                    const currentParentHeight = parentContent.scrollHeight;
-                    parentContent.style.maxHeight = Math.max(0, currentParentHeight - subHeight) + "px";
-                }
-            }
-
-            subDropdownContainers.forEach(subContainer => {
-                const subBtn = subContainer.querySelector('.sub-dropdown-btn');
-                subBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const isSubOpen = subContainer.classList.contains('sub-dropdown-open');
-                    if (isSubOpen) closeSubDropdown(subContainer); else openSubDropdown(subContainer);
-                });
+            document.querySelectorAll('.sub-dropdown-container[data-active="true"]').forEach(sub => {
+                sub.classList.add('sub-dropdown-open');
             });
-
-            // HOVER MOUSE SIDEBAR DESKTOP
-            let sidebarHoverTimeout = null;
-            if (sidebar) {
-                sidebar.addEventListener('mouseenter', function() {
-                    if (window.innerWidth >= 768) {
-                        if (sidebarHoverTimeout) clearTimeout(sidebarHoverTimeout);
-                        setTimeout(() => {
-                            dropdownContainers.forEach(container => {
-                                if (container.getAttribute('data-active') === 'true') {
-                                    openDropdown(container);
-
-                                    // Auto-open sub-dropdown if active
-                                    const activeSub = container.querySelectorAll('.sub-dropdown-container[data-active="true"]');
-                                    activeSub.forEach(sub => openSubDropdown(sub));
-                                }
-                            });
-                        }, 200);
-                    }
-                });
-
-                sidebar.addEventListener('mouseleave', function() {
-                    if (window.innerWidth >= 768) {
-                        if (sidebarHoverTimeout) clearTimeout(sidebarHoverTimeout);
-                    }
-                });
-            }
-
-            // AUTO OPEN JIKA DIPANGGIL LANGSUNG
-            dropdownContainers.forEach(container => {
-                if (container.getAttribute('data-active') === 'true') {
-                    openDropdown(container);
-                    const activeSubs = container.querySelectorAll('.sub-dropdown-container[data-active="true"]');
-                    activeSubs.forEach(sub => openSubDropdown(sub));
-                }
-            });
-
-            // MOBILE SIDEBAR HANDLER
-            function openSidebarMobile() {
-                if (sidebar && backdrop) {
-                    sidebar.classList.remove("-translate-x-full");
-                    sidebar.classList.add("translate-x-0");
-                    backdrop.classList.remove("pointer-events-none", "opacity-0");
-                    backdrop.classList.add("opacity-100");
-                }
-            }
-
-            function closeSidebarMobile() {
-                if (sidebar && backdrop) {
-                    sidebar.classList.remove("translate-x-0");
-                    sidebar.classList.add("-translate-x-full");
-                    backdrop.classList.remove("opacity-100");
-                    backdrop.classList.add("opacity-0", "pointer-events-none");
-                }
-            }
-
-            if (toggleBtn) toggleBtn.addEventListener("click", openSidebarMobile);
-            if (closeBtn) closeBtn.addEventListener("click", closeSidebarMobile);
-            if (backdrop) backdrop.addEventListener("click", closeSidebarMobile);
         }
 
-        setInterval(updateHeaderClock, 1000);
+        // --- SINGLE GLOBAL EVENT DELEGATION (SAFE FROM MULTI-BINDING BUG) ---
+        if (!window.__umbulanLayoutEventsBound) {
+            window.__umbulanLayoutEventsBound = true;
+
+            document.addEventListener('click', function(e) {
+                // 1. Navbar Profile Dropdown Button
+                const navProfileBtn = e.target.closest('#navbarProfileDropdownBtn');
+                if (navProfileBtn) {
+                    toggleNavbarProfileDropdown(e);
+                    return;
+                }
+
+                // 2. Click outside Navbar Profile Dropdown -> Dismiss
+                const profileDropdownContainer = document.getElementById('navbarProfileDropdownContainer');
+                if (profileDropdownContainer && !profileDropdownContainer.contains(e.target)) {
+                    closeNavbarProfileDropdown();
+                }
+
+                // 3. Sidebar Level 1 Dropdown Buttons (Fasilitas Cuti, MPR, CAR, Administrator)
+                const dropdownBtn = e.target.closest('.dropdown-btn');
+                if (dropdownBtn) {
+                    e.preventDefault();
+                    const container = dropdownBtn.closest('.dropdown-container');
+                    if (container) {
+                        toggleDropdown(container);
+                    }
+                    return;
+                }
+
+                // 4. Sidebar Level 2 Sub-Dropdown Buttons (Daftar, Record)
+                const subBtn = e.target.closest('.sub-dropdown-btn');
+                if (subBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const subContainer = subBtn.closest('.sub-dropdown-container');
+                    if (subContainer) {
+                        toggleSubDropdown(subContainer);
+                    }
+                    return;
+                }
+
+                // 5. Mobile Sidebar Triggers
+                if (e.target.closest('#toggleSidebarBtn')) {
+                    e.preventDefault();
+                    openSidebarMobile();
+                    return;
+                }
+                if (e.target.closest('#closeSidebarBtn') || (e.target.id === 'sidebarBackdrop')) {
+                    e.preventDefault();
+                    closeSidebarMobile();
+                    return;
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeNavbarProfileDropdown();
+                    closeProfileDetailModal();
+                    closeSidebarMobile();
+                }
+            });
+
+            setInterval(updateHeaderClock, 1000);
+        }
+
         document.addEventListener("DOMContentLoaded", initLayoutHandlers);
         document.addEventListener("turbo:load", initLayoutHandlers);
-        document.addEventListener("app:navigated", initLayoutHandlers);
     </script>
 
     <!-- MODAL POPUP DETAIL AKUN USER -->
