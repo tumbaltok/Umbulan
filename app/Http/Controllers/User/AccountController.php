@@ -198,12 +198,11 @@ class AccountController extends Controller
             }
         }
 
-        // PREVENT ROLE ADMIN OVERWRITE
-        if (!$user->hasRole('ADMIN') && $user->role_id != 1) {
+        // PREVENT ROLE LEVEL 1 OVERWRITE BY NON-ADMIN
+        if (!$user->isLevel1()) {
             if ($request->has('roles') && is_array($request->roles)) {
                 $validRoleIds = Role::whereIn('id', $request->roles)
-                    ->where('id', '!=', 1)
-                    ->where('role_name', 'NOT LIKE', '%admin%')
+                    ->where('level', '!=', 1)
                     ->pluck('id')
                     ->toArray();
                 if (!empty($validRoleIds)) {

@@ -272,7 +272,7 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kelola tingkat hak akses dan hirarki wewenang jabatan.</p>
                 </div>
 
-                @if(Auth::user()->role && Auth::user()->role->level == 1)
+                @if(Auth::user()->isLevel1())
                 <button type="button" onclick="bukaModalTambahRole()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> Tambah Role Baru
                 </button>
@@ -288,7 +288,7 @@
                             <th class="px-4 py-3.5">Hak Akses</th>
                             <th class="px-4 py-3.5">Deskripsi Wewenang</th>
                             <th class="px-4 py-3.5 text-center">Total Staf</th>
-                            @if(Auth::user()->role && Auth::user()->role->level == 1)
+                            @if(Auth::user()->isLevel1())
                             <th class="px-4 py-3.5 text-center w-20">Aksi</th>
                             @endif
                         </tr>
@@ -335,8 +335,8 @@
                                     </span>
                                 </td>
 
-                                @if(Auth::user()->role && Auth::user()->role->level == 1)
-                                <td class="px-4 py-3 text-center whitespace-nowrap">
+                                @if(Auth::user()->isLevel1())
+                                <td class="px-4 py-3.5 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center space-x-1.5">
                                         <button type="button"
                                                 data-role='@json($role)'

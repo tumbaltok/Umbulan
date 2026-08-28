@@ -97,53 +97,49 @@ class DatabaseSeeder extends Seeder
         Role::truncate();
 
         $rolesData = [
-            // Level 1: System Admin
-            ['id' => 1, 'role_name' => 'ADMIN', 'level' => 1, 'parent_role_id' => 26, 'approval_rules' => ['cuti' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 8], 'approval_levels' => 2,'car' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 7], 'mpr' => ['levels' => 2, 'approver_1_role_id' => 18, 'approver_2_role_id' => 4], 'approver_level_1_role_id' => 18, 'approver_level_2_role_id' => 8], 'description' => 'Administrator Utama Sistem ERP'],
+            // Direksi & Head Division
+            ['id' => 2,  'role_name' => 'EXCECUTIVE ADVISOR', 'parent_role_id' => null, 'description' => null],
+            ['id' => 3,  'role_name' => 'PROCUREMENT', 'parent_role_id' => null, 'description' => null],
+            ['id' => 4,  'role_name' => 'GENERAL MANAGER', 'parent_role_id' => null, 'description' => null],
+            ['id' => 5,  'role_name' => 'SECRETARY', 'parent_role_id' => null, 'description' => null],
+            ['id' => 6,  'role_name' => 'HRD', 'parent_role_id' => null, 'description' => null],
 
-            // Level 2: Direksi & Head Division
-            ['id' => 2,  'role_name' => 'EXCECUTIVE ADVISOR', 'level' => 2, 'parent_role_id' => null, 'description' => null],
-            ['id' => 3,  'role_name' => 'PROCUREMENT', 'level' => 2, 'parent_role_id' => null, 'description' => null],
-            ['id' => 4,  'role_name' => 'GENERAL MANAGER', 'level' => 1, 'parent_role_id' => null, 'description' => null],
-            ['id' => 5,  'role_name' => 'SECRETARY', 'level' => 2, 'parent_role_id' => null, 'description' => null],
-            ['id' => 6,  'role_name' => 'HRD', 'level' => 2, 'parent_role_id' => null, 'description' => null],
+            // Berada langsung di bawah GM - Role 7
+            ['id' => 7,  'role_name' => 'CONSULTANT', 'parent_role_id' => 4, 'description' => null],
+            ['id' => 8,  'role_name' => 'OPERATIONAL', 'parent_role_id' => 4, 'description' => null],
+            ['id' => 9,  'role_name' => 'PUBLIC RELATIONS', 'parent_role_id' => 4, 'description' => null],
+            ['id' => 10, 'role_name' => 'SUPORT', 'parent_role_id' => 4, 'description' => null],
+            ['id' => 11, 'role_name' => 'LEGAL', 'parent_role_id' => 4, 'description' => null],
+            ['id' => 12, 'role_name' => 'FINANCE', 'parent_role_id' => 4, 'description' => null],
 
-            // Level 3: Berada langsung di bawah GM - Role 7
-            ['id' => 7,  'role_name' => 'CONSULTANT', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-            ['id' => 8,  'role_name' => 'OPERATIONAL', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-            ['id' => 9,  'role_name' => 'PUBLIC RELATIONS', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-            ['id' => 10, 'role_name' => 'SUPORT', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-            ['id' => 11, 'role_name' => 'LEGAL', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-            ['id' => 12, 'role_name' => 'FINANCE', 'level' => 2, 'parent_role_id' => 4, 'description' => null],
-
-            // Level 4: Operational Sub-Units (Bawahan Operational - Role 8)
-            ['id' => 13, 'role_name' => 'UNIT IPA UMBULAN', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
-            ['id' => 14, 'role_name' => 'AREA (PIPELINE)', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
-            ['id' => 15, 'role_name' => 'UNIT BOOSTER-M', 'level' => 2, 'parent_role_id' => 8, 'description' => null],
+            // Operational Sub-Units (Bawahan Operational - Role 8)
+            ['id' => 13, 'role_name' => 'UNIT IPA UMBULAN', 'parent_role_id' => 8, 'description' => null],
+            ['id' => 14, 'role_name' => 'AREA (PIPELINE)', 'parent_role_id' => 8, 'description' => null],
+            ['id' => 15, 'role_name' => 'UNIT BOOSTER-M', 'parent_role_id' => 8, 'description' => null],
 
             // Sub-Departemen
-            ['id' => 16, 'role_name' => 'GENERAL AFFAIRS', 'level' => 3, 'parent_role_id' => 10, 'description' => null],
-            ['id' => 17, 'role_name' => 'ASSET', 'level' => 3, 'parent_role_id' => 11, 'description' => null],
-            ['id' => 18, 'role_name' => 'ACCOUNT', 'level' => 3, 'parent_role_id' => 12, 'description' => null],
-            ['id' => 19, 'role_name' => 'MARKETING', 'level' => 3, 'parent_role_id' => 12, 'description' => null],
-            ['id' => 27, 'role_name' => 'DOKUMENT CONTROL', 'level' => 3, 'parent_role_id' => 17, 'description' => null],
+            ['id' => 16, 'role_name' => 'GENERAL AFFAIRS', 'parent_role_id' => 10, 'description' => null],
+            ['id' => 17, 'role_name' => 'ASSET', 'parent_role_id' => 11, 'description' => null],
+            ['id' => 18, 'role_name' => 'ACCOUNT', 'parent_role_id' => 12, 'description' => null],
+            ['id' => 19, 'role_name' => 'MARKETING', 'parent_role_id' => 12, 'description' => null],
+            ['id' => 27, 'role_name' => 'DOKUMENT CONTROL', 'parent_role_id' => 17, 'description' => null],
 
             // Tim Lapangan (Bawahan Unit IPA Umbulan - Role 13)
-            ['id' => 20, 'role_name' => 'MAINTANANCE (Umbulan)', 'level' => 3, 'parent_role_id' => 13, 'description' => null],
-            ['id' => 21, 'role_name' => 'Q.HSE (Umbulan)', 'level' => 3, 'parent_role_id' => 13, 'description' => null],
-            ['id' => 22, 'role_name' => 'GENERAL SERVICES', 'level' => 3, 'parent_role_id' => 13, 'description' => null],
-            ['id' => 23, 'role_name' => 'OPERATOR (Umbulan)', 'level' => 3, 'parent_role_id' => 13, 'description' => null],
+            ['id' => 20, 'role_name' => 'MAINTANANCE (Umbulan)', 'parent_role_id' => 13, 'description' => null],
+            ['id' => 21, 'role_name' => 'Q.HSE (Umbulan)', 'parent_role_id' => 13, 'description' => null],
+            ['id' => 22, 'role_name' => 'GENERAL SERVICES', 'parent_role_id' => 13, 'description' => null],
+            ['id' => 23, 'role_name' => 'OPERATOR (Umbulan)', 'parent_role_id' => 13, 'description' => null],
 
             // Tim Lapangan (Bawahan Unit Booster-M - Role 15)
-            ['id' => 24, 'role_name' => 'MAINTANANCE (Booster-M)', 'level' => 3, 'parent_role_id' => 15, 'description' => null],
-            ['id' => 25, 'role_name' => 'Q.HSE (Booster-M)', 'level' => 3, 'parent_role_id' => 15, 'description' => null],
-            ['id' => 26, 'role_name' => 'OPERATOR (Booster-M)', 'level' => 3, 'parent_role_id' => 15, 'description' => null],
+            ['id' => 24, 'role_name' => 'MAINTANANCE (Booster-M)', 'parent_role_id' => 15, 'description' => null],
+            ['id' => 25, 'role_name' => 'Q.HSE (Booster-M)', 'parent_role_id' => 15, 'description' => null],
+            ['id' => 26, 'role_name' => 'OPERATOR (Booster-M)', 'parent_role_id' => 15, 'description' => null],
             ];
 
         foreach ($rolesData as $role) {
             Role::create([
                 'id'             => $role['id'],
                 'role_name'      => $role['role_name'],
-                'level'          => $role['level'],
                 'parent_role_id' => $role['parent_role_id'],
                 'approval_rules' => $role['approval_rules'] ?? null,
                 'description'    => $role['description'],
@@ -180,39 +176,16 @@ class DatabaseSeeder extends Seeder
         }
 
         // ==========================================
-        // 6. SEEDING AKUN ADMIN UTAMA & KARYAWAN
+        // 6. SEEDING AKUN KARYAWAN & ADMINISTRATOR
         // ==========================================
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        User::truncate();
+        DB::table('role_user')->truncate();
+        DB::table('station_user')->truncate();
+        SaldoCuti::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         $defaultPassword = Hash::make('User123.');
-
-        // ADMIN SISTEM
-        $admin = User::create([
-            'nip'               => 'ADMIN-001',
-            'name'              => 'Admin Sistem',
-            'email'             => 'admin@meta.com',
-            'role_id'           => 1,
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'gender_id'         => $pria->id,
-            'station_id'        => $stBooster->id,
-            'phone_number'      => '081234567890',
-            'face_descriptor'   => array_fill(0, 128, 0.05),
-            'signature'         => 'signatures/dummy_signature.png',
-            'schedule_type'     => 'roster',
-            'roster_start_date' => '2026-08-01',
-            'normal_work_days'  => null,
-            'normal_check_in'   => null,
-            'normal_check_out'  => null,
-            'password'          => Hash::make('Admin123.'),
-        ]);
-
-        $admin->roles()->sync([1 => ['is_primary' => true]]);
-
-        SaldoCuti::create([
-            'user_id'       => $admin->id,
-            'jenis_cuti_id' => $cutiTahunan->id,
-            'tahun'         => (int) date('Y'),
-            'sisa_saldo'    => 12,
-        ]);
 
         // ------------------------------------------------------------------
         // PENGELOMPOKAN NIP/KARYAWAN BERDASARKAN JADWAL
@@ -232,8 +205,8 @@ class DatabaseSeeder extends Seeder
             // TOP MANAGEMENT
             ['id' => 1, 'nip' => 'EMP-003', 'name' => 'Yan Kuryana', 'email' => 'yan@meta.com', 'role_id' => 2, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 2, 'nip' => 'EMP-004', 'name' => 'Rino Tumilar', 'email' => 'rino@meta.com', 'role_id' => 2, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
-            // Multi-Role: Reki M. (PROCUREMENT & OPERATIONAL)
-            ['id' => 3, 'nip' => 'EMP-006', 'name' => 'Reki M.', 'email' => 'reki@meta.com', 'role_id' => 3, 'roles' => [3, 8], 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
+            // Multi-Role: Reki M (PROCUREMENT & OPERATIONAL - Level 1)
+            ['id' => 3, 'nip' => 'EMP-006', 'name' => 'Reki M', 'email' => 'reki@meta.com', 'role_id' => 3, 'roles' => [3, 8], 'level' => 1, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 4, 'nip' => 'EMP-001', 'name' => 'Herta Eridani', 'email' => 'herta@meta.com', 'role_id' => 4, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
             ['id' => 5, 'nip' => 'EMP-002', 'name' => 'Nariessa S', 'email' => 'nariessa@meta.com', 'role_id' => 5, 'station_id' => $stSurabaya->id, 'gender_id' => $wanita->id],
             ['id' => 6, 'nip' => 'EMP-007', 'name' => 'Bantolo E.', 'email' => 'bantolo@meta.com', 'role_id' => 5, 'station_id' => $stSurabaya->id, 'gender_id' => $pria->id],
@@ -296,7 +269,8 @@ class DatabaseSeeder extends Seeder
             ['id' => 54, 'nip' => 'EMP-054', 'name' => 'M Jafar', 'email' => 'jafar@meta.com', 'role_id' => 24, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['id' => 55, 'nip' => 'EMP-055', 'name' => 'Ismi Syarifi', 'email' => 'ismi@meta.com', 'role_id' => 25, 'station_id' => $stBooster->id, 'gender_id' => $wanita->id],
             ['id' => 56, 'nip' => 'EMP-056', 'name' => 'Khoirul Anam', 'email' => 'anam@meta.com', 'role_id' => 26, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
-            ['id' => 57, 'nip' => 'EMP-057', 'name' => 'Yoga Farely', 'email' => 'yogafarely@meta.com', 'level' => 1, 'role_id' => 26, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
+            // Yoga Farely (OPERATOR Booster-M - Level 1)
+            ['id' => 57, 'nip' => 'EMP-057', 'name' => 'Yoga Farely', 'email' => 'yogafarely@meta.com', 'role_id' => 26, 'level' => 1, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['id' => 58, 'nip' => 'EMP-058', 'name' => 'Misbahul Munir', 'email' => 'munir@meta.com', 'role_id' => 26, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['id' => 59, 'nip' => 'EMP-059', 'name' => 'Ach Nafis', 'email' => 'nafis@meta.com', 'role_id' => 26, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
             ['id' => 60, 'nip' => 'EMP-060', 'name' => 'Safiudin', 'email' => 'udin@meta.com', 'role_id' => 26, 'station_id' => $stBooster->id, 'gender_id' => $pria->id],
@@ -337,17 +311,21 @@ class DatabaseSeeder extends Seeder
                 $normalCheckOut  = '16:00:00';
             }
 
+            // Penentuan Hak Akses Akun: Reki M & Yoga Farely = Level 1 (Full Access), Seluruh Karyawan Lainnya = Level 2 (Monitoring)
+            $isLevel1 = in_array($userData['name'], ['Reki M', 'Yoga Farely']) || ($userData['level'] ?? null) === 1;
+            $userLevel = $isLevel1 ? 1 : 2;
+
             $user = User::create([
                 'nip'               => $userData['nip'],
                 'name'              => $userData['name'],
                 'email'             => $userData['email'],
                 'role_id'           => $userData['role_id'],
+                'level'             => $userLevel,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'gender_id'         => $userData['gender_id'],
                 'station_id'        => $userData['station_id'],
                 'phone_number'      => '0812' . rand(10000000, 99999999),
-                // 'face_descriptor'   => array_fill(0, 128, 0.05),
                 'signature'         => 'signatures/dummy_signature.png',
                 'schedule_type'     => $scheduleType,
                 'roster_start_date' => $rosterStartDate,

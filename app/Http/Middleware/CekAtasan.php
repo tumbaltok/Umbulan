@@ -26,29 +26,29 @@ class CekAtasan
             return redirect()->route('dashboard')->with('error', 'Akun Anda tidak memiliki role yang valid!');
         }
 
-        // BYPASS FULL AKSES (Role ID 1 / Admin)
-        if ($user->hasRole('ADMIN') || $roles->contains('id', 1) || $user->role_id === 1) {
+        // Evaluasi Hak Akses 100% Berbasis users.level
+        $level = (int) ($user->level ?? 3);
+
+        // Level 1 = Full Akses Administrator (Bypass Semua Operasi)
+        if ($level === 1) {
             return $next($request);
         }
 
-        // Ambil level tertinggi (angka terkecil) dari seluruh role pengguna
-        $minLevel = $roles->min('level') ?? ($user->role?->level ?? 3);
-
-        // Level > 2 (Level 3, 4, 5, dst) Ditolak dari Area Administrator
-        if ($minLevel > 2) {
+        // Level > 2 (Level 3, dst) Ditolak dari Area Administrator
+        if ($level > 2) {
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman administrator!');
         }
 
         // Level 2 = Monitoring / Read-Only (Kecuali untuk Rute Persetujuan)
-        if ($minLevel === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+        if ($level === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             $isApprovalRoute = $request->routeIs('admin.persetujuan.*');
 
             if (! $isApprovalRoute) {
                 if ($request->expectsJson()) {
-                    return response()->json(['message' => 'Role Anda hanya memiliki akses Monitoring (Read-Only)!'], 403);
+                    return response()->json(['message' => 'Akun Anda hanya memiliki akses Monitoring (Read-Only)!'], 403);
                 }
 
-                return redirect()->back()->with('error', 'Aksi ditolak: Role Anda hanya memiliki hak akses Read-Only (Monitoring)!');
+                return redirect()->back()->with('error', 'Aksi ditolak: Akun Anda hanya memiliki hak akses Read-Only (Monitoring)!');
             }
         }
 

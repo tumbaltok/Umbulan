@@ -54,7 +54,7 @@ class KaryawanController extends Controller
 
         $userRoles = $currentUser->roles;
 
-        $isAdminRole = $userRoles->contains('id', 1);
+        $isAdminRole = $currentUser->isLevel1() || $userRoles->contains('id', 1) || $currentUser->role_id === 1;
         $hasTopRole  = $userRoles->contains(fn($r) => empty($r->parent_role_id));
 
         if (! $isAdminRole && ! $hasTopRole) {
@@ -177,11 +177,8 @@ class KaryawanController extends Controller
     {
         $currentUser = Auth::user();
 
-        // Otoritas khusus Admin / Superadmin (Level 1 / Role ID 1)
-        $isAdmin = $currentUser->roles->contains('id', 1)
-            || $currentUser->hasRole(1)
-            || $currentUser->hasRole('Administrator')
-            || $currentUser->hasRole('Admin');
+        // Otoritas khusus Admin / Superadmin (Level 1)
+        $isAdmin = $currentUser->isLevel1();
 
         if (! $isAdmin) {
             return response()->json([

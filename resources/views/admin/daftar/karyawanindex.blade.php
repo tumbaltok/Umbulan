@@ -328,7 +328,7 @@
                     <div class="col-span-2 flex items-center justify-between gap-2">
                         <span id="detail_biometric_badge" class="px-2.5 py-1 rounded-lg text-xs font-bold"></span>
                         @php
-                            $canResetBio = Auth::user()->roles->contains('id', 1) || Auth::user()->hasRole(1) || Auth::user()->hasRole('Administrator') || Auth::user()->hasRole('Admin');
+                            $canResetBio = Auth::user()->isLevel1();
                         @endphp
                         @if($canResetBio)
                             <button type="button" id="btnResetBiometric" onclick="confirmResetBiometric()" class="hidden text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer shadow-2xs">

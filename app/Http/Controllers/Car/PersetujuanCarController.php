@@ -21,7 +21,7 @@ class PersetujuanCarController extends Controller
             $atasanRoleIds = [$atasan->role_id];
         }
 
-        $isAdmin = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
+        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
         $query = PengajuanCar::with(['user.roles', 'details'])
             ->orderBy('created_at', 'desc');

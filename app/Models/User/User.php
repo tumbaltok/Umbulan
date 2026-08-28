@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role_id',
+        'level',
         'gender_id',
         'station_id',
         'atasan_langsung_id',
@@ -276,6 +277,30 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isTopLevel(): bool
     {
         return $this->roles->contains(fn($r) => empty($r->parent_role_id));
+    }
+
+    /**
+     * Memeriksa apakah user memiliki hak akses Level 1 (Full Access / Administrator).
+     */
+    public function isLevel1(): bool
+    {
+        return (int)$this->level === 1;
+    }
+
+    /**
+     * Memeriksa apakah user memiliki hak akses Level 2 (Monitoring / Read-Only).
+     */
+    public function isLevel2(): bool
+    {
+        return (int)$this->level === 2;
+    }
+
+    /**
+     * Memeriksa apakah user memiliki hak akses Level 3 (User / Staf Biasa).
+     */
+    public function isLevel3(): bool
+    {
+        return (int)$this->level === 3;
     }
 
     /**

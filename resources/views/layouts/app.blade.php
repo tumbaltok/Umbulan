@@ -140,12 +140,12 @@
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-100 flex overflow-hidden transition-colors duration-200">
 
     @php
-        $authUser    = Auth::user();
-        $userRole    = $authUser->role;
-        $isRootAdmin = $userRole?->id === 1;
-        $isLevel1Or2 = (int)($userRole?->level ?? 99) <= 2;
-        $hasAccess   = $isRootAdmin || $isLevel1Or2;
-        $isAdminRole = $isRootAdmin || $isLevel1Or2;
+        $authUser     = Auth::user();
+        $userLevel    = (int)($authUser->level ?? 3);
+        $isLevel1     = $userLevel === 1;
+        $isLevel1Or2  = $userLevel <= 2;
+        $hasAccess    = $isLevel1Or2;
+        $isAdminRole  = $isLevel1Or2;
     @endphp
 
     <!-- SIDEBAR -->

@@ -25,7 +25,7 @@ class PersetujuanCutiController extends Controller
             $atasanRoleIds = [$atasan->role_id];
         }
 
-        $isAdmin = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
+        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
         $query = PengajuanCuti::with(['user.roles', 'jenisCuti', 'subCuti'])
             ->orderBy('created_at', 'desc');

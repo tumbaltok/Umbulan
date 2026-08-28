@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->integer('level')->default(2);
             $table->foreignId('gender_id')->nullable()->constrained('genders');
             $table->foreignId('station_id')->constrained('stations');
             $table->enum('schedule_type', ['normal', 'roster'])->nullable()->default('normal');

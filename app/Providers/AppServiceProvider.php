@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
                     $atasanRoleIds = [$atasan->role_id];
                 }
 
-                $hasAdminRole = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
+                $hasAdminRole = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
                 if ($hasAdminRole) {
                     // Admin Sistem: Akses pantau seluruh antrean global

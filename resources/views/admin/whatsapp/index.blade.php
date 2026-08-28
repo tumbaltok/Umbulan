@@ -7,8 +7,7 @@
     {{-- HEADER HALAMAN & BREADCRUMB --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700/60 shadow-xs">
         <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/20 shrink-0">
-                <i class="fa-brands fa-whatsapp"></i>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/20 shrink-0">                <i class="fa-brands fa-whatsapp"></i>
             </div>
             <div>
                 <nav class="flex items-center space-x-2 text-xs font-semibold text-slate-400 mb-1">
@@ -20,9 +19,6 @@
                 </nav>
                 <h1 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
                     <span>Self-Hosted WhatsApp Gateway</span>
-                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 font-bold">
-                        Baileys Engine
-                    </span>
                 </h1>
             </div>
         </div>

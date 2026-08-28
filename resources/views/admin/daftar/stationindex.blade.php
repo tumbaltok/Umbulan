@@ -83,7 +83,7 @@
                 </h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manajemen Kantor dan Stasiun Operasional untuk penempatan staf & validasi radius presensi GPS.</p>
             </div>
-            @if(Auth::user()->role && Auth::user()->role->level == 1)
+            @if(Auth::user()->isLevel1())
             <button type="button" onclick="bukaModalTambahStasiun('stasiun')" class="bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm shrink-0">
                 <i class="fa-solid fa-plus"></i> Tambah Lokasi Baru
             </button>
@@ -99,7 +99,7 @@
                         <th class="px-6 py-4 text-center">Tipe</th>
                         <th class="px-6 py-4 text-center">Radius GPS</th>
                         <th class="px-6 py-4 text-center">Total Penempatan Staf</th>
-                        @if(Auth::user()->role && Auth::user()->role->level == 1)
+                        @if(Auth::user()->isLevel1())
                         <th class="px-6 py-4 text-center w-28">Aksi</th>
                         @endif
                     </tr>
@@ -181,7 +181,7 @@
                                 </div>
                             </td>
 
-                            @if(Auth::user()->role && Auth::user()->role->level == 1)
+                            @if(Auth::user()->isLevel1())
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center space-x-2">
                                     <button type="button" 
@@ -236,7 +236,7 @@
                 </div>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Titik validasi absensi GPS khusus lokasi Rumah Meter dan checkpoint lapangan.</p>
             </div>
-            @if(Auth::user()->role && Auth::user()->role->level == 1)
+            @if(Auth::user()->isLevel1())
             <button type="button" onclick="bukaModalTambahStasiun('rumah_meter')" class="bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm shrink-0">
                 <i class="fa-solid fa-plus"></i> Tambah Rumah Meter
             </button>
@@ -252,7 +252,7 @@
                         <th class="px-6 py-4 text-center">Tipe</th>
                         <th class="px-6 py-4 text-center">Radius GPS</th>
                         <th class="px-6 py-4 text-center">Total Staf Terikat</th>
-                        @if(Auth::user()->role && Auth::user()->role->level == 1)
+                        @if(Auth::user()->isLevel1())
                         <th class="px-6 py-4 text-center w-28">Aksi</th>
                         @endif
                     </tr>
@@ -329,7 +329,7 @@
                                 </div>
                             </td>
 
-                            @if(Auth::user()->role && Auth::user()->role->level == 1)
+                            @if(Auth::user()->isLevel1())
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center space-x-2">
                                     <button type="button" 

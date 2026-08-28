@@ -21,7 +21,7 @@ class PersetujuanMprController extends Controller
             $atasanRoleIds = [$atasan->role_id];
         }
 
-        $isAdmin = in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
+        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
         $query = PengajuanMpr::with(['user.roles', 'items'])
             ->orderBy('created_at', 'desc');
