@@ -163,8 +163,6 @@ Route::middleware('auth')->group(function () {
             // Form & Cetak CAR
             Route::get('/car/ajukan', [PengajuanCarController::class, 'create'])->name('car.create');
             Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
-            Route::get('/car/edit/{id}', [PengajuanCarController::class, 'edit'])->name('car.edit');
-            Route::put('/car/update/{id}', [PengajuanCarController::class, 'update'])->name('car.update');
             Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
 
             // Form & Cetak MPR
