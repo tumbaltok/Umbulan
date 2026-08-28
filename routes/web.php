@@ -47,143 +47,165 @@ Route::middleware('guest')->group(function () {
 });
 
 // ==========================================================
-// GRUP AUTH (Sudah Login - Umum Karyawan & Atasan)
+// GRUP AUTH (Sudah Login)
 // ==========================================================
 Route::middleware('auth')->group(function () {
 
-    // Dashboard & Profil
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
-    Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
-
-    // Route Absensi & Pengecekan Lokasi/Wajah
-    Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
-    Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
-
-    // Route Pengaturan Jadwal Kerja & Registrasi Wajah User
-    Route::post('/user/schedule/update', [JadwalController::class, 'updateSchedule'])->name('user.schedule.update');
-    Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('user.face.register');
-
-    // Fitur Cuti (Riwayat & Detail)
-    Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
-    Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
-
-    // Fitur CAR (Riwayat)
-    Route::get('/car/riwayat', [PengajuanCarController::class, 'index'])->name('car.riwayat');
-
-    // Fitur MPR (Riwayat)
-    Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
-
-    // Verifikasi Email & Phone
-    Route::get('/email/verify', function () {
-        return view('auth.verify-email');
+    // ----------------------------------------------------------
+    // 1. RUTE VERIFIKASI EMAIL & LOGOUT (Dikecualikan dari 'verified')
+    // ----------------------------------------------------------
+    // Notice Verifikasi Email (Jika sudah verifikasi, langsung arahkan ke Dashboard)
+    Route::get('/auth/verify-email', function (Request $request) {
+        return $request->user()->hasVerifiedEmail()
+            ? redirect()->intended('/dashboard')
+            : view('auth.verify-email');
     })->name('verification.notice');
+
+    // Kompatibilitas URL /email/verify
+    Route::get('/email/verify', function () {
+        return redirect()->route('verification.notice');
+    });
+
+    // Eksekusi Link Verifikasi dari Email Pengguna
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
         return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
-    })->middleware('signed')->name('verification.verify');
+    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
+    // Kirim Ulang Link Verifikasi Email
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('message', 'verification-link-sent');
+        return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
-    Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
-    Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
-    // Fitur Internal (Wajib Terverifikasi & Akun Lengkap: Email, No. WA, Jadwal, & Biometrik Wajah)
-    Route::middleware(['verified', 'phone.verified', 'account.complete'])->group(function () {
-        // Form Cuti
-        Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
-        Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
-        Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
-        Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
-        Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
-
-        // Form & Cetak CAR
-        Route::get('/car/ajukan', [PengajuanCarController::class, 'create'])->name('car.create');
-        Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
-        Route::get('/car/edit/{id}', [PengajuanCarController::class, 'edit'])->name('car.edit');
-        Route::put('/car/update/{id}', [PengajuanCarController::class, 'update'])->name('car.update');
-        Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
-
-        // Form & Cetak MPR
-        Route::get('/mpr/ajukan', [PengajuanMprController::class, 'create'])->name('mpr.create');
-        Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
-        Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
-    });
-
-    // Fitur Jadwal Kerja
-    Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
-    Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
-
-    // Logout
+    // Logout (Dapat diakses walau belum terverifikasi agar bisa beralih akun)
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
-});
 
-// ==========================================================
-// GRUP ATASAN (Khusus)
-// ==========================================================
-Route::middleware(['auth', 'atasan'])->group(function () {
-    // CRUD Role & Jabatan
-    Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role.index');
-    Route::post('/admin/role', [RoleController::class, 'store'])->name('admin.role.store');
-    Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
-    Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
+    // ----------------------------------------------------------
+    // 2. SELURUH RUTE INTERNAL (Wajib Terverifikasi Email)
+    // ----------------------------------------------------------
+    Route::middleware('verified')->group(function () {
 
-    // Kelola Jobdesk Baru
-    Route::post('/admin/jobdesk', [RoleController::class, 'storeJobdesk'])->name('admin.jobdesk.store');
-    Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
-    Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
+        // Dashboard & Profil
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
+        Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
-    // Jalur Utama Persetujuan Cuti
-    Route::get('/admin/persetujuan/cuti', [PersetujuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan.cuti');
-    Route::post('/admin/persetujuan/cuti/proses/{id}', [PersetujuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
+        // Route Absensi & Pengecekan Lokasi/Wajah
+        Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
+        Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
 
-    // Jalur Utama Persetujuan CAR
-    Route::get('/admin/persetujuan/car', [PersetujuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
-    Route::post('/admin/persetujuan/car/proses/{id}', [PersetujuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
+        // Route Pengaturan Jadwal Kerja & Registrasi Wajah User
+        Route::post('/user/schedule/update', [JadwalController::class, 'updateSchedule'])->name('user.schedule.update');
+        Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('user.face.register');
 
-    // Jalur Utama Persetujuan MPR
-    Route::get('/admin/persetujuan/mpr', [PersetujuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
-    Route::post('/admin/persetujuan/mpr/proses/{id}', [PersetujuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
+        // Fitur Cuti (Riwayat & Detail)
+        Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
+        Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
-    // Karyawan
-    Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
-    Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
-    Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
-    Route::put('/admin/karyawan/{id}/roles', [KaryawanController::class, 'updateRoles'])->name('admin.karyawan.roles.update');
-    Route::post('/admin/karyawan/{id}/reset-biometric', [KaryawanController::class, 'resetBiometric'])->name('admin.karyawan.reset_biometric');
+        // Fitur CAR (Riwayat)
+        Route::get('/car/riwayat', [PengajuanCarController::class, 'index'])->name('car.riwayat');
 
-    // CRUD Stasiun Kerja
-    Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
-    Route::post('/admin/stations', [StationController::class, 'store'])->name('admin.stations.store');
-    Route::put('/admin/stations/{id}', [StationController::class, 'update'])->name('admin.stations.update');
-    Route::delete('/admin/stations/{id}', [StationController::class, 'destroy'])->name('admin.stations.destroy');
-    Route::get('/admin/stations/{id}/karyawan', [StationController::class, 'getKaryawan'])->name('admin.stations.karyawan');
+        // Fitur MPR (Riwayat)
+        Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
 
-    // Record Cuti
-    Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
-    Route::get('/admin/record/cuti/export', [RecordController::class, 'exportCuti'])->name('admin.record.cuti.export');
+        // Verifikasi No. Telepon / WhatsApp
+        Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
+        Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
 
-    // Record CAR
-    Route::get('/admin/record/car', [RecordController::class, 'car'])->name('admin.record.car');
-    Route::get('/admin/record/car/export', [RecordController::class, 'exportCar'])->name('admin.record.car.export');
+        // Fitur Internal (Wajib Akun Lengkap: No. WA, Jadwal, & Biometrik Wajah)
+        Route::middleware(['phone.verified', 'account.complete'])->group(function () {
+            // Form Cuti
+            Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
+            Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
+            Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
+            Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
+            Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
-    // Record MPR
-    Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
-    Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
+            // Form & Cetak CAR
+            Route::get('/car/ajukan', [PengajuanCarController::class, 'create'])->name('car.create');
+            Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
+            Route::get('/car/edit/{id}', [PengajuanCarController::class, 'edit'])->name('car.edit');
+            Route::put('/car/update/{id}', [PengajuanCarController::class, 'update'])->name('car.update');
+            Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
 
-    // Rekap Absensi Harian
-    Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
+            // Form & Cetak MPR
+            Route::get('/mpr/ajukan', [PengajuanMprController::class, 'create'])->name('mpr.create');
+            Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
+            Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
+        });
 
-    // WhatsApp Gateway
-    Route::get('/admin/whatsapp', [WhatsAppSettingController::class, 'index'])->name('admin.whatsapp.index');
-    Route::get('/admin/whatsapp/status', [WhatsAppSettingController::class, 'status'])->name('admin.whatsapp.status');
-    Route::get('/admin/whatsapp/qr', [WhatsAppSettingController::class, 'qr'])->name('admin.whatsapp.qr');
-    Route::post('/admin/whatsapp/send-test', [WhatsAppSettingController::class, 'sendTest'])->name('admin.whatsapp.send_test');
-    Route::post('/admin/whatsapp/disconnect', [WhatsAppSettingController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
+        // Fitur Jadwal Kerja
+        Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
+        Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
 
-    // Update Hierarchy Matrix
-    Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');
+        // ==========================================================
+        // GRUP ATASAN (Khusus) - Wajib 'atasan' & 'verified'
+        // ==========================================================
+        Route::middleware('atasan')->group(function () {
+            // CRUD Role & Jabatan
+            Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role.index');
+            Route::post('/admin/role', [RoleController::class, 'store'])->name('admin.role.store');
+            Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
+            Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
+
+            // Kelola Jobdesk Baru
+            Route::post('/admin/jobdesk', [RoleController::class, 'storeJobdesk'])->name('admin.jobdesk.store');
+            Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
+            Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');
+
+            // Jalur Utama Persetujuan Cuti
+            Route::get('/admin/persetujuan/cuti', [PersetujuanCutiController::class, 'listAtasanView'])->name('admin.persetujuan.cuti');
+            Route::post('/admin/persetujuan/cuti/proses/{id}', [PersetujuanCutiController::class, 'prosesPersetujuan'])->name('admin.persetujuan.cuti.proses');
+
+            // Jalur Utama Persetujuan CAR
+            Route::get('/admin/persetujuan/car', [PersetujuanCarController::class, 'listPengajuan'])->name('admin.persetujuan.car');
+            Route::post('/admin/persetujuan/car/proses/{id}', [PersetujuanCarController::class, 'prosesPersetujuan'])->name('admin.persetujuan.car.process');
+
+            // Jalur Utama Persetujuan MPR
+            Route::get('/admin/persetujuan/mpr', [PersetujuanMprController::class, 'listPengajuan'])->name('admin.persetujuan.mpr');
+            Route::post('/admin/persetujuan/mpr/proses/{id}', [PersetujuanMprController::class, 'prosesPersetujuan'])->name('admin.persetujuan.mpr.process');
+
+            // Karyawan
+            Route::get('/admin/karyawan', [KaryawanController::class, 'index'])->name('admin.karyawan.index');
+            Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
+            Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
+            Route::put('/admin/karyawan/{id}/roles', [KaryawanController::class, 'updateRoles'])->name('admin.karyawan.roles.update');
+            Route::post('/admin/karyawan/{id}/reset-biometric', [KaryawanController::class, 'resetBiometric'])->name('admin.karyawan.reset_biometric');
+
+            // CRUD Stasiun Kerja
+            Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
+            Route::post('/admin/stations', [StationController::class, 'store'])->name('admin.stations.store');
+            Route::put('/admin/stations/{id}', [StationController::class, 'update'])->name('admin.stations.update');
+            Route::delete('/admin/stations/{id}', [StationController::class, 'destroy'])->name('admin.stations.destroy');
+            Route::get('/admin/stations/{id}/karyawan', [StationController::class, 'getKaryawan'])->name('admin.stations.karyawan');
+
+            // Record Cuti
+            Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
+            Route::get('/admin/record/cuti/export', [RecordController::class, 'exportCuti'])->name('admin.record.cuti.export');
+
+            // Record CAR
+            Route::get('/admin/record/car', [RecordController::class, 'car'])->name('admin.record.car');
+            Route::get('/admin/record/car/export', [RecordController::class, 'exportCar'])->name('admin.record.car.export');
+
+            // Record MPR
+            Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
+            Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
+
+            // Rekap Absensi Harian
+            Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
+
+            // WhatsApp Gateway
+            Route::get('/admin/whatsapp', [WhatsAppSettingController::class, 'index'])->name('admin.whatsapp.index');
+            Route::get('/admin/whatsapp/status', [WhatsAppSettingController::class, 'status'])->name('admin.whatsapp.status');
+            Route::get('/admin/whatsapp/qr', [WhatsAppSettingController::class, 'qr'])->name('admin.whatsapp.qr');
+            Route::post('/admin/whatsapp/send-test', [WhatsAppSettingController::class, 'sendTest'])->name('admin.whatsapp.send_test');
+            Route::post('/admin/whatsapp/disconnect', [WhatsAppSettingController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
+
+            // Update Hierarchy Matrix
+            Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');
+        });
+    });
 });

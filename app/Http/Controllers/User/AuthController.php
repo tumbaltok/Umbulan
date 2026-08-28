@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
 
@@ -104,8 +105,8 @@ class AuthController extends Controller
         // Audit Log Registrasi
         Log::info("User baru berhasil terdaftar (Multi-Role): ID {$user->id}, Email: {$user->email}, Roles: " . implode(',', $roleIds));
 
-        // Kirim Notifikasi Verifikasi Email Bawaan Laravel
-        $user->sendEmailVerificationNotification();
+        // Kirim Notifikasi Verifikasi Email Bawaan Laravel via Registered Event
+        event(new Registered($user));
 
         // Arahkan ke Halaman Login
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan periksa email Anda untuk melakukan verifikasi akun sebelum login.');
