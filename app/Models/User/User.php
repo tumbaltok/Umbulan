@@ -34,6 +34,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_photo',
         'signature',
         'phone_verified_at',
+        'phone_otp',
+        'phone_otp_expires_at',
         'schedule_type',
         'normal_work_days',
         'normal_check_in',
@@ -52,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
+            'phone_otp_expires_at' => 'datetime',
             'password' => 'hashed',
             'normal_work_days' => 'array',
             'face_descriptor' => 'array',
@@ -283,6 +286,11 @@ class User extends Authenticatable implements MustVerifyEmail
      * 4. Tanda tangan digital (TTD) telah diunggah.
      * 5. Jadwal kerja aktif terisi (normal atau roster).
      */
+    public function hasVerifiedPhone(): bool
+    {
+        return !is_null($this->phone_verified_at);
+    }
+
     public function isAccountComplete(): bool
     {
         return !is_null($this->email_verified_at)

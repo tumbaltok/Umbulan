@@ -34,11 +34,28 @@ class AccountController extends Controller
             ->orderBy('kode_stasiun', 'asc')
             ->get();
 
+        // 4. Ambil Seluruh Akun Administrator (Level 1 atau Full Admin) yang memiliki nomor telepon aktif
+        $adminUsers = User::where(function ($q) {
+                $q->where('role_id', 1)
+                  ->orWhereHas('role', function ($r) {
+                      $r->where('level', 1)->orWhere('role_name', 'LIKE', '%ADMIN%');
+                  })
+                  ->orWhereHas('roles', function ($r) {
+                      $r->where('roles.id', 1)->orWhere('roles.level', 1)->orWhere('roles.role_name', 'LIKE', '%ADMIN%');
+                  });
+            })
+            ->whereNotNull('phone_number')
+            ->where('phone_number', '!=', '')
+            ->with(['role', 'roles', 'station'])
+            ->orderBy('name', 'asc')
+            ->get();
+
         return view('pengaturan.index', compact(
             'user',
             'daftarStasiun',
             'daftarRole',
-            'daftarRumahMeter'
+            'daftarRumahMeter',
+            'adminUsers'
         ));
     }
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\Admin\WhatsAppSettingController;
+use App\Http\Controllers\Auth\PhoneVerificationController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -52,13 +53,24 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     // ----------------------------------------------------------
-    // 1. RUTE VERIFIKASI EMAIL & LOGOUT (Dikecualikan dari 'verified')
+    // 1. TIER 1: RUTE VERIFIKASI EMAIL (Dikecualikan dari 'verified')
     // ----------------------------------------------------------
-    // Notice Verifikasi Email (Jika sudah verifikasi, langsung arahkan ke Dashboard)
+    // Notice Verifikasi Email (Jika sudah verifikasi, lanjut ke verifikasi nomor telepon atau Dashboard)
     Route::get('/auth/verify-email', function (Request $request) {
-        return $request->user()->hasVerifiedEmail()
-            ? redirect()->intended('/dashboard')
-            : view('auth.verify-email');
+        if ($request->user()->hasVerifiedEmail()) {
+            if (!$request->user()->hasVerifiedPhone()) {
+                return redirect()->route('verification.phone.notice');
+            }
+
+            $intended = session()->get('url.intended');
+            if ($intended && (str_contains($intended, '/auth/verify-email') || str_contains($intended, '/auth/verify-phone'))) {
+                session()->forget('url.intended');
+            }
+
+            return redirect()->intended('/dashboard');
+        }
+
+        return view('auth.verify-email');
     })->name('verification.notice');
 
     // Kompatibilitas URL /email/verify
@@ -67,26 +79,54 @@ Route::middleware('auth')->group(function () {
     });
 
     // Eksekusi Link Verifikasi dari Email Pengguna
+    Route::get('/auth/verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+
+        return $request->user()->hasVerifiedPhone()
+            ? redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!')
+            : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
+    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
+    // Kompatibilitas link lama
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
-        return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
-    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+        return $request->user()->hasVerifiedPhone()
+            ? redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!')
+            : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
+    })->middleware(['signed', 'throttle:6,1']);
 
     // Kirim Ulang Link Verifikasi Email
-    Route::post('/email/verification-notification', function (Request $request) {
+    Route::post('/auth/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
 
+    // Kompatibilitas kirim ulang lama
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('status', 'verification-link-sent');
+    })->middleware('throttle:6,1');
+
+    // ----------------------------------------------------------
+    // 2. TIER 2: RUTE VERIFIKASI WHATSAPP OTP (Wajib Email Terverifikasi)
+    // ----------------------------------------------------------
+    Route::middleware('verified')->group(function () {
+        Route::get('/auth/verify-phone', [PhoneVerificationController::class, 'notice'])->name('verification.phone.notice');
+        Route::post('/auth/verify-phone', [PhoneVerificationController::class, 'verify'])->name('verification.phone.verify');
+        Route::post('/auth/phone/send-otp', [PhoneVerificationController::class, 'sendOtp'])->middleware('throttle:3,1')->name('verification.phone.send');
+        Route::post('/auth/phone/update-number', [PhoneVerificationController::class, 'updateNumber'])->name('verification.phone.update');
+    });
+
     // Logout (Dapat diakses walau belum terverifikasi agar bisa beralih akun)
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
 
     // ----------------------------------------------------------
-    // 2. SELURUH RUTE INTERNAL (Wajib Terverifikasi Email)
+    // 3. SELURUH RUTE INTERNAL (Wajib Dua Tahap: Email & WhatsApp Terverifikasi)
     // ----------------------------------------------------------
-    Route::middleware('verified')->group(function () {
+    Route::middleware(['verified', 'phone.verified'])->group(function () {
 
         // Dashboard & Profil
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -111,12 +151,8 @@ Route::middleware('auth')->group(function () {
         // Fitur MPR (Riwayat)
         Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
 
-        // Verifikasi No. Telepon / WhatsApp
-        Route::post('/phone/send-otp-phone', [AuthController::class, 'sendOtpPhone'])->name('phone.send-otp');
-        Route::post('/phone/verify-otp-phone', [AuthController::class, 'verifyOtpPhone'])->name('phone.verify-otp');
-
-        // Fitur Internal (Wajib Akun Lengkap: No. WA, Jadwal, & Biometrik Wajah)
-        Route::middleware(['phone.verified', 'account.complete'])->group(function () {
+        // Fitur Internal (Wajib Akun Lengkap: Jadwal, TTD, & Biometrik Wajah)
+        Route::middleware('account.complete')->group(function () {
             // Form Cuti
             Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
             Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');

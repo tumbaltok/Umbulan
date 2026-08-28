@@ -79,7 +79,7 @@
 
                         @if(!empty($user->face_descriptor))
                             <div class="mt-2.5 p-2 bg-sky-50/70 border border-sky-100 rounded-xl text-[10.5px] text-slate-600 leading-snug text-center">
-                                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i> Data biometrik wajah Anda telah terverifikasi dan terkunci demi keamanan presensi. Hubungi Administrator / HRD jika memerlukan kalibrasi ulang.
+                                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i> Data biometrik wajah Anda telah terverifikasi dan terkunci demi keamanan presensi. Hubungi Administrator jika memerlukan kalibrasi ulang.
                             </div>
                         @else
                             <a href="{{ route('dashboard') }}" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
@@ -305,17 +305,22 @@
                         <p class="text-[10px] text-slate-400 mt-1">* Email akun tidak dapat diubah.</p>
                     </div>
 
-                    {{-- No. Telephone --}}
+                    {{-- No. WhatsApp / Telepon --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700">No. Telephone</label>
-                            <div class="flex items-center space-x-2">
-                                @if($user->phone_verified_at)
+                            <label class="block text-sm font-semibold text-slate-700">No. WhatsApp / Telepon</label>
+                            <div class="flex items-center gap-2">
+                                @if($user->hasVerifiedPhone())
                                     <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                                         <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
                                     </span>
-                                    <button type="button" id="btn-change-phone" onclick="enableEditPhone()" class="text-xs font-bold text-sky-600 hover:underline">
-                                        Ganti
+                                    <button type="button"
+                                        id="btn-change-phone"
+                                        onclick="openChangePhoneModal()"
+                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer"
+                                        title="Ajukan permohonan ganti nomor ke Admin">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                        <span>Ganti</span>
                                     </button>
                                 @else
                                     <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
@@ -324,45 +329,30 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="relative flex-1">
+                        <div class="relative">
+                            @if($user->hasVerifiedPhone())
+                                <input type="text"
+                                    value="{{ $user->phone_number }}"
+                                    class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-slate-500 rounded-xl cursor-not-allowed select-none font-medium"
+                                    readonly
+                                    disabled>
+                                <input type="hidden" name="phone_number" value="{{ $user->phone_number }}">
+                            @else
                                 <input type="text"
                                     name="phone_number"
                                     id="phone_number"
                                     value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-sky-500 transition-all {{ $user->phone_verified_at ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed select-none' : 'border-slate-200' }}"
-                                    placeholder="Contoh: 08123456789"
-                                    {{ $user->phone_verified_at ? 'readonly' : '' }}>
-                            </div>
-
-                            <button type="button"
-                                id="btn-send-otp"
-                                class="px-4 py-2 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-600 border border-slate-200 hover:border-sky-200 rounded-xl text-sm font-semibold shadow-sm transition-all whitespace-nowrap h-[42px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed {{ $user->phone_verified_at ? 'hidden' : '' }}">
-                                <i class="fa-solid fa-shield-halved mr-1.5 text-xs text-slate-400"></i>
-                                Verifikasi
-                            </button>
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 font-medium text-slate-800"
+                                    placeholder="Contoh: 08123456789">
+                            @endif
                         </div>
-                        <span id="phone-error" class="text-xs text-rose-500 mt-1 hidden"></span>
-                    </div>
-
-                    {{-- Container OTP --}}
-                    <div id="otp-container" class="hidden animate-fadeIn md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Masukkan 6 Digit Kode OTP</label>
-                        <div class="flex items-center space-x-2">
-                            <div class="relative flex-1">
-                                <input type="text"
-                                    id="otp_input"
-                                    maxlength="6"
-                                    class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 tracking-[0.5em] text-center font-bold text-lg"
-                                    placeholder="******">
-                            </div>
-                            <button type="button"
-                                id="btn-verify-otp"
-                                class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 disabled:opacity-70 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-sm transition-all h-[42px]">
-                                Konfirmasi
-                            </button>
-                        </div>
-                        <span id="otp-message" class="text-xs mt-1 block"></span>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            @if($user->hasVerifiedPhone())
+                                * Nomor WhatsApp terverifikasi terkunci demi keamanan data dinas. Klik tombol <strong>Ganti</strong> jika ingin menghubungi Administrator.
+                            @else
+                                * Pastikan nomor aktif terhubung dengan WhatsApp untuk verifikasi akun.
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>
@@ -673,29 +663,166 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL HUBUNGI ADMIN UNTUK GANTI NOMOR WHATSAPP --}}
+<div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
+    <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fadeIn">
+        
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-gradient-to-r from-slate-50 via-emerald-50/40 to-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 leading-tight">
+                        Ganti Nomor WhatsApp
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Hubungi Administrator untuk Perubahan Nomor Resmi
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeChangePhoneModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            
+            <!-- Security Info Alert -->
+            <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+                <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5 text-base shrink-0"></i>
+                <div class="leading-relaxed">
+                    <p class="font-bold text-amber-950 mb-1">Nomor WhatsApp Terverifikasi Terkunci</p>
+                    <p>
+                        Nomor <span class="font-mono font-bold">{{ $user->phone_number }}</span> telah terdaftar dan terverifikasi untuk presensi absensi, notifikasi cuti, dan keamanan sistem ERP. Penggantian nomor harus disetujui dan diperbarui langsung oleh <strong>Administrator Sistem</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- List of Admins -->
+            <div class="space-y-3 pt-1">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-700 px-1">
+                    <span>Pilih Administrator Tujuan:</span>
+                    <span class="text-[11px] text-slate-400 font-medium">{{ isset($adminUsers) ? $adminUsers->count() : 0 }} Admin Tersedia</span>
+                </div>
+
+                @if(isset($adminUsers) && $adminUsers->count() > 0)
+                    <div class="space-y-2.5">
+                        @foreach($adminUsers as $admin)
+                            @php
+                                $cleanPhone = preg_replace('/[^0-9]/', '', $admin->phone_number);
+                                if (str_starts_with($cleanPhone, '0')) {
+                                    $cleanPhone = '62' . substr($cleanPhone, 1);
+                                } elseif (str_starts_with($cleanPhone, '8')) {
+                                    $cleanPhone = '62' . $cleanPhone;
+                                }
+
+                                $waText = "Halo Admin {$admin->name}, perkenalkan saya *" . ($user->name ?? 'Karyawan') . "* (NIP: *" . ($user->nip ?? '-') . "*).\n\n"
+                                    . "Saya bermaksud mengajukan permohonan penggantian nomor WhatsApp akun ERP Umbulan saya:\n"
+                                    . "• Nomor Terverifikasi Lama: *" . ($user->phone_number ?? '-') . "*\n"
+                                    . "• Mohon bantuan dan verifikasi untuk nomor baru saya.\n\n"
+                                    . "Terima kasih.";
+
+                                $waUrl = "https://wa.me/{$cleanPhone}?text=" . rawurlencode($waText);
+                                $adminRoleName = $admin->role?->role_name ?? ($admin->roles->first()?->role_name ?? 'Administrator');
+                            @endphp
+
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all shadow-2xs">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 shadow-2xs">
+                                        {{ strtoupper(substr($admin->name, 0, 2)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                                {{ $admin->name }}
+                                            </h4>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 text-sky-800">
+                                                {{ $adminRoleName }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                                            <span class="font-mono text-emerald-700 font-semibold">
+                                                <i class="fa-brands fa-whatsapp text-xs mr-0.5"></i> {{ $admin->phone_number }}
+                                            </span>
+                                            @if($admin->station)
+                                                <span>•</span>
+                                                <span class="truncate">{{ $admin->station->name }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0 self-end sm:self-auto">
+                                    <a href="{{ $waUrl }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs transition-all hover:scale-[1.02] cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                        <span>Chat WhatsApp</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-80 ml-0.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-center py-6">
+                        <i class="fa-solid fa-user-shield text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-xs font-bold text-slate-700">Kontak WhatsApp Administrator Belum Tersedia</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Silakan hubungi tim IT atau HRD di kantor stasiun Anda untuk bantuan penggantian nomor.</p>
+                    </div>
+                @endif
+            </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+            <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+                Tutup
+            </button>
+        </div>
+
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
-    function enableEditPhone() {
-        const phoneInput = document.getElementById('phone_number');
-        const phoneBadge = document.getElementById('phone-badge');
-        const btnSendOtp = document.getElementById('btn-send-otp');
-        const btnChange = document.getElementById('btn-change-phone');
-
-        if (phoneInput) {
-            phoneInput.readOnly = false;
-            phoneInput.classList.remove('bg-slate-50', 'text-slate-500', 'cursor-not-allowed', 'select-none');
-            phoneInput.focus();
-            phoneInput.select();
+    function openChangePhoneModal() {
+        const modal = document.getElementById('modalChangePhone');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
         }
-        if (phoneBadge) {
-            phoneBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800";
-            phoneBadge.innerHTML = "Belum Verifikasi";
-        }
-        if (btnSendOtp) btnSendOtp.classList.remove('hidden');
-        if (btnChange) btnChange.classList.add('hidden');
     }
+
+    function closeChangePhoneModal() {
+        const modal = document.getElementById('modalChangePhone');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeChangePhoneModal();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('modalChangePhone');
+        if (modal && e.target === modal) {
+            closeChangePhoneModal();
+        }
+    });
 
     function showScheduleEditMode() {
         const readMode = document.getElementById('schedule_read_mode');
@@ -905,124 +1032,6 @@
         const urlParamsSig = new URLSearchParams(window.location.search);
         if (urlParamsSig.get('signature_required') === '1' || window.location.hash === '#signature' || window.location.hash === '#signatureModal') {
             showSigModal();
-        }
-
-        const btnSendOtp = document.getElementById("btn-send-otp");
-        const btnVerifyOtp = document.getElementById("btn-verify-otp");
-        const inputPhone = document.getElementById("phone_number");
-        const inputOtp = document.getElementById("otp_input");
-        const otpContainer = document.getElementById("otp-container");
-        const phoneError = document.getElementById("phone-error");
-        const otpMessage = document.getElementById("otp-message");
-        const phoneBadge = document.getElementById("phone-badge");
-
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        if (btnSendOtp) {
-            btnSendOtp.addEventListener("click", function () {
-                phoneError.classList.add("hidden");
-                btnSendOtp.disabled = true;
-                btnSendOtp.innerHTML = "Mengirim...";
-
-                fetch("{{ route('phone.send-otp') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
-                    },
-                    body: JSON.stringify({ phone_number: inputPhone.value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        otpContainer.classList.remove("hidden");
-                        otpMessage.className = "text-xs text-emerald-600 mt-1 block";
-                        otpMessage.innerText = data.message;
-                        inputPhone.readOnly = true;
-
-                        startSendOtpCooldown(60);
-                    } else {
-                        phoneError.classList.remove("hidden");
-                        phoneError.innerText = data.message;
-                        btnSendOtp.disabled = false;
-                        btnSendOtp.innerHTML = "Verifikasi";
-                    }
-                })
-                .catch(() => {
-                    phoneError.classList.remove("hidden");
-                    phoneError.innerText = "Terjadi kesalahan sistem.";
-                    btnSendOtp.disabled = false;
-                    btnSendOtp.innerHTML = "Verifikasi";
-                });
-            });
-        }
-
-        if (btnVerifyOtp) {
-            btnVerifyOtp.addEventListener("click", function () {
-                otpMessage.innerText = "";
-                btnVerifyOtp.disabled = true;
-                btnVerifyOtp.innerHTML = "Memeriksa...";
-
-                fetch("{{ route('phone.verify-otp') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
-                    },
-                    body: JSON.stringify({ otp_input: inputOtp.value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        otpMessage.className = "text-xs text-emerald-600 mt-1 block font-semibold";
-                        otpMessage.innerText = "✓ " + data.message;
-
-                        inputOtp.readOnly = true;
-                        btnVerifyOtp.classList.add("hidden");
-                        btnSendOtp.classList.add("hidden");
-
-                        inputPhone.readOnly = true;
-                        inputPhone.classList.remove("border-emerald-500", "bg-emerald-50/30");
-                        inputPhone.classList.add("border-slate-200", "bg-slate-50", "text-slate-500", "cursor-not-allowed", "select-none");
-
-                        if(phoneBadge) {
-                            phoneBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
-                            phoneBadge.innerHTML = '<i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi';
-                        }
-                    } else {
-                        otpMessage.className = "text-xs text-rose-500 mt-1 block";
-                        otpMessage.innerText = data.message || "Kode OTP salah.";
-
-                        btnVerifyOtp.disabled = false;
-                        btnVerifyOtp.innerHTML = "Konfirmasi";
-
-                        inputOtp.focus();
-                        inputOtp.select();
-                    }
-                })
-                .catch(() => {
-                    otpMessage.className = "text-xs text-rose-500 mt-1 block";
-                    otpMessage.innerText = "Terjadi kesalahan saat memverifikasi.";
-
-                    btnVerifyOtp.disabled = false;
-                    btnVerifyOtp.innerHTML = "Konfirmasi";
-                });
-            });
-        }
-
-        function startSendOtpCooldown(duration) {
-            let timeLeft = duration;
-            btnSendOtp.disabled = true;
-            const timer = setInterval(function() {
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    btnSendOtp.disabled = false;
-                    btnSendOtp.innerHTML = "Kirim Ulang";
-                } else {
-                    btnSendOtp.innerHTML = `Tunggu (${timeLeft}s)`;
-                    timeLeft--;
-                }
-            }, 1000);
         }
     });
 
