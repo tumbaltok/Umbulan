@@ -92,17 +92,6 @@ async function startWhatsAppSocket() {
         ensureAuthDir();
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_PATH);
 
-        // DETEKSI SESI CORRUPT / ZOMBIE:
-        // Jika file sesi memiliki objek 'me' tetapi 'registered === false',
-        // Baileys akan macet mencoba login (generateLoginNode) alih-alih registrasi (generateRegistrationNode).
-        // Kondisi ini membuat WhatsApp tidak pernah mengirimkan QR code. Bersihkan agar meminta pairing baru.
-        if (state.creds && state.creds.me && state.creds.registered === false) {
-            console.warn('[WhatsApp Gateway] ⚠️ Terdeteksi sesi corrupt/unregistered di disk. Membersihkan sesi otomatis...');
-            clearAuthSession();
-            isConnecting = false;
-            return setTimeout(() => startWhatsAppSocket(), 500);
-        }
-
         // Bersihkan instance socket lama sebelum membuat yang baru untuk mencegah socket/listener leak
         if (sock) {
             try {
@@ -185,29 +174,35 @@ async function startWhatsAppSocket() {
                     ? lastDisconnect.error.output?.statusCode
                     : lastDisconnect?.error?.statusCode;
 
+                const isRestartRequired = statusCode === DisconnectReason.restartRequired || statusCode === 515;
+
                 // Status pemutusan permanen di mana sesi lokal tidak lagi valid:
-                // - loggedOut (401): perangkat di-unpair dari WhatsApp smartphone
-                // - forbidden (403): akun dilarang/diblokir oleh WhatsApp
-                // - multideviceMismatch (411): versi protokol multi-device tidak cocok
-                // - badSession (500): stream error / sesi corrupt tak terpulihkan
-                const isPermanentDisconnect = manualLogoutRequested
+                // Sesi di disk HANYA boleh dihapus jika:
+                // 1. Permintaan eksplisit dari Admin (manualLogoutRequested === true)
+                // 2. Error autentikasi permanen: loggedOut (401) atau badSession (403/500 saat sesi memang invalid)
+                // PENTING: statusCode === 515 (restartRequired) TIDAK BOLEH MENGHAPUS SESI!
+                const isPermanentDisconnect = !isRestartRequired && (
+                    manualLogoutRequested
                     || statusCode === DisconnectReason.loggedOut
-                    || statusCode === DisconnectReason.forbidden
-                    || statusCode === DisconnectReason.multideviceMismatch
-                    || statusCode === DisconnectReason.badSession;
+                    || statusCode === DisconnectReason.badSession
+                );
 
                 console.warn(`[WhatsApp Gateway] ⚠️ Koneksi terputus. Status Code: ${statusCode}. Permanent: ${isPermanentDisconnect}. Manual Logout: ${manualLogoutRequested}`);
 
                 if (isPermanentDisconnect) {
-                    console.log(`[WhatsApp Gateway] 🗑️ Menghapus sesi kredensial karena pemutusan permanen / invalid (Status ${statusCode})...`);
+                    console.log(`[WhatsApp Gateway] 🗑️ Menghapus sesi kredensial karena logout / invalid permanen (Status ${statusCode})...`);
                     currentQr = null;
                     currentQrDataUrl = null;
                     clearAuthSession();
                     manualLogoutRequested = false;
                     setTimeout(() => startWhatsAppSocket(), 2000);
+                } else if (isRestartRequired) {
+                    // RESTART REQUIRED (515): Selesai scan QR, Baileys perlu reconnect cepat untuk merampungkan handshake enkripsi
+                    console.log('[WhatsApp Gateway] 🔄 Stream restart required (Status 515 / Pairing Handshake). Menghubungkan ulang segera tanpa hapus sesi...');
+                    setTimeout(() => startWhatsAppSocket(), 500);
                 } else {
                     // SILENT AUTO-RECONNECT:
-                    // Timeout (408), connectionClosed (428), restartRequired (515), dll.
+                    // Timeout (408), connectionClosed (428), dll.
                     // Hubungkan kembali socket secara transparan di background
                     console.log(`[WhatsApp Gateway] 🔄 Silent auto-reconnect (Status ${statusCode}). Menghubungkan ulang dalam 3 detik...`);
                     setTimeout(() => startWhatsAppSocket(), 3000);
