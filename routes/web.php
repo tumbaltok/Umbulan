@@ -230,6 +230,7 @@ Route::middleware('auth')->group(function () {
 
             // Rekap Absensi Harian
             Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
+            Route::get('/admin/absensi/export', [AbsensiAdminController::class, 'export'])->name('admin.absensi.export');
 
             // WhatsApp Gateway
             Route::get('/admin/whatsapp', [WhatsAppSettingController::class, 'index'])->name('admin.whatsapp.index');

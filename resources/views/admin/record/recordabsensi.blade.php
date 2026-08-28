@@ -34,7 +34,7 @@
             </p>
         </div>
 
-        <!-- PERIODE STATUS BADGE & QUICK INFO -->
+        <!-- PERIODE STATUS BADGE & QUICK INFO & EXPORT BUTTON -->
         <div class="flex items-center gap-3">
             <div class="text-right hidden sm:block">
                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Rentang Periode Aktif</span>
@@ -49,6 +49,12 @@
             <span class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base border border-sky-100 dark:border-sky-800 shrink-0">
                 <i class="fa-regular fa-calendar-check"></i>
             </span>
+
+            <button type="button" onclick="exportPresensi()" 
+                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm shadow-emerald-600/20 flex items-center gap-2 cursor-pointer shrink-0">
+                <i class="fa-solid fa-file-excel"></i>
+                <span class="hidden sm:inline">Export CSV</span>
+            </button>
         </div>
     </div>
 
@@ -1413,6 +1419,15 @@
     document.getElementById('lightboxModal')?.addEventListener('click', function(e) {
         if (e.target === this) closeLightboxModal();
     });
+
+    // Export CSV Presensi
+    window.exportPresensi = function() {
+        const form = document.getElementById('filterForm');
+        if (!form) return;
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        window.location.href = `{{ route('admin.absensi.export') }}?${params.toString()}`;
+    };
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {

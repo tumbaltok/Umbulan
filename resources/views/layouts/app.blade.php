@@ -360,13 +360,13 @@
                                 </button>
                                 <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
                                     <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/cuti*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">CUTI</span>
-                                    </a>
-                                    <a href="{{ route('admin.record.car') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">CAR</span>
+                                        <span class="hide-on-collapse">Cuti</span>
                                     </a>
                                     <a href="{{ route('admin.record.mpr') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/mpr*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">MPR</span>
+                                        <span class="hide-on-collapse">Mpr</span>
+                                    </a>
+                                    <a href="{{ route('admin.record.car') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
+                                        <span class="hide-on-collapse">Car</span>
                                     </a>
                                 </div>
                             </div>

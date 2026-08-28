@@ -246,4 +246,178 @@ class AbsensiAdminController extends Controller
             'sudahAbsen'
         ));
     }
+
+    /**
+     * Export Data Presensi ke CSV Berstandar Industri (UTF-8 BOM, Kolom Terpisah Rapi)
+     */
+    public function export(Request $request)
+    {
+        $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
+        $periode = $request->input('periode', 'today');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        if ($request->filled('tanggal') && !$request->filled('start_date')) {
+            $startDate = $request->input('tanggal');
+            $endDate = $request->input('tanggal');
+            $periode = ($startDate === $todayStr) ? 'today' : 'custom';
+        }
+
+        if ($periode === 'today' || (empty($startDate) && empty($endDate))) {
+            $startDate = $todayStr;
+            $endDate = $todayStr;
+        } elseif ($periode === 'week') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfWeek()->format('Y-m-d');
+            $endDate = $now->copy()->endOfWeek()->format('Y-m-d');
+        } elseif ($periode === 'month') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
+            $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } else {
+            $startDate = $startDate ?: $todayStr;
+            $endDate = $endDate ?: $startDate;
+        }
+
+        if ($startDate > $endDate) {
+            $temp = $startDate;
+            $startDate = $endDate;
+            $endDate = $temp;
+        }
+
+        $userId = $request->input('user_id');
+        $roleId = $request->input('role_id');
+        $stationId = $request->input('station_id');
+        $status = $request->input('status', 'all');
+
+        $query = Kehadiran::with([
+            'user' => function ($u) {
+                $u->with(['roles', 'station', 'gender']);
+            },
+        ])->whereBetween('date', [$startDate, $endDate]);
+
+        if (!empty($userId)) {
+            $query->where('user_id', $userId);
+        }
+        if (!empty($stationId)) {
+            $query->whereHas('user', fn ($q) => $q->where('station_id', $stationId));
+        }
+        if (!empty($roleId)) {
+            $query->whereHas('user', function ($q) use ($roleId) {
+                $q->where('role_id', $roleId)
+                  ->orWhereHas('roles', fn ($r) => $r->where('roles.id', $roleId));
+            });
+        }
+        if ($status === 'on_time') {
+            $query->where('is_late', false)->whereNotNull('check_in');
+        } elseif ($status === 'late') {
+            $query->where('is_late', true);
+        } elseif ($status === 'outside_radius') {
+            $query->where(function ($q) {
+                $q->where('is_in_radius_check_in', false)
+                  ->orWhere('is_in_radius_check_out', false);
+            });
+        } elseif ($status === 'early_out') {
+            $query->where('is_early_checkout', true);
+        } elseif ($status === 'cuti') {
+            $query->where(function ($q) {
+                $q->where('shift_type', 'Cuti')
+                  ->orWhere('status', 'Izin');
+            });
+        }
+
+        $records = $query->orderBy('date', 'desc')->orderBy('check_in', 'desc')->get();
+
+        $dateSuffix = ($startDate === $endDate) ? $startDate : "{$startDate}_sd_{$endDate}";
+        $fileName = "Record_Presensi_Karyawan-{$dateSuffix}.csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $delimiter = $request->input('delimiter', ';');
+
+        $columns = [
+            'Tanggal',
+            'Nama Karyawan',
+            'NIP',
+            'Jabatan / Role',
+            'Stasiun Penugasan',
+            'Shift',
+            'Jadwal Masuk',
+            'Jadwal Pulang',
+            'Jam Masuk (Check-In)',
+            'Status Masuk',
+            'Radius Masuk',
+            'Jam Pulang (Check-Out)',
+            'Status Pulang',
+            'Radius Pulang',
+            'Total Jam Kerja',
+            'Status Kehadiran',
+        ];
+
+        $callback = function () use ($records, $columns, $delimiter) {
+            $file = fopen('php://output', 'w');
+            // 1. Sisipkan UTF-8 BOM agar Excel mengenali UTF-8 tanpa karakter rusak
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $columns, $delimiter);
+
+            foreach ($records as $item) {
+                $roleName = $item->user->role->role_name ?? ($item->user->roles->first()->role_name ?? '-');
+                $stationName = $item->user->station->name ?? 'Pusat';
+
+                $statusMasuk = '-';
+                if ($item->check_in) {
+                    $statusMasuk = $item->is_late ? 'Terlambat' : 'Tepat Waktu';
+                }
+
+                $radiusMasuk = '-';
+                if ($item->check_in) {
+                    $radiusMasuk = (isset($item->is_in_radius_check_in) && !$item->is_in_radius_check_in)
+                        ? 'Luar Radius (' . round($item->check_in_distance ?? 0) . ' m)'
+                        : 'Dalam Radius';
+                }
+
+                $statusPulang = '-';
+                if ($item->check_out) {
+                    $statusPulang = $item->is_early_checkout ? 'Pulang Cepat' : 'Normal';
+                }
+
+                $radiusPulang = '-';
+                if ($item->check_out) {
+                    $radiusPulang = (isset($item->is_in_radius_check_out) && !$item->is_in_radius_check_out)
+                        ? 'Luar Radius (' . round($item->check_out_distance ?? 0) . ' m)'
+                        : 'Dalam Radius';
+                }
+
+                $statusKehadiran = $item->status ?? ($item->check_in ? 'Hadir' : 'Alpha');
+
+                fputcsv($file, [
+                    $item->date ? Carbon::parse($item->date)->format('Y-m-d') : '-',
+                    $item->user->name ?? '-',
+                    $item->user->nip ?? '-',
+                    $roleName,
+                    $stationName,
+                    $item->shift_type ?? 'Regular',
+                    $item->scheduled_in ? substr($item->scheduled_in, 0, 5) : '-',
+                    $item->scheduled_out ? substr($item->scheduled_out, 0, 5) : '-',
+                    $item->check_in ? substr($item->check_in, 0, 8) : '-',
+                    $statusMasuk,
+                    $radiusMasuk,
+                    $item->check_out ? substr($item->check_out, 0, 8) : '-',
+                    $statusPulang,
+                    $radiusPulang,
+                    $item->work_duration_formatted ?: '-',
+                    strtoupper($statusKehadiran),
+                ], $delimiter);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
