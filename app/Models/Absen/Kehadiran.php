@@ -85,18 +85,85 @@ class Kehadiran extends Model
     }
 
     /**
-     * Mengambil URL bukti alasan masuk jika ada.
+     * Mengambil URL bukti alasan masuk jika ada (dengan fallback ke face_photo_in legacy).
      */
     public function getEvidenceInUrlAttribute(): ?string
     {
-        return $this->evidence_in ? Storage::disk('public')->url($this->evidence_in) : null;
+        $path = $this->evidence_in ?: $this->face_photo_in;
+        return $path ? Storage::disk('public')->url($path) : null;
     }
 
     /**
-     * Mengambil URL bukti alasan pulang jika ada.
+     * Mengambil URL bukti alasan pulang jika ada (dengan fallback ke face_photo_out legacy).
      */
     public function getEvidenceOutUrlAttribute(): ?string
     {
-        return $this->evidence_out ? Storage::disk('public')->url($this->evidence_out) : null;
+        $path = $this->evidence_out ?: $this->face_photo_out;
+        return $path ? Storage::disk('public')->url($path) : null;
+    }
+
+    /**
+     * Menghitung total durasi kerja dalam satuan menit (aman untuk shift malam lintas hari).
+     */
+    public function getWorkDurationMinutesAttribute(): ?int
+    {
+        if (empty($this->check_in) || empty($this->check_out)) {
+            return null;
+        }
+
+        try {
+            $dateStr = $this->date ? $this->date->format('Y-m-d') : now()->format('Y-m-d');
+            $in = \Carbon\Carbon::parse($dateStr . ' ' . $this->check_in);
+            $out = \Carbon\Carbon::parse($dateStr . ' ' . $this->check_out);
+
+            if ($out->lt($in)) {
+                $out->addDay();
+            }
+
+            return (int) $in->diffInMinutes($out);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Menampilkan durasi kerja terformat manusia (misal: "8j 45m" atau "Sedang Bekerja").
+     */
+    public function getWorkDurationFormattedAttribute(): string
+    {
+        if (empty($this->check_in)) {
+            return '-';
+        }
+
+        if (empty($this->check_out)) {
+            return 'Sedang Bekerja';
+        }
+
+        $minutes = $this->work_duration_minutes;
+        if ($minutes === null) {
+            return '-';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $mins = $minutes % 60;
+
+        if ($hours > 0 && $mins > 0) {
+            return "{$hours}j {$mins}m";
+        } elseif ($hours > 0) {
+            return "{$hours} Jam";
+        } else {
+            return "{$mins} Menit";
+        }
+    }
+
+    /**
+     * Memeriksa apakah terdapat pelanggaran radius geofencing (baik saat masuk maupun pulang).
+     */
+    public function getIsOutsideRadiusAttribute(): bool
+    {
+        $outsideIn = isset($this->is_in_radius_check_in) && !$this->is_in_radius_check_in;
+        $outsideOut = isset($this->is_in_radius_check_out) && !$this->is_in_radius_check_out;
+        return $outsideIn || $outsideOut;
     }
 }
+
