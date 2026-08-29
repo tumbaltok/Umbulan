@@ -38,9 +38,46 @@ echo "====================================================\n\n";
 // Reset table kehadirans for testing
 DB::table('kehadirans')->truncate();
 
+// Set simulated time to a Friday at 06:55 WIB (Before shift start, strictly on-time)
+Carbon::setTestNow(Carbon::parse('2026-08-28 06:55:00', 'Asia/Jakarta'));
+
+// 0. TEST SECURITY GUARD: BLOCK UNREGISTERED USER FROM ATTENDANCE
+echo "--- TEST 0: Security Guard - Block Unregistered / Null Biometric User ---\n";
+$unregisteredUser = User::where('email', 'herta@meta.com')->first();
+$unregisteredUser->update(['face_descriptor' => null]);
+$unregisteredUser->refresh();
+
+$kehadiranController = app(KehadiranController::class);
+
+// Direct request trying to bypass with is_face_verified = true
+$reqBypass = Request::create('/attendance/check-in', 'POST', [
+    'latitude' => -7.2575,
+    'longitude' => 112.7521,
+    'is_face_verified' => true,
+]);
+$reqBypass->headers->set('Accept', 'application/json');
+$reqBypass->setUserResolver(fn() => $unregisteredUser);
+
+$resBypass = $kehadiranController->checkIn($reqBypass);
+assertTest($resBypass->getStatusCode() === 422, "Check-in blocked with HTTP 422 when face_descriptor is NULL");
+$bypassData = json_decode($resBypass->getContent(), true);
+assertTest(str_contains($bypassData['message'], 'Data biometrik wajah belum terdaftar'), "Error message states biometric not registered");
+
+// Direct request to check-out when face_descriptor is null
+$reqBypassOut = Request::create('/attendance/check-out', 'POST', [
+    'latitude' => -7.2575,
+    'longitude' => 112.7521,
+    'is_face_verified' => true,
+]);
+$reqBypassOut->headers->set('Accept', 'application/json');
+$reqBypassOut->setUserResolver(fn() => $unregisteredUser);
+$resBypassOut = $kehadiranController->checkOut($reqBypassOut);
+assertTest($resBypassOut->getStatusCode() === 422, "Check-out blocked with HTTP 422 when face_descriptor is NULL");
+
+
 // 1. TEST FACE REGISTRATION (128-float descriptor)
-echo "--- TEST 1: Face Registration & Embedding Storage ---\n";
-$user = User::where('email', 'herta@meta.com')->first();
+echo "\n--- TEST 1: Face Registration & Embedding Storage ---\n";
+$user = $unregisteredUser;
 assertTest($user !== null, "User Herta Eridani found");
 
 // Generate a dummy 128-float face descriptor
@@ -64,6 +101,17 @@ assertTest($resData['success'] === true, "Register face response has success=tru
 $user->refresh();
 assertTest(is_array($user->face_descriptor), "User face_descriptor is cast to array");
 assertTest(count($user->face_descriptor) === 128, "User face_descriptor contains 128 floats");
+
+// Test: Registered user but is_face_verified = false
+$reqUnverified = Request::create('/attendance/check-in', 'POST', [
+    'latitude' => -7.2575,
+    'longitude' => 112.7521,
+    'is_face_verified' => false,
+]);
+$reqUnverified->headers->set('Accept', 'application/json');
+$reqUnverified->setUserResolver(fn() => $user);
+$resUnverified = $kehadiranController->checkIn($reqUnverified);
+assertTest($resUnverified->getStatusCode() === 422, "Check-in blocked with HTTP 422 when is_face_verified is false");
 
 
 // 2. TEST NORMAL ON-TIME CHECK-IN WITHIN RADIUS (NO SELFIE SAVED TO DISK)
@@ -99,11 +147,13 @@ assertTest(!Storage::disk('public')->exists('foto_absensi'), "No legacy foto_abs
 echo "\n--- TEST 3: Outside Radius / Late Check-In Reason Enforcement ---\n";
 $user2 = User::where('email', 'reki@meta.com')->first();
 assertTest($user2 !== null, "User Reki M. found");
+$user2->update(['face_descriptor' => $dummy128Descriptor]);
+$user2->refresh();
 
-// Simulate outside radius: far coordinates (e.g. Jakarta coords vs Surabaya station)
+// Simulate outside radius: far coordinates
 $reqOutsideNoReason = Request::create('/attendance/check-in', 'POST', [
-    'latitude' => -6.2088,
-    'longitude' => 106.8456,
+    'latitude' => -1.0000,
+    'longitude' => 100.0000,
     'is_face_verified' => true,
     'reason' => '', // Empty reason
 ]);
@@ -114,8 +164,8 @@ assertTest($resOutsideNoReason->getStatusCode() === 422, "Outside radius without
 
 // Now check-in with reason filled
 $reqOutsideWithReason = Request::create('/attendance/check-in', 'POST', [
-    'latitude' => -6.2088,
-    'longitude' => 106.8456,
+    'latitude' => -1.0000,
+    'longitude' => 100.0000,
     'is_face_verified' => true,
     'reason' => 'Sedang dinas luar kota meeting dengan supplier pipa',
 ]);

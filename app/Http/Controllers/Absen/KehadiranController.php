@@ -9,6 +9,7 @@ use App\Models\User\User;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -23,23 +24,52 @@ class KehadiranController extends Controller
     }
 
     /**
-     * Absen Masuk (Clock In) via AJAX
+     * Absen Masuk (Clock In) via AJAX / Web
      */
-    public function checkIn(Request $request): JsonResponse
+    public function checkIn(Request $request): JsonResponse|RedirectResponse
     {
         try {
-            $request->validate([
-                'latitude'           => 'required|numeric',
-                'longitude'          => 'required|numeric',
-                'is_face_verified'   => 'nullable|boolean',
-                'reason'             => 'nullable|string',
-                'reason_out_of_radius' => 'nullable|string',
-                'evidence'           => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
-                'bukti_alasan'       => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
-            ]);
-
             /** @var User $user */
             $user = $request->user();
+
+            // 0. Strict Backend Guard: Pastikan biometrik wajah pengguna sudah terdaftar dan valid (128 floats)
+            if (empty($user->face_descriptor) || !is_array($user->face_descriptor) || count($user->face_descriptor) !== 128) {
+                $errorMsg = 'Data biometrik wajah belum terdaftar. Silakan rekam wajah di menu profil terlebih dahulu sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['face_descriptor' => [$errorMsg]],
+                ], 422);
+            }
+
+            // Strict Backend Guard: Pastikan request membawa status verifikasi biometrik wajah bernilai true
+            if (!$request->boolean('is_face_verified', false)) {
+                $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['is_face_verified' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['is_face_verified' => [$errorMsg]],
+                ], 422);
+            }
+
+            $request->validate([
+                'latitude'             => 'required|numeric',
+                'longitude'            => 'required|numeric',
+                'is_face_verified'     => 'required|boolean',
+                'reason'               => 'nullable|string',
+                'reason_out_of_radius' => 'nullable|string',
+                'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+                'bukti_alasan'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            ]);
+
             $now = Carbon::now('Asia/Jakarta');
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
@@ -117,7 +147,7 @@ class KehadiranController extends Controller
             }
 
             $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
-            $isFaceVerified = $request->boolean('is_face_verified', true);
+            $isFaceVerified = $request->boolean('is_face_verified', false);
 
             // 7. Simpan Data Presensi ke Database (Tanpa Menyimpan File Foto Selfie Harian)
             $absensi = Kehadiran::updateOrCreate(
@@ -160,23 +190,52 @@ class KehadiranController extends Controller
     }
 
     /**
-     * Absen Pulang (Clock Out) via AJAX
+     * Absen Pulang (Clock Out) via AJAX / Web
      */
-    public function checkOut(Request $request): JsonResponse
+    public function checkOut(Request $request): JsonResponse|RedirectResponse
     {
         try {
+            /** @var User $user */
+            $user = $request->user();
+
+            // 0. Strict Backend Guard: Pastikan biometrik wajah pengguna sudah terdaftar dan valid (128 floats)
+            if (empty($user->face_descriptor) || !is_array($user->face_descriptor) || count($user->face_descriptor) !== 128) {
+                $errorMsg = 'Data biometrik wajah belum terdaftar. Silakan rekam wajah di menu profil terlebih dahulu sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['face_descriptor' => [$errorMsg]],
+                ], 422);
+            }
+
+            // Strict Backend Guard: Pastikan request membawa status verifikasi biometrik wajah bernilai true
+            if (!$request->boolean('is_face_verified', false)) {
+                $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['is_face_verified' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['is_face_verified' => [$errorMsg]],
+                ], 422);
+            }
+
             $request->validate([
                 'latitude'         => 'required|numeric',
                 'longitude'        => 'required|numeric',
-                'is_face_verified' => 'nullable|boolean',
+                'is_face_verified' => 'required|boolean',
                 'reason'           => 'nullable|string',
                 'reason_checkout'  => 'nullable|string',
                 'evidence'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
                 'bukti_alasan'     => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             ]);
 
-            /** @var User $user */
-            $user = $request->user();
             $now = Carbon::now('Asia/Jakarta');
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
@@ -263,7 +322,7 @@ class KehadiranController extends Controller
                 $evidencePath = $this->processAndWatermarkEvidence($evidenceFile, 'checkout', $user, $statusWatermark, $now);
             }
 
-            $isFaceVerified = $request->boolean('is_face_verified', true);
+            $isFaceVerified = $request->boolean('is_face_verified', false);
 
             // 6. Update Presensi Pulang
             $attendance->update([

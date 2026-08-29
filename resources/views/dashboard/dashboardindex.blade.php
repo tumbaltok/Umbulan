@@ -575,13 +575,13 @@
                     </div>
                 </div>
 
-                <div id="facePromptNotice" class="hidden p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
+                <div id="facePromptNotice" class="hidden p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
                     <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-400 text-sm"></i>
-                        <span>Belum ada data wajah biometrik terdaftar.</span>
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-base shrink-0"></i>
+                        <span class="font-medium">Anda belum merekam biometrik wajah. Silakan lakukan pendaftaran wajah terlebih dahulu sebelum presensi!</span>
                     </div>
-                    <button type="button" onclick="tutupModalAbsen(); bukaModalRekamWajah();" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[10px]">
-                        Rekam Sekarang
+                    <button type="button" onclick="tutupModalAbsen(); bukaModalRekamWajah();" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs shrink-0 cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-camera mr-1"></i> Rekam Sekarang
                     </button>
                 </div>
             </div>
@@ -589,7 +589,7 @@
             {{-- Footer Tombol --}}
             <div class="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2 shrink-0">
                 <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" disabled class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm opacity-50 cursor-not-allowed">
                     <i class="fa-solid fa-check-circle"></i>
                     <span>Lanjutkan Presensi</span>
                 </button>
@@ -616,7 +616,7 @@
                 <input type="hidden" id="absen_type" name="type" value="in">
                 <input type="hidden" id="absen_lat" name="latitude">
                 <input type="hidden" id="absen_long" name="longitude">
-                <input type="hidden" id="absen_is_face_verified" name="is_face_verified" value="1">
+                <input type="hidden" id="absen_is_face_verified" name="is_face_verified" value="0">
 
                 <div class="p-5 space-y-3.5 flex-1 overflow-y-auto">
 
@@ -1263,6 +1263,10 @@
     const todaySchedule = JSON.parse('{!! json_encode($todaySchedule ?? []) !!}');
     let userFaceDescriptor = {!! json_encode(auth()->user()->face_descriptor) !!};
 
+    function hasValidFaceDescriptor(descriptor) {
+        return Array.isArray(descriptor) && descriptor.length === 128;
+    }
+
     const FACE_API_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
 
     function checkLateOrEarlyStatus(type) {
@@ -1668,11 +1672,35 @@
         document.getElementById('absen_type').value = type;
         document.getElementById('judulModalAbsen').innerText = type === 'in' ? 'Verifikasi Absen Masuk' : 'Verifikasi Absen Pulang';
 
+        // Cegah bypass di awal: Jika belum merekam biometrik wajah, tolak presensi langsung
+        if (!hasValidFaceDescriptor(userFaceDescriptor)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Biometrik Wajah Belum Terdaftar',
+                text: 'Anda belum merekam biometrik wajah. Silakan lakukan pendaftaran wajah terlebih dahulu sebelum presensi!',
+                confirmButtonText: '<i class="fa-solid fa-camera mr-1"></i> Rekam Wajah Sekarang',
+                confirmButtonColor: '#0284c7',
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                cancelButtonColor: '#64748b',
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold', cancelButton: 'px-5 py-2.5 rounded-xl font-medium' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    bukaModalRekamWajah();
+                }
+            });
+            return;
+        }
+
         isFaceVerified = false;
         isAutoSubmittingAttendance = false;
         stableAttendanceFaceCount = 0;
         const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-        if (btnLanjut) btnLanjut.disabled = false; // Enabled so user can advance once face matches or with camera active
+        if (btnLanjut) {
+            btnLanjut.disabled = true; // Kunci tombol sampai wajah terverifikasi cocok
+            btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+            btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+        }
 
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
@@ -1688,7 +1716,7 @@
         }
 
         if (faceNotice) {
-            if (!userFaceDescriptor || userFaceDescriptor.length === 0) {
+            if (!hasValidFaceDescriptor(userFaceDescriptor)) {
                 faceNotice.classList.remove('hidden');
             } else {
                 faceNotice.classList.add('hidden');
@@ -1769,9 +1797,10 @@
                 faceapi.draw.drawDetections(canvas, resizedDetections);
 
                 let isMatch = false;
-                let confidence = 100;
+                let confidence = 0;
 
-                if (userFaceDescriptor && userFaceDescriptor.length > 0) {
+                // Hitung Euclidean Distance HANYA JIKA descriptor biometrik referensi valid (128 floats)
+                if (hasValidFaceDescriptor(userFaceDescriptor)) {
                     const distance = faceapi.euclideanDistance(detection.descriptor, userFaceDescriptor);
                     confidence = Math.max(0, Math.min(100, Math.round((1 - distance) * 100)));
 
@@ -1780,13 +1809,35 @@
                         isMatch = true;
                     }
                 } else {
-                    // Jika belum terdaftar descriptor, anggap deteksi wajah aktif
-                    isMatch = true;
+                    // CEGAH BYPASS: Jangan pernah set isMatch = true jika descriptor kosong / tidak valid
+                    isMatch = false;
+                    confidence = 0;
+                    isFaceVerified = false;
+                    stableAttendanceFaceCount = 0;
+                    if (camStatus) {
+                        camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                        camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Biometrik wajah belum terdaftar. Presensi dinonaktifkan!`;
+                    }
+                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                    if (btnLanjut) {
+                        btnLanjut.disabled = true;
+                        btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+                        btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+                    }
+                    return;
                 }
 
                 if (isMatch) {
                     isFaceVerified = true;
                     stableAttendanceFaceCount++;
+
+                    // Buka kunci tombol lanjut presensi saat verifikasi wajah berhasil cocok
+                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                    if (btnLanjut) {
+                        btnLanjut.disabled = false;
+                        btnLanjut.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btnLanjut.classList.add('cursor-pointer', 'hover:bg-sky-700');
+                    }
 
                     if (!isAutoSubmittingAttendance && stableAttendanceFaceCount >= 2) {
                         isAutoSubmittingAttendance = true;
@@ -1831,6 +1882,12 @@
                 } else {
                     stableAttendanceFaceCount = 0;
                     isFaceVerified = false;
+                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                    if (btnLanjut) {
+                        btnLanjut.disabled = true;
+                        btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+                        btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+                    }
                     if (camStatus && !isAutoSubmittingAttendance) {
                         camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
                         camStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Wajah Tidak Cocok (${confidence}%). Harap hadap kamera langsung.`;
@@ -1838,6 +1895,13 @@
                 }
             } else {
                 stableAttendanceFaceCount = 0;
+                isFaceVerified = false;
+                const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                if (btnLanjut) {
+                    btnLanjut.disabled = true;
+                    btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+                }
                 if (camStatus && !isAutoSubmittingAttendance) {
                     camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
                     camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Posisikan wajah Anda di depan kamera...`;
@@ -1847,6 +1911,31 @@
     }
 
     function verifikasiDanLanjut() {
+        if (!hasValidFaceDescriptor(userFaceDescriptor)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Biometrik Wajah Belum Terdaftar',
+                text: 'Anda belum merekam biometrik wajah. Silakan lakukan pendaftaran wajah terlebih dahulu sebelum presensi!',
+                confirmButtonText: 'Rekam Sekarang',
+                confirmButtonColor: '#0284c7'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    tutupModalAbsen();
+                    bukaModalRekamWajah();
+                }
+            });
+            return;
+        }
+
+        if (!isFaceVerified) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Wajah Belum Terverifikasi',
+                text: 'Verifikasi biometrik wajah wajib berhasil sebelum melanjutkan presensi.',
+                confirmButtonColor: '#0284c7'
+            });
+            return;
+        }
         if (faceDetectionInterval) {
             clearInterval(faceDetectionInterval);
             faceDetectionInterval = null;
@@ -1967,6 +2056,13 @@
         const inputAlasan = document.getElementById('inputAlasan');
         if (inputAlasan) inputAlasan.value = '';
 
+        const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+        if (btnLanjut) {
+            btnLanjut.disabled = true;
+            btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+            btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+        }
+
         hapusBuktiTerpilih();
 
         document.getElementById('modalAbsensi').classList.remove('flex');
@@ -2041,6 +2137,26 @@
     }
 
     function submitAbsensiKeBackend() {
+        if (!hasValidFaceDescriptor(userFaceDescriptor)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Presensi Ditolak',
+                text: 'Data biometrik wajah belum terdaftar. Silakan rekam wajah di menu profil atau dashboard terlebih dahulu sebelum presensi!',
+                confirmButtonColor: '#e11d48'
+            });
+            return;
+        }
+
+        if (!isFaceVerified) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Presensi Ditolak',
+                text: 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.',
+                confirmButtonColor: '#e11d48'
+            });
+            return;
+        }
+
         const inputAlasan = document.getElementById('inputAlasan');
         const errorAlasanMsg = document.getElementById('errorAlasanMsg');
 
@@ -2069,6 +2185,9 @@
         formData.append('reason', reasonValue);
         formData.append('reason_out_of_radius', reasonValue);
         formData.append('reason_checkout', reasonValue);
+
+        const inputHiddenFace = document.getElementById('absen_is_face_verified');
+        if (inputHiddenFace) inputHiddenFace.value = isFaceVerified ? '1' : '0';
 
         const evidenceInput = document.getElementById('inputEvidenceFile');
         if (evidenceInput && evidenceInput.files.length > 0) {
@@ -2101,9 +2220,17 @@
                 });
 
             } else {
+                let errorMsg = res.body.message || 'Gagal mengirim presensi.';
+                if (res.body.errors) {
+                    if (res.body.errors.face_descriptor && res.body.errors.face_descriptor[0]) {
+                        errorMsg = res.body.errors.face_descriptor[0];
+                    } else if (res.body.errors.is_face_verified && res.body.errors.is_face_verified[0]) {
+                        errorMsg = res.body.errors.is_face_verified[0];
+                    }
+                }
                 Swal.fire({
                     title: 'Gagal!',
-                    text: res.body.message || 'Gagal mengirim presensi.',
+                    text: errorMsg,
                     icon: 'error',
                     confirmButtonText: 'Coba Lagi',
                     confirmButtonColor: '#e11d48'
