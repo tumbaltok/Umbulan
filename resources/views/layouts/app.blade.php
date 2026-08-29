@@ -11,11 +11,15 @@
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-circle.png') }}">
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
+        @auth
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        @else
             document.documentElement.classList.remove('dark');
-        }
+        @endauth
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
@@ -430,6 +434,7 @@
             </div>
 
             <div class="flex items-center space-x-3">
+                @auth
                 {{-- TOMBOL THEME SWITCHER DARK / LIGHT MODE ELEGAN --}}
                 <button type="button"
                     id="themeToggleBtn"
@@ -438,6 +443,7 @@
                     title="Ganti Mode Tema (Dark / Light)">
                     <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
                 </button>
+                @endauth
 
                 {{-- PROFILE DROPDOWN NAVBAR --}}
                 <div class="relative" id="navbarProfileDropdownContainer">
@@ -583,10 +589,12 @@
         }
 
         function toggleThemeMode() {
+            @auth
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             syncThemeIcon();
+            @endauth
         }
 
         function syncThemeIcon() {

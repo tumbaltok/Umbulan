@@ -25,7 +25,7 @@ class AccountController extends Controller
 
         // 2. Ambil Seluruh Peran / Jabatan KECUALI Admin
         $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')
-            ->orderBy('level', 'asc')
+            ->orderBy('id', 'asc')
             ->orderBy('role_name', 'asc')
             ->get();
 
@@ -37,11 +37,12 @@ class AccountController extends Controller
         // 4. Ambil Seluruh Akun Administrator (Level 1 atau Full Admin) yang memiliki nomor telepon aktif
         $adminUsers = User::where(function ($q) {
                 $q->where('role_id', 1)
+                  ->orWhere('level', 1)
                   ->orWhereHas('role', function ($r) {
-                      $r->where('level', 1)->orWhere('role_name', 'LIKE', '%ADMIN%');
+                      $r->where('role_name', 'LIKE', '%ADMIN%');
                   })
                   ->orWhereHas('roles', function ($r) {
-                      $r->where('roles.id', 1)->orWhere('roles.level', 1)->orWhere('roles.role_name', 'LIKE', '%ADMIN%');
+                      $r->where('roles.id', 1)->orWhere('roles.role_name', 'LIKE', '%ADMIN%');
                   });
             })
             ->whereNotNull('phone_number')
@@ -202,7 +203,8 @@ class AccountController extends Controller
         if (!$user->isLevel1()) {
             if ($request->has('roles') && is_array($request->roles)) {
                 $validRoleIds = Role::whereIn('id', $request->roles)
-                    ->where('level', '!=', 1)
+                    ->where('role_name', 'NOT LIKE', '%ADMIN%')
+                    ->where('id', '!=', 1)
                     ->pluck('id')
                     ->toArray();
                 if (!empty($validRoleIds)) {

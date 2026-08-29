@@ -14,6 +14,10 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Kunci Halaman Auth Selalu Light Mode
+        document.documentElement.classList.remove('dark');
+    </script>
+    <script>
         tailwind.config = {
             theme: {
                 extend: {

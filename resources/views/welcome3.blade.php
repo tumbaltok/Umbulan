@@ -22,6 +22,10 @@
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}?v=2">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Halaman Publik Default Selalu Light Mode
+        document.documentElement.classList.remove('dark');
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
