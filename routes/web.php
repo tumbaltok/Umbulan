@@ -32,7 +32,7 @@ Route::get('/', function () {
 // ==========================================================
 // GRUP GUEST (Belum Login)
 // ==========================================================
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
 
@@ -50,7 +50,7 @@ Route::middleware('guest')->group(function () {
 // ==========================================================
 // GRUP AUTH (Sudah Login)
 // ==========================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 
     // ----------------------------------------------------------
     // 1. TIER 1: RUTE VERIFIKASI EMAIL (Dikecualikan dari 'verified')
@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
 
     // Logout (Dapat diakses walau belum terverifikasi agar bisa beralih akun)
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
+    Route::get('/logout', fn () => redirect()->route('login'));
 
     // ----------------------------------------------------------
     // 3. SELURUH RUTE INTERNAL (Wajib Dua Tahap: Email & WhatsApp Terverifikasi)

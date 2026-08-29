@@ -394,17 +394,14 @@
             </nav>
         </div>
 
-        <!-- Logout Button -->
+        <!-- Logout Trigger Button -->
         <div class="p-3 border-t border-slate-800/60 bg-slate-950/20 shrink-0">
-            <form action="/logout" method="POST" data-turbo="false">
-                @csrf
-                <button type="submit" title="Keluar Aplikasi" class="w-full flex items-center space-x-3 hover:bg-rose-500/10 text-rose-400 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors group">
-                    <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-arrow-right-from-bracket text-base text-center transition-transform group-hover:translate-x-0.5"></i>
-                    </div>
-                    <span class="hide-on-collapse">Keluar Aplikasi</span>
-                </button>
-            </form>
+            <button type="button" onclick="openLogoutModal()" title="Keluar Aplikasi" class="w-full flex items-center space-x-3 hover:bg-rose-500/10 text-rose-400 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors group cursor-pointer">
+                <div class="w-9 h-9 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-base text-center transition-transform group-hover:translate-x-0.5"></i>
+                </div>
+                <span class="hide-on-collapse">Keluar Aplikasi</span>
+            </button>
         </div>
     </aside>
 
@@ -517,18 +514,16 @@
                             </a>
                         </div>
 
-                        {{-- Logout Button --}}
+                        {{-- Logout Trigger Button --}}
                         <div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-slate-700/60 px-1">
-                            <form action="/logout" method="POST" data-turbo="false">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full flex items-center space-x-3 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer">
-                                    <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
-                                    </div>
-                                    <span>Keluar Aplikasi</span>
-                                </button>
-                            </form>
+                            <button type="button"
+                                onclick="closeNavbarProfileDropdown(); openLogoutModal();"
+                                class="w-full flex items-center space-x-3 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer">
+                                <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                                </div>
+                                <span>Keluar Aplikasi</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -696,6 +691,7 @@
             syncThemeIcon();
             closeNavbarProfileDropdown();
             closeSidebarMobile();
+            closeLogoutModal();
 
             // Auto-open active dropdowns based on data-active="true"
             document.querySelectorAll('.dropdown-container[data-active="true"]').forEach(container => {
@@ -765,6 +761,7 @@
                     closeNavbarProfileDropdown();
                     closeProfileDetailModal();
                     closeSidebarMobile();
+                    closeLogoutModal();
                 }
             });
 
@@ -922,6 +919,51 @@
         </div>
     </div>
 
+    <!-- MODAL KONFIRMASI LOGOUT -->
+    <div id="logoutConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+        <div id="logoutConfirmModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
+            <!-- HEADER MODAL -->
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-rose-600 to-rose-700 text-white">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    </div>
+                    <h3 class="text-xs font-bold tracking-wide uppercase">Konfirmasi Keluar Aplikasi</h3>
+                </div>
+                <button type="button" onclick="closeLogoutModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- BODY MODAL -->
+            <div class="p-6 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 flex items-center justify-center mx-auto text-2xl shadow-inner border border-rose-100 dark:border-rose-900/40">
+                    <i class="fa-solid fa-door-open"></i>
+                </div>
+                <div class="space-y-1.5">
+                    <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">Apakah Anda yakin ingin keluar?</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                        Sesi aktif Anda akan diakhiri demi keamanan akun. Anda perlu login kembali untuk mengakses sistem absensi dan dashboard.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FOOTER MODAL ACTIONS -->
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeLogoutModal()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                    Batal
+                </button>
+                <form id="logoutModalForm" action="{{ route('logout') }}" method="POST" data-turbo="false" class="inline m-0">
+                    @csrf
+                    <button type="submit" id="btnConfirmLogout" class="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/20 transition-all cursor-pointer">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                        <span>Ya, Keluar Aplikasi</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function openProfileDetailModal() {
             const modal = document.getElementById('profileDetailModal');
@@ -954,9 +996,60 @@
             }
         });
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeProfileDetailModal();
+        // --- MODAL KONFIRMASI LOGOUT HANDLERS ---
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutConfirmModal');
+            const modalCard = document.getElementById('logoutConfirmModalCard');
+            if (!modal || !modalCard) return;
+
+            // Sinkronisasi token CSRF form dengan meta tag terbaru
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const tokenInput = document.querySelector('#logoutModalForm input[name="_token"]');
+            if (metaToken && tokenInput) {
+                tokenInput.value = metaToken;
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalCard.classList.remove('scale-95', 'opacity-0');
+                modalCard.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutConfirmModal');
+            const modalCard = document.getElementById('logoutConfirmModalCard');
+            if (!modal || !modalCard) return;
+
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        document.getElementById('logoutConfirmModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLogoutModal();
+            }
+        });
+
+        document.getElementById('logoutModalForm')?.addEventListener('submit', function() {
+            const btn = document.getElementById('btnConfirmLogout');
+            if (btn && !btn.dataset.submitted) {
+                btn.dataset.submitted = "true";
+                setTimeout(() => {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs mr-1.5"></i><span>Memproses...</span>';
+                }, 10);
+            }
+        });
+
+        // --- BFCACHE BUSTER (Anti-Back-Button Setelah Logout) ---
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                window.location.reload();
             }
         });
     </script>

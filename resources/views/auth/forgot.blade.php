@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Lupa Kata Sandi - PT.META</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -231,5 +232,14 @@
             });
         }
     </script> --}}
+
+    <script>
+        // BFCache Buster: Cegah form lupa password memakai CSRF token kadaluwarsa saat navigasi Back browser
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 </html>

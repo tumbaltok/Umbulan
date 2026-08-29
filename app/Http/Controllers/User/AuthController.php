@@ -267,18 +267,32 @@ class AuthController extends Controller
 
     /**
      * Menangani fungsi logout untuk WEB.
+     * Membersihkan autentikasi, remember_token database, session token, serta cookie.
      */
     public function logoutWeb(Request $request)
     {
-        if (Auth::check()) {
-            Log::info("User ID ".Auth::id()." melakukan logout.");
+        $user = Auth::guard('web')->user();
+
+        if ($user) {
+            Log::info("User ID {$user->id} ({$user->email}) melakukan logout.");
+            // Reset remember token di database agar token lama tidak dapat disalahgunakan
+            $user->setRememberToken(null);
+            $user->saveQuietly();
         }
 
-        Auth::logout();
+        $recallerName = Auth::guard('web')->getRecallerName();
+
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/login')
+            ->withHeaders([
+                'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => 'Sun, 02 Jan 1990 00:00:00 GMT',
+            ])
+            ->withoutCookie($recallerName);
     }
 }

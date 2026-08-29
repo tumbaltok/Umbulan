@@ -44,9 +44,8 @@ self.addEventListener("fetch", (event) => {
 
     const request = event.request;
 
-    // ✅ Never cache non-GET requests (fix Cache.put POST error)
+    // ✅ Never intercept non-GET requests - let browser handle form POSTs natively
     if (request.method !== 'GET') {
-        event.respondWith(fetch(request));
         return;
     }
 

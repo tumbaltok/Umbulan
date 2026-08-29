@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistem Informasi Cuti Karyawan - PT.META</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -94,6 +95,31 @@
                 </div>
             @endif
 
+            {{-- NOTIFIKASI PERINGATAN / SESI KEDALUWARSA --}}
+            @if (session('warning'))
+                <div class="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs sm:text-sm flex items-start space-x-3 shadow-sm transition-all">
+                    <div class="text-amber-500 mt-0.5 shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation text-base sm:text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-0.5 text-amber-900 dark:text-amber-200">Perhatian</h4>
+                        <p class="text-amber-700 dark:text-amber-300 leading-relaxed">{{ session('warning') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs sm:text-sm flex items-start space-x-3 shadow-sm transition-all">
+                    <div class="text-rose-500 mt-0.5 shrink-0">
+                        <i class="fa-solid fa-circle-exclamation text-base sm:text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-0.5 text-rose-900 dark:text-rose-200">Terjadi Kesalahan</h4>
+                        <p class="text-rose-700 dark:text-rose-300 leading-relaxed">{{ session('error') }}</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="w-full my-auto">
                 <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Selamat Datang</h2>
@@ -116,8 +142,8 @@
                     <div class="text-sm font-medium" id="notif-message"></div>
                 </div>
 
-                <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)" method="POST" action="/login">
-                    <?php echo csrf_field(); ?>
+                <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)" method="POST" action="{{ route('login.post') }}">
+                    @csrf
 
                     <div>
                         <label for="employee-id" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2">EMAIL</label>
@@ -202,8 +228,6 @@
         }
 
         function handleLogin(event) {
-            event.preventDefault();
-
             const employeeId = document.getElementById('employee-id').value;
             const password = document.getElementById('password').value;
             const submitBtn = document.getElementById('submit-btn');
@@ -214,6 +238,7 @@
             notification.style.display = 'none';
 
             if (employeeId.trim().length < 4 || password.length < 4) {
+                event.preventDefault();
                 notification.style.display = 'flex';
                 notification.className = "mb-6 p-4 rounded-2xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
                 notifIcon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500 text-lg"></i>`;
@@ -221,17 +246,27 @@
                 return;
             }
 
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Memproses Autentikasi...</span>
-            `;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses Autentikasi...</span>
+                `;
+            }
 
+            event.preventDefault();
             document.getElementById('loginForm').submit();
         }
+
+        // BFCache Buster: Cegah form login memakai CSRF token kadaluwarsa saat navigasi Back browser
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                window.location.reload();
+            }
+        });
     </script>
 
     <!-- PWA Script Registrations & Tools -->
