@@ -133,7 +133,7 @@
                         </button>
                     @else
                         <span class="w-full text-center py-1.5 px-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1.5 cursor-default select-none shadow-xs" title="Data biometrik terkunci permanen demi keamanan">
-                            <i class="fa-solid fa-lock text-xs text-emerald-600"></i> Biometrik Terkunci / Aktif
+                            <i class="fa-solid fa-lock text-xs text-emerald-600"></i> Biometrik Aktif
                         </span>
                     @endif
                 </div>
@@ -348,7 +348,7 @@
                     @if(!empty($user->face_descriptor))
                         <span title="Data biometrik wajah telah terkunci & aktif demi keamanan presensi" class="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold py-2 px-3 rounded-xl flex items-center space-x-1.5 cursor-default select-none shadow-2xs">
                             <i class="fa-solid fa-lock text-emerald-600 dark:text-emerald-400"></i>
-                            <span>Biometrik Terkunci / Aktif</span>
+                            <span>Biometrik Aktif</span>
                         </span>
                     @else
                         <button type="button" onclick="bukaModalRekamWajah()" class="bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-[11px] font-bold py-2 px-3 rounded-xl transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs animate-pulse">
