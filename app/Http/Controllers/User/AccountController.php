@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\User\Gender;
 use App\Models\User\Role;
 use App\Models\User\Station;
 use App\Models\User\User;
@@ -16,25 +17,28 @@ class AccountController extends Controller
 {
     public function index()
     {
-        $user = User::find(Auth::id());
+        $user = User::with(['gender', 'roles', 'role', 'station', 'assignedStations'])->find(Auth::id());
 
         // 1. Ambil seluruh Penempatan Kerja / Stasiun (Kecuali Rumah Meter)
         $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
             ->orderBy('name', 'asc')
             ->get();
 
-        // 2. Ambil Seluruh Peran / Jabatan KECUALI Admin
+        // 2. Ambil Seluruh Data Gender
+        $daftarGender = Gender::orderBy('id', 'asc')->get();
+
+        // 3. Ambil Seluruh Peran / Jabatan KECUALI Admin
         $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')
             ->orderBy('id', 'asc')
             ->orderBy('role_name', 'asc')
             ->get();
 
-        // 3. Ambil Seluruh Rumah Meter untuk Penugasan Khusus Role Pipeline
+        // 4. Ambil Seluruh Rumah Meter untuk Penugasan Khusus Role Pipeline
         $daftarRumahMeter = Station::where('type', 'rumah_meter')
             ->orderBy('kode_stasiun', 'asc')
             ->get();
 
-        // 4. Ambil Seluruh Akun Administrator (Level 1 atau Full Admin) yang memiliki nomor telepon aktif
+        // 5. Ambil Seluruh Akun Administrator (Level 1 atau Full Admin) yang memiliki nomor telepon aktif
         $adminUsers = User::where(function ($q) {
                 $q->where('role_id', 1)
                   ->orWhere('level', 1)
@@ -54,6 +58,7 @@ class AccountController extends Controller
         return view('pengaturan.index', compact(
             'user',
             'daftarStasiun',
+            'daftarGender',
             'daftarRole',
             'daftarRumahMeter',
             'adminUsers'
@@ -96,6 +101,7 @@ class AccountController extends Controller
             'gender_id' => 'nullable|integer',
             'station_id' => 'nullable|integer|exists:stations,id',
             'role_id' => 'nullable|integer|exists:roles,id',
+            'role' => 'nullable|string|max:255',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
             'assigned_stations' => 'nullable|array',
@@ -137,7 +143,14 @@ class AccountController extends Controller
             }
         }
 
-        if ($request->has('gender_id')) {
+        // CEK APAKAH PENGGUNA MEMILIKI HAK AKSES ADMINISTRATOR (LEVEL 1 / ROLE ADMIN)
+        $isAdmin = $user->isLevel1()
+            || (int)$user->role_id === 1
+            || $user->hasRole('ADMIN')
+            || $user->roles->contains('id', 1);
+
+        // PROTEKSI INTEGRITAS DATA: FIELD GENDER TIDAK DAPAT DITIMPA/DIUBAH OLEH USER BIASA
+        if ($isAdmin && $request->filled('gender_id')) {
             $updateData['gender_id'] = $request->gender_id;
         }
 
@@ -199,14 +212,23 @@ class AccountController extends Controller
             }
         }
 
-        // PREVENT ROLE LEVEL 1 OVERWRITE BY NON-ADMIN
+        // LOGIKA PENYIMPANAN ROLE / JABATAN
+        $roleQuery = Role::query();
         if (!$user->isLevel1()) {
-            if ($request->has('roles') && is_array($request->roles)) {
-                $validRoleIds = Role::whereIn('id', $request->roles)
-                    ->where('role_name', 'NOT LIKE', '%ADMIN%')
-                    ->where('id', '!=', 1)
+            $roleQuery->where('role_name', 'NOT LIKE', '%ADMIN%')->where('id', '!=', 1);
+        }
+
+        if ($request->filled('role')) {
+            $inputNames = array_filter(array_map('trim', explode(',', $request->role)));
+            if (!empty($inputNames)) {
+                $validRoleIds = (clone $roleQuery)->where(function ($q) use ($inputNames) {
+                        foreach ($inputNames as $rName) {
+                            $q->orWhereRaw('LOWER(role_name) = ?', [strtolower($rName)]);
+                        }
+                    })
                     ->pluck('id')
                     ->toArray();
+
                 if (!empty($validRoleIds)) {
                     $syncData = [];
                     foreach ($validRoleIds as $idx => $rId) {
@@ -215,12 +237,24 @@ class AccountController extends Controller
                     $user->roles()->sync($syncData);
                     $updateData['role_id'] = $validRoleIds[0];
                 }
-            } elseif ($request->has('role_id') && ! empty($request->role_id)) {
-                $selectedRole = Role::find($request->role_id);
-                if ($selectedRole && strtolower($selectedRole->role_name) !== 'admin') {
-                    $updateData['role_id'] = $request->role_id;
-                    $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
+            }
+        } elseif ($request->has('roles') && is_array($request->roles)) {
+            $validRoleIds = (clone $roleQuery)->whereIn('id', $request->roles)
+                ->pluck('id')
+                ->toArray();
+            if (!empty($validRoleIds)) {
+                $syncData = [];
+                foreach ($validRoleIds as $idx => $rId) {
+                    $syncData[$rId] = ['is_primary' => ($idx === 0)];
                 }
+                $user->roles()->sync($syncData);
+                $updateData['role_id'] = $validRoleIds[0];
+            }
+        } elseif ($request->has('role_id') && ! empty($request->role_id)) {
+            $selectedRole = (clone $roleQuery)->find($request->role_id);
+            if ($selectedRole) {
+                $updateData['role_id'] = $request->role_id;
+                $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
             }
         }
 
