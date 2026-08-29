@@ -42,6 +42,14 @@ class AuthController extends Controller
     }
 
     /**
+     * Menampilkan form lupa kata sandi (forgot password) pengguna WEB.
+     */
+    public function showForgotForm()
+    {
+        return view('auth.forgot');
+    }
+
+    /**
      * Menangani pendaftaran (registrasi) pengguna lewat WEB.
      */
     public function registerWeb(Request $request)
@@ -202,6 +210,14 @@ class AuthController extends Controller
     }
 
     /**
+     * Alias untuk sendOtpMailWeb agar kompatibel dengan rute forgot.send_otp.
+     */
+    public function sendOtpWeb(Request $request)
+    {
+        return $this->sendOtpMailWeb($request);
+    }
+
+    /**
      * 2. VERIFIKASI OTP EMAIL
      */
     public function verifyOtpMailWeb(Request $request)
@@ -243,10 +259,16 @@ class AuthController extends Controller
         $verifiedExpires = session('otp_verified_expires');
 
         if (! $verifiedEmail || $verifiedEmail !== $request->email || now()->greaterThan(Carbon::parse($verifiedExpires))) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Aksi tidak valid atau batas waktu verifikasi OTP telah habis.',
-            ], 422);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Aksi tidak valid atau batas waktu verifikasi OTP telah habis.',
+                ], 422);
+            }
+
+            return redirect()->route('forgot')->withErrors([
+                'email' => 'Aksi tidak valid atau batas waktu verifikasi OTP telah habis.',
+            ]);
         }
 
         $user = User::where('email', $request->email)->first();
@@ -259,10 +281,14 @@ class AuthController extends Controller
 
         session()->forget(['reset_email', 'reset_otp_hash', 'reset_otp_expires', 'otp_verified_for', 'otp_verified_expires']);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Kata sandi berhasil diperbarui. Silakan login.',
-        ]);
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kata sandi berhasil diperbarui. Silakan login.',
+            ]);
+        }
+
+        return redirect()->route('login')->with('success', 'Kata sandi berhasil diperbarui. Silakan login.');
     }
 
     /**

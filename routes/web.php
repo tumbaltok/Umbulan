@@ -19,6 +19,7 @@ use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\Admin\WhatsAppSettingController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\PhoneVerificationController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -41,10 +42,23 @@ Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     })->name('login');
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
-    Route::get('/forgot', [AuthController::class, 'showForgotForm'])->name('forgot');
-    Route::post('/forgot/send-otp-mail', [AuthController::class, 'sendOtpWeb'])->name('forgot.send_otp');
-    Route::post('/forgot/verify-otp-mail', [AuthController::class, 'verifyOtpMailWeb'])->name('forgot.verify_otp');
-    Route::post('/forgot/update', [AuthController::class, 'forgotWeb'])->name('forgot.update');
+    // ======================================================
+    // RUTE PEMULIHAN KATA SANDI (FORGOT / RESET PASSWORD VIA OTP)
+    // ======================================================
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('forgot');
+    Route::get('/forgot', fn () => redirect()->route('forgot'));
+    Route::post('/forgot-password/identify', [ForgotPasswordController::class, 'identify'])->name('forgot.identify');
+    Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->name('forgot.send_otp');
+    Route::get('/forgot-password/verify-otp', [ForgotPasswordController::class, 'showVerifyOtpForm'])->name('forgot.verify_otp_view');
+    Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('forgot.verify_otp');
+    Route::post('/forgot-password/resend-otp', [ForgotPasswordController::class, 'resendOtp'])->name('forgot.resend_otp');
+    Route::get('/forgot-password/reset', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('forgot.reset_password_view');
+    Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('forgot.update');
+
+    // Kompatibilitas endpoint lama
+    Route::post('/forgot/send-otp-mail', [ForgotPasswordController::class, 'sendOtp']);
+    Route::post('/forgot/verify-otp-mail', [ForgotPasswordController::class, 'verifyOtp']);
+    Route::post('/forgot/update', [ForgotPasswordController::class, 'resetPassword']);
 });
 
 // ==========================================================

@@ -294,4 +294,31 @@ class WhatsAppService
 
         return $this->sendMessage($approver->phone_number, $message);
     }
+
+    /**
+     * Mengirimkan kode OTP pemulihan kata sandi via WhatsApp ke nomor telepon pengguna.
+     */
+    public function sendPasswordResetOtp(User $user, string $otp, int $expiryMinutes = 5): array
+    {
+        if (empty($user->phone_number)) {
+            return [
+                'success' => false,
+                'message' => "Pengguna {$user->name} belum memiliki nomor WhatsApp terdaftar.",
+            ];
+        }
+
+        $message = "*[PORTAL RESMI PT META ADHYA TIRTA UMBULAN]*\n\n"
+            . "Yth. Bapak/Ibu *{$user->name}*,\n\n"
+            . "Kami menerima permintaan pengaturan ulang kata sandi untuk akun Anda.\n"
+            . "Berikut adalah Kode Keamanan (OTP) Anda:\n\n"
+            . "🔐 *{$otp}*\n\n"
+            . "⚠️ *Penting:*\n"
+            . "• Kode ini berlaku selama *{$expiryMinutes} menit*.\n"
+            . "• Jangan pernah membagikan kode rahasia ini kepada siapa pun, termasuk pihak manajemen atau IT Support.\n"
+            . "• Jika Anda tidak pernah meminta perubahan kata sandi, abaikan pesan ini atau segera hubungi IT Support.\n\n"
+            . "_Pesan otomatis Keamanan Sistem ERP PT META Adhya Tirta Umbulan._";
+
+        return $this->sendMessage($user->phone_number, $message);
+    }
 }
+
