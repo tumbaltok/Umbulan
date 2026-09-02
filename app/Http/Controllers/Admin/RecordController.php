@@ -18,9 +18,10 @@ class RecordController extends Controller
     use CutiHelperTrait;
 
     // =========================================================================
-    //                        MANAGEMENT RECORD CUTI
+    //                        REKAPITULASI RECORD CUTI
     // =========================================================================
 
+    // Menampilkan halaman rekapitulasi data pengajuan cuti karyawan
     public function cuti(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
@@ -28,7 +29,7 @@ class RecordController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        // Backward compatibility jika memilih filter bulan / tahun
+        // Dukungan filter periode tanggal fleksibel (hari ini, minggu ini, bulan ini, atau kustom)
         if ($request->filled('bulan')) {
             $tahun = $request->get('tahun', date('Y'));
             $startDate = Carbon::createFromDate($tahun, $request->bulan, 1)->startOfMonth()->format('Y-m-d');
@@ -49,7 +50,7 @@ class RecordController extends Controller
             $startDate = null;
             $endDate = null;
         } else {
-            // custom
+            // Rentang tanggal kustom
             $startDate = $startDate ?: $todayStr;
             $endDate = $endDate ?: $startDate;
         }
@@ -141,6 +142,7 @@ class RecordController extends Controller
         ));
     }
 
+    // Ekspor data rekapitulasi cuti ke format file CSV (dengan UTF-8 BOM)
     public function exportCuti(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
@@ -256,7 +258,7 @@ class RecordController extends Controller
 
         $callback = function () use ($records, $columns, $delimiter) {
             $file = fopen('php://output', 'w');
-            // 1. Sisipkan UTF-8 BOM agar Excel mengenali UTF-8 tanpa karakter rusak
+            // Sisipkan UTF-8 BOM agar kompatibel dengan pembaca Excel
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $columns, $delimiter);
 
@@ -298,9 +300,10 @@ class RecordController extends Controller
     }
 
     // =========================================================================
-    //                        MANAGEMENT RECORD CAR
+    //                        REKAPITULASI RECORD CAR
     // =========================================================================
 
+    // Menampilkan halaman rekapitulasi data pengajuan CAR (Cash Advance Report)
     public function car(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
@@ -409,6 +412,7 @@ class RecordController extends Controller
         ));
     }
 
+    // Ekspor data rekapitulasi CAR ke format file CSV
     public function exportCar(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
@@ -539,7 +543,7 @@ class RecordController extends Controller
                     $car->alasan_pembelian ?: ($car->note_explanation ?: '-'),
                     $ringkasanBarang ?: '-',
                     $itemsCount,
-                    $totalNominal, // Angka murni integer
+                    $totalNominal, // Nilai integer murni
                     $spvStatus,
                     $mgrStatus,
                     $statusAkhirLabel,
@@ -553,9 +557,10 @@ class RecordController extends Controller
     }
 
     // =========================================================================
-    //                        MANAGEMENT RECORD MPR
+    //                        REKAPITULASI RECORD MPR
     // =========================================================================
 
+    // Menampilkan halaman rekapitulasi data pengajuan MPR (Material Purchase Request)
     public function mpr(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');
@@ -672,6 +677,7 @@ class RecordController extends Controller
         ));
     }
 
+    // Ekspor data rekapitulasi MPR ke format file CSV
     public function exportMpr(Request $request)
     {
         $todayStr = Carbon::today('Asia/Jakarta')->format('Y-m-d');

@@ -17,9 +17,7 @@ class WhatsAppService
         $this->baseUrl = rtrim($baseUrl ?? config('services.whatsapp.url', 'http://127.0.0.1:3001'), '/');
     }
 
-    /**
-     * Normalisasi nomor telepon ke format baku internasional Indonesia (62xxx).
-     */
+    // Normalisasi nomor telepon ke format baku internasional Indonesia (62xxx)
     public function formatPhoneNumber(string $phone): string
     {
         $clean = preg_replace('/[^0-9]/', '', $phone);
@@ -33,13 +31,12 @@ class WhatsAppService
         return $clean;
     }
 
-    /**
-     * Mengirimkan pesan WhatsApp melalui microservice Baileys.
-     */
+    // Mengirimkan pesan WhatsApp melalui microservice Baileys
     public function sendMessage(string $number, string $message): array
     {
         $target = $this->formatPhoneNumber($number);
 
+        // Validasi kelayakan nomor telepon
         if (empty($target) || strlen($target) < 10) {
             return [
                 'success' => false,
@@ -90,9 +87,7 @@ class WhatsAppService
         }
     }
 
-    /**
-     * Mengambil status koneksi terkini dari microservice Baileys.
-     */
+    // Mengambil status koneksi terkini dari microservice Baileys
     public function getStatus(): array
     {
         try {
@@ -110,7 +105,7 @@ class WhatsAppService
                 ];
             }
         } catch (\Exception $e) {
-            // Service offline / unreachable
+            // Service offline atau tidak dapat dihubungi
         }
 
         return [
@@ -124,9 +119,7 @@ class WhatsAppService
         ];
     }
 
-    /**
-     * Cache status 10 detik agar tidak membebani reload setiap halaman layout.
-     */
+    // Cache status koneksi selama 10 detik untuk efisiensi render halaman
     public static function getStatusCached(): array
     {
         return Cache::remember('whatsapp_gateway_status', 10, function () {
@@ -134,9 +127,7 @@ class WhatsAppService
         });
     }
 
-    /**
-     * Mengambil QR Code Base64 untuk halaman scanning admin.
-     */
+    // Mengambil QR Code Base64 untuk halaman pemindaian admin
     public function getQr(): array
     {
         try {
@@ -157,9 +148,7 @@ class WhatsAppService
         ];
     }
 
-    /**
-     * Memutuskan koneksi sesi WhatsApp (Logout & Clean Session).
-     */
+    // Memutuskan koneksi sesi WhatsApp (Logout dan reset sesi)
     public function disconnect(): array
     {
         Cache::forget('whatsapp_gateway_status');
@@ -180,9 +169,7 @@ class WhatsAppService
         ];
     }
 
-    /**
-     * Mengirim notifikasi instan saat pengajuan baru (Cuti, CAR, MPR) diajukan.
-     */
+    // Mengirim notifikasi instan saat pengajuan baru (Cuti, CAR, MPR) diajukan
     public function sendNewSubmissionNotification(string $type, $pengajuan, User $approver, int $tahap = 1): array
     {
         if (empty($approver->phone_number) || empty($approver->phone_verified_at)) {
@@ -202,6 +189,7 @@ class WhatsAppService
         $detailText = '';
         $reviewUrl = url('/dashboard');
 
+        // Susun rincian pesan berdasarkan modul pengajuan
         if ($type === 'cuti') {
             $perihal = $pengajuan->sub_cuti_id && $pengajuan->subCuti 
                 ? $pengajuan->subCuti->nama_sub_cuti 
@@ -239,9 +227,7 @@ class WhatsAppService
         return $this->sendMessage($approver->phone_number, $message);
     }
 
-    /**
-     * Mengirim notifikasi pengingat / follow-up scheduler ke approver.
-     */
+    // Mengirim notifikasi pengingat otomatis ke approver untuk pengajuan pending
     public function sendFollowUpNotification(string $type, $pengajuan, User $approver, int $tahap = 1): array
     {
         if (empty($approver->phone_number) || empty($approver->phone_verified_at)) {
@@ -261,6 +247,7 @@ class WhatsAppService
         $detailText = '';
         $reviewUrl = url('/dashboard');
 
+        // Susun rincian pengingat berdasarkan modul pengajuan
         if ($type === 'cuti') {
             $perihal = $pengajuan->sub_cuti_id && $pengajuan->subCuti 
                 ? $pengajuan->subCuti->nama_sub_cuti 
@@ -295,9 +282,7 @@ class WhatsAppService
         return $this->sendMessage($approver->phone_number, $message);
     }
 
-    /**
-     * Mengirimkan kode OTP pemulihan kata sandi via WhatsApp ke nomor telepon pengguna.
-     */
+    // Mengirimkan kode OTP pemulihan kata sandi via WhatsApp ke nomor telepon pengguna
     public function sendPasswordResetOtp(User $user, string $otp, int $expiryMinutes = 5): array
     {
         if (empty($user->phone_number)) {

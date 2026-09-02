@@ -21,17 +21,13 @@ use Illuminate\View\View;
 
 class ForgotPasswordController extends Controller
 {
-    /**
-     * Tampilkan form awal Lupa Kata Sandi (Identifikasi & Pilihan Channel).
-     */
+    // Menampilkan formulir awal identifikasi pemulihan kata sandi
     public function showForgotForm(Request $request): View
     {
         return view('auth.forgot-password');
     }
 
-    /**
-     * Cari akun user berdasarkan Email atau Nomor Telepon/WhatsApp terdaftar.
-     */
+    // Mencari akun pengguna berdasarkan email, nomor WhatsApp, atau NIP
     public function identify(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
@@ -102,9 +98,7 @@ class ForgotPasswordController extends Controller
         return back()->with('identification', $responseData);
     }
 
-    /**
-     * Generate dan kirimkan kode OTP 6 digit ke saluran terpilih (Email atau WhatsApp).
-     */
+    // Menghasilkan dan mengirimkan kode OTP 6 digit ke saluran terpilih (Email atau WhatsApp)
     public function sendOtp(Request $request, WhatsAppService $whatsAppService): JsonResponse|RedirectResponse
     {
         $request->validate([
@@ -144,7 +138,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['channel' => $msg]);
         }
 
-        // Proteksi Rate Limiting Kirim OTP
+        // Proteksi batas permintaan (Rate Limiting) kirim OTP
         $ipThrottleKey = 'send-reset-otp-ip:' . $request->ip();
         $userThrottleKey = 'send-reset-otp-user:' . $user->id;
 
@@ -157,7 +151,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['otp' => $msg]);
         }
 
-        // Cooldown resend 60 detik
+        // Cooldown pengiriman ulang OTP selama 60 detik
         $resendAllowedAt = session('reset_otp_resend_allowed_at');
         if ($resendAllowedAt && now()->timestamp < $resendAllowedAt) {
             $waitSec = $resendAllowedAt - now()->timestamp;
@@ -168,7 +162,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['otp' => $msg]);
         }
 
-        // Generate Kode OTP 6-Digit Numerik Aman
+        // Generate kode OTP 6-digit numerik
         $otp = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         $expiryMinutes = 5;
 
@@ -184,7 +178,7 @@ class ForgotPasswordController extends Controller
                 Log::info("[ForgotPassword] Email OTP berhasil dikirim ke {$user->email} untuk User ID {$user->id}");
             } catch (\Exception $e) {
                 Log::error("[ForgotPassword] Gagal mengirim email OTP ke {$user->email}: " . $e->getMessage());
-                // Fallback sederhana jika template gagal di-render
+                // Fallback pengiriman pesan teks jika rendering template email bermasalah
                 try {
                     Mail::raw("Kode OTP Pemulihan Kata Sandi Akun Anda: {$otp}. Berlaku selama {$expiryMinutes} menit.", function ($msg) use ($user) {
                         $msg->to($user->email)->subject('Kode OTP Pemulihan Kata Sandi - PT META Adhya Tirta Umbulan');
@@ -219,11 +213,11 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['channel' => $sendErrorMessage]);
         }
 
-        // Catat Rate Limiter Hit
+        // Catat hitung rate limiter
         RateLimiter::hit($ipThrottleKey, 300);
         RateLimiter::hit($userThrottleKey, 300);
 
-        // Simpan OTP ter-hash dan metadata ke Session dan Cache
+        // Simpan hash OTP dan metadata ke sesi dan cache
         $hashedOtp = Hash::make($otp);
         $expiresAtTimestamp = now()->addMinutes($expiryMinutes)->timestamp;
         $nextResendAllowed = now()->addSeconds(60)->timestamp;
@@ -238,7 +232,6 @@ class ForgotPasswordController extends Controller
             'reset_attempts' => 0,
         ]);
 
-        // Simpan di cache database dengan key unik
         Cache::put("pwd_reset_otp_{$user->id}", [
             'hash' => $hashedOtp,
             'expires_at' => $expiresAtTimestamp,
@@ -262,9 +255,7 @@ class ForgotPasswordController extends Controller
         return redirect()->route('forgot.verify_otp_view')->with('success', $successMsg);
     }
 
-    /**
-     * Tampilkan halaman verifikasi kode OTP 6-digit.
-     */
+    // Menampilkan halaman antarmuka verifikasi kode OTP 6 digit
     public function showVerifyOtpForm(Request $request): View|RedirectResponse
     {
         $userId = session('reset_user_id');
@@ -289,9 +280,7 @@ class ForgotPasswordController extends Controller
         return view('auth.verify-otp', compact('user', 'channel', 'targetMasked', 'cooldownSeconds'));
     }
 
-    /**
-     * Verifikasi kode OTP 6 digit dari pengguna.
-     */
+    // Memvalidasi kode OTP 6 digit yang dimasukkan pengguna
     public function verifyOtp(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
@@ -314,7 +303,7 @@ class ForgotPasswordController extends Controller
             return redirect()->route('forgot')->withErrors(['identity' => $msg]);
         }
 
-        // Batas maksimal 5x percobaan gagal (Brute Force Protection)
+        // Batas maksimal 5x percobaan gagal (proteksi brute force)
         if ($attempts >= 5) {
             session()->forget(['reset_otp_hash', 'reset_otp_expires_at']);
             Cache::forget("pwd_reset_otp_{$userId}");
@@ -335,7 +324,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['otp' => $msg]);
         }
 
-        // Validasi kesesuaian OTP (Hash::check)
+        // Validasi kesesuaian OTP dengan hash
         if (!Hash::check($request->otp, $sessionOtpHash) && $request->otp !== $sessionOtpHash) {
             $attempts++;
             session(['reset_attempts' => $attempts]);
@@ -353,7 +342,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['otp' => $msg]);
         }
 
-        // OTP Valid! Bersihkan state OTP dan berikan Token Otorisasi Reset Kata Sandi
+        // Otorisasi token pemulihan setelah OTP valid
         $authToken = Str::random(40);
         session([
             'reset_authorized_user_id' => $userId,
@@ -361,7 +350,7 @@ class ForgotPasswordController extends Controller
             'reset_auth_expires_at' => now()->addMinutes(10)->timestamp,
         ]);
 
-        // Hapus kode OTP agar tidak bisa digunakan ulang (Replay Attack Prevention)
+        // Hapus kode OTP agar tidak dapat digunakan ulang
         session()->forget(['reset_otp_hash', 'reset_otp_expires_at', 'reset_attempts']);
         Cache::forget("pwd_reset_otp_{$userId}");
 
@@ -378,9 +367,7 @@ class ForgotPasswordController extends Controller
         return redirect()->route('forgot.reset_password_view')->with('success', 'Kode OTP terverifikasi! Silakan masukkan kata sandi baru Anda.');
     }
 
-    /**
-     * Kirim ulang kode OTP (Resend OTP).
-     */
+    // Mengirimkan kembali kode OTP pemulihan kata sandi
     public function resendOtp(Request $request, WhatsAppService $whatsAppService): JsonResponse|RedirectResponse
     {
         $userId = session('reset_user_id');
@@ -393,16 +380,13 @@ class ForgotPasswordController extends Controller
             return redirect()->route('forgot');
         }
 
-        // Pilihan channel (jika user ingin beralih saluran saat resend)
         $channel = $request->input('channel', session('reset_channel', 'email'));
 
         $request->merge(['user_id' => $user->id, 'channel' => $channel]);
         return $this->sendOtp($request, $whatsAppService);
     }
 
-    /**
-     * Tampilkan form pembuatan Kata Sandi Baru.
-     */
+    // Menampilkan formulir input kata sandi baru
     public function showResetPasswordForm(Request $request): View|RedirectResponse
     {
         $userId = session('reset_authorized_user_id');
@@ -423,9 +407,7 @@ class ForgotPasswordController extends Controller
         return view('auth.reset-password', compact('user'));
     }
 
-    /**
-     * Simpan kata sandi baru ke database dan selesaikan alur reset password.
-     */
+    // Menyimpan pembaruan kata sandi baru ke database
     public function resetPassword(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
@@ -493,21 +475,18 @@ class ForgotPasswordController extends Controller
     // HELPER UTILITIES
     // ==========================================================
 
-    /**
-     * Mencari akun pengguna berdasarkan email atau nomor telepon/WhatsApp.
-     */
+    // Mencari akun pengguna berdasarkan email, nomor WhatsApp, atau NIP
     protected function findUserByIdentity(string $identity): ?User
     {
-        // 1. Jika mengandung '@', cari langsung berdasarkan email
+        // Cari langsung jika format email
         if (str_contains($identity, '@')) {
             return User::where('email', strtolower($identity))->first();
         }
 
-        // 2. Bersihkan karakter non-numerik untuk normalisasi nomor telepon
+        // Normalisasi format nomor telepon
         $clean = preg_replace('/[^0-9]/', '', $identity);
 
         if (!empty($clean)) {
-            // Bangun kemungkinan format nomor telepon
             $variations = [$clean, $identity];
 
             if (str_starts_with($clean, '62')) {
@@ -528,7 +507,7 @@ class ForgotPasswordController extends Controller
                 return $user;
             }
 
-            // 3. Fallback: coba cari berdasarkan NIP jika nomor telepon tidak cocok
+            // Fallback pencarian melalui NIP
             $userByNip = User::where('nip', $identity)->orWhere('nip', $clean)->first();
             if ($userByNip) {
                 return $userByNip;
@@ -538,10 +517,7 @@ class ForgotPasswordController extends Controller
         return null;
     }
 
-    /**
-     * Menyamarkan email untuk perlindungan privasi pengguna.
-     * Contoh: yan@meta.com -> y***@meta.com
-     */
+    // Menyamarkan alamat email untuk privasi (contoh: y***@meta.com)
     protected function maskEmail(string $email): string
     {
         $parts = explode('@', $email);
@@ -562,10 +538,7 @@ class ForgotPasswordController extends Controller
         return $maskedName . '@' . $domain;
     }
 
-    /**
-     * Menyamarkan nomor telepon untuk perlindungan privasi pengguna.
-     * Contoh: 081288472529 -> 0812****2529
-     */
+    // Menyamarkan nomor telepon untuk privasi (contoh: 0812****2529)
     protected function maskPhone(string $phone): string
     {
         $clean = preg_replace('/[^0-9]/', '', $phone);
@@ -581,9 +554,7 @@ class ForgotPasswordController extends Controller
         return $start . '****' . $end;
     }
 
-    /**
-     * Mengambil inisial nama untuk avatar badge.
-     */
+    // Mengambil inisial nama untuk avatar badge
     protected function getInitials(string $name): string
     {
         $words = explode(' ', trim($name));

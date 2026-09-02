@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class PengajuanMprController extends Controller
 {
+    // Menampilkan riwayat pengajuan MPR milik pengguna saat ini
     public function index()
     {
         $user = Auth::user();
@@ -26,6 +27,7 @@ class PengajuanMprController extends Controller
         return view('mpr.mprriwayat', compact('riwayatMpr'));
     }
 
+    // Menampilkan form pembuatan pengajuan MPR baru
     public function create()
     {
         $user = Auth::user();
@@ -43,13 +45,13 @@ class PengajuanMprController extends Controller
         $urutan = PengajuanMpr::whereYear('tanggal_pengajuan', $now->year)->count() + 1;
         $nomorMpr = "{$urutan} / META / PAS / MPR / {$bulanRomawi} / {$now->year}";
 
-        // Default department
+        // Penentuan departemen default
         $defaultDepartment = 'Operation';
         if ($user->station && str_contains(strtolower($user->station->type ?? ''), 'kantor')) {
             $defaultDepartment = $user->role->role_name ?? 'Management';
         }
 
-        // Default delivery point
+        // Penentuan titik pengiriman default
         $defaultDeliveryPoint = 'Site Umbulan';
         if ($user->station) {
             $stName = $user->station->name;
@@ -61,6 +63,7 @@ class PengajuanMprController extends Controller
         return view('mpr.mprcreate', compact('nomorMpr', 'defaultDepartment', 'defaultDeliveryPoint'));
     }
 
+    // Menyimpan formulir pengajuan MPR beserta daftar item material yang diminta
     public function store(Request $request)
     {
         $user = Auth::user();

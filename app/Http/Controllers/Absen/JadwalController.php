@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class JadwalController extends Controller
 {
-    /**
-     * Mengatur Shift Awal Roster Karyawan
-     */
+    // Mengatur shift awal roster karyawan
     public function setInitialShift(Request $request)
     {
         $request->validate([
@@ -20,6 +18,7 @@ class JadwalController extends Controller
         $user = $request->user();
         $now = Carbon::now('Asia/Jakarta');
 
+        // Tentukan acuan hari Selasa pergantian roster shift
         $currentTuesday = $now
             ->copy()
             ->startOfWeek(Carbon::TUESDAY)
@@ -38,6 +37,7 @@ class JadwalController extends Controller
 
         $selectedShift = $request->input('current_shift_choice');
 
+        // Hitung tanggal acuan mundur berdasarkan pilihan shift saat ini
         switch ($selectedShift) {
             case 'pagi':
                 $rosterStartDate = $currentTuesday->copy();
@@ -62,6 +62,7 @@ class JadwalController extends Controller
             ->with('success', 'Shift berhasil dikonfirmasi. Rotasi otomatis setiap Selasa pukul 07:00 WIB.');
     }
 
+    // Memperbarui pengaturan jadwal kerja karyawan (tipe normal atau roster)
     public function updateSchedule(Request $request)
     {
         $request->validate([
@@ -78,6 +79,7 @@ class JadwalController extends Controller
             'schedule_type' => $request->schedule_type,
         ];
 
+        // Simpan data jadwal kerja tipe normal
         if ($request->schedule_type === 'normal') {
             $updateData['normal_work_days'] = $request->input('normal_work_days', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
 
@@ -88,6 +90,7 @@ class JadwalController extends Controller
                 $updateData['normal_check_out'] = $request->normal_check_out;
             }
         } elseif ($request->schedule_type === 'roster') {
+            // Simpan data jadwal kerja tipe roster rotasi 3 mingguan
             $selectedShift = $request->input('current_shift_choice');
 
             if ($selectedShift) {
@@ -135,6 +138,7 @@ class JadwalController extends Controller
             ->with('success', 'Jadwal kerja berhasil diperbarui.');
     }
 
+    // Merekam biometrik wajah karyawan (penguncian permanen 1x demi keamanan)
     public function registerFace(Request $request)
     {
         $request->validate([
@@ -143,9 +147,7 @@ class JadwalController extends Controller
 
         $user = $request->user();
 
-        // PROTEKSI KETAT ANTI-CHEATING BIOMETRIC LOCK:
-        // Perekaman mandiri hanya diizinkan 1x seumur hidup akun saat kelengkapan profil awal.
-        // Jika face_descriptor sudah terisi, tolak pengubahan dengan HTTP 403 Forbidden!
+        // Proteksi biometrik: tolak jika data biometrik wajah sudah terkunci
         if (!empty($user->face_descriptor)) {
             return response()->json([
                 'success' => false,

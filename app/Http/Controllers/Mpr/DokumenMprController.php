@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 class DokumenMprController extends Controller
 {
-    // CETAK PDF MPR
+    // Menghasilkan dokumen PDF cetak untuk pengajuan Material Purchase Request (MPR)
     public function cetakPdf(int $id)
     {
         $mpr = PengajuanMpr::with(['user.role', 'user.station', 'supervisor', 'manager', 'items'])->findOrFail($id);
@@ -19,7 +19,7 @@ class DokumenMprController extends Controller
             return redirect()->back()->with('error', 'Dokumen MPR yang ditolak tidak dapat dicetak.');
         }
 
-        // 1. Logo Perusahaan META
+        // Logo Perusahaan META
         $logoBase64 = null;
         $logoCandidates = [
             public_path('images/logo.png'),
@@ -125,6 +125,7 @@ class DokumenMprController extends Controller
         return $pdf->stream('MPR-' . str_replace('/', '-', $mpr->nomor_mpr) . '.pdf');
     }
 
+    // Mengonversi path file gambar menjadi representasi data Base64
     private function imageToBase64(?string $relativePath): ?string
     {
         if (empty($relativePath)) {

@@ -105,9 +105,7 @@ class User extends Authenticatable implements MustVerifyEmail
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
 
-    /**
-     * Relasi Many-to-Many ke tabel roles via pivot role_user.
-     */
+    // Relasi Many-to-Many ke tabel roles via pivot role_user
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')
@@ -115,34 +113,26 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
-    /**
-     * Relasi BelongsTo ke role utama (backward compatibility).
-     */
+    // Relasi ke role utama pengguna (backward compatibility)
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
-    /**
-     * Relasi Many-to-Many ke seluruh stasiun / Rumah Meter penugasan (Khusus Role AREA (PIPELINE)).
-     */
+    // Relasi Many-to-Many ke stasiun / Rumah Meter penugasan (Khusus Role AREA PIPELINE)
     public function assignedStations(): BelongsToMany
     {
         return $this->belongsToMany(Station::class, 'station_user', 'user_id', 'station_id')
             ->withTimestamps();
     }
 
-    /**
-     * Memeriksa apakah pengguna memiliki role AREA (PIPELINE).
-     */
+    // Cek apakah pengguna memiliki role AREA (PIPELINE)
     public function isPipeline(): bool
     {
         return $this->hasRole('AREA (PIPELINE)') || $this->hasRole(14);
     }
 
-    /**
-     * Mengambil Primary Role (role utama pengguna).
-     */
+    // Ambil role utama pengguna
     public function getPrimaryRoleAttribute(): ?Role
     {
         return $this->roles->where('pivot.is_primary', true)->first() 
@@ -150,9 +140,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ?? $this->role;
     }
 
-    /**
-     * Memeriksa apakah user memiliki satu atau lebih role tertentu (berdasarkan nama atau ID).
-     */
+    // Cek apakah user memiliki satu atau lebih role tertentu (berdasarkan nama atau ID)
     public function hasRole(string|int|array|Role|\Illuminate\Support\Collection $roles): bool
     {
         if ($roles instanceof \Illuminate\Support\Collection) {
@@ -181,17 +169,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return false;
     }
 
-    /**
-     * Memeriksa apakah user memiliki setidaknya satu role dari array yang diberikan.
-     */
+    // Cek apakah user memiliki setidaknya satu role dari daftar yang diberikan
     public function hasAnyRole(array $roles): bool
     {
         return $this->hasRole($roles);
     }
 
-    /**
-     * Memeriksa apakah user memiliki seluruh role dalam array yang diberikan.
-     */
+    // Cek apakah user memiliki seluruh role dalam daftar yang diberikan
     public function hasAllRoles(array $roles): bool
     {
         foreach ($roles as $r) {
@@ -202,17 +186,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return true;
     }
 
-    /**
-     * Mengembalikan daftar string nama seluruh role yang dimiliki user.
-     */
+    // Daftar nama seluruh role yang dimiliki user
     public function rolesList(): array
     {
         return $this->roles->pluck('role_name')->toArray();
     }
 
-    /**
-     * Menambahkan satu atau beberapa role ke user.
-     */
+    // Menambahkan satu atau beberapa role ke user
     public function assignRole(string|int|array|Role|\Illuminate\Support\Collection $roles): void
     {
         $roleIds = $this->resolveRoleIds($roles);
@@ -225,9 +205,7 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
-    /**
-     * Menghapus satu atau beberapa role dari user.
-     */
+    // Menghapus satu atau beberapa role dari user
     public function removeRole(string|int|array|Role|\Illuminate\Support\Collection $roles): void
     {
         $roleIds = $this->resolveRoleIds($roles);
@@ -241,9 +219,7 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
-    /**
-     * Helper privat untuk menormalisasi input role (string/int/object) menjadi array ID.
-     */
+    // Helper untuk menormalisasi input role menjadi array ID
     protected function resolveRoleIds(mixed $roles): array
     {
         if ($roles instanceof \Illuminate\Support\Collection) {
@@ -271,51 +247,37 @@ class User extends Authenticatable implements MustVerifyEmail
         return array_values(array_unique(array_filter($ids)));
     }
 
-    /**
-     * Memeriksa apakah user memegang setidaknya satu role di level puncak (Top Level).
-     */
+    // Cek apakah user memegang setidaknya satu role di level puncak (Top Level)
     public function isTopLevel(): bool
     {
         return $this->roles->contains(fn($r) => empty($r->parent_role_id));
     }
 
-    /**
-     * Memeriksa apakah user memiliki hak akses Level 1 (Full Access / Administrator).
-     */
+    // Cek apakah user memiliki hak akses Level 1 (Full Access / Administrator)
     public function isLevel1(): bool
     {
         return (int)$this->level === 1;
     }
 
-    /**
-     * Memeriksa apakah user memiliki hak akses Level 2 (Monitoring / Read-Only).
-     */
+    // Cek apakah user memiliki hak akses Level 2 (Monitoring / Read-Only)
     public function isLevel2(): bool
     {
         return (int)$this->level === 2;
     }
 
-    /**
-     * Memeriksa apakah user memiliki hak akses Level 3 (User / Staf Biasa).
-     */
+    // Cek apakah user memiliki hak akses Level 3 (User / Staf Biasa)
     public function isLevel3(): bool
     {
         return (int)$this->level === 3;
     }
 
-    /**
-     * Memeriksa apakah data akun user telah lengkap memenuhi 5 kriteria kelayakan sesuai urutan baku:
-     * 1. Email terverifikasi.
-     * 2. Nomor WhatsApp terisi dan terverifikasi.
-     * 3. Biometrik wajah telah direkam.
-     * 4. Tanda tangan digital (TTD) telah diunggah.
-     * 5. Jadwal kerja aktif terisi (normal atau roster).
-     */
+    // Cek apakah nomor telepon pengguna telah terverifikasi
     public function hasVerifiedPhone(): bool
     {
         return !is_null($this->phone_verified_at);
     }
 
+    // Evaluasi kelengkapan 5 syarat akun (Email, Telepon, Biometrik Wajah, TTD, Jadwal)
     public function isAccountComplete(): bool
     {
         return !is_null($this->email_verified_at)
@@ -326,14 +288,7 @@ class User extends Authenticatable implements MustVerifyEmail
             && !empty($this->schedule_type);
     }
 
-    /**
-     * Mendapatkan status rincian kelengkapan akun pengguna sesuai urutan baku 5 syarat:
-     * 1. Verifikasi Email
-     * 2. Nomor WhatsApp
-     * 3. Biometrik Wajah
-     * 4. Tanda Tangan Digital (TTD)
-     * 5. Jadwal Kerja
-     */
+    // Rincian status kelengkapan 5 syarat akun
     public function getAccountCompletionStatus(): array
     {
         $hasEmail = !is_null($this->email_verified_at);
@@ -352,40 +307,44 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // Relasi ke stasiun kerja utama
     public function station(): BelongsTo
     {
         return $this->belongsTo(Station::class, 'station_id', 'id');
     }
 
+    // Relasi ke jenis kelamin
     public function gender(): BelongsTo
     {
         return $this->belongsTo(Gender::class, 'gender_id', 'id');
     }
 
-    /**
-     * Memeriksa apakah user adalah karyawan perempuan / wanita
-     */
+    // Cek apakah user adalah karyawan perempuan / wanita
     public function isPerempuan(): bool
     {
         $genderName = strtolower($this->gender?->name ?? '');
         return $this->gender_id === 2 || in_array($genderName, ['wanita', 'perempuan', 'female', 'p']);
     }
 
+    // Relasi ke atasan langsung (Supervisor)
     public function supervisor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'atasan_langsung_id', 'id');
     }
 
+    // Relasi ke atasan kedua (Manager)
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'atasan_dua_id', 'id');
     }
 
+    // Relasi ke stasiun yang diawasi (sebagai supervisor)
     public function stations(): BelongsToMany
     {
         return $this->belongsToMany(Station::class, 'station_supervisor', 'supervisor_id', 'station_id');
     }
 
+    // Relasi ke pengajuan cuti yang sedang aktif berjalan hari ini
     public function cuti_aktif(): HasMany
     {
         return $this->hasMany(PengajuanCuti::class, 'user_id')
@@ -394,6 +353,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->whereDate('tanggal_selesai', '>=', now());
     }
 
+    // Relasi ke saldo cuti tahunan berjalan
     public function saldo_cuti_tahunan(int $jenisCutiId): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
@@ -402,6 +362,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('tahun', date('Y'));
     }
 
+    // Relasi ke saldo cuti haid bulan berjalan
     public function saldo_cuti_haid(): HasOne
     {
         return $this->hasOne(SaldoCuti::class, 'user_id')
@@ -410,16 +371,19 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('tahun', date('Y'));
     }
 
+    // Relasi ke seluruh riwayat absensi kehadiran
     public function attendances(): HasMany
     {
         return $this->hasMany(Kehadiran::class, 'user_id');
     }
 
+    // Relasi ke seluruh catatan saldo cuti
     public function saldoCuti(): HasMany
     {
         return $this->hasMany(SaldoCuti::class, 'user_id');
     }
 
+    // Relasi ke seluruh riwayat pengajuan cuti
     public function pengajuanCuti(): HasMany
     {
         return $this->hasMany(PengajuanCuti::class, 'user_id');

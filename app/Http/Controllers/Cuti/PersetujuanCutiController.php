@@ -16,6 +16,7 @@ class PersetujuanCutiController extends Controller
 {
     use CutiHelperTrait;
 
+    // Menampilkan daftar antrean pengajuan cuti yang memerlukan persetujuan atasan
     public function listAtasanView()
     {
         /** @var \App\Models\User\User $atasan */
@@ -31,11 +32,11 @@ class PersetujuanCutiController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($isAdmin) {
-            // Admin Utama: Dapat memantau seluruh antrean cuti yang belum tuntas
+            // Administrator: Memantau seluruh antrean pengajuan yang masih pending
             $query->where('status_akhir', 'pending');
         } else {
             $query->where(function ($q) use ($atasanRoleIds) {
-                // TAHAP 1 PENDING: Atasan memegang role yang menjadi Approver Step 1 pemohon
+                // Tahap 1 Pending: Atasan bertindak sebagai Approver Tahap 1
                 $q->where(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'pending')
                         ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
@@ -47,7 +48,7 @@ class PersetujuanCutiController extends Controller
                             });
                         });
                 })
-                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Atasan memegang role Approver Step 2 pemohon
+                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2
                 ->orWhere(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'approved')
                         ->where('status_tahap_2', 'pending')
@@ -64,7 +65,7 @@ class PersetujuanCutiController extends Controller
             });
         }
 
-        // Proteksi Self-Approval: Pemohon tidak dapat melihat/menyetujui pengajuannya sendiri di antrean approval
+        // Proteksi pemohon menyetujui pengajuan sendiri
         $query->where('user_id', '!=', $atasan->id);
 
         $daftarPengajuan = $query->get();
@@ -79,6 +80,7 @@ class PersetujuanCutiController extends Controller
         return view('admin.persetujuan.persetujuancuti', compact('daftarPengajuan'));
     }
 
+    // Memproses persetujuan (approve) atau penolakan (reject) cuti
     public function prosesPersetujuan(Request $request, int $id)
     {
         $request->validate([

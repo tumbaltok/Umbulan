@@ -2,9 +2,9 @@
 @section('title', 'Daftar Stasiun Kerja')
 
 @push('styles')
-<!-- Leaflet CSS -->
+{{-- Library Peta Leaflet CSS --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<!-- SweetAlert2 CSS -->
+{{-- Library SweetAlert2 CSS --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
     /* Mengunci ukuran container peta pratinjau */
@@ -157,7 +157,7 @@
                                     </span>
 
                                     @if($totalStaf > 0 && $staffList->count() > 0)
-                                    <!-- Popover Hover Mini Modern -->
+                                    {{-- Popover Hover Daftar Staf Stasiun --}}
                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none transition-all duration-200 animate-in fade-in zoom-in-95">
                                         <div class="bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-medium py-2 px-3.5 rounded-xl shadow-xl border border-slate-700 whitespace-nowrap min-w-[150px] text-left backdrop-blur-xs">
                                             <p class="font-bold text-sky-400 text-[10px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5 border-b border-slate-700/80 pb-1">
@@ -305,7 +305,7 @@
                                     </span>
 
                                     @if($totalStafRm > 0 && $staffRmList->count() > 0)
-                                    <!-- Popover Hover Mini Modern -->
+                                    {{-- Popover Hover Daftar Staf Rumah Meter --}}
                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none transition-all duration-200 animate-in fade-in zoom-in-95">
                                         <div class="bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-medium py-2 px-3.5 rounded-xl shadow-xl border border-slate-700 whitespace-nowrap min-w-[150px] text-left backdrop-blur-xs">
                                             <p class="font-bold text-amber-400 text-[10px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5 border-b border-slate-700/80 pb-1">
@@ -566,9 +566,9 @@
 @endsection
 
 @push('scripts')
-<!-- Leaflet JS -->
+{{-- Library Peta Leaflet JS --}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<!-- SweetAlert2 JS -->
+{{-- Library SweetAlert2 JS --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>

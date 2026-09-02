@@ -9,16 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * Menerima satu atau multi-parameter role, contoh:
-     * ->middleware('role:ADMIN')
-     * ->middleware('role:ADMIN,PROCUREMENT,OPERATIONAL')
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  ...$roles
-     */
+    // Memfilter akses rute berdasarkan role pengguna (mendukung multi-role dipisahkan koma)
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!Auth::check()) {

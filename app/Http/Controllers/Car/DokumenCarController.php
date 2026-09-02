@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DokumenCarController extends Controller
 {
+    // Menghasilkan dokumen PDF cetak untuk pengajuan CAR yang telah disetujui penuh
     public function print(int $id)
     {
         $car = PengajuanCar::with([
@@ -24,7 +25,7 @@ class DokumenCarController extends Controller
 
         $approverLevel1 = $car->approverTahap1;
 
-        // Jika 1 level approval, samakan data penandatangan Tahap 2 dengan Tahap 1
+        // Jika 1 level approval, samakan penandatangan Tahap 2 dengan Tahap 1
         if ($car->status_tahap_2 === 'not_required' || empty($car->approver_tahap_2_id)) {
             $approverLevel2 = $approverLevel1;
         } else {
@@ -37,7 +38,7 @@ class DokumenCarController extends Controller
               ->orWhere('role_name', 'LIKE', '%DIRECTOR%');
         })->first();
 
-        // Siapkan Base64 Data URI untuk Logo & Tanda Tangan
+        // Konversi berkas logo dan tanda tangan digital ke Base64 Data URI untuk DomPDF
         $logoBase64   = $this->imageToBase64(public_path('images/logo.png')) ?? $this->imageToBase64(public_path('images/iconfav.png'));
         $sigRequester = $car->user && $car->user->signature ? $this->imageToBase64(storage_path('app/public/' . $car->user->signature)) : null;
         $sigApprover1 = $approverLevel1 && $approverLevel1->signature ? $this->imageToBase64(storage_path('app/public/' . $approverLevel1->signature)) : null;
@@ -60,6 +61,7 @@ class DokumenCarController extends Controller
         return $pdf->stream('CAR_' . sprintf('%03d', $car->id) . '.pdf');
     }
 
+    // Mengonversi path file gambar lokal menjadi representasi data Base64
     private function imageToBase64(?string $path): ?string
     {
         if ($path && file_exists($path)) {

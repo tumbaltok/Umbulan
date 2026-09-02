@@ -24,6 +24,7 @@ class KaryawanController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
+    // Menampilkan daftar data karyawan dan struktur organisasi
     public function index(Request $request)
     {
         $currentUser = Auth::user();
@@ -32,11 +33,11 @@ class KaryawanController extends Controller
         $cutiJenis = JenisCuti::where('name_cuti', 'Cuti')->first();
         $jenisCutiId = $cutiJenis ? $cutiJenis->id : null;
 
-        // Ambil data Role lengkap untuk dirender pada struktur pohon organisasi
+        // Ambil data Role lengkap untuk struktur pohon organisasi
         $daftarRole = Role::orderBy('id', 'asc')->get();
 
         $query = User::with([
-            'roles', // PERBAIKAN: Menggunakan relasi BelongsToMany
+            'roles', // Relasi multi-role karyawan
             'station',
             'supervisor',
             'manager',
@@ -114,6 +115,7 @@ class KaryawanController extends Controller
         return view('admin.daftar.karyawanindex', compact('daftarKaryawan', 'daftarStasiun', 'daftarJobdesk', 'daftarRole', 'daftarRumahMeter'));
     }
 
+    // Mengambil rincian data profil dan status kerja karyawan via JSON
     public function showDetail(int $id): JsonResponse
     {
         try {
@@ -170,9 +172,7 @@ class KaryawanController extends Controller
         }
     }
 
-    /**
-     * Reset Data Biometrik Wajah Karyawan (Khusus Administrator Level 1)
-     */
+    // Reset data biometrik wajah karyawan (khusus Administrator Level 1)
     public function resetBiometric(Request $request, int $id): JsonResponse
     {
         $currentUser = Auth::user();
@@ -198,6 +198,7 @@ class KaryawanController extends Controller
         ]);
     }
 
+    // Memperbarui sisa saldo cuti karyawan
     public function updateSaldoCuti(Request $request, int $id)
     {
         $request->validate([
@@ -215,6 +216,7 @@ class KaryawanController extends Controller
         ]);
     }
 
+    // Memperbarui penugasan peran (role) dan stasiun Rumah Meter karyawan
     public function updateRoles(Request $request, int $id)
     {
         $request->validate([

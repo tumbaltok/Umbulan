@@ -14,14 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class FollowUpPengajuanWhatsApp extends Command
 {
-    /**
-     * Nama dan signature dari console command.
-     */
+    // Nama signature command artisan
     protected $signature = 'pengajuan:followup-wa';
 
-    /**
-     * Deskripsi console command.
-     */
+    // Deskripsi singkat console command
     protected $description = 'Kirim pengingat WhatsApp berkala untuk pengajuan pending dengan proteksi jam kerja resmi (Work Hours Guard)';
 
     protected ScheduleService $scheduleService;
@@ -34,9 +30,7 @@ class FollowUpPengajuanWhatsApp extends Command
         $this->whatsAppService = $whatsAppService;
     }
 
-    /**
-     * Eksekusi console command.
-     */
+    // Eksekusi pemindaian antrean dan pengiriman pengingat WhatsApp
     public function handle(): int
     {
         $this->info('Memulai pemindaian pengajuan pending untuk follow-up WhatsApp...');
@@ -54,7 +48,7 @@ class FollowUpPengajuanWhatsApp extends Command
         $totalTerkirim = 0;
         $totalDitunda  = 0;
 
-        // 1. PROSES PENGAJUAN CUTI
+        // 1. Proses pengajuan cuti berstatus pending
         $cutiPending = PengajuanCuti::with(['user.roles', 'jenisCuti', 'subCuti'])
             ->where('status_akhir', 'pending')
             ->where('created_at', '<=', $minimumAge)
@@ -70,7 +64,7 @@ class FollowUpPengajuanWhatsApp extends Command
             $totalDitunda  += $res['postponed'];
         }
 
-        // 2. PROSES PENGAJUAN CAR
+        // 2. Proses pengajuan CAR berstatus pending
         $carPending = PengajuanCar::with(['user.roles', 'details'])
             ->where('status_akhir', 'pending')
             ->where('created_at', '<=', $minimumAge)
@@ -86,7 +80,7 @@ class FollowUpPengajuanWhatsApp extends Command
             $totalDitunda  += $res['postponed'];
         }
 
-        // 3. PROSES PENGAJUAN MPR
+        // 3. Proses pengajuan MPR berstatus pending
         $mprPending = PengajuanMpr::with(['user.roles', 'items'])
             ->where('status_akhir', 'pending')
             ->where('created_at', '<=', $minimumAge)
@@ -107,9 +101,7 @@ class FollowUpPengajuanWhatsApp extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * Memproses pengajuan spesifik, menentukan target role atasan, dan menerapkan Work Hours Guard.
-     */
+    // Memproses dokumen pengajuan, menentukan role approver, dan menerapkan proteksi jam kerja
     protected function prosesPengajuan(string $type, $pengajuan): array
     {
         $sentCount = 0;
@@ -120,7 +112,7 @@ class FollowUpPengajuanWhatsApp extends Command
             return ['sent' => 0, 'postponed' => 0];
         }
 
-        // Tentukan tahap yang sedang pending
+        // Tentukan tahap persetujuan yang sedang pending
         $targetStage = null;
         if ($pengajuan->status_tahap_1 === 'pending') {
             $targetStage = 1;
@@ -132,7 +124,7 @@ class FollowUpPengajuanWhatsApp extends Command
             return ['sent' => 0, 'postponed' => 0];
         }
 
-        // Ambil approval rules dari roles submitter
+        // Ambil aturan persetujuan dari role pemohon
         $typeRules = [];
         $generalRules = [];
         foreach ($submitter->roles as $r) {
@@ -171,9 +163,7 @@ class FollowUpPengajuanWhatsApp extends Command
         $notifiedAtLeastOne = false;
 
         foreach ($approvers as $approver) {
-            // ==========================================================
-            // VALIDASI JAM KERJA PENYETUJU (WORK HOURS GUARD)
-            // ==========================================================
+            // Validasi proteksi jam kerja approver (Work Hours Guard)
             $isWorking = $this->scheduleService->isUserWorkingNow($approver);
 
             if (!$isWorking) {

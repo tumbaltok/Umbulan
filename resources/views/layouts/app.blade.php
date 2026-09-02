@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | PT META Adhya Tirta Umbulan</title>
 
-    <!-- Favicon -->
+    {{-- Favicon dan Ikon Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-circle.png') }}">
@@ -34,7 +34,7 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* SEMBUNYIKAN SCROLLBAR */
+        /* Sembunyikan scrollbar bawaan peramban */
         html, body, div, nav, aside, main, section {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -46,7 +46,7 @@
             display: none;
         }
 
-        /* Dropdown Animation Base */
+        /* Animasi dasar dropdown menu */
         .dropdown-content, .sub-dropdown-content {
             max-height: 0;
             overflow: hidden;
@@ -71,7 +71,7 @@
             transform: rotate(180deg);
         }
 
-        /* TRANSISI MOBILE */
+        /* Transisi sidebar mobile */
         #sidebarApp {
             will-change: transform, width;
             transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
@@ -93,7 +93,7 @@
             }
         }
 
-        /* EFEK HOVER SIDEBAR DESKTOP */
+        /* Efek hover sidebar desktop */
         @media (min-width: 768px) {
             .sidebar-hover-mode {
                 width: 5rem; /* ~80px saat kuncup */
@@ -152,10 +152,10 @@
         $isAdminRole  = $isLevel1Or2;
     @endphp
 
-    <!-- SIDEBAR -->
+    {{-- Sidebar Navigasi Utama --}}
     <aside id="sidebarApp" class="sidebar-hover-mode bg-slate-900 text-slate-300 flex flex-col h-screen justify-between border-r border-slate-800 shrink-0 z-40 fixed md:relative -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
         <div class="flex flex-col h-full overflow-hidden">
-            <!-- Header Sidebar -->
+            {{-- Header Sidebar & Logo Perusahaan --}}
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
                 <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
                     <div class="bg-white p-0.5 rounded-full shadow-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
@@ -175,11 +175,11 @@
                 </button>
             </div>
 
-            <!-- Menu Navigasi -->
+            {{-- Menu Navigasi Sidebar --}}
             <nav class="sidebar-nav-container p-3 space-y-2 flex-1 overflow-y-auto">
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 mb-2 hide-on-collapse">Menu Utama</span>
 
-                <!-- Dashboard -->
+                {{-- Menu Dashboard --}}
                 <a href="/dashboard" title="Dashboard" class="flex items-center space-x-3 px-2.5 py-2 rounded-xl text-sm font-medium transition-all {{ request()->is('dashboard') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     <div class="w-9 h-9 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-chart-pie text-base text-center"></i>
@@ -187,7 +187,7 @@
                     <span class="hide-on-collapse">Dashboard</span>
                 </a>
 
-                <!-- Fasilitas Cuti -->
+                {{-- Menu Fasilitas Cuti --}}
                 @php $isCutiActive = request()->is('cuti/*') || request()->is('admin/persetujuan/cuti*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isCutiActive ? 'true' : 'false' }}">
                     <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCutiActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas Cuti">
@@ -226,7 +226,7 @@
                     </div>
                 </div>
 
-                <!-- Fasilitas MPR -->
+                {{-- Menu Fasilitas MPR --}}
                 @php $isMprActive = request()->is('mpr/*') || request()->is('admin/persetujuan/mpr*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isMprActive ? 'true' : 'false' }}">
                     <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isMprActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas MPR">
@@ -265,7 +265,7 @@
                     </div>
                 </div>
 
-                <!-- Fasilitas CAR -->
+                {{-- Menu Fasilitas CAR --}}
                 @php $isCarActive = request()->is('car/*') || request()->is('admin/persetujuan/car*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isCarActive ? 'true' : 'false' }}">
                     <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCarActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas CAR">
@@ -304,7 +304,7 @@
                     </div>
                 </div>
 
-                <!-- MENU ADMINISTRATOR -->
+                {{-- Menu Khusus Administrator & Atasan --}}
                 @if($isAdminRole)
                 @php
                     $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*'))
@@ -325,13 +325,13 @@
 
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
 
-                            <!-- REKAP ABSENSI HARIAN -->
+                            {{-- Rekap Absensi Harian --}}
                             <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <i class="fa-solid fa-user-check text-xs"></i>
                                 <span class="hide-on-collapse">Rekap Absensi Harian</span>
                             </a>
 
-                            <!-- SUB-MENU 1: DAFTAR -->
+                            {{-- Sub-Menu Daftar Data Master --}}
                             <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
                                 <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                                     <div class="flex items-center space-x-2">
@@ -353,7 +353,7 @@
                                 </div>
                             </div>
 
-                            <!-- SUB-MENU 2: RECORD -->
+                            {{-- Sub-Menu Rekap Record --}}
                             <div class="sub-dropdown-container" data-active="{{ $isRecordActive ? 'true' : 'false' }}">
                                 <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                                     <div class="flex items-center space-x-2">
@@ -375,7 +375,7 @@
                                 </div>
                             </div>
 
-                            <!-- WHATSAPP GATEWAY -->
+                            {{-- Pengaturan WhatsApp Gateway --}}
                             <a href="{{ route('admin.whatsapp.index') }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/whatsapp*') ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                                 <i class="fa-brands fa-whatsapp text-xs text-emerald-400"></i>
                                 <span class="hide-on-collapse">WhatsApp Gateway</span>
@@ -394,7 +394,7 @@
             </nav>
         </div>
 
-        <!-- Logout Trigger Button -->
+        {{-- Tombol Pemicu Logout --}}
         <div class="p-3 border-t border-slate-800/60 bg-slate-950/20 shrink-0">
             <button type="button" onclick="openLogoutModal()" title="Keluar Aplikasi" class="w-full flex items-center space-x-3 hover:bg-rose-500/10 text-rose-400 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors group cursor-pointer">
                 <div class="w-9 h-9 flex items-center justify-center shrink-0">
@@ -405,12 +405,12 @@
         </div>
     </aside>
 
-    <!-- BACKDROP MOBILE -->
+    {{-- Backdrop Sidebar Mobile --}}
     <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 opacity-0 pointer-events-none md:hidden"></div>
 
-    <!-- MAIN CONTENT AREA -->
+    {{-- Area Konten Utama --}}
     <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-        <!-- HEADER UTAMA DENGAN JAM DIGITAL & THEME SWITCHER -->
+        {{-- Header Utama dengan Jam Digital & Switcher Tema --}}
         <header class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-xs transition-colors">
             <div class="flex items-center space-x-3">
                 <button id="toggleSidebarBtn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
@@ -565,7 +565,7 @@
         </main>
     </div>
 
-    <!-- JAVASCRIPT HANDLER -->
+    {{-- Handler Skrip JavaScript --}}
     <script>
         function updateHeaderClock() {
             const now = new Date();
@@ -603,7 +603,7 @@
             }
         }
 
-        // --- NAVBAR PROFILE DROPDOWN ---
+        {{-- DROPDOWN NAVBAR PROFIL --}}
         function toggleNavbarProfileDropdown(e) {
             if (e) {
                 e.preventDefault();
@@ -641,7 +641,7 @@
             btn.setAttribute('aria-expanded', 'false');
         }
 
-        // --- SIDEBAR DROPDOWN (ACCORDION) ---
+        {{-- DROPDOWN SIDEBAR (ACCORDION) --}}
         function toggleDropdown(container) {
             if (!container) return;
             const isOpen = container.classList.contains('dropdown-open');
@@ -662,7 +662,7 @@
             }
         }
 
-        // --- MOBILE SIDEBAR HANDLER ---
+        {{-- SIDEBAR MOBILE --}}
         function openSidebarMobile() {
             const sidebar = document.getElementById("sidebarApp");
             const backdrop = document.getElementById("sidebarBackdrop");
@@ -685,7 +685,7 @@
             }
         }
 
-        // --- SINKRONISASI TAMPILAN SAAT NAVIGASI (TURBO / DOM LOAD) ---
+        {{-- SINKRONISASI TAMPILAN SAAT NAVIGASI --}}
         function initLayoutHandlers() {
             updateHeaderClock();
             syncThemeIcon();
@@ -693,7 +693,6 @@
             closeSidebarMobile();
             closeLogoutModal();
 
-            // Auto-open active dropdowns based on data-active="true"
             document.querySelectorAll('.dropdown-container[data-active="true"]').forEach(container => {
                 container.classList.add('dropdown-open');
             });
@@ -702,25 +701,21 @@
             });
         }
 
-        // --- SINGLE GLOBAL EVENT DELEGATION (SAFE FROM MULTI-BINDING BUG) ---
         if (!window.__umbulanLayoutEventsBound) {
             window.__umbulanLayoutEventsBound = true;
 
             document.addEventListener('click', function(e) {
-                // 1. Navbar Profile Dropdown Button
                 const navProfileBtn = e.target.closest('#navbarProfileDropdownBtn');
                 if (navProfileBtn) {
                     toggleNavbarProfileDropdown(e);
                     return;
                 }
 
-                // 2. Click outside Navbar Profile Dropdown -> Dismiss
                 const profileDropdownContainer = document.getElementById('navbarProfileDropdownContainer');
                 if (profileDropdownContainer && !profileDropdownContainer.contains(e.target)) {
                     closeNavbarProfileDropdown();
                 }
 
-                // 3. Sidebar Level 1 Dropdown Buttons (Fasilitas Cuti, MPR, CAR, Administrator)
                 const dropdownBtn = e.target.closest('.dropdown-btn');
                 if (dropdownBtn) {
                     e.preventDefault();
@@ -731,7 +726,6 @@
                     return;
                 }
 
-                // 4. Sidebar Level 2 Sub-Dropdown Buttons (Daftar, Record)
                 const subBtn = e.target.closest('.sub-dropdown-btn');
                 if (subBtn) {
                     e.preventDefault();
@@ -743,7 +737,6 @@
                     return;
                 }
 
-                // 5. Mobile Sidebar Triggers
                 if (e.target.closest('#toggleSidebarBtn')) {
                     e.preventDefault();
                     openSidebarMobile();
@@ -772,11 +765,11 @@
         document.addEventListener("turbo:load", initLayoutHandlers);
     </script>
 
-    <!-- MODAL POPUP DETAIL AKUN USER -->
+    {{-- MODAL POPUP DETAIL AKUN USER --}}
     <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
         <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
 
-            <!-- HEADER MODAL -->
+            {{-- HEADER MODAL --}}
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-id-card text-lg"></i>
@@ -787,9 +780,9 @@
                 </button>
             </div>
 
-            <!-- BODY MODAL -->
+            {{-- BODY MODAL --}}
             <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-                <!-- RINGKASAN AVATAR & NAMA -->
+                {{-- RINGKASAN AVATAR & NAMA --}}
                 <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
                     <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md overflow-hidden shrink-0 border-2 border-white dark:border-slate-700">
                         @if(Auth::user()->profile_photo)
@@ -823,7 +816,7 @@
                     </div>
                 </div>
 
-                <!-- GRID DETAIL INFORMASI LENGKAP -->
+                {{-- GRID DETAIL INFORMASI LENGKAP --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">NIP</span>
@@ -906,7 +899,7 @@
                 </div>
             </div>
 
-            <!-- FOOTER MODAL -->
+            {{-- FOOTER MODAL --}}
             <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between">
                 <a href="{{ route('account.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-xs">
                     <i class="fa-solid fa-gear"></i>
@@ -919,10 +912,10 @@
         </div>
     </div>
 
-    <!-- MODAL KONFIRMASI LOGOUT -->
+    {{-- MODAL KONFIRMASI LOGOUT --}}
     <div id="logoutConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
         <div id="logoutConfirmModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
-            <!-- HEADER MODAL -->
+            {{-- HEADER MODAL --}}
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-rose-600 to-rose-700 text-white">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
@@ -935,7 +928,7 @@
                 </button>
             </div>
 
-            <!-- BODY MODAL -->
+            {{-- BODY MODAL --}}
             <div class="p-6 text-center space-y-4">
                 <div class="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 flex items-center justify-center mx-auto text-2xl shadow-inner border border-rose-100 dark:border-rose-900/40">
                     <i class="fa-solid fa-door-open"></i>
@@ -948,7 +941,7 @@
                 </div>
             </div>
 
-            <!-- FOOTER MODAL ACTIONS -->
+            {{-- FOOTER MODAL ACTIONS --}}
             <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-end gap-3">
                 <button type="button" onclick="closeLogoutModal()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
                     Batal

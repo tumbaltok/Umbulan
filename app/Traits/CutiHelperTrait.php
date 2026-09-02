@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 trait CutiHelperTrait
 {
-    /**
-     * Mendapatkan ID Jenis Cuti Tahunan secara andal
-     */
+    // Mendapatkan ID Jenis Cuti Tahunan secara andal
     public function getCutiTahunanId(): int
     {
         $cuti = JenisCuti::where('kode_cuti', 'CT')
@@ -26,12 +24,7 @@ trait CutiHelperTrait
         return $cuti ? $cuti->id : User::CUTI_TAHUNAN_ID;
     }
 
-    /**
-     * Mengecek apakah jenis cuti tertentu memotong saldo jatah cuti tahunan.
-     * ATURAN BAKU: Hanya Cuti Tahunan yang memotong saldo di saldo_cutis.
-     * Jenis non-tahunan (Sakit, Haid, Melahirkan, Menikah, Duka, Izin Meninggalkan Pekerjaan)
-     * DILARANG KERAS MEMOTONG SALDO CUTI TAHUNAN.
-     */
+    // Evaluasi apakah jenis atau sub-cuti memotong saldo cuti tahunan
     public function alurPotongSaldo(int $jenisCutiId, ?int $subCutiId = null): bool
     {
         $jenis = JenisCuti::find($jenisCutiId);
@@ -51,7 +44,7 @@ trait CutiHelperTrait
             return false;
         }
 
-        // Jika terdapat sub-cuti khusus yang dikecualikan dari pemotongan saldo tahunan
+        // Pengecualian pemotongan saldo untuk sub-cuti khusus (misal: haid, duka, ibadah, dll)
         if ($subCutiId) {
             $sub = SubCuti::find($subCutiId);
             if ($sub) {
@@ -75,12 +68,7 @@ trait CutiHelperTrait
         return true;
     }
 
-    /**
-     * Validasi sisa jatah saldo efektif (Database Saldo - Antrean Pending).
-     * Hanya berlaku bagi Cuti Tahunan.
-     *
-     * @throws \Exception
-     */
+    // Validasi sisa kuota saldo efektif (Saldo database dikurangi total cuti pending)
     public function validasiDanCekSaldo(int $userId, int $jenisCutiId, ?int $subCutiId, int $tahun, int $totalHari): void
     {
         if (!$this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
@@ -100,7 +88,7 @@ trait CutiHelperTrait
 
         $sisaSaldoDatabase = (int) $saldo->sisa_saldo;
 
-        // Antrean pending yang memotong saldo cuti tahunan
+        // Hitung total hari cuti yang masih berstatus pending
         $queryPending = DB::table('pengajuan_cutis')
             ->where('user_id', $userId)
             ->where('jenis_cuti_id', $cutiTahunanId)
@@ -109,6 +97,7 @@ trait CutiHelperTrait
         $totalCutiPending = (int) $queryPending->sum('total_hari');
         $saldoEfektif = $sisaSaldoDatabase - $totalCutiPending;
 
+        // Tolak pengajuan jika saldo efektif tidak mencukupi
         if ($saldoEfektif <= 0 || $saldoEfektif < $totalHari) {
             throw new \Exception(
                 $saldoEfektif <= 0
@@ -118,6 +107,7 @@ trait CutiHelperTrait
         }
     }
 
+    // Kurangi sisa saldo cuti pada database dengan penguncian baris (pessimistic locking)
     private function potongSaldoDatabase(PengajuanCuti $pengajuan): void
     {
         $cutiTahunanId = $this->getCutiTahunanId();
@@ -133,6 +123,7 @@ trait CutiHelperTrait
         }
     }
 
+    // Sinkronisasi status pengajuan yang disetujui ke pemotongan saldo dan tabel kehadiran
     public function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan): void
     {
         $apakahMemotongSaldo = $this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id);
@@ -145,6 +136,7 @@ trait CutiHelperTrait
         $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
         $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
 
+        // Buat atau perbarui catatan absensi berstatus Cuti pada setiap hari rentang tanggal
         for ($date = $tanggalMulai->copy(); $date->lte($tanggalSelesai); $date->addDay()) {
             Kehadiran::updateOrCreate(
                 [

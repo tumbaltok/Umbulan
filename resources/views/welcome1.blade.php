@@ -55,7 +55,7 @@
             background: #94a3b8;
         }
     </style>
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="font-sans text-slate-800 antialiased bg-slate-50/50 flex flex-col min-h-screen">
@@ -182,13 +182,13 @@
                             </div>
                         </div>
 
-                        <!-- Bagian Debit Real-Time -->
+                        {{-- Bagian Debit Real-Time --}}
                         <div class="p-4 bg-blue-50/50 border border-blue-100/80 rounded-2xl">
                             <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider block">Debit Aliran Transmisi (Real-time)</span>
                             <h4 class="text-2xl font-black text-water-600 mt-1"><span id="current-flow-display">2.700</span> <span class="text-xs font-semibold text-slate-500">lps</span></h4>
                         </div>
 
-                        <!-- Bagian Volume Serapan Bulanan Bawah -->
+                        {{-- Bagian Volume Serapan Bulanan Bawah --}}
                         <div class="relative p-5 bg-gradient-to-r from-cyan-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
 
@@ -513,11 +513,11 @@
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
-    <!-- PWA Script Registrations & Tools -->
+    {{-- Pendaftaran Skrip dan Tombol Instal PWA --}}
     @laravelPwa
     @pwaInstallButton
 
-    <!-- Custom PWA Update Notifier -->
+    {{-- Notifikasi Pembaruan PWA Kustom --}}
     {{-- <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {

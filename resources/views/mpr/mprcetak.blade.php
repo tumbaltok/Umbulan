@@ -131,7 +131,7 @@
 </head>
 <body>
 
-    <!-- 1. HEADER & LOGO -->
+    {{-- 1. Header dan Logo Dokumen --}}
     <table class="header-table">
         <tr>
             <td style="width: 82%; text-align: center; padding-left: 18%;">
@@ -147,7 +147,7 @@
         </tr>
     </table>
 
-    <!-- 2. METADATA PEMOHON -->
+    {{-- 2. Metadata Pemohon MPR --}}
     <table class="meta-table">
         <tr>
             <td style="width: 17%;">Number</td>
@@ -183,10 +183,10 @@
         </tr>
     </table>
 
-    <!-- 3. SECTION TITLE -->
+    {{-- 3. Judul Seksi Detail Barang --}}
     <div class="section-title">Requested Material/Service</div>
 
-    <!-- 4. TABEL DETAIL MATERIAL -->
+    {{-- 4. Tabel Rincian Material/Jasa --}}
     <table class="items-table">
         <thead>
             <tr>
@@ -223,12 +223,12 @@
         </tbody>
     </table>
 
-    <!-- 5. DELIVERY POINT -->
+    {{-- 5. Titik Pengiriman (Delivery Point) --}}
     <div class="delivery-point">
         Delivery Point &nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;&nbsp; {{ $deliveryPoint }}
     </div>
 
-    <!-- 6. NOTE & EXPLANATION -->
+    {{-- 6. Catatan dan Penjelasan Tambahan --}}
     <div class="note-box">
         <div style="font-weight: bold; margin-bottom: 2px;">Note & Explanation :</div>
         @php
@@ -245,11 +245,11 @@
         @endif
     </div>
 
-    <!-- 7. MATRIKS TANDA TANGAN -->
+    {{-- 7. Matriks Tanda Tangan Persetujuan --}}
     <table class="signature-table">
-        <!-- BARIS ATAS: Requested By & Checked & Proceed By -->
+        {{-- Baris Atas: Requested By & Checked By --}}
         <tr>
-            <!-- KIRI: Requested By (55%) -->
+            {{-- Requested By (Kiri) --}}
             <td style="width: 55%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 8px 6px 8px;">
                 <div class="sub-header">Requested By</div>
                 <table style="width: 100%; border: none; border-collapse: collapse;">
@@ -277,7 +277,7 @@
                 </table>
             </td>
 
-            <!-- KANAN: Checked & Proceed By (45%) -->
+            {{-- Checked & Proceed By (Kanan) --}}
             <td style="width: 45%; border-bottom: 1px solid #000; padding: 4px 8px 6px 8px;">
                 <div class="sub-header">Checked & Proceed By</div>
                 <div style="text-align: center;">
@@ -294,7 +294,7 @@
             </td>
         </tr>
 
-        <!-- BARIS BAWAH: Approved By -->
+        {{-- Baris Bawah: Approved By Direksi --}}
         <tr>
             <td colspan="2" style="padding: 4px 8px 6px 8px;">
                 <div class="sub-header">Approved By</div>
@@ -329,7 +329,7 @@
         </tr>
     </table>
 
-    <!-- 8. LAMPIRAN DOKUMEN PENDUKUNG (JIKA ADA) -->
+    {{-- 8. Lampiran Dokumen Pendukung --}}
     @if($mpr->dokumen_pendukung)
         @php
             $pathFile = storage_path('app/public/' . $mpr->dokumen_pendukung);

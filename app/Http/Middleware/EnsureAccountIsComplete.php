@@ -8,11 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAccountIsComplete
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+    // Memastikan akun telah memenuhi 5 kriteria kelayakan sebelum mengakses fitur transaksi
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
@@ -21,12 +17,7 @@ class EnsureAccountIsComplete
             return redirect()->route('login');
         }
 
-        // Cek 5 syarat kelengkapan akun:
-        // 1. Verifikasi Email (email_verified_at)
-        // 2. Nomor WhatsApp (phone_number & phone_verified_at)
-        // 3. Biometrik Wajah (face_descriptor)
-        // 4. Tanda Tangan Digital (signature)
-        // 5. Jadwal Kerja (schedule_type)
+        // Validasi 5 kriteria kelayakan akun (Email, Telepon, Biometrik Wajah, TTD, Jadwal)
         if (!$user->isAccountComplete()) {
             $pesanDitolak = 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.';
 

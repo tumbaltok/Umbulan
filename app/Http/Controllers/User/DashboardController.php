@@ -29,27 +29,28 @@ class DashboardController extends Controller
         $this->calendarService = $calendarService;
     }
 
+    // Menampilkan halaman utama dashboard pengguna dengan rekapitulasi jadwal, absensi, dan pengajuan
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // Pastikan Timezone Asia/Jakarta
+        // Waktu server (WIB)
         $now = Carbon::now('Asia/Jakarta');
         $tahunSekarang = $now->year;
         $today = $now->format('Y-m-d');
 
-        // 1. Ambil Seluruh Data Stasiun Resmi (Kantor, Stasiun, & Seluruh 18 Rumah Meter) untuk Geofencing
+        // Data seluruh titik stasiun & Rumah Meter untuk geofencing
         $daftarStasiun = Station::select('id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters')->get();
 
-        // 2. Parameter Navigasi Bulan & Tahun Kalender Activity
+        // Parameter navigasi kalender
         $selectedMonth = (int) $request->get('month', $now->month);
         $selectedYear = (int) $request->get('year', $now->year);
 
-        // 3. Ambil Matriks Kalender Bulanan & Deteksi Jadwal Hari Ini
+        // Kalender bulanan dan jadwal kerja hari ini
         $calendarDays = $this->calendarService->getMonthlyCalendar($user, $selectedMonth, $selectedYear);
         $todaySchedule = $this->scheduleService->getTodaySchedule($user, $today);
 
-        // 4. Ambil Transaksi Absensi Hari Ini
+        // Data presensi hari ini
         $todayAttendance = Kehadiran::where('user_id', $user->id)
             ->where(function ($q) use ($today) {
                 $q->whereDate('created_at', $today)

@@ -6,15 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pendaftaran Akun Karyawan - PT.META</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Kunci Halaman Auth Selalu Light Mode
         document.documentElement.classList.remove('dark');
     </script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -31,24 +28,24 @@
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
         }
     </style>
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
 
-    <!-- Main Container -->
+    {{-- Kontainer Utama Registrasi --}}
     <div class="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[700px] transition-all duration-300">
 
-        <!-- Sisi Kiri: Branding & Informasi -->
+        {{-- Sisi Kiri: Branding dan Informasi Perusahaan --}}
         <div class="lg:w-5/12 wave-bg text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
-            <!-- SVG Wave Dekoratif -->
+            {{-- Elemen Grafis Gelombang Dekoratif --}}
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
                 <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                 </svg>
             </div>
 
-            <!-- Logo Brand Bagian Atas -->
+            {{-- Logo Brand Perusahaan --}}
             <div class="z-10 flex items-center space-x-3">
                 <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-12 h-12 flex items-center justify-center overflow-hidden shrink-0">
                     <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
@@ -60,7 +57,7 @@
                 </div>
             </div>
 
-            <!-- Konten Tengah -->
+            {{-- Ilustrasi dan Pesan Sambutan --}}
             <div class="my-auto py-8 z-10 hidden lg:flex flex-col items-start">
                 <div class="float-animation mb-6">
                     <svg class="w-48 h-48 text-cyan-100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -78,13 +75,13 @@
                 </p>
             </div>
 
-            <!-- Footer -->
+            {{-- Footer Hak Cipta --}}
             <div class="z-10 text-xs text-white/50">
                 &copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan. All rights reserved.
             </div>
         </div>
 
-        <!-- Sisi Kanan: Formulir Registrasi -->
+        {{-- Sisi Kanan: Formulir Registrasi Akun --}}
         <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
 
             <div>
@@ -93,13 +90,13 @@
                     <p class="text-slate-500 text-xs sm:text-sm mt-1">Lengkapi data di bawah sesuai dengan database kepegawaian Anda.</p>
                 </div>
 
-                <!-- Box Notifikasi JS -->
+                {{-- Kotak Notifikasi Dinamis JS --}}
                 <div id="notification" style="display: none;" class="mb-6 p-4 rounded-xl border flex items-center space-x-3 transition-all duration-300">
                     <div id="notif-icon"></div>
                     <div class="text-xs sm:text-sm font-medium" id="notif-message"></div>
                 </div>
 
-                <!-- Notifikasi Error Server/Laravel -->
+                {{-- Alert Pesan Validasi Server --}}
                 @if ($errors->any())
                     <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
                         <div class="font-bold mb-2 flex items-center">
@@ -117,14 +114,14 @@
                 <form id="registerForm" class="space-y-4" onsubmit="handleRegistration(event)" method="POST" action="{{ route('register.post') }}">
                     @csrf
 
-                    <!-- Section 1: Data Utama Karyawan -->
+                    {{-- Seksi 1: Informasi Dasar Karyawan --}}
                     <div class="border-b border-slate-100 pb-4">
                         <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block mb-3">
                             <i class="fa-solid fa-user-gear mr-1"></i> Data Utama & Akun
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Nama Lengkap -->
+                            {{-- Field Input Nama Lengkap --}}
                             <div>
                                 <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
                                 <div class="relative">
@@ -137,7 +134,7 @@
                                 </div>
                             </div>
 
-                            <!-- Alamat Email -->
+                            {{-- Field Input Alamat Email --}}
                             <div>
                                 <label for="email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Alamat Email</label>
                                 <div class="relative">
@@ -150,7 +147,7 @@
                                 </div>
                             </div>
 
-                            <!-- Jenis Kelamin (Database Select) -->
+                            {{-- Pilihan Jenis Kelamin --}}
                             <div class="md:col-span-2">
                                 <label for="gender_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
                                 <div class="relative">
@@ -178,14 +175,14 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Penempatan & Struktur -->
+                    {{-- Seksi 2: Penempatan & Struktur Organisasi --}}
                     <div class="border-b border-slate-100 pb-4">
                         <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block mb-3">
                             <i class="fa-solid fa-network-wired mr-1"></i> Penempatan & Struktur Kerja
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Penempatan Kerja (Database Select) -->
+                            {{-- Dropdown Stasiun Penempatan --}}
                             <div class="md:col-span-2">
                                 <label for="station_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Penempatan Kerja
@@ -208,7 +205,7 @@
                                 </div>
                             </div>
 
-                            <!-- Jabatan / Multi-Role (Multi-Select Dropdown Menu Elegan & Interaktif) -->
+                            {{-- Dropdown Pilihan Multi-Role/Jabatan --}}
                             <div class="md:col-span-2 relative" id="roleDropdownWrapper">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
@@ -217,7 +214,7 @@
                                     <span class="text-[10px] text-slate-400 font-medium">* Bisa pilih lebih dari satu peran</span>
                                 </div>
 
-                                <!-- Trigger Dropdown (Tampilan Luar) -->
+                                {{-- Trigger Panel Dropdown Peran --}}
                                 <div id="roleDropdownTrigger" onclick="toggleRoleDropdown()"
                                      class="min-h-[42px] w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none shadow-2xs hover:border-sky-400 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500">
                                     <div id="selectedRolesPills" class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
@@ -229,9 +226,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Panel Dropdown Melayang (Floating Panel) -->
+                                {{-- Panel Melayang Dropdown Peran --}}
                                 <div id="roleDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-2.5 animate-in fade-in zoom-in-95 duration-150">
-                                    <!-- Input Pencarian Cepat (Search Role) -->
+                                    {{-- Kolom Pencarian Cepat Peran --}}
                                     <div class="relative mb-2">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -243,7 +240,7 @@
                                         </button>
                                     </div>
 
-                                    <!-- Action Bar: Status & Reset -->
+                                    {{-- Status dan Tombol Reset Pilihan --}}
                                     <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
                                         <span id="roleFilterSummary">Daftar Jabatan:</span>
                                         <button type="button" onclick="resetSelectedRoles()" class="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-semibold cursor-pointer text-[10px]">
@@ -251,7 +248,7 @@
                                         </button>
                                     </div>
 
-                                    <!-- Daftar Pilihan Role -->
+                                    {{-- Daftar Checkbox Pilihan Peran --}}
                                     <div id="roleItemsContainer" class="max-h-52 overflow-y-auto space-y-1 pt-1.5 pr-0.5">
                                         @if(isset($daftarRole) && count($daftarRole) > 0)
                                             @foreach($daftarRole as $role)
@@ -281,7 +278,7 @@
                                 <span id="role-selection-error" class="text-xs text-rose-500 mt-1 hidden font-semibold">* Silakan pilih setidaknya satu peran/jabatan kerja.</span>
                             </div>
 
-                            <!-- Cakupan Wilayah Rumah Meter (Khusus Role AREA (PIPELINE)) -->
+                            {{-- Penugasan Rumah Meter (Khusus Peran Area Pipeline) --}}
                             <div class="md:col-span-2 hidden transition-all duration-300" id="pipelineRumahMeterContainer">
                                 <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -322,14 +319,14 @@
                         </div>
                     </div>
 
-                    <!-- Section 3: Keamanan Sandi -->
+                    {{-- Seksi 3: Keamanan Sandi Akun --}}
                     <div>
                         <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block mb-3">
                             <i class="fa-solid fa-shield-halved mr-1"></i> Keamanan Akun
                         </span>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Password Input -->
+                            {{-- Field Kata Sandi Baru --}}
                             <div>
                                 <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Kata Sandi Baru</label>
                                 <div class="relative">
@@ -346,7 +343,7 @@
                                 </div>
                             </div>
 
-                            <!-- Confirm Password Input -->
+                            {{-- Field Konfirmasi Kata Sandi --}}
                             <div>
                                 <label for="confirm_password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Konfirmasi Kata Sandi</label>
                                 <div class="relative">
@@ -364,7 +361,7 @@
                             </div>
                         </div>
 
-                        <!-- Indikator Validasi Password Real-Time -->
+                        {{-- Indikator Kekuatan Kata Sandi Real-Time --}}
                         <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1">
                             <div class="mt-2 space-y-1.5">
                                 <div class="flex items-center justify-between text-[11px] font-medium text-slate-500">
@@ -387,7 +384,7 @@
                         </div>
                     </div>
 
-                    <!-- Terms & Agreement -->
+                    {{-- Persetujuan Syarat & Ketentuan --}}
                     <div class="flex items-start pt-2">
                         <input id="agreement" required type="checkbox"
                             class="mt-1 h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-300 rounded cursor-pointer">
@@ -396,7 +393,7 @@
                         </label>
                     </div>
 
-                    <!-- Tombol Submit -->
+                    {{-- Tombol Kirim Formulir Registrasi --}}
                     <button type="submit" id="submit-btn"
                         class="w-full mt-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-sky-100 hover:shadow-xl hover:shadow-sky-200 transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
                         <span>Daftarkan Akun Pegawai</span>
@@ -414,11 +411,9 @@
 
     </div>
 
-    <!-- Script Operasi Frontend -->
+    {{-- Logika JavaScript Formulir Registrasi --}}
     <script>
-        // ==========================================
-        // MULTI-SELECT DROPDOWN HANDLER (ROLE JABATAN)
-        // ==========================================
+        // Dropdown Multi-Select Peran/Jabatan
         function toggleRoleDropdown(forceState = null) {
             const panel = document.getElementById('roleDropdownPanel');
             const chevron = document.getElementById('roleChevronIcon');

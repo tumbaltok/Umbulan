@@ -107,7 +107,7 @@ class HolidayService
         return Cache::remember("national_holidays_id_{$yearKey}", self::CACHE_TTL_SECONDS, function () use ($yearKey) {
             $holidays = self::OFFICIAL_INDONESIA_HOLIDAYS[$yearKey] ?? [];
 
-            // Upayakan memperkaya data dari API eksternal jika tersedia (dengan timeout singkat 3s)
+            // Ambil data tambahan dari API eksternal jika tersedia (timeout 3 detik)
             try {
                 $response = Http::timeout(3)->get("https://date.nager.at/api/v3/PublicHolidays/{$yearKey}/ID");
                 if ($response->successful()) {
@@ -120,11 +120,11 @@ class HolidayService
                     }
                 }
             } catch (\Exception $e) {
-                // Abaikan kesalahan API eksternal karena master SKB resmi sudah lengkap
+                // Fallback menggunakan master data resmi SKB 3 Menteri jika API gagal
                 Log::info("HolidayService: Menggunakan master resmi SKB 3 Menteri untuk tahun {$yearKey}. Info: " . $e->getMessage());
             }
 
-            // Urutkan berdasarkan tanggal
+            // Urutkan data berdasarkan kunci tanggal
             ksort($holidays);
 
             return $holidays;

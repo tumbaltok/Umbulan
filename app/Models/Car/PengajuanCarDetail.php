@@ -29,12 +29,9 @@ class PengajuanCarDetail extends Model
         'total_harga'    => 'float',
     ];
 
-    /**
-     * Relasi balik ke Header CAR
-     */
+    // Relasi balik ke dokumen header pengajuan CAR
     public function pengajuanCar()
     {
-        // PEMBETULAN: Hubungkan relasi murni menggunakan foreign key pengajuan_car_id
         return $this->belongsTo(PengajuanCar::class, 'pengajuan_car_id');
     }
 }

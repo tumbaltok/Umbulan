@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class PersetujuanCarController extends Controller
 {
+    // Menampilkan daftar antrean persetujuan pengajuan CAR untuk atasan / approver
     public function listPengajuan()
     {
         $atasan = Auth::user();
@@ -31,7 +32,7 @@ class PersetujuanCarController extends Controller
             $query->where('status_akhir', 'pending');
         } else {
             $query->where(function ($q) use ($atasanRoleIds) {
-                // TAHAP 1 PENDING: Atasan memegang role yang menjadi Approver Step 1 pemohon
+                // Tahap 1 Pending: Atasan bertindak sebagai Approver Tahap 1
                 $q->where(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'pending')
                         ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
@@ -43,7 +44,7 @@ class PersetujuanCarController extends Controller
                             });
                         });
                 })
-                // TAHAP 2 PENDING: Step 1 sudah disetujui, Step 2 masih pending, dan Atasan memegang role Approver Step 2 pemohon
+                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2
                 ->orWhere(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'approved')
                         ->where('status_tahap_2', 'pending')
@@ -60,7 +61,7 @@ class PersetujuanCarController extends Controller
             });
         }
 
-        // Proteksi Self-Approval: Pemohon tidak dapat melihat/menyetujui pengajuannya sendiri di antrean approval
+        // Proteksi pemohon menyetujui pengajuan sendiri
         $query->where('user_id', '!=', $atasan->id);
 
         $daftarPengajuan = $query->get();
@@ -68,6 +69,7 @@ class PersetujuanCarController extends Controller
         return view('admin.persetujuan.persetujuanCar', compact('daftarPengajuan'));
     }
 
+    // Memproses tindakan persetujuan (approve) atau penolakan (reject) pada pengajuan CAR
     public function prosesPersetujuan(Request $request, int $id)
     {
         $tindakan = $request->input('aksi') ?? $request->input('tindakan');

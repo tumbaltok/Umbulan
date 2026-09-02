@@ -20,9 +20,7 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    /**
-     * Menampilkan form pendaftaran (registrasi) pengguna WEB.
-     */
+    // Menampilkan halaman pendaftaran (registrasi) pengguna baru
     public function showRegisterForm()
     {
         $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
@@ -41,17 +39,13 @@ class AuthController extends Controller
         return view('auth.register', compact('daftarStasiun', 'daftarRole', 'daftarRumahMeter'));
     }
 
-    /**
-     * Menampilkan form lupa kata sandi (forgot password) pengguna WEB.
-     */
+    // Menampilkan formulir pemulihan kata sandi
     public function showForgotForm()
     {
         return view('auth.forgot');
     }
 
-    /**
-     * Menangani pendaftaran (registrasi) pengguna lewat WEB.
-     */
+    // Memproses registrasi akun karyawan baru
     public function registerWeb(Request $request)
     {
         // 1. ATURAN VALIDASI MULTI-ROLE & DATA UTAMA
@@ -120,9 +114,7 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Pendaftaran berhasil! Silakan periksa email Anda untuk melakukan verifikasi akun sebelum login.');
     }
 
-    /**
-     * Menangani login untuk pengguna lewat WEB.
-     */
+    // Menangani autentikasi login pengguna via Web
     public function loginWeb(Request $request)
     {
         $credentials = $request->validate([
@@ -130,7 +122,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Proteksi Rate Limiting Login (Maksimal 5x percobaan per menit)
+        // Proteksi batas percobaan login (maksimal 5x per menit)
         $throttleKey = 'login-attempt:'.strtolower($request->input('email')).'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -142,7 +134,7 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
-        // Opsi Remember Me aktif secara default untuk sesi panjang
+        // Opsi Remember Me aktif default
         $remember = $request->boolean('remember', true);
 
         if (Auth::attempt($credentials, $remember)) {
@@ -162,14 +154,12 @@ class AuthController extends Controller
         ])->withInput($request->only('email'));
     }
 
-    /**
-     * 1. KIRIM OTP KE EMAIL (AJAX) - Pencegahan Email Enumeration & Hashing OTP
-     */
+    // Mengirimkan kode OTP pemulihan kata sandi ke email pengguna (AJAX)
     public function sendOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
-        // Rate limiting OTP Email (Maksimal 3x percobaan per 5 menit)
+        // Rate limiting kirim OTP email
         $throttleKey = 'send-otp-email:'.$request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             return response()->json([
@@ -181,11 +171,11 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Kriptografi Kuat
+        // Generate OTP 6 digit
         $otp = random_int(100000, 999999);
 
         if ($user) {
-            // Hash OTP sebelum disimpan ke session untuk keamanan
+            // Simpan hash OTP di sesi
             session([
                 'reset_email' => $request->email,
                 'reset_otp_hash' => Hash::make($otp),
@@ -202,24 +192,20 @@ class AuthController extends Controller
             }
         }
 
-        // Mengembalikan respon generik seragam untuk mencegah Email Enumeration
+        // Respon seragam untuk mencegah enumerasi email
         return response()->json([
             'status' => 'success',
             'message' => 'Jika email Anda terdaftar dalam sistem, kami telah mengirimkan kode OTP ke email tersebut.',
         ]);
     }
 
-    /**
-     * Alias untuk sendOtpMailWeb agar kompatibel dengan rute forgot.send_otp.
-     */
+    // Alias fungsi pengiriman OTP email
     public function sendOtpWeb(Request $request)
     {
         return $this->sendOtpMailWeb($request);
     }
 
-    /**
-     * 2. VERIFIKASI OTP EMAIL
-     */
+    // Memverifikasi kode OTP email untuk alur reset kata sandi
     public function verifyOtpMailWeb(Request $request)
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
@@ -245,9 +231,7 @@ class AuthController extends Controller
         return response()->json(['status' => 'success', 'message' => 'OTP Benar! Silakan masukkan kata sandi baru.']);
     }
 
-    /**
-     * 3. SIMPAN PASSWORD BARU
-     */
+    // Menyimpan kata sandi baru setelah OTP email terverifikasi
     public function forgotWeb(Request $request)
     {
         $request->validate([
@@ -291,10 +275,7 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Kata sandi berhasil diperbarui. Silakan login.');
     }
 
-    /**
-     * Menangani fungsi logout untuk WEB.
-     * Membersihkan autentikasi, remember_token database, session token, serta cookie.
-     */
+    // Menangani proses keluar (logout) dan pembersihan token sesi
     public function logoutWeb(Request $request)
     {
         $user = Auth::guard('web')->user();

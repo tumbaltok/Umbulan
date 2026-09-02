@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- LEAFLET MAP STYLING -->
+    {{-- Pustaka dan Styling Peta Leaflet --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
@@ -18,7 +18,7 @@
         }
     </style>
 
-    <!-- HEADER PAGE -->
+    {{-- Header Halaman Record Absensi --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
         <div>
             <div class="flex items-center gap-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1">
@@ -34,7 +34,7 @@
             </p>
         </div>
 
-        <!-- PERIODE STATUS BADGE & QUICK INFO & EXPORT BUTTON -->
+        {{-- Badge Periode Aktif dan Tombol Export CSV --}}
         <div class="flex items-center gap-3">
             <div class="text-right hidden sm:block">
                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Rentang Periode Aktif</span>
@@ -58,11 +58,11 @@
         </div>
     </div>
 
-    <!-- FILTER BAR PANEL COMPREHENSIVE -->
+    {{-- Panel Filter Komprehensif --}}
     <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
         <form method="GET" action="{{ route('admin.absensi.index') }}" id="filterForm" class="space-y-4">
             
-            <!-- Quick Chips Periode -->
+            {{-- Preset Cepat Periode --}}
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1 flex items-center gap-1.5">
@@ -101,14 +101,14 @@
                 </div>
             </div>
 
-            <!-- State Hidden Inputs (Periode, Tanggal Mulai & Selesai) -->
+            {{-- Input Tersembunyi State Periode dan Tanggal --}}
             <input type="hidden" name="periode" id="periodeInput" value="{{ $filters['periode'] }}">
             <input type="hidden" name="start_date" id="startDateInput" value="{{ $filters['start_date'] }}">
             <input type="hidden" name="end_date" id="endDateInput" value="{{ $filters['end_date'] }}">
 
-            <!-- Input Grid Filter (4 Kolom Bersih) -->
+            {{-- Grid Kontrol Filter Data --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- 1. Filter Karyawan -->
+                {{-- 1. Filter Karyawan --}}
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                         <i class="fa-solid fa-user mr-1"></i> Karyawan
@@ -123,7 +123,7 @@
                     </select>
                 </div>
 
-                <!-- 2. Filter Stasiun Penugasan (22 Stasiun) -->
+                {{-- 2. Filter Stasiun Penugasan --}}
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                         <i class="fa-solid fa-tower-broadcast mr-1"></i> Stasiun / RM
@@ -138,7 +138,7 @@
                     </select>
                 </div>
 
-                <!-- 3. Filter Role / Divisi -->
+                {{-- 3. Filter Role / Divisi --}}
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                         <i class="fa-solid fa-briefcase mr-1"></i> Role / Divisi
@@ -153,7 +153,7 @@
                     </select>
                 </div>
 
-                <!-- 4. Filter Status & Tombol Terapkan -->
+                {{-- 4. Filter Status dan Tombol Submit --}}
                 <div class="flex items-end gap-2">
                     <div class="flex-1">
                         <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
@@ -179,9 +179,9 @@
         </form>
     </div>
 
-    <!-- CARDS STATISTIK SUMMARY HRMS -->
+    {{-- Kartu Ringkasan Statistik HRMS --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Total Presensi Tercatat -->
+        {{-- Kartu 1: Total Presensi Tercatat --}}
         <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Presensi Tercatat</p>
@@ -195,7 +195,7 @@
             </div>
         </div>
 
-        <!-- Card 2: Tingkat Ketepatan Waktu -->
+        {{-- Kartu 2: Tingkat Ketepatan Waktu --}}
         <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-emerald-100 dark:border-emerald-900/50 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Tingkat Ketepatan (On-Time)</p>
@@ -211,7 +211,7 @@
             </div>
         </div>
 
-        <!-- Card 3: Presensi Luar Radius (Perlu Tinjauan) -->
+        {{-- Kartu 3: Presensi Luar Radius --}}
         <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-amber-100 dark:border-amber-900/50 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Luar Radius (Perlu Tinjauan)</p>
@@ -227,7 +227,7 @@
             </div>
         </div>
 
-        <!-- Card 4: Karyawan Tidak Hadir / Sedang Cuti -->
+        {{-- Kartu 4: Karyawan Tidak Hadir / Cuti --}}
         <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-rose-100 dark:border-rose-900/50 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-[11px] font-bold text-rose-500 dark:text-rose-400 uppercase tracking-wider">Tidak Hadir / Sedang Cuti</p>
@@ -248,7 +248,7 @@
         </div>
     </div>
 
-    <!-- TABS NAVIGASI (Jika Evaluasi Single Day / Hari Ini) -->
+    {{-- Tabs Navigasi Pemantauan Single Day --}}
     @if($isSingleDay)
     <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700">
         <button type="button" onclick="switchMainTab('tab-presensi')" id="btnTabPresensi"
@@ -271,7 +271,7 @@
     </div>
     @endif
 
-    <!-- SECTION 1: TABEL UTAMA RECORD PRESENSI KARYAWAN -->
+    {{-- Seksi 1: Tabel Utama Record Presensi Karyawan --}}
     <div id="sectionPresensi" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -383,7 +383,7 @@
 
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
                             
-                            <!-- 1. NO & TANGGAL -->
+                            {{-- 1. Nomor Urut dan Tanggal Presensi --}}
                             <td class="p-4 text-center">
                                 <span class="font-mono text-slate-400 font-bold text-[11px] block">
                                     {{ $attendances->firstItem() ? $attendances->firstItem() + $loop->index : $loop->iteration }}
@@ -393,7 +393,7 @@
                                 </span>
                             </td>
 
-                            <!-- 2. KARYAWAN -->
+                            {{-- 2. Informasi Karyawan --}}
                             <td class="p-4">
                                 <div class="flex items-center space-x-3">
                                     @if(!empty($user?->profile_photo))
@@ -421,7 +421,7 @@
                                 </div>
                             </td>
 
-                            <!-- 3. JADWAL & SHIFT -->
+                            {{-- 3. Jadwal Kerja dan Shift --}}
                             <td class="p-4">
                                 <div class="space-y-1">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border {{ $shiftBadge }}">
@@ -434,12 +434,12 @@
                                 </div>
                             </td>
 
-                            <!-- 4. JAM PRESENSI & DURASI KERJA -->
+                            {{-- 4. Jam Presensi dan Durasi Kerja --}}
                             <td class="p-4">
                                 <div class="space-y-1.5">
-                                    <!-- In / Out Badges -->
+                                    {{-- Badge Jam Check-In dan Check-Out --}}
                                     <div class="flex items-center gap-1.5">
-                                        <!-- Check-In -->
+                                        {{-- Check-In --}}
                                         @if(!empty($absen->check_in))
                                             <span class="px-2 py-0.5 {{ $isLate ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' }} rounded-lg font-mono font-bold text-[11px] border">
                                                 <i class="fa-solid fa-arrow-right-to-bracket text-[9px] mr-1"></i>{{ substr($absen->check_in, 0, 5) }}
@@ -450,7 +450,7 @@
 
                                         <span class="text-slate-300 dark:text-slate-600 font-bold">→</span>
 
-                                        <!-- Check-Out -->
+                                        {{-- Check-Out --}}
                                         @if(!empty($absen->check_out))
                                             <span class="px-2 py-0.5 {{ $isEarlyOut ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' : 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800' }} rounded-lg font-mono font-bold text-[11px] border">
                                                 <i class="fa-solid fa-arrow-right-from-bracket text-[9px] mr-1"></i>{{ substr($absen->check_out, 0, 5) }}
@@ -460,7 +460,7 @@
                                         @endif
                                     </div>
 
-                                    <!-- Status Ketepatan & Durasi Jam Kerja -->
+                                    {{-- Status Ketepatan Waktu dan Durasi Kerja --}}
                                     <div class="flex items-center gap-2">
                                         @if($isLate)
                                             <span class="inline-flex items-center text-[10px] font-bold text-rose-600 dark:text-rose-400">
@@ -478,7 +478,7 @@
                                             </span>
                                         @endif
 
-                                        <!-- Total Jam Kerja -->
+                                        {{-- Total Jam Kerja --}}
                                         @if(!empty($absen->check_in) && !empty($absen->check_out))
                                             <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-1.5 py-0.5 rounded">
                                                 <i class="fa-solid fa-business-time mr-1"></i>{{ $workDuration }}
@@ -488,7 +488,7 @@
                                 </div>
                             </td>
 
-                            <!-- 5. LOKASI & GEOFENCING -->
+                            {{-- 5. Lokasi dan Geofencing Stasiun --}}
                             <td class="p-4">
                                 <div class="space-y-1">
                                     <p class="font-bold text-slate-700 dark:text-slate-200 leading-tight">
@@ -496,7 +496,7 @@
                                     </p>
 
                                     <div class="flex flex-wrap items-center gap-1.5">
-                                        <!-- Badge Radius -->
+                                        {{-- Badge Radius Geofencing --}}
                                         @if(!$isOutside)
                                             <span class="inline-flex items-center text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                                                 <i class="fa-solid fa-location-dot mr-1"></i> Dalam Radius
@@ -507,7 +507,7 @@
                                             </span>
                                         @endif
 
-                                        <!-- Jarak Haversine -->
+                                        {{-- Jarak Haversine dari Titik Stasiun --}}
                                         @if(!empty($absen->check_in_distance))
                                             <span class="text-[10px] font-mono text-slate-400" title="Jarak saat Check-In">
                                                 {{ number_format($absen->check_in_distance, 0, ',', '.') }} m
@@ -517,17 +517,17 @@
                                 </div>
                             </td>
 
-                            <!-- 6. VERIFIKASI & BUKTI WATERMARK -->
+                            {{-- 6. Verifikasi Biometrik dan Bukti Watermark --}}
                             <td class="p-4 text-center">
                                 <div class="flex flex-col items-center gap-1.5">
-                                    <!-- Badge Face Biometric Verified -->
+                                    {{-- Badge Verifikasi Wajah Biometrik --}}
                                     @if($absen->is_face_verified_in || $absen->is_face_verified_out)
                                         <span class="inline-flex items-center text-[10px] font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-full border border-sky-200 dark:border-sky-800">
                                             <i class="fa-solid fa-shield-check text-sky-500 mr-1"></i> Biometrik Valid
                                         </span>
                                     @endif
 
-                                    <!-- Tombol Bukti Masuk / Pulang -->
+                                    {{-- Tombol Tinjau Foto Bukti Masuk / Pulang --}}
                                     <div class="flex items-center gap-1">
                                         @if($evidenceInUrl)
                                             <button type="button" 
@@ -554,7 +554,7 @@
                                 </div>
                             </td>
 
-                            <!-- 7. KETERANGAN / ALASAN -->
+                            {{-- 7. Keterangan Alasan Masuk / Pulang Luar Radius --}}
                             <td class="p-4">
                                 <div class="space-y-1 max-w-xs">
                                     @if(!empty($reasonIn))
@@ -581,7 +581,7 @@
                                 </div>
                             </td>
 
-                            <!-- 8. AKSI (DETAIL MODAL) -->
+                            {{-- 8. Tombol Detail Modal --}}
                             <td class="p-4 text-center">
                                 <button type="button" 
                                         onclick='openDetailModal(@json($detailPayload))'
@@ -609,7 +609,7 @@
             </table>
         </div>
 
-        <!-- PAGINATION BAR -->
+        {{-- Navigasi Pagination --}}
         @if($attendances->hasPages())
         <div class="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40">
             {{ $attendances->links() }}
@@ -617,11 +617,11 @@
         @endif
     </div>
 
-    <!-- SECTION 2: MONITORING KETIDAKHADIRAN (BELUM ABSEN / SEDANG CUTI) -->
+    {{-- Seksi 2: Monitoring Ketidakhadiran (Belum Absen / Sedang Cuti) --}}
     @if($isSingleDay)
     <div id="sectionTidakHadir" class="hidden space-y-6">
 
-        <!-- TABEL 2A: BELUM HADIR / TANPA KETERANGAN -->
+        {{-- Tabel 2A: Karyawan Belum Hadir / Belum Absen --}}
         <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
             <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-rose-50/50 dark:bg-rose-950/20 flex items-center justify-between">
                 <div>
@@ -695,7 +695,7 @@
             </div>
         </div>
 
-        <!-- TABEL 2B: KARYAWAN SEDANG CUTI -->
+        {{-- Tabel 2B: Karyawan Sedang Cuti Hari Ini --}}
         @if(count($sedangCuti) > 0)
         <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
             <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-teal-50/50 dark:bg-teal-950/20 flex items-center justify-between">
@@ -751,11 +751,11 @@
 
 </div>
 
-<!-- MODAL REVIEW DETAIL RECORD PRESENSI & PETA AUDIT GEOFENCING -->
+{{-- Modal Review Detail Record Presensi dan Audit Geofencing Peta --}}
 <div id="detailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
     <div id="detailModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[90vh]">
         
-        <!-- HEADER MODAL -->
+        {{-- Header Modal Review Detail --}}
         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
                 <div id="modalUserAvatarBox" class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-bold flex items-center justify-center shrink-0 shadow-sm text-sm">
@@ -776,13 +776,13 @@
             </button>
         </div>
 
-        <!-- BODY MODAL (SCROLLABLE) -->
+        {{-- Body Modal (Scrollable Content) --}}
         <div class="p-6 overflow-y-auto space-y-6 text-xs">
             
-            <!-- Grid Metadata Waktu & Verifikasi -->
+            {{-- Grid Metadata Waktu & Verifikasi --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                <!-- Box 1: Shift & Waktu Kehadiran -->
+                {{-- Box 1: Shift & Waktu Kehadiran --}}
                 <div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700/60 space-y-3">
                     <h4 class="font-bold text-[11px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-regular fa-clock text-sky-500"></i> Informasi Waktu & Shift
@@ -825,7 +825,7 @@
                     </div>
                 </div>
 
-                <!-- Box 2: Geofencing & Biometrik Wajah -->
+                {{-- Box 2: Geofencing & Biometrik Wajah --}}
                 <div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700/60 space-y-3">
                     <h4 class="font-bold text-[11px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-solid fa-shield-halved text-emerald-500"></i> Audit Lokasi & Biometrik
@@ -863,7 +863,7 @@
 
             </div>
 
-            <!-- Box Peta Interaktif Leaflet -->
+            {{-- Box Peta Interaktif Leaflet --}}
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <h4 class="font-bold text-[11px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -874,14 +874,14 @@
                 <div id="attendanceDetailMap" class="w-full h-56 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-100 dark:bg-slate-900 z-0"></div>
             </div>
 
-            <!-- Box Alasan & Berkas Bukti (Jika Ada) -->
+            {{-- Box Alasan & Berkas Bukti (Jika Ada) --}}
             <div id="modalEvidenceContainer" class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <h4 class="font-bold text-[11px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-file-invoice text-amber-500"></i> Alasan & Berkas Bukti (Watermark)
                 </h4>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Bukti Masuk -->
+                    {{-- Bukti Masuk --}}
                     <div id="modalBoxEvidenceIn" class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
                         <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Bukti Presensi Masuk</span>
                         <p id="modalTextReasonIn" class="italic text-slate-600 dark:text-slate-300 text-[11px] mb-2">Tidak ada alasan.</p>
@@ -892,7 +892,7 @@
                         </div>
                     </div>
 
-                    <!-- Bukti Pulang -->
+                    {{-- Bukti Pulang --}}
                     <div id="modalBoxEvidenceOut" class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
                         <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Bukti Presensi Pulang</span>
                         <p id="modalTextReasonOut" class="italic text-slate-600 dark:text-slate-300 text-[11px] mb-2">Tidak ada alasan.</p>
@@ -905,7 +905,7 @@
                 </div>
             </div>
 
-            <!-- Audit Trail Timestamps -->
+            {{-- Audit Trail Timestamps --}}
             <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-between text-[10px] text-slate-400">
                 <span>Dibuat di Sistem: <strong id="modalCreatedAt" class="text-slate-600 dark:text-slate-300">-</strong></span>
                 <span>Terakhir Diperbarui: <strong id="modalUpdatedAt" class="text-slate-600 dark:text-slate-300">-</strong></span>
@@ -913,7 +913,7 @@
 
         </div>
 
-        <!-- FOOTER MODAL -->
+        {{-- Footer Modal Review Detail --}}
         <div class="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 flex justify-end">
             <button type="button" onclick="closeDetailModal()" 
                     class="px-5 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
@@ -923,10 +923,10 @@
     </div>
 </div>
 
-<!-- MODAL POPUP LIGHTBOX FOTO WATERMARK -->
+{{-- Modal Popup Lightbox Foto Watermark --}}
 <div id="lightboxModal" class="fixed inset-0 z-60 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300">
     <div id="lightboxModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
-        <!-- HEADER LIGHTBOX -->
+        {{-- Header Lightbox --}}
         <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
             <h3 id="lightboxTitle" class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <i class="fa-solid fa-file-shield text-sky-500"></i>
@@ -937,12 +937,12 @@
             </button>
         </div>
 
-        <!-- GAMBAR FULL SIZE -->
+        {{-- Gambar Pratinjau Full Size --}}
         <div class="p-4 flex items-center justify-center bg-slate-950/40 min-h-[300px]">
             <img id="lightboxImage" src="" alt="Bukti Presensi" class="max-h-[75vh] w-auto rounded-xl object-contain shadow-xl">
         </div>
 
-        <!-- FOOTER -->
+        {{-- Footer Lightbox --}}
         <div class="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end">
             <button type="button" onclick="closeLightboxModal()" class="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
                 Tutup
@@ -951,11 +951,11 @@
     </div>
 </div>
 
-<!-- MODAL POPUP PILIH RENTANG TANGGAL KUSTOM -->
+{{-- Modal Popup Pilihan Rentang Tanggal Kustom --}}
 <div id="customDateModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
     <div id="customDateModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0">
         
-        <!-- Header -->
+        {{-- Header Modal Tanggal Kustom --}}
         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
             <div class="flex items-center gap-2.5">
                 <span class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm border border-sky-100 dark:border-sky-800">
@@ -971,7 +971,7 @@
             </button>
         </div>
 
-        <!-- Body -->
+        {{-- Form Input Rentang Tanggal --}}
         <div class="p-6 space-y-4 text-xs">
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
@@ -994,7 +994,7 @@
             </div>
         </div>
 
-        <!-- Footer -->
+        {{-- Footer Modal Tanggal Kustom --}}
         <div class="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 flex items-center justify-end gap-2">
             <button type="button" onclick="closeCustomDateModal()" 
                     class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">

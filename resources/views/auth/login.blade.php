@@ -31,7 +31,7 @@
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
         }
     </style>
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden transition-colors">
@@ -269,11 +269,9 @@
         });
     </script>
 
-    <!-- PWA Script Registrations & Tools -->
+    {{-- Pendaftaran Skrip PWA --}}
     @laravelPwa
     @pwaInstallButton
-
-    <!-- Custom PWA Update Notifier -->
     {{-- <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {

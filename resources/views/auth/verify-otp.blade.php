@@ -6,17 +6,17 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Verifikasi Kode OTP - PT META Adhya Tirta Umbulan</title>
 
-    <!-- Favicon -->
+    {{-- Favicon Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
 
-    <!-- Kunci Halaman Selalu Light Mode -->
     <script>
+        // Kunci Halaman Selalu Light Mode
         document.documentElement.classList.remove('dark');
         localStorage.theme = 'light';
     </script>
 
-    <!-- Tailwind CSS CDN -->
+    {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -52,7 +52,7 @@
         };
     </script>
 
-    <!-- FontAwesome & Google Fonts -->
+    {{-- FontAwesome dan Google Fonts --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,18 +79,18 @@
         }
     </style>
 
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Ambient Gradient Background Elements -->
+    {{-- Elemen Background Gradien Dekoratif --}}
     <div class="fixed inset-0 pointer-events-none overflow-hidden bg-grid-subtle z-0">
         <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[320px] bg-gradient-to-tr from-sky-400/15 via-teal-300/15 to-emerald-300/10 blur-3xl rounded-full"></div>
         <div class="absolute bottom-0 right-0 w-[450px] h-[300px] bg-gradient-to-tl from-brand-300/15 to-sky-200/15 blur-3xl rounded-full"></div>
     </div>
 
-    <!-- Header / Branding -->
+    {{-- Header dan Navigasi Ubah Saluran --}}
     <header class="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center p-1.5 shrink-0">
@@ -107,14 +107,14 @@
         </a>
     </header>
 
-    <!-- Main Content Container -->
+    {{-- Kontainer Konten Utama --}}
     <main class="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
         <div class="w-full max-w-md">
 
-            <!-- Card Utama -->
+            {{-- Kartu Verifikasi OTP --}}
             <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/60 overflow-hidden p-6 sm:p-8 transition-all">
 
-                <!-- Header Icon & Title -->
+                {{-- Header Ikon dan Judul --}}
                 <div class="text-center mb-6">
                     <div class="mx-auto w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/25 mb-4">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -125,7 +125,7 @@
                     </p>
                 </div>
 
-                <!-- Info Saluran Pengiriman Terpilih -->
+                {{-- Informasi Saluran Pengiriman Terpilih --}}
                 <div class="w-full bg-slate-50 border border-slate-200/90 rounded-2xl p-4 mb-6 text-left">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
@@ -153,7 +153,7 @@
                     </div>
                 </div>
 
-                <!-- Flash Alert Messages -->
+                {{-- Notifikasi Feedback Alert --}}
                 <div id="alert-box" style="display: none;" class="mb-5 p-4 rounded-2xl border text-xs sm:text-sm flex items-start gap-3 transition-all">
                     <div id="alert-icon" class="shrink-0 mt-0.5 text-base"></div>
                     <div id="alert-message" class="font-medium"></div>
@@ -173,7 +173,7 @@
                     </div>
                 @endif
 
-                <!-- Form Verifikasi OTP Utama -->
+                {{-- Formulir Verifikasi Kode OTP --}}
                 <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)" method="POST" action="{{ route('forgot.verify_otp') }}" class="space-y-6">
                     @csrf
                     <input type="hidden" name="otp" id="otp-complete-value" required>
@@ -183,7 +183,7 @@
                             6 Digit Kode OTP
                         </label>
 
-                        <!-- 6 Kotak Input OTP Interaktif -->
+                        {{-- 6 Kotak Input Kode OTP --}}
                         <div class="flex justify-center items-center gap-2 sm:gap-2.5" id="otp-container">
                             @for($i = 0; $i < 6; $i++)
                                 <input type="text"
@@ -203,7 +203,7 @@
                         </p>
                     </div>
 
-                    <!-- Tombol Verifikasi -->
+                    {{-- Tombol Verifikasi OTP --}}
                     <button type="submit" id="btn-verify"
                         class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
                         <span id="btn-verify-text">Verifikasi Kode OTP</span>
@@ -212,7 +212,7 @@
                     </button>
                 </form>
 
-                <!-- Kirim Ulang OTP & Countdown Timer -->
+                {{-- Kirim Ulang OTP dan Countdown Timer --}}
                 <div class="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                     <span class="text-slate-500 text-center sm:text-left">
                         Tidak menerima kode?
@@ -227,7 +227,7 @@
                     </button>
                 </div>
 
-                <!-- Footer Link Back to Login -->
+                {{-- Link Kembali ke Halaman Login --}}
                 <div class="mt-6 pt-4 border-t border-slate-100 text-center">
                     <a href="{{ route('login') }}" class="text-xs font-semibold text-slate-500 hover:text-brand-600 transition-colors inline-flex items-center gap-1.5">
                         <i class="fa-solid fa-arrow-left text-[10px]"></i>
@@ -237,7 +237,7 @@
 
             </div>
 
-            <!-- Security Footer Note -->
+            {{-- Footer Keamanan --}}
             <div class="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-halved text-[11px] text-emerald-600"></i>
                 <span>Enkripsi Aman SSL 256-bit &bull; Hak Cipta &copy; {{ date('Y') }} PT META Adhya Tirta Umbulan</span>
@@ -246,7 +246,7 @@
         </div>
     </main>
 
-    <!-- Page JavaScript Logic -->
+    {{-- Logika JavaScript Verifikasi OTP --}}
     <script>
         const alertBox = document.getElementById('alert-box');
         const alertIcon = document.getElementById('alert-icon');
@@ -491,7 +491,7 @@
         });
     </script>
 
-    <!-- PWA Scripts -->
+    {{-- Pendaftaran Skrip PWA --}}
     @laravelPwa
     @pwaInstallButton
 </body>

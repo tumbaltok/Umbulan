@@ -3,25 +3,22 @@
     let isInstallable = false;
 
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent the mini-infobar from appearing on mobile
+        // Cegah infobar bawaan peramban muncul otomatis
         e.preventDefault();
-        // Stash the event so it can be triggered later.
         deferredPrompt = e;
         isInstallable = true;
 
-        // Update UI notify the user they can install the PWA
+        // Tampilkan tombol instalasi PWA di antarmuka
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) {
             installBtn.style.display = 'block';
         }
 
-        // Dispatch a custom event for developers to listen to
         window.dispatchEvent(new CustomEvent('pwa-installable', { detail: { prompt: e } }));
     });
 
     window.addEventListener('appinstalled', (event) => {
-        // Log install to analytics or update UI
-        console.log('PWA was installed');
+        console.log('PWA berhasil diinstal.');
         isInstallable = false;
         deferredPrompt = null;
         
@@ -30,32 +27,25 @@
             installBtn.style.display = 'none';
         }
 
-        // Dispatch a custom event
         window.dispatchEvent(new CustomEvent('pwa-installed'));
     });
 
     window.laravelPwaInstall = {
-        /**
-         * Check if the app is installable (beforeinstallprompt has fired)
-         * @returns {boolean}
-         */
+        // Memeriksa apakah aplikasi dapat diinstal
         canInstall: function() {
             return isInstallable;
         },
 
-        /**
-         * Show the install prompt
-         * @returns {Promise<string|undefined>} 'accepted', 'dismissed', or undefined if not installable
-         */
+        // Menampilkan prompt dialog instalasi aplikasi
         showPrompt: async function() {
             if (!deferredPrompt) {
-                console.warn('[Laravel PWA] Install prompt not available.');
+                console.warn('[Laravel PWA] Prompt instalasi tidak tersedia.');
                 return;
             }
 
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`[Laravel PWA] User response to the install prompt: ${outcome}`);
+            console.log(`[Laravel PWA] Respons pengguna terhadap instalasi: ${outcome}`);
             
             if (outcome === 'accepted') {
                 isInstallable = false;
@@ -69,16 +59,13 @@
             return outcome;
         },
 
-        /**
-         * Check if the app is already installed/running in standalone mode
-         * @returns {boolean}
-         */
+        // Memeriksa apakah aplikasi sedang berjalan dalam mode mandiri (standalone)
         isStandalone: function() {
             return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         }
     };
 
-    // Initialize default button behavior if it exists
+    // Inisialisasi event listener tombol instalasi jika tersedia pada DOM
     document.addEventListener('DOMContentLoaded', () => {
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) {

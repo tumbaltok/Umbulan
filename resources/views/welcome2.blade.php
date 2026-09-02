@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <title>PT.META ADHYA TIRTA UMBULAN - Transmisi Air Bersih Umbulan</title>
-    <!-- Tailwind CSS CDN -->
+    {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Halaman Publik Default Selalu Light Mode
         document.documentElement.classList.remove('dark');
     </script>
-    <!-- Google Fonts (Inter) -->
+    {{-- Google Fonts Inter --}}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    {{-- FontAwesome Icons --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -61,16 +61,16 @@
             }
         }
     </style>
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased wave-bg min-h-screen flex flex-col">
 
-    <!-- NAVIGATION BAR -->
+    {{-- Bilah Navigasi Utama --}}
     <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
+                {{-- Logo Perusahaan --}}
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 shrink-0 bg-gradient-to-tr from-water-500 to-pure-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-water-500/20">
                         <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <!-- Desktop Nav Links -->
+                {{-- Tautan Navigasi Desktop --}}
                 <nav class="hidden md:flex items-center gap-8">
                     <a href="#tentang" class="text-sm font-medium text-slate-400 hover:text-water-400 transition-colors">Sistem Kami</a>
                     <a href="#transmisi" class="text-sm font-medium text-slate-400 hover:text-water-400 transition-colors">Jalur Transmisi</a>
@@ -91,21 +91,21 @@
                     {{-- <a href="#kolaborasi" class="text-sm font-medium text-slate-400 hover:text-water-400 transition-colors">Portal PDAM</a> --}}
                 </nav>
 
-                <!-- CTA Button Desktop -->
+                {{-- Tombol Aksi Login --}}
                 <div class="hidden md:flex items-center gap-4">
                     <a href="login" class="px-5 py-2.5 bg-gradient-to-r from-water-600 to-pure-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-water-600/30 transition-all transform hover:-translate-y-0.5">
                         LOGIN <i class="fa fa-sign-in" aria-hidden="true"></i>
                     </a>
                 </div>
 
-                <!-- Mobile Menu Button -->
+                {{-- Tombol Menu Ponsel (Mobile) --}}
                 <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-400 hover:text-water-400 focus:outline-none" aria-label="Toggle Menu">
                     <i class="fa-solid fa-bars text-2xl"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Mobile Navigation Drawer -->
+        {{-- Laci Navigasi Ponsel (Mobile Drawer) --}}
         <div id="mobile-menu" class="hidden md:hidden bg-slate-950 border-b border-slate-900 px-4 pt-2 pb-6 space-y-3 shadow-lg">
             <a href="#tentang" class="block px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-900 font-medium">Sistem Kami</a>
             <a href="#transmisi" class="block px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-900 font-medium">Jalur Transmisi</a>
@@ -122,12 +122,12 @@
 
     <main class="flex-grow">
 
-        <!-- HERO SECTION -->
+        {{-- Hero Section Utama --}}
         <section class="relative pt-12 pb-24 md:py-32 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-                    <!-- Left Hero Content -->
+                    {{-- Konten Hero Sisi Kiri --}}
                     <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-water-950/80 border border-water-900/60 text-water-400 rounded-full text-xs font-semibold uppercase tracking-wider">
                             <span class="flex h-2 w-2 relative">
@@ -145,7 +145,7 @@
                             PT META ADHYA TIRTA UMBULAN   mengoperasikan jalur pipa transmisi utama yang menyalurkan aliran air bersih berkualitas tinggi langsung dari sumber mata air alami **Umbulan** menuju 18 titik rumah meter strategis PDAM di Kota Pasuruan, Sidoarjo, Surabaya, hingga Gresik.
                         </p>
 
-                        <!-- CTA & Stats Grid -->
+                        {{-- Tombol Aksi CTA --}}
                         <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                             <a href="#transmisi" class="w-full sm:w-auto text-center px-8 py-4 bg-gradient-to-r from-water-600 to-pure-600 text-white font-bold rounded-2xl hover:shadow-xl hover:shadow-water-600/30 transition-all transform hover:-translate-y-1">
                                 Pantau Aliran Live
@@ -155,7 +155,7 @@
                             </a>
                         </div>
 
-                        <!-- Mini Stats Corporate -->
+                        {{-- Statistik Singkat Perusahaan --}}
                         <div class="grid grid-cols-3 gap-4 pt-8 border-t border-slate-900 max-w-md mx-auto lg:mx-0">
                             <div>
                                 <p class="text-2xl sm:text-3xl font-extrabold text-white">4 Kota</p>
@@ -172,7 +172,7 @@
                         </div>
                     </div>
 
-                    <!-- Right Hero Graphic -->
+                    {{-- Ilustrasi Skema Jalur Sisi Kanan --}}
                     <div class="lg:col-span-5 flex justify-center relative">
                         <div class="absolute -inset-1 bg-gradient-to-r from-water-500 to-pure-500 rounded-3xl blur-2xl opacity-15 animate-pulse"></div>
                         <div class="relative bg-slate-950 p-8 rounded-3xl shadow-2xl border border-slate-800 max-w-md w-full">
@@ -181,25 +181,25 @@
                                 <span class="px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] rounded font-bold">ALIRAN NORMAL</span>
                             </div>
 
-                            <!-- SVG Pipeline transmission line schematic -->
+                            {{-- Skematik Vektor Jalur Transmisi Pipa --}}
                             <svg viewBox="0 0 350 250" class="w-full h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Background connections -->
+                                {{-- Garis Aliran Latar Belakang --}}
                                 <path d="M 50,150 Q 120,50 200,150 T 320,150" stroke="#1e293b" stroke-width="8" stroke-linecap="round" fill="none"/>
                                 <path d="M 50,150 Q 120,50 200,150 T 320,150" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round" fill="none" class="pipeline-pulse"/>
 
-                                <!-- Umbulan Source (Left Node) -->
+                                {{-- Titik Mata Air Umbulan (Hulu) --}}
                                 <circle cx="50" cy="150" r="14" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="3" />
                                 <circle cx="50" cy="150" r="6" fill="#14b8a6" />
 
-                                <!-- Booster Station Surabaya (Middle-right Node) -->
+                                {{-- Stasiun Booster Surabaya --}}
                                 <circle cx="230" cy="120" r="12" fill="#0f766e" stroke="#14b8a6" stroke-width="2" />
                                 <path d="M 226,116 L 234,124 M 234,116 L 226,124" stroke="#ffffff" stroke-width="2"/>
 
-                                <!-- Gresik End (Right Node) -->
+                                {{-- Titik Akhir Gresik --}}
                                 <circle cx="320" cy="150" r="10" fill="#1e293b" stroke="#64748b" stroke-width="2" />
                                 <circle cx="320" cy="150" r="4" fill="#0ea5e9" />
 
-                                <!-- Annotations -->
+                                {{-- Label Keterangan Peta --}}
                                 <text x="25" y="182" fill="#94a3b8" font-size="9" font-family="sans-serif" font-weight="bold">UMBULAN (PUSAT)</text>
                                 <text x="180" y="95" fill="#94a3b8" font-size="9" font-family="sans-serif" font-weight="bold">BOOSTER SBY</text>
                                 <text x="290" y="182" fill="#94a3b8" font-size="9" font-family="sans-serif" font-weight="bold">GRESIK (TAIL)</text>
@@ -225,7 +225,7 @@
             </div>
         </section>
 
-        <!-- CORE SYSTEM OVERVIEW -->
+        {{-- Seksi Tinjauan Sistem Utama --}}
         <section id="tentang" class="py-24 bg-slate-950">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
@@ -235,7 +235,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Feature 1 -->
+                    {{-- Fitur 1: Kemurnian Alami --}}
                     <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-water-500/50 hover:shadow-xl transition-all duration-300">
                         <div class="w-12 h-12 bg-water-950 text-water-400 rounded-xl flex items-center justify-center mb-6 border border-water-800">
                             <i class="fa-solid fa-droplet-slash text-2xl"></i>
@@ -244,7 +244,7 @@
                         <p class="text-slate-400 leading-relaxed text-sm">Sumber Umbulan langsung disalurkan tanpa membutuhkan instalasi penjernihan kimiawi yang kompleks karena tingkat kemurnian alami mata air yang sangat tinggi dari pegunungan.</p>
                     </div>
 
-                    <!-- Feature 2 -->
+                    {{-- Fitur 2: 18 Rumah Meter --}}
                     <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-pure-500/50 hover:shadow-xl transition-all duration-300">
                         <div class="w-12 h-12 bg-pure-950 text-pure-400 rounded-xl flex items-center justify-center mb-6 border border-pure-800">
                             <i class="fa-solid fa-chart-area text-2xl"></i>
@@ -253,7 +253,7 @@
                         <p class="text-slate-400 leading-relaxed text-sm">Integrasi pembagian debit yang akurat untuk menyuplai PDAM di Pasuruan (4 titik), Sidoarjo (9 titik), Surabaya (3 titik), dan Gresik (1 titik) secara simultan.</p>
                     </div>
 
-                    <!-- Feature 3 -->
+                    {{-- Fitur 3: Manajemen Tekanan --}}
                     <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-sky-500/50 hover:shadow-xl transition-all duration-300">
                         <div class="w-12 h-12 bg-sky-950 text-sky-400 rounded-xl flex items-center justify-center mb-6 border border-sky-800">
                             <i class="fa-solid fa-bolt text-2xl"></i>
@@ -265,7 +265,7 @@
             </div>
         </section>
 
-        <!-- INTERACTIVE JALUR TRANSMISI VISUALIZER -->
+        {{-- Seksi Visualisasi Jalur Transmisi Interaktif --}}
         <section id="transmisi" class="py-24 bg-slate-900/50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
@@ -276,19 +276,19 @@
                     </p>
                 </div>
 
-                <!-- Interactive Pipeline System Dashboard -->
+                {{-- Dasbor Sistem Transmisi Interaktif --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-                    <!-- Left: Clickable Nodes of Transmission (7 cols on large screens) -->
+                    {{-- Node Transmisi Interaktif (Kolom Kiri) --}}
                     <div class="lg:col-span-7 bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-800/80 shadow-2xl space-y-6">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                             <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-server mr-1"></i> Jalur Utama SCADA</span>
                             <span class="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> TRANSMISI AKTIF</span>
                         </div>
 
-                        <!-- Pipeline Flow Line representation (Interactive Buttons) -->
+                        {{-- Tombol Pemilihan Node Aliran --}}
                         <div class="space-y-4">
-                            <!-- Node 1: Umbulan (Pusat) -->
+                            {{-- Node 1: Umbulan (Pusat) --}}
                             <button onclick="selectTransmissionNode('umbulan')" id="node-umbulan" class="w-full p-5 text-left rounded-2xl border bg-slate-900 border-water-500 text-white shadow-lg shadow-water-950/25 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-water-500 text-white flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-faucet-drip"></i></div>
@@ -300,7 +300,7 @@
                                 <span class="px-2.5 py-1 bg-water-950 text-water-400 text-xs font-bold rounded-lg group-hover:bg-water-900">Hulu / Pusat</span>
                             </button>
 
-                            <!-- Node 2: Pasuruan -->
+                            {{-- Node 2: Pasuruan --}}
                             <button onclick="selectTransmissionNode('pasuruan')" id="node-pasuruan" class="w-full p-5 text-left rounded-2xl border bg-slate-900/40 border-slate-800 text-slate-400 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-lg">P</div>
@@ -312,7 +312,7 @@
                                 <span class="px-2.5 py-1 bg-slate-900 text-slate-500 text-xs font-bold rounded-lg">4 Titik Meter</span>
                             </button>
 
-                            <!-- Node 3: Sidoarjo -->
+                            {{-- Node 3: Sidoarjo --}}
                             <button onclick="selectTransmissionNode('sidoarjo')" id="node-sidoarjo" class="w-full p-5 text-left rounded-2xl border bg-slate-900/40 border-slate-800 text-slate-400 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-lg">S</div>
@@ -324,7 +324,7 @@
                                 <span class="px-2.5 py-1 bg-slate-900 text-slate-500 text-xs font-bold rounded-lg">9 Titik Meter</span>
                             </button>
 
-                            <!-- Node 4: Surabaya Booster -->
+                            {{-- Node 4: Surabaya Booster --}}
                             <button onclick="selectTransmissionNode('booster')" id="node-booster" class="w-full p-5 text-left rounded-2xl border bg-slate-900/40 border-slate-800 text-slate-400 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-bolt"></i></div>
@@ -336,7 +336,7 @@
                                 <span class="px-2.5 py-1 bg-slate-900 text-slate-500 text-xs font-bold rounded-lg">Booster</span>
                             </button>
 
-                            <!-- Node 5: Surabaya DRM -->
+                            {{-- Node 5: Surabaya DRM --}}
                             <button onclick="selectTransmissionNode('surabaya')" id="node-surabaya" class="w-full p-5 text-left rounded-2xl border bg-slate-900/40 border-slate-800 text-slate-400 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-lg">SB</div>
@@ -348,7 +348,7 @@
                                 <span class="px-2.5 py-1 bg-slate-900 text-slate-500 text-xs font-bold rounded-lg">3 Titik Meter</span>
                             </button>
 
-                            <!-- Node 6: Gresik -->
+                            {{-- Node 6: Gresik --}}
                             <button onclick="selectTransmissionNode('gresik')" id="node-gresik" class="w-full p-5 text-left rounded-2xl border bg-slate-900/40 border-slate-800 text-slate-400 transition-all flex items-center justify-between group">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-lg">G</div>
@@ -362,9 +362,9 @@
                         </div>
                     </div>
 
-                    <!-- Right: Dynamic Details Panel (5 cols on large screens) -->
+                    {{-- Panel Detail Spesifikasi Dinamis (Kolom Kanan) --}}
                     <div class="lg:col-span-5 bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl relative min-h-[460px] flex flex-col justify-between">
-                        <!-- Huge decorative background indicator -->
+                        {{-- Label Latar Belakang Dekoratif --}}
                         <div class="absolute right-4 top-4 text-slate-800 text-8xl font-black -z-0 select-none opacity-20" id="panel-bg-label">HULU</div>
 
                         <div class="space-y-6 relative z-10">
@@ -377,7 +377,7 @@
                             </p>
                         </div>
 
-                        <!-- Technical Spec Card inside Panel -->
+                        {{-- Kartu Spesifikasi Teknis --}}
                         <div class="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-850 relative z-10">
                             <div>
                                 <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tekanan Jalur</span>
@@ -394,7 +394,7 @@
             </div>
         </section>
 
-        <!-- DETIL DISTRIBUSI 18 RUMAH METER -->
+        {{-- Seksi Distribusi 18 Rumah Meter --}}
         <section id="distribusi" class="py-24 bg-slate-950">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
@@ -404,7 +404,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Pasuruan Card -->
+                    {{-- Kartu Wilayah 1: Pasuruan --}}
                     <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-4">
@@ -414,13 +414,13 @@
                             <h3 class="text-xl font-bold text-white mb-2">Pasuruan</h3>
                             <p class="text-slate-400 text-xs leading-relaxed">Berada paling dekat dengan hulu mata air Umbulan. Menerima aliran dengan tekanan alami yang tinggi.</p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-slate-850 flex justify-between items-center text-xs">
+                        <div class="mt-6 pt-4 border-t border-slate-855 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Rumah Meter PDAM:</span>
                             <span class="font-extrabold text-water-400 text-sm">4 Titik DRM</span>
                         </div>
                     </div>
 
-                    <!-- Sidoarjo Card -->
+                    {{-- Kartu Wilayah 2: Sidoarjo --}}
                     <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-4">
@@ -430,13 +430,13 @@
                             <h3 class="text-xl font-bold text-white mb-2">Sidoarjo</h3>
                             <p class="text-slate-400 text-xs leading-relaxed">Penerima alokasi terbesar dengan jaringan pipa distribusi sekunder yang mencakup wilayah padat industri.</p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-slate-850 flex justify-between items-center text-xs">
+                        <div class="mt-6 pt-4 border-t border-slate-855 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Rumah Meter PDAM:</span>
                             <span class="font-extrabold text-water-400 text-sm">9 Titik DRM</span>
                         </div>
                     </div>
 
-                    <!-- Surabaya Card -->
+                    {{-- Kartu Wilayah 3: Surabaya --}}
                     <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-4">
@@ -446,13 +446,13 @@
                             <h3 class="text-xl font-bold text-white mb-2">Surabaya</h3>
                             <p class="text-slate-400 text-xs leading-relaxed">Menerima suplai sebelum batas kota, didukung stasiun pompa booster penyeimbang di wilayah Surabaya Selatan.</p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-slate-850 flex justify-between items-center text-xs">
+                        <div class="mt-6 pt-4 border-t border-slate-855 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Rumah Meter PDAM:</span>
                             <span class="font-extrabold text-water-400 text-sm">3 Titik DRM</span>
                         </div>
                     </div>
 
-                    <!-- Gresik Card -->
+                    {{-- Kartu Wilayah 4: Gresik --}}
                     <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-4">
@@ -462,7 +462,7 @@
                             <h3 class="text-xl font-bold text-white mb-2">Gresik</h3>
                             <p class="text-slate-400 text-xs leading-relaxed">Titik ujung transmisi. Membutuhkan optimalisasi tekanan maksimal dari pompa booster di Surabaya.</p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-slate-850 flex justify-between items-center text-xs">
+                        <div class="mt-6 pt-4 border-t border-slate-855 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Rumah Meter PDAM:</span>
                             <span class="font-extrabold text-water-400 text-sm">1 Titik DRM</span>
                         </div>
@@ -471,7 +471,7 @@
             </div>
         </section>
 
-        <!-- CORE INFRASTRUCTURE PORTFOLIO -->
+        {{-- Seksi Portofolio Infrastruktur Utama --}}
         <section id="infrastruktur" class="py-24 bg-slate-900">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
@@ -481,7 +481,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Project 1 -->
+                    {{-- Proyek 1: Pipa Transmisi Baja DN1200 --}}
                     <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex flex-col justify-between group hover:border-water-500/50 transition-all duration-300">
                         <div class="p-8 space-y-4">
                             <span class="inline-block px-3 py-1 bg-water-950/80 border border-water-800 text-water-400 rounded-full text-[10px] font-bold uppercase tracking-wider">Aset Transmisi</span>
@@ -502,7 +502,7 @@
                         </div>
                     </div>
 
-                    <!-- Project 2 -->
+                    {{-- Proyek 2: Rumah Pompa Pusat Umbulan --}}
                     <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex flex-col justify-between group hover:border-pure-500/50 transition-all duration-300">
                         <div class="p-8 space-y-4">
                             <span class="inline-block px-3 py-1 bg-pure-950/80 border border-pure-800 text-pure-400 rounded-full text-[10px] font-bold uppercase tracking-wider">Stasiun Hulu</span>
@@ -523,7 +523,7 @@
                         </div>
                     </div>
 
-                    <!-- Project 3 -->
+                    {{-- Proyek 3: Stasiun Booster Surabaya --}}
                     <div class="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex flex-col justify-between group hover:border-sky-500/50 transition-all duration-300">
                         <div class="p-8 space-y-4">
                             <span class="inline-block px-3 py-1 bg-sky-950/80 border border-sky-800 text-sky-400 rounded-full text-[10px] font-bold uppercase tracking-wider">Stasiun Pendorong</span>
@@ -547,12 +547,12 @@
             </div>
         </section>
 
-        <!-- B2B PDAM PORTAL FORM -->
+        {{-- Formulir Portal Koordinasi PDAM B2B --}}
         {{-- <section id="kolaborasi" class="py-24 bg-slate-950 border-t border-slate-900">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    <!-- Left Info -->
+                    {{-- Informasi Kontak Sisi Kiri --}}
                     <div class="lg:col-span-5 space-y-6">
                         <span class="text-xs font-bold text-water-400 uppercase tracking-wider">Portal Koordinasi PDAM</span>
                         <h3 class="text-3xl font-extrabold text-white tracking-tight">Koordinasi Alokasi Distribusi</h3>
@@ -560,7 +560,7 @@
                             Formulir koordinasi teknis khusus untuk operator PDAM wilayah Pasuruan, Sidoarjo, Surabaya, dan Gresik. Gunakan portal ini untuk melaporkan pemeliharaan rumah meter, permintaan perubahan kuota debit, atau pelaporan tekanan aliran.
                         </p>
 
-                        <!-- Contact Points -->
+                        {{-- Poin Kontak Saluran Siaga --}}
                         <div class="space-y-4 pt-4">
                             <div class="flex items-start gap-4">
                                 <div class="w-10 h-10 bg-slate-900 rounded-xl shadow-sm flex items-center justify-center text-water-400 border border-slate-800 flex-shrink-0">
@@ -583,7 +583,7 @@
                         </div>
                     </div>
 
-                    <!-- Right B2B Form -->
+                    {{-- Formulir Koordinasi B2B PDAM --}}
                     <div class="lg:col-span-7 bg-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-800/85 shadow-xl shadow-slate-950">
                         <form id="contact-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -635,7 +635,7 @@
 
     </main>
 
-    <!-- CUSTOM NOTIFICATION MODAL -->
+    {{-- Modal Notifikasi Kustom --}}
     <div id="notif-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-opacity">
         <div class="bg-slate-900 rounded-3xl p-8 max-w-sm w-full border border-slate-800 shadow-2xl text-center space-y-4">
             <div class="w-16 h-16 bg-pure-950 text-pure-400 rounded-full flex items-center justify-center text-3xl mx-auto shadow-md border border-pure-800/50">
@@ -651,10 +651,10 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
+    {{-- Footer Halaman --}}
     <footer class="bg-slate-950 text-slate-400 border-t border-slate-900 pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-slate-900">
-            <!-- Brand Column -->
+            {{-- Kolom Identitas Perusahaan --}}
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 shrink-0 bg-gradient-to-tr from-water-500 to-pure-500 rounded-full flex items-center justify-center text-white">
@@ -670,7 +670,7 @@
                 </p>
             </div>
 
-            <!-- Navigation Links -->
+            {{-- Kolom Tautan Navigasi --}}
             <div>
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Navigasi Jalur</h4>
                 <ul class="space-y-2 text-xs">
@@ -681,7 +681,7 @@
                 </ul>
             </div>
 
-            <!-- Operations / Working Hours -->
+            {{-- Kolom Informasi Operasional SCADA --}}
             <div>
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Pusat SCADA</h4>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
@@ -694,16 +694,16 @@
             </div>
         </div>
 
-        <!-- Copyright -->
+        {{-- Hak Cipta --}}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>&copy; <?=date('Y')?> PT META ADHYA TIRTA UMBULAN  . Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
             <p>Sistem Integrasi Transmisi Umbulan Regional Jawa Timur.</p>
         </div>
     </footer>
 
-    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    {{-- Logika JavaScript Interaktif --}}
     <script>
-        // 1. Mobile Menu Toggle
+        // 1. Pengalih Menu Mobile
         const menuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
 
@@ -711,7 +711,7 @@
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Close menu on link click
+        // Menutup menu saat tautan diklik
         const mobileLinks = mobileMenu.querySelectorAll('a');
         mobileLinks.forEach(link => {
             link.addEventListener('click', () => {
@@ -719,7 +719,7 @@
             });
         });
 
-        // 2. Interactive Transmission Nodes Data Map
+        // 2. Pemetaan Data Node Jalur Transmisi
         const TRANSMISSION_NODES = {
             umbulan: {
                 tag: "STASIUN UTAMA (Pusat)",
@@ -774,7 +774,7 @@
         function selectTransmissionNode(nodeKey) {
             const keys = ['umbulan', 'pasuruan', 'sidoarjo', 'booster', 'surabaya', 'gresik'];
 
-            // Loop buttons styling
+            // Loop styling tombol
             keys.forEach(key => {
                 const btn = document.getElementById(`node-${key}`);
                 const iconBox = btn.querySelector('div > div');
@@ -794,7 +794,7 @@
                 }
             });
 
-            // Update content display on the detail side
+            // Memperbarui tampilan panel detail sisi kanan
             const nodeData = TRANSMISSION_NODES[nodeKey];
             document.getElementById('panel-bg-label').innerText = nodeData.bgLabel;
             document.getElementById('panel-tag').innerText = nodeData.tag;
@@ -804,7 +804,7 @@
             document.getElementById('panel-flow').innerText = nodeData.flow;
         }
 
-        // 3. Form Submission handler
+        // 3. Penanganan Pengiriman Formulir
         function handleFormSubmit(event) {
             event.preventDefault();
 
@@ -815,11 +815,11 @@
 
             document.getElementById('notif-message').innerText = `Laporan koordinasi untuk ${selectedText} telah dikirimkan ke Pusat Kontrol SCADA Umbulan. Operator piket kami akan segera memproses informasi ini dalam waktu maksimal 15 menit melalui saluran darurat radio atau telepon dinas.`;
 
-            // Show custom notification
+            // Tampilkan modal notifikasi kustom
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            // Reset fields
+            // Reset formulir
             form.reset();
         }
 
@@ -830,11 +830,11 @@
         }
     </script>
 
-    <!-- PWA Script Registrations & Tools -->
+    {{-- Pendaftaran Skrip dan Tombol Instal PWA --}}
     @laravelPwa
     @pwaInstallButton
 
-    <!-- Custom PWA Update Notifier -->
+    {{-- Notifikasi Pembaruan PWA Kustom --}}
     {{-- <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {

@@ -138,7 +138,7 @@
                         @error('gender_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Penempatan Kerja / Stasiun -->
+                    {{-- Dropdown Pilihan Stasiun Penempatan Kerja --}}
                     <div>
                         <label for="station_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Penempatan Kerja</label>
                         <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
@@ -189,7 +189,7 @@
                             $initialRoleDisplay = !empty($currentRoleNames) ? implode(', ', $currentRoleNames) : 'Pilih Peran / Jabatan';
                         @endphp
 
-                        <!-- Trigger Dropdown (Tampilan persis seperti input Select Penempatan Kerja) -->
+                        {{-- Trigger Dropdown (Tampilan persis seperti input Select Penempatan Kerja) --}}
                         <div id="roleSelectTrigger" onclick="toggleRoleDropdown()"
                              class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none shadow-2xs hover:border-sky-400 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500 min-h-[42px] {{ $errors->has('roles') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                             <div class="flex items-center gap-1.5 flex-1 min-w-0">
@@ -205,12 +205,12 @@
                             </div>
                         </div>
 
-                        <!-- Hidden input role_id pendamping -->
+                        {{-- Hidden input role_id pendamping --}}
                         <input type="hidden" id="primary_role_id" name="role_id" value="{{ old('role_id', $user->role_id) }}">
 
-                        <!-- Panel Dropdown Melayang (Floating Panel) -->
+                        {{-- Panel Dropdown Melayang (Floating Panel) --}}
                         <div id="roleDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-2.5 animate-in fade-in zoom-in-95 duration-150">
-                            <!-- Input Pencarian Cepat -->
+                            {{-- Input Pencarian Cepat --}}
                             <div class="relative mb-2">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -222,7 +222,7 @@
                                 </button>
                             </div>
 
-                            <!-- Info Bar: Filter & Tutup -->
+                            {{-- Info Bar: Filter & Tutup --}}
                             <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
                                 <span id="roleFilterSummary">Daftar Jabatan:</span>
                                 <div class="flex items-center space-x-2">
@@ -236,7 +236,7 @@
                                 </div>
                             </div>
 
-                            <!-- Daftar Pilihan Role -->
+                            {{-- Daftar Pilihan Role --}}
                             <div id="roleItemsContainer" class="max-h-52 overflow-y-auto space-y-1 pt-1.5 pr-0.5">
                                 @if(isset($daftarRole) && count($daftarRole) > 0)
                                     @foreach($daftarRole as $role)
@@ -701,7 +701,7 @@
 <div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
     <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
         
-        <!-- Modal Header -->
+        {{-- Header Modal Hubungi Admin --}}
         <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80">
@@ -721,10 +721,10 @@
             </button>
         </div>
 
-        <!-- Modal Body -->
+        {{-- Body Modal Hubungi Admin --}}
         <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
             
-            <!-- Security Info Alert -->
+            {{-- Alert Informasi Keamanan Nomor WhatsApp --}}
             <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
                 <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5 text-base shrink-0"></i>
                 <div class="leading-relaxed">
@@ -735,7 +735,7 @@
                 </div>
             </div>
 
-            <!-- List of Admins -->
+            {{-- Daftar Kontak Administrator Sistem --}}
             <div class="space-y-3 pt-1">
                 <div class="flex items-center justify-between text-xs font-bold text-slate-700 px-1">
                     <span>Pilih Administrator Tujuan:</span>
@@ -813,7 +813,7 @@
 
         </div>
 
-        <!-- Modal Footer -->
+        {{-- Footer Modal Hubungi Admin --}}
         <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
             <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
                 Tutup

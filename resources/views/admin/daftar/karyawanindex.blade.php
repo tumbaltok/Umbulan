@@ -2,7 +2,7 @@
 @section('title', 'Daftar Karyawan & Skema Organisasi')
 
 @push('styles')
-<!-- SweetAlert2 CDN CSS -->
+{{-- SweetAlert2 CDN CSS --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
     .mermaid-container {
@@ -446,7 +446,7 @@
                 </div>
                 <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
 
-                <!-- Input Penugasan Multi-Select Rumah Meter (Khusus Role AREA (PIPELINE)) -->
+                {{-- Input Penugasan Multi-Select Rumah Meter (Khusus Role AREA (PIPELINE)) --}}
                 <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                     <div class="flex items-center justify-between mb-2">
                         <label class="block text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -488,11 +488,11 @@
 @endsection
 
 @push('scripts')
-<!-- Mermaid.js CDN -->
+{{-- Library Diagram Mermaid.js --}}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<!-- Panzoom CDN (Untuk Fitur Zoom In/Out & Pan Drag) -->
+{{-- Library Panzoom Interaktif --}}
 <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
-<!-- SweetAlert2 CDN -->
+{{-- Library Alert SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @if(session('success'))

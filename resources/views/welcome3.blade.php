@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- SKRIP DETEKSI PWA: AUTO REDIRECT KE LOGIN JIKA DIBUKA DARI APP INSTALAN HP -->
+    {{-- Deteksi PWA: Alihkan otomatis ke login jika dibuka dari aplikasi HP --}}
     <script>
         (function() {
             const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -14,7 +14,7 @@
         })();
     </script>
 
-    <!-- Meta Warna Background untuk Mobile Status Bar -->
+    {{-- Pengaturan warna background bilah status peramban mobile --}}
     <meta name="theme-color" content="#ffffff">
     <meta name="background-color" content="#ffffff">
 
@@ -23,7 +23,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Halaman Publik Default Selalu Light Mode
+        // Halaman publik default selalu mode terang
         document.documentElement.classList.remove('dark');
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -70,14 +70,14 @@
             background: #94a3b8;
         }
     </style>
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="font-sans text-slate-800 antialiased bg-slate-50/50 flex flex-col min-h-screen">
 
     <header class="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 h-20 flex items-center justify-between px-6 md:px-12 z-50 shadow-sm">
         <a href="#" class="flex items-center space-x-3 group">
-            <!-- BINGKAI LOGO HEADER: Diubah menjadi object-contain + p-1 agar tajam dan tidak di-crop -->
+            {{-- Logo Header Perusahaan --}}
             <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 shadow-md border border-slate-100 transition duration-300 group-hover:scale-105 shrink-0">
                 <img src="{{ asset('images/iconfav.png') }}" 
                     alt="Logo META" 
@@ -198,13 +198,13 @@
                             </div>
                         </div>
 
-                        <!-- Bagian Debit Real-Time -->
+                        {{-- Tampilan Debit Aliran Real-Time --}}
                         <div class="p-4 bg-blue-50/50 border border-blue-100/80 rounded-2xl">
                             <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider block">Debit Aliran Transmisi (Real-time)</span>
                             <h4 class="text-2xl font-black text-water-600 mt-1"><span id="current-flow-display">2.700</span> <span class="text-xs font-semibold text-slate-500">lps</span></h4>
                         </div>
 
-                        <!-- Bagian Volume Serapan Bulanan Bawah -->
+                        {{-- Tampilan Volume Serapan Akumulatif Bulanan --}}
                         <div class="relative p-5 bg-gradient-to-r from-cyan-600 to-slate-800 text-white rounded-2xl overflow-hidden shadow-md group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl transition-all duration-500 group-hover:scale-150"></div>
 
@@ -356,7 +356,7 @@
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-slate-800">
             <div class="space-y-4">
                 <div class="flex items-center space-x-3">
-                    <!-- BINGKAI LOGO FOOTER: Diubah menjadi object-contain + p-1 agar tajam dan tidak di-crop -->
+                    {{-- Logo Footer Perusahaan --}}
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1 shadow-lg shrink-0">
                         <img src="{{ asset('images/iconfav.png') }}" 
                             alt="Logo META" 
@@ -469,68 +469,52 @@
             link.addEventListener('click', closeMenu);
         });
 
-        // ========================================================
-        // KODE PERBAIKAN: REAL-TIME FLOW GENERATOR & ACCUMULATOR
-        // ========================================================
+        // Generator debit dan akumulasi volume air transmisi real-time
         let totalAccumulatedVolumeM3 = 0;
 
         function initAndUpdateFlow() {
             const sekarang = new Date();
-
-            // Menggunakan waktu lokal awal bulan tanggal 1 jam 00:00:00 (WIB/Wita/Wit sesuai lokal)
             const awalBulan = new Date(sekarang.getFullYear(), sekarang.getMonth(), 1, 0, 0, 0);
 
-            // Menghitung berapa detik yang telah terlewati sejak awal bulan
+            // Hitung detik yang berlalu sejak awal bulan
             const selisihMilidetik = sekarang - awalBulan;
             const totalDetikLalu = Math.floor(selisihMilidetik / 1000);
 
-            // Menggunakan nilai rata-rata tengah (2.725 m3 per detik) sebagai acuan historis awal bulan
+            // Rata-rata 2.725 m3/detik sebagai estimasi historis
             const rataRataM3 = 2.725;
             totalAccumulatedVolumeM3 = totalDetikLalu * rataRataM3;
 
-            // Jalankan fungsi update agar nilai langsung berubah seketika halaman dibuka
             updateVolumeRealtime();
         }
 
         function updateVolumeRealtime() {
-            // 1. BUAT DEBIT PER DETIK DINAMIS (Range 2700 - 2750 lps)
+            // Debit per detik dinamis (2.700 - 2.750 lps)
             const randomLps = Math.floor(Math.random() * (2750 - 2700 + 1)) + 2700;
-
-            // Format angka dengan pemisah ribuan lokal Indonesia (id-ID)
             const formatLps = new Intl.NumberFormat('id-ID').format(randomLps);
 
-            // Memperbarui tampilan Debit Aliran secara live
             document.getElementById('current-flow-display').textContent = formatLps;
 
-            // 2. HITUNG VOLUME AKUMULATIF BULANAN (Sum real-time per detik)
-            // Ubah lps ke meter kubik per detik (dibagi 1000)
+            // Tambahkan volume per detik ke total akumulasi bulanan
             const flowM3PerDetik = randomLps / 1000;
-
-            // Jumlahkan penambahan air detik ini ke total akumulasi
             totalAccumulatedVolumeM3 += flowM3PerDetik;
 
-            // Format angka sum tanpa desimal
             const formatTotalVolume = new Intl.NumberFormat('id-ID', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(totalAccumulatedVolumeM3);
 
-            // Perbarui tampilan Volume Serapan Akumulatif
             document.getElementById('volume-display').innerHTML = `
                 ${formatTotalVolume} <span class="text-sm font-medium text-cyan-300">m³</span>
             `;
         }
 
-        // Inisialisasi total volume awal bulan saat halaman dimuat
         initAndUpdateFlow();
-
-        // Set interval untuk terus memperbarui data acak & sum setiap 1 detik berkelanjutan
         setInterval(updateVolumeRealtime, 1000);
     </script>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
-    <!-- PWA Script Registrations & Tools -->
+    {{-- Pendaftaran Skrip PWA --}}
     @laravelPwa
     @pwaInstallButton
 </body>

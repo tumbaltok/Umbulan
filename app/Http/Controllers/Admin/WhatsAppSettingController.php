@@ -17,9 +17,7 @@ class WhatsAppSettingController extends Controller
         $this->whatsAppService = $whatsAppService;
     }
 
-    /**
-     * Tampilan utama manajemen koneksi WhatsApp Gateway.
-     */
+    // Menampilkan halaman antarmuka manajemen koneksi WhatsApp Gateway
     public function index()
     {
         $statusData = $this->whatsAppService->getStatus();
@@ -27,9 +25,7 @@ class WhatsAppSettingController extends Controller
         return view('admin.whatsapp.index', compact('statusData'));
     }
 
-    /**
-     * Endpoint API polling status koneksi real-time.
-     */
+    // Endpoint polling status koneksi gateway secara real-time
     public function status(): JsonResponse
     {
         $statusData = $this->whatsAppService->getStatus();
@@ -37,9 +33,7 @@ class WhatsAppSettingController extends Controller
         return response()->json($statusData);
     }
 
-    /**
-     * Endpoint API mengambil string QR code (Data URL) terbaru.
-     */
+    // Endpoint untuk mendapatkan QR code pemindaian WhatsApp
     public function qr(): JsonResponse
     {
         $qrData = $this->whatsAppService->getQr();
@@ -47,9 +41,7 @@ class WhatsAppSettingController extends Controller
         return response()->json($qrData);
     }
 
-    /**
-     * Endpoint untuk mengirim pesan uji coba WhatsApp.
-     */
+    // Mengirim pesan uji coba koneksi WhatsApp Gateway
     public function sendTest(Request $request): JsonResponse
     {
         $request->validate([
@@ -84,14 +76,12 @@ class WhatsAppSettingController extends Controller
         ], 500);
     }
 
-    /**
-     * Endpoint memutuskan koneksi (logout sesi Baileys).
-     */
+    // Memutuskan koneksi sesi WhatsApp Gateway (khusus Administrator Level 1)
     public function disconnect(): JsonResponse
     {
         $user = Auth::user();
 
-        // Hanya Level 1 (Superadmin/Admin) yang diperkenankan memutuskan gateway
+        // Verifikasi wewenang hak akses Level 1
         $isLevel1 = $user->hasRole('ADMIN') || $user->roles->contains(fn($r) => $r->level == 1) || $user->role_id === 1;
         if (!$isLevel1) {
             return response()->json([

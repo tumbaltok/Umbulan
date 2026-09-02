@@ -41,13 +41,7 @@ class Role extends Model
         return $this->hasMany(Role::class, 'parent_role_id');
     }
 
-    /**
-     * Mengambil semua role ID turunan/bawahan secara rekursif berbasis parent_role_id.
-     * Termasuk role ID awal yang dikirimkan.
-     *
-     * @param array|int|\Illuminate\Support\Collection $roleIds
-     * @return array
-     */
+    // Ambil semua role ID bawahan secara rekursif berbasis parent_role_id
     public static function getAllChildRoleIds(array|int|\Illuminate\Support\Collection $roleIds): array
     {
         if ($roleIds instanceof \Illuminate\Support\Collection) {
@@ -71,17 +65,13 @@ class Role extends Model
         return array_values(array_unique($allIds));
     }
 
-    /**
-     * Role yang berwenang menyetujui Tahap/Level 1
-     */
+    // Role yang berwenang menyetujui pengajuan Tahap 1
     public function approverLevel1Role(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'approval_rules->approver_level_1_role_id');
     }
 
-    /**
-     * Role yang berwenang menyetujui Tahap/Level 2
-     */
+    // Role yang berwenang menyetujui pengajuan Tahap 2
     public function approverLevel2Role(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'approval_rules->approver_level_2_role_id');

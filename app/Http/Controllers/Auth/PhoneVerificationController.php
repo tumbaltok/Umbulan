@@ -12,19 +12,17 @@ use Illuminate\Support\Facades\Log;
 
 class PhoneVerificationController extends Controller
 {
-    /**
-     * Menampilkan halaman verifikasi nomor WhatsApp OTP (Tier 2).
-     */
+    // Menampilkan halaman verifikasi nomor WhatsApp OTP
     public function notice(Request $request)
     {
         $user = $request->user();
 
-        // Jika email belum diverifikasi, alihkan kembali ke Tier 1
+        // Alihkan jika email belum diverifikasi
         if (!$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
-        // Jika nomor telepon sudah terverifikasi, lanjutkan ke Dashboard
+        // Alihkan ke Dashboard jika nomor telepon sudah terverifikasi
         if ($user->hasVerifiedPhone()) {
             $intended = session()->get('url.intended');
             if ($intended && (str_contains($intended, '/auth/verify-email') || str_contains($intended, '/auth/verify-phone'))) {
@@ -37,9 +35,7 @@ class PhoneVerificationController extends Controller
         return view('auth.verify-phone', compact('user'));
     }
 
-    /**
-     * Mengirimkan kode OTP 6 digit ke nomor WhatsApp pengguna via Baileys microservice.
-     */
+    // Mengirimkan kode OTP 6 digit ke nomor WhatsApp pengguna via Baileys microservice
     public function sendOtp(Request $request, WhatsAppService $whatsAppService)
     {
         $user = $request->user();
@@ -53,13 +49,13 @@ class PhoneVerificationController extends Controller
         // Generate OTP 6 digit angka
         $otp = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Simpan OTP ter-hash dan waktu kedaluwarsa 5 menit ke database
+        // Simpan hash OTP dan masa berlaku 5 menit
         $user->forceFill([
             'phone_otp' => Hash::make($otp),
             'phone_otp_expires_at' => now()->addMinutes(5),
         ])->save();
 
-        // Format pesan resmi sesuai instruksi ERP Umbulan
+        // Format pesan notifikasi WhatsApp
         $message = "*[ERP META ADHYA TIRTA UMBULAN]*\n"
             . "Halo {$user->name},\n\n"
             . "Kode Verifikasi (OTP) WhatsApp Anda adalah: *{$otp}*\n\n"
@@ -80,9 +76,7 @@ class PhoneVerificationController extends Controller
         ]);
     }
 
-    /**
-     * Memvalidasi kode OTP yang dimasukkan oleh pengguna.
-     */
+    // Memvalidasi kode OTP yang dimasukkan oleh pengguna
     public function verify(Request $request)
     {
         $request->validate([
@@ -94,14 +88,14 @@ class PhoneVerificationController extends Controller
 
         $user = $request->user();
 
-        // Cek apakah OTP sudah kedaluwarsa atau belum pernah digenerate
+        // Cek masa berlaku kode OTP
         if (!$user->phone_otp || !$user->phone_otp_expires_at || now()->isAfter($user->phone_otp_expires_at)) {
             return back()->withErrors([
                 'otp' => 'Kode OTP telah kedaluwarsa atau belum dikirimkan. Silakan klik tombol kirim ulang OTP.',
             ]);
         }
 
-        // Verifikasi kesesuaian OTP (mendukung hash maupun plain check)
+        // Verifikasi kesesuaian OTP
         if (Hash::check($request->otp, $user->phone_otp) || $request->otp === $user->phone_otp) {
             $user->forceFill([
                 'phone_verified_at' => now(),
@@ -126,9 +120,7 @@ class PhoneVerificationController extends Controller
         ]);
     }
 
-    /**
-     * Memperbarui nomor telepon pengguna jika salah dan langsung mengirimkan OTP baru.
-     */
+    // Memperbarui nomor telepon pengguna dan langsung mengirimkan OTP baru
     public function updateNumber(Request $request, WhatsAppService $whatsAppService)
     {
         $user = $request->user();

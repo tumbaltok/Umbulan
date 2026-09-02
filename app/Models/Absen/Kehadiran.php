@@ -63,48 +63,39 @@ class Kehadiran extends Model
         'check_out_distance' => 'float',
     ];
 
+    // Relasi ke user / karyawan pemilik absensi
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Mengambil alasan check-in dengan fallback ke kolom legacy.
-     */
+    // Mengambil alasan check-in dengan fallback ke kolom legacy
     public function getEffectiveReasonInAttribute(): ?string
     {
         return $this->reason_in ?: $this->reason_out_of_radius_in;
     }
 
-    /**
-     * Mengambil alasan check-out dengan fallback ke kolom legacy.
-     */
+    // Mengambil alasan check-out dengan fallback ke kolom legacy
     public function getEffectiveReasonOutAttribute(): ?string
     {
         return $this->reason_out ?: $this->reason_checkout;
     }
 
-    /**
-     * Mengambil URL bukti alasan masuk jika ada (dengan fallback ke face_photo_in legacy).
-     */
+    // Mengambil URL bukti alasan masuk jika ada (fallback ke face_photo_in)
     public function getEvidenceInUrlAttribute(): ?string
     {
         $path = $this->evidence_in ?: $this->face_photo_in;
         return $path ? Storage::disk('public')->url($path) : null;
     }
 
-    /**
-     * Mengambil URL bukti alasan pulang jika ada (dengan fallback ke face_photo_out legacy).
-     */
+    // Mengambil URL bukti alasan pulang jika ada (fallback ke face_photo_out)
     public function getEvidenceOutUrlAttribute(): ?string
     {
         $path = $this->evidence_out ?: $this->face_photo_out;
         return $path ? Storage::disk('public')->url($path) : null;
     }
 
-    /**
-     * Menghitung total durasi kerja dalam satuan menit (aman untuk shift malam lintas hari).
-     */
+    // Menghitung total durasi kerja dalam menit (aman untuk shift malam lintas hari)
     public function getWorkDurationMinutesAttribute(): ?int
     {
         if (empty($this->check_in) || empty($this->check_out)) {
@@ -126,9 +117,7 @@ class Kehadiran extends Model
         }
     }
 
-    /**
-     * Menampilkan durasi kerja terformat manusia (misal: "8j 45m" atau "Sedang Bekerja").
-     */
+    // Format durasi kerja agar mudah dibaca pengguna
     public function getWorkDurationFormattedAttribute(): string
     {
         if (empty($this->check_in)) {
@@ -156,9 +145,7 @@ class Kehadiran extends Model
         }
     }
 
-    /**
-     * Memeriksa apakah terdapat pelanggaran radius geofencing (baik saat masuk maupun pulang).
-     */
+    // Memeriksa apakah terdapat pelanggaran radius geofencing saat masuk atau pulang
     public function getIsOutsideRadiusAttribute(): bool
     {
         $outsideIn = isset($this->is_in_radius_check_in) && !$this->is_in_radius_check_in;

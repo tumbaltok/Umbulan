@@ -6,17 +6,17 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Lupa Kata Sandi - PT META Adhya Tirta Umbulan</title>
 
-    <!-- Favicon -->
+    {{-- Favicon Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
 
-    <!-- Kunci Halaman Selalu Light Mode -->
     <script>
+        // Kunci Halaman Selalu Light Mode
         document.documentElement.classList.remove('dark');
         localStorage.theme = 'light';
     </script>
 
-    <!-- Tailwind CSS CDN -->
+    {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -52,7 +52,7 @@
         };
     </script>
 
-    <!-- FontAwesome & Google Fonts -->
+    {{-- FontAwesome dan Google Fonts --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,18 +70,18 @@
         }
     </style>
 
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Ambient Gradient Background Elements -->
+    {{-- Elemen Background Gradien Dekoratif --}}
     <div class="fixed inset-0 pointer-events-none overflow-hidden bg-grid-subtle z-0">
         <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[320px] bg-gradient-to-tr from-sky-400/15 via-teal-300/15 to-emerald-300/10 blur-3xl rounded-full"></div>
         <div class="absolute bottom-0 right-0 w-[450px] h-[300px] bg-gradient-to-tl from-brand-300/15 to-sky-200/15 blur-3xl rounded-full"></div>
     </div>
 
-    <!-- Header / Branding -->
+    {{-- Header dan Navigasi Kembali --}}
     <header class="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center p-1.5 shrink-0">
@@ -98,14 +98,14 @@
         </a>
     </header>
 
-    <!-- Main Content Container -->
+    {{-- Kontainer Konten Utama --}}
     <main class="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
         <div class="w-full max-w-md">
 
-            <!-- Card Utama -->
+            {{-- Kartu Formulir Pemulihan --}}
             <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/60 overflow-hidden p-6 sm:p-8 transition-all">
 
-                <!-- Icon & Title Section -->
+                {{-- Judul dan Ikon Pemulihan --}}
                 <div class="text-center mb-6">
                     <div class="mx-auto w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-brand-500/25 mb-4">
                         <i class="fa-solid fa-key"></i>
@@ -116,7 +116,7 @@
                     </p>
                 </div>
 
-                <!-- Alert Feedback Box (Dinamis via JS & Flash Laravel) -->
+                {{-- Alert Feedback Box Dinamis --}}
                 <div id="alert-box" style="display: none;" class="mb-5 p-4 rounded-2xl border text-xs sm:text-sm flex items-start gap-3 transition-all">
                     <div id="alert-icon" class="shrink-0 mt-0.5 text-base"></div>
                     <div id="alert-message" class="font-medium"></div>
@@ -136,9 +136,7 @@
                     </div>
                 @endif
 
-                <!-- ========================================================== -->
-                <!-- TAHAP 1: FORM PENCARIAN / IDENTIFIKASI AKUN -->
-                <!-- ========================================================== -->
+                {{-- Tahap 1: Formulir Pencarian dan Identifikasi Akun --}}
                 <form id="identifyForm" onsubmit="handleIdentify(event)" class="space-y-5">
                     @csrf
                     <div>
@@ -167,11 +165,9 @@
                     </button>
                 </form>
 
-                <!-- ========================================================== -->
-                <!-- TAHAP 2: PEMILIHAN SALURAN PENGIRIMAN OTP (EMAIL / WHATSAPP) -->
-                <!-- ========================================================== -->
+                {{-- Tahap 2: Pemilihan Saluran Pengiriman OTP (Email / WhatsApp) --}}
                 <div id="channelSelectionSection" class="space-y-5 hidden">
-                    <!-- User Preview Badge -->
+                    {{-- Informasi Akun Karyawan Teridentifikasi --}}
                     <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm border border-brand-200/70 shrink-0" id="user-avatar-initials">
@@ -197,7 +193,7 @@
                             </label>
 
                             <div class="space-y-2.5" id="channels-container">
-                                <!-- Opsi Email Card -->
+                                {{-- Saluran Pengiriman via Email --}}
                                 <label id="channel-card-email" class="relative flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-500 bg-brand-50/40 cursor-pointer transition-all hover:bg-brand-50/80">
                                     <input type="radio" name="channel" value="email" checked class="text-brand-600 focus:ring-brand-500 w-4 h-4">
                                     <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-base shrink-0">
@@ -212,7 +208,7 @@
                                     </div>
                                 </label>
 
-                                <!-- Opsi WhatsApp Card -->
+                                {{-- Saluran Pengiriman via WhatsApp --}}
                                 <label id="channel-card-whatsapp" class="relative flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-wa-500 bg-white cursor-pointer transition-all hover:bg-wa-50/30">
                                     <input type="radio" name="channel" value="whatsapp" class="text-wa-600 focus:ring-wa-500 w-4 h-4">
                                     <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base shrink-0">
@@ -238,7 +234,7 @@
                     </form>
                 </div>
 
-                <!-- Footer Link Back to Login -->
+                {{-- Link Kembali ke Halaman Login --}}
                 <div class="mt-8 pt-6 border-t border-slate-100 text-center">
                     <a href="{{ route('login') }}" class="text-xs font-semibold text-slate-500 hover:text-brand-600 transition-colors inline-flex items-center gap-1.5">
                         <i class="fa-solid fa-arrow-left text-[10px]"></i>
@@ -248,7 +244,7 @@
 
             </div>
 
-            <!-- Security Footer Note -->
+            {{-- Footer Keamanan --}}
             <div class="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-halved text-[11px] text-brand-600"></i>
                 <span>Enkripsi Aman SSL 256-bit &bull; Hak Cipta &copy; {{ date('Y') }} PT META Adhya Tirta Umbulan</span>
@@ -257,7 +253,7 @@
         </div>
     </main>
 
-    <!-- Page JavaScript Logic -->
+    {{-- Logika JavaScript Pemulihan Akun --}}
     <script>
         const alertBox = document.getElementById('alert-box');
         const alertIcon = document.getElementById('alert-icon');
@@ -445,7 +441,7 @@
         });
     </script>
 
-    <!-- PWA Scripts -->
+    {{-- Pendaftaran Skrip PWA --}}
     @laravelPwa
     @pwaInstallButton
 </body>

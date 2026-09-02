@@ -15,30 +15,31 @@ use Illuminate\Support\Facades\Storage;
 
 class AccountController extends Controller
 {
+    // Menampilkan halaman pengaturan akun dan profil pengguna
     public function index()
     {
         $user = User::with(['gender', 'roles', 'role', 'station', 'assignedStations'])->find(Auth::id());
 
-        // 1. Ambil seluruh Penempatan Kerja / Stasiun (Kecuali Rumah Meter)
+        // Ambil data stasiun kerja utama (selain Rumah Meter)
         $daftarStasiun = Station::where('type', '!=', 'rumah_meter')
             ->orderBy('name', 'asc')
             ->get();
 
-        // 2. Ambil Seluruh Data Gender
+        // Data jenis kelamin (gender)
         $daftarGender = Gender::orderBy('id', 'asc')->get();
 
-        // 3. Ambil Seluruh Peran / Jabatan KECUALI Admin
+        // Data peran/jabatan non-admin
         $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')
             ->orderBy('id', 'asc')
             ->orderBy('role_name', 'asc')
             ->get();
 
-        // 4. Ambil Seluruh Rumah Meter untuk Penugasan Khusus Role Pipeline
+        // Data stasiun Rumah Meter untuk penugasan peran Pipeline
         $daftarRumahMeter = Station::where('type', 'rumah_meter')
             ->orderBy('kode_stasiun', 'asc')
             ->get();
 
-        // 5. Ambil Seluruh Akun Administrator (Level 1 atau Full Admin) yang memiliki nomor telepon aktif
+        // Data administrator dengan kontak aktif
         $adminUsers = User::where(function ($q) {
                 $q->where('role_id', 1)
                   ->orWhere('level', 1)
@@ -65,6 +66,7 @@ class AccountController extends Controller
         ));
     }
 
+    // Memperbarui informasi profil, kata sandi, jadwal kerja, foto, dan tanda tangan digital
     public function update(Request $request)
     {
         $user = User::find(Auth::id());
@@ -271,6 +273,7 @@ class AccountController extends Controller
         return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
     }
 
+    // Mengubah latar belakang gambar tanda tangan menjadi transparan secara otomatis
     private function makeSignatureBackgroundTransparent(string $filePath)
     {
         $info = @getimagesize($filePath);

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
+    // Menampilkan daftar peran (role) dan struktur organisasi
     public function index()
     {
         $daftarRole = Role::withCount('users')->get();
@@ -18,6 +19,7 @@ class RoleController extends Controller
         return view('admin.daftar.roleindex', compact('daftarRole', 'daftarJobdesk'));
     }
 
+    // Menyimpan data peran (role) baru
     public function store(Request $request)
     {
         if ($request->has('roles')) {
@@ -31,6 +33,7 @@ class RoleController extends Controller
         return redirect()->back()->with('success', 'Data Role berhasil ditambahkan!');
     }
 
+    // Memperbarui informasi peran (role)
     public function update(Request $request, int $id)
     {
         $role = Role::findOrFail($id);
@@ -41,6 +44,7 @@ class RoleController extends Controller
         return redirect()->back()->with('success', 'Data Role berhasil diperbarui!');
     }
 
+    // Memperbarui matriks hierarki dan aturan persetujuan (approval rules) per modul
     public function updateHierarchyMatrix(Request $request)
     {
         $request->validate([

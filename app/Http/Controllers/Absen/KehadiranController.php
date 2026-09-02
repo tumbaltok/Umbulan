@@ -23,16 +23,14 @@ class KehadiranController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
-    /**
-     * Absen Masuk (Clock In) via AJAX / Web
-     */
+    // Memproses absensi masuk (Clock In) karyawan
     public function checkIn(Request $request): JsonResponse|RedirectResponse
     {
         try {
             /** @var User $user */
             $user = $request->user();
 
-            // 0. Strict Backend Guard: Pastikan biometrik wajah pengguna sudah terdaftar dan valid (128 floats)
+            // Validasi data biometrik wajah terdaftar (128 nilai float)
             if (empty($user->face_descriptor) || !is_array($user->face_descriptor) || count($user->face_descriptor) !== 128) {
                 $errorMsg = 'Data biometrik wajah belum terdaftar. Silakan rekam wajah di menu profil terlebih dahulu sebelum melakukan presensi.';
                 if (!$request->expectsJson() && !$request->ajax()) {
@@ -46,7 +44,7 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // Strict Backend Guard: Pastikan request membawa status verifikasi biometrik wajah bernilai true
+            // Validasi keberhasilan pencocokan biometrik wajah
             if (!$request->boolean('is_face_verified', false)) {
                 $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
                 if (!$request->expectsJson() && !$request->ajax()) {
@@ -74,7 +72,7 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Cek apakah sudah absen masuk hari ini
+            // 1. Periksa apakah karyawan sudah melakukan absen masuk hari ini
             $attendance = Kehadiran::where('user_id', $user->id)
                 ->where(function ($q) use ($today) {
                     $q->whereDate('date', $today)
@@ -88,7 +86,7 @@ class KehadiranController extends Controller
                 ], 400);
             }
 
-            // 2. Cek Jadwal Kerja
+            // 2. Evaluasi jadwal kerja karyawan
             $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
             if (isset($schedule['is_day_off']) && $schedule['is_day_off']) {
                 return response()->json([
@@ -96,14 +94,14 @@ class KehadiranController extends Controller
                 ], 400);
             }
 
-            // 3. Hitung Radius GPS Multi-Titik Terdekat (Kantor, Stasiun, & 18 Rumah Meter)
+            // 3. Evaluasi geolokasi terhadap seluruh stasiun dan Rumah Meter
             $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
             $isInRadius = $geo['isInRadius'];
             $matchedStation = $geo['matchedStation'];
             $nearestStation = $geo['nearestStation'];
             $distanceMeters = $geo['distanceMeters'];
 
-            // 4. Evaluasi Keterlambatan
+            // 4. Evaluasi status keterlambatan
             $isLate = false;
             $scheduledInStr = $schedule['scheduled_in'] ?? null;
 
@@ -118,7 +116,7 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 5. Validasi Alasan Wajib jika Terlambat atau di Luar Seluruh Radius Resmi
+            // 5. Validasi alasan jika terlambat atau berada di luar radius
             $reason = trim((string) ($request->reason ?? $request->reason_out_of_radius));
             if ((!$isInRadius || $isLate) && empty($reason)) {
                 $kondisi = [];
@@ -133,7 +131,7 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // 6. Proses Dokumen / Foto Bukti Alasan (Opsional) dengan Watermark Otomatis
+            // 6. Proses unggah dan watermark dokumen/foto bukti alasan
             $evidenceFile = $request->file('evidence') ?? $request->file('bukti_alasan');
             $evidencePath = null;
 
@@ -149,7 +147,7 @@ class KehadiranController extends Controller
             $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
             $isFaceVerified = $request->boolean('is_face_verified', false);
 
-            // 7. Simpan Data Presensi ke Database (Tanpa Menyimpan File Foto Selfie Harian)
+            // 7. Simpan atau perbarui catatan absensi masuk
             $absensi = Kehadiran::updateOrCreate(
                 [
                     'user_id' => $user->id,
@@ -189,16 +187,14 @@ class KehadiranController extends Controller
         }
     }
 
-    /**
-     * Absen Pulang (Clock Out) via AJAX / Web
-     */
+    // Memproses absensi pulang (Clock Out) karyawan
     public function checkOut(Request $request): JsonResponse|RedirectResponse
     {
         try {
             /** @var User $user */
             $user = $request->user();
 
-            // 0. Strict Backend Guard: Pastikan biometrik wajah pengguna sudah terdaftar dan valid (128 floats)
+            // Validasi data biometrik wajah terdaftar
             if (empty($user->face_descriptor) || !is_array($user->face_descriptor) || count($user->face_descriptor) !== 128) {
                 $errorMsg = 'Data biometrik wajah belum terdaftar. Silakan rekam wajah di menu profil terlebih dahulu sebelum melakukan presensi.';
                 if (!$request->expectsJson() && !$request->ajax()) {
@@ -212,7 +208,7 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // Strict Backend Guard: Pastikan request membawa status verifikasi biometrik wajah bernilai true
+            // Validasi verifikasi biometrik wajah
             if (!$request->boolean('is_face_verified', false)) {
                 $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
                 if (!$request->expectsJson() && !$request->ajax()) {
@@ -240,7 +236,7 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Cek keberadaan absen masuk hari ini
+            // 1. Periksa keberadaan catatan absen masuk hari ini
             $attendance = Kehadiran::where('user_id', $user->id)
                 ->where(function ($q) use ($today) {
                     $q->whereDate('date', $today)
@@ -260,15 +256,14 @@ class KehadiranController extends Controller
                 ], 400);
             }
 
-            // 2. Hitung Radius GPS Pulang (Haversine Formula)
-            // 2. Hitung Radius GPS Multi-Titik Terdekat (Kantor, Stasiun, & 18 Rumah Meter)
+            // 2. Evaluasi geolokasi pulang terhadap seluruh stasiun dan Rumah Meter
             $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
             $isInRadius = $geo['isInRadius'];
             $matchedStation = $geo['matchedStation'];
             $nearestStation = $geo['nearestStation'];
             $distanceMeters = $geo['distanceMeters'];
 
-            // 3. Evaluasi Pulang Awal
+            // 3. Evaluasi apakah karyawan pulang lebih awal
             $isEarly = false;
             if (!empty($attendance->scheduled_out) && $attendance->scheduled_out !== '--:--') {
                 try {
@@ -279,7 +274,7 @@ class KehadiranController extends Controller
                     $schedOutMinutes = ((int) $hOut) * 60 + ((int) $mOut);
                     $schedInMinutes  = ((int) $hIn) * 60 + ((int) $mIn);
 
-                    // Shift Lintas Hari (Contoh: Masuk 19:00, Pulang 07:00)
+                    // Shift lintas hari (misal masuk 19:00, pulang 07:00)
                     if ($schedOutMinutes < $schedInMinutes) {
                         if ($currentMinutes >= $schedInMinutes || $currentMinutes < $schedOutMinutes) {
                             $isEarly = true;
@@ -294,7 +289,7 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 4. Validasi Alasan Wajib jika Pulang Awal atau di Luar Seluruh Radius Resmi
+            // 4. Validasi alasan jika pulang awal atau berada di luar radius
             $reason = trim((string) ($request->reason ?? $request->reason_checkout));
             if ((!$isInRadius || $isEarly) && empty($reason)) {
                 $kondisi = [];
@@ -309,7 +304,7 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // 5. Proses Dokumen / Foto Bukti Alasan (Opsional) dengan Watermark Otomatis
+            // 5. Proses unggah dan watermark dokumen/foto bukti alasan
             $evidenceFile = $request->file('evidence') ?? $request->file('bukti_alasan');
             $evidencePath = null;
 
@@ -324,7 +319,7 @@ class KehadiranController extends Controller
 
             $isFaceVerified = $request->boolean('is_face_verified', false);
 
-            // 6. Update Presensi Pulang
+            // 6. Simpan catatan absensi pulang ke database
             $attendance->update([
                 'check_out'              => $waktuSekarang,
                 'check_out_lat'          => (string) $request->latitude,
@@ -354,12 +349,7 @@ class KehadiranController extends Controller
         }
     }
 
-    /**
-     * Mengevaluasi koordinat GPS pengguna terhadap seluruh titik stasiun resmi di database
-     * (Kantor, Stasiun Booster, Stasiun Umbulan, dan seluruh 18 Rumah Meter).
-     *
-     * @return array{isInRadius: bool, matchedStation: ?Station, nearestStation: ?Station, distanceMeters: float}
-     */
+    // Evaluasi geofence koordinat GPS pengguna terhadap seluruh stasiun resmi
     public function evaluateGeofence(float $userLat, float $userLng): array
     {
         $allStations = Station::all();
@@ -405,9 +395,7 @@ class KehadiranController extends Controller
         ];
     }
 
-    /**
-     * Menghitung jarak antara dua koordinat GPS menggunakan formula Haversine (hasil dalam meter).
-     */
+    // Hitung jarak geolokasi dalam meter menggunakan formula Haversine
     public function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
         $earthRadius = 6371000; // Radius bumi dalam meter
@@ -423,10 +411,7 @@ class KehadiranController extends Controller
         return $earthRadius * $c;
     }
 
-    /**
-     * Memproses file bukti alasan (foto / PDF), menerapkan watermark teks dinamis pada foto,
-     * melakukan kompresi ukuran, dan menyimpannya ke direktori publik bukti_alasan.
-     */
+    // Memproses berkas bukti alasan, memberikan watermark otomatis, dan kompresi gambar
     public function processAndWatermarkEvidence($file, string $type, User $user, string $statusText, ?Carbon $timestamp = null): ?string
     {
         try {

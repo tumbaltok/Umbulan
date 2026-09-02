@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class StationController extends Controller
 {
+    // Menampilkan daftar stasiun dan Rumah Meter
     public function index()
     {
         $daftarStasiunUtama = Station::where('type', '!=', 'rumah_meter')
@@ -36,6 +37,7 @@ class StationController extends Controller
         return view('admin.daftar.stationindex', compact('daftarStasiunUtama', 'daftarRumahMeter', 'daftarStasiun'));
     }
 
+    // Mengekstrak koordinat latitude dan longitude dari tautan Google Maps
     private function parseGoogleMapsUrl(string $url): ?array
     {
         $url = trim($url);
@@ -60,7 +62,7 @@ class StationController extends Controller
         return null;
     }
 
-    // 1. TAMBAH LOKASI / STASIUN (Dukungan Multi-Row Repeater & Single Row)
+    // Menyimpan data stasiun/lokasi baru (mendukung single atau multi-row repeater)
     public function store(Request $request)
     {
         // Pengecekan jika input dikirim dari repeater JavaScript Blade ($request->has('stations'))
@@ -127,12 +129,12 @@ class StationController extends Controller
         return redirect()->back()->with('success', 'Lokasi/Stasiun kerja baru berhasil ditambahkan!');
     }
 
-    // 2. UPDATE LOKASI / STASIUN
+    // Memperbarui data stasiun kerja
     public function update(Request $request, int $id)
     {
         $station = Station::findOrFail($id);
 
-        // Jika update dikirim via array 'stations[0]' dari form edit
+        // Dukungan payload edit dari array atau single form
         $input = $request->has('stations') && isset($request->stations[0])
             ? $request->stations[0]
             : $request->all();
@@ -160,7 +162,7 @@ class StationController extends Controller
         return redirect()->back()->with('success', 'Data lokasi/stasiun kerja berhasil diperbarui!');
     }
 
-    // 3. HAPUS STASIUN
+    // Menghapus stasiun kerja (hanya jika tidak memiliki karyawan terikat)
     public function destroy(int $id)
     {
         $station = Station::withCount('users')->findOrFail($id);
@@ -174,7 +176,7 @@ class StationController extends Controller
         return redirect()->back()->with('success', 'Stasiun kerja berhasil dihapus!');
     }
 
-    // 4. AMBIL LIST KARYAWAN PER STASIUN (JSON)
+    // Mengambil daftar karyawan yang bertugas pada stasiun tertentu (format JSON)
     public function getKaryawan(int $id)
     {
         try {

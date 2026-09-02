@@ -41,25 +41,20 @@ function ensureAuthDir() {
 }
 ensureAuthDir();
 
-/**
- * Bersihkan sesi kredensial di disk
- */
+// Membersihkan folder sesi kredensial di disk
 function clearAuthSession() {
     try {
         if (fs.existsSync(AUTH_PATH)) {
             fs.rmSync(AUTH_PATH, { recursive: true, force: true });
         }
         ensureAuthDir();
-        console.log('[WhatsApp Gateway] 🗑️ Sesi kredensial lokal berhasil dibersihkan.');
+        console.log('[WhatsApp Gateway] Sesi kredensial lokal berhasil dibersihkan.');
     } catch (err) {
         console.error('[WhatsApp Gateway] Gagal membersihkan folder auth_session:', err);
     }
 }
 
-/**
- * Mutex / Message Queueing Mechanism
- * Mencegah race condition, flooding, dan socket reset saat pengiriman pesan beruntun
- */
+// Mekanisme antrean pengiriman pesan berurutan (mutex)
 let sendQueue = Promise.resolve();
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -71,7 +66,7 @@ async function enqueueMessage(targetJid, textMessage) {
                     throw new Error('WhatsApp Gateway belum terhubung.');
                 }
                 const sent = await sock.sendMessage(targetJid, { text: textMessage });
-                // Delay 500ms antar pesan untuk mencegah rate limiting / socket drop dari WhatsApp
+                // Delay 500ms antar pesan untuk stabilitas socket
                 await delay(500);
                 resolve(sent);
             })
@@ -81,9 +76,7 @@ async function enqueueMessage(targetJid, textMessage) {
     });
 }
 
-/**
- * Inisialisasi Socket Baileys dengan Arsitektur Persistent Connection
- */
+// Inisialisasi socket Baileys dengan koneksi persisten
 async function startWhatsAppSocket() {
     if (isConnecting) return;
     isConnecting = true;
@@ -92,7 +85,7 @@ async function startWhatsAppSocket() {
         ensureAuthDir();
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_PATH);
 
-        // Bersihkan instance socket lama sebelum membuat yang baru untuk mencegah socket/listener leak
+        // Bersihkan instance socket lama sebelum membuat socket baru
         if (sock) {
             try {
                 sock.ev?.removeAllListeners();
@@ -100,14 +93,13 @@ async function startWhatsAppSocket() {
                     sock.end(undefined);
                 }
             } catch (cleanupErr) {
-                // Abaikan jika socket sudah tertutup
             }
             sock = null;
         }
 
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
-        console.log(`[WhatsApp Gateway] 🔄 Menginisialisasi socket Baileys v${version.join('.')}...`);
+        console.log(`[WhatsApp Gateway] Menginisialisasi socket Baileys v${version.join('.')}...`);
 
         sock = makeWASocket({
             version,
@@ -126,10 +118,10 @@ async function startWhatsAppSocket() {
             retryRequestDelayMs: 250,
         });
 
-        // Wajib simpan update kredensial setiap ada perubahan state
+        // Simpan pembaruan kredensial saat state berubah
         sock.ev.on('creds.update', saveCreds);
 
-        // Pantau siklus koneksi
+        // Pantau siklus koneksi socket
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
 
@@ -147,7 +139,7 @@ async function startWhatsAppSocket() {
                 } catch (qrErr) {
                     console.error('[WhatsApp Gateway] Gagal generate Data URL QR:', qrErr);
                 }
-                console.log('[WhatsApp Gateway] 📱 QR Code baru siap untuk di-scan.');
+                console.log('[WhatsApp Gateway] QR Code baru siap untuk di-scan.');
             }
 
             if (connection === 'connecting') {
@@ -163,7 +155,7 @@ async function startWhatsAppSocket() {
 
                 const rawJid = sock?.user?.id || '';
                 const phone = rawJid.split(':')[0].replace(/[^0-9]/g, '');
-                console.log(`[WhatsApp Gateway] ✅ Socket TERHUBUNG & STABIL. Nomor: +${phone}`);
+                console.log(`[WhatsApp Gateway] Socket terhubung. Nomor: +${phone}`);
             }
 
             if (connection === 'close') {
@@ -176,35 +168,28 @@ async function startWhatsAppSocket() {
 
                 const isRestartRequired = statusCode === DisconnectReason.restartRequired || statusCode === 515;
 
-                // Status pemutusan permanen di mana sesi lokal tidak lagi valid:
-                // Sesi di disk HANYA boleh dihapus jika:
-                // 1. Permintaan eksplisit dari Admin (manualLogoutRequested === true)
-                // 2. Error autentikasi permanen: loggedOut (401) atau badSession (403/500 saat sesi memang invalid)
-                // PENTING: statusCode === 515 (restartRequired) TIDAK BOLEH MENGHAPUS SESI!
                 const isPermanentDisconnect = !isRestartRequired && (
                     manualLogoutRequested
                     || statusCode === DisconnectReason.loggedOut
                     || statusCode === DisconnectReason.badSession
                 );
 
-                console.warn(`[WhatsApp Gateway] ⚠️ Koneksi terputus. Status Code: ${statusCode}. Permanent: ${isPermanentDisconnect}. Manual Logout: ${manualLogoutRequested}`);
+                console.warn(`[WhatsApp Gateway] Koneksi terputus. Status Code: ${statusCode}. Permanent: ${isPermanentDisconnect}. Manual Logout: ${manualLogoutRequested}`);
 
                 if (isPermanentDisconnect) {
-                    console.log(`[WhatsApp Gateway] 🗑️ Menghapus sesi kredensial karena logout / invalid permanen (Status ${statusCode})...`);
+                    console.log(`[WhatsApp Gateway] Menghapus sesi kredensial (Status ${statusCode})...`);
                     currentQr = null;
                     currentQrDataUrl = null;
                     clearAuthSession();
                     manualLogoutRequested = false;
                     setTimeout(() => startWhatsAppSocket(), 2000);
                 } else if (isRestartRequired) {
-                    // RESTART REQUIRED (515): Selesai scan QR, Baileys perlu reconnect cepat untuk merampungkan handshake enkripsi
-                    console.log('[WhatsApp Gateway] 🔄 Stream restart required (Status 515 / Pairing Handshake). Menghubungkan ulang segera tanpa hapus sesi...');
+                    // Reconnect cepat setelah scan QR untuk merampungkan handshake enkripsi
+                    console.log('[WhatsApp Gateway] Stream restart required (Status 515). Menghubungkan ulang segera...');
                     setTimeout(() => startWhatsAppSocket(), 500);
                 } else {
-                    // SILENT AUTO-RECONNECT:
-                    // Timeout (408), connectionClosed (428), dll.
-                    // Hubungkan kembali socket secara transparan di background
-                    console.log(`[WhatsApp Gateway] 🔄 Silent auto-reconnect (Status ${statusCode}). Menghubungkan ulang dalam 3 detik...`);
+                    // Hubungkan kembali secara otomatis di latar belakang
+                    console.log(`[WhatsApp Gateway] Menghubungkan ulang dalam 3 detik (Status ${statusCode})...`);
                     setTimeout(() => startWhatsAppSocket(), 3000);
                 }
             }
@@ -222,10 +207,7 @@ async function startWhatsAppSocket() {
 // REST API ENDPOINTS
 // ==========================================
 
-/**
- * GET /status
- * Status koneksi real-time untuk dashboard & scheduler
- */
+// Endpoint status koneksi real-time
 app.get('/status', (req, res) => {
     const phone = isSocketConnected && sock?.user?.id
         ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '')
@@ -242,10 +224,7 @@ app.get('/status', (req, res) => {
     });
 });
 
-/**
- * GET /qr
- * Mengembalikan string Data URL QR Code
- */
+// Endpoint untuk mengambil QR code
 app.get('/qr', (req, res) => {
     const phone = isSocketConnected && sock?.user?.id
         ? sock.user.id.split(':')[0].replace(/[^0-9]/g, '')
@@ -270,10 +249,7 @@ app.get('/qr', (req, res) => {
     });
 });
 
-/**
- * POST /send-message
- * Mengirim pesan dengan proteksi sequential queue / mutex
- */
+// Endpoint untuk mengirim pesan WhatsApp
 app.post('/send-message', async (req, res) => {
     const { number, message } = req.body;
 
@@ -323,13 +299,10 @@ app.post('/send-message', async (req, res) => {
     }
 });
 
-/**
- * POST /disconnect
- * Manual Disconnect dari Admin (Satu-satunya pemicu penghapusan sesi lokal secara eksplisit)
- */
+// Endpoint untuk memutuskan sesi WhatsApp secara manual (khusus Admin)
 app.post('/disconnect', async (req, res) => {
     try {
-        console.log('[WhatsApp Gateway] 🛑 Permintaan manual disconnect diterima dari Admin...');
+        console.log('[WhatsApp Gateway] Permintaan manual disconnect diterima dari Admin...');
         manualLogoutRequested = true;
         isSocketConnected = false;
         currentQr = null;
@@ -343,7 +316,6 @@ app.post('/disconnect', async (req, res) => {
                     sock.end(undefined);
                 }
             } catch (sockErr) {
-                // Abaikan error saat cleanup socket
             }
             sock = null;
         }
@@ -352,7 +324,7 @@ app.post('/disconnect', async (req, res) => {
         manualLogoutRequested = false;
         isConnecting = false;
 
-        // Restart socket untuk langsung menyiapkan QR pairing baru
+        // Siapkan socket baru untuk pemindaian ulang
         setTimeout(() => {
             startWhatsAppSocket();
         }, 1000);
@@ -380,8 +352,8 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[WhatsApp Gateway Unhandled Rejection]:', reason);
 });
 
-// Mulai Server & Inisialisasi Socket Baileys
+// Mulai server dan inisialisasi socket Baileys
 app.listen(PORT, () => {
-    console.log(`[WhatsApp Gateway Microservice] 🚀 Aktif di http://127.0.0.1:${PORT}`);
+    console.log(`[WhatsApp Gateway Microservice] Aktif di http://127.0.0.1:${PORT}`);
     startWhatsAppSocket();
 });

@@ -121,13 +121,13 @@
 <body>
     <div class="wrapper">
         <div class="container">
-            <!-- Header -->
+            {{-- Header Email --}}
             <div class="header">
                 <h1>PT META ADHYA TIRTA UMBULAN</h1>
                 <p>Sistem Keamanan & Portal Kepegawaian ERP</p>
             </div>
 
-            <!-- Body Content -->
+            {{-- Isi Konten Email --}}
             <div class="content">
                 <div class="greeting">
                     Halo, {{ $user->name }}!
@@ -136,7 +136,7 @@
                     Kami menerima permintaan pengaturan ulang kata sandi untuk akun Anda pada portal ERP META Adhya Tirta Umbulan. Gunakan kode verifikasi (OTP) 6-digit di bawah ini untuk melanjutkan:
                 </div>
 
-                <!-- OTP Code Display -->
+                {{-- Tampilan Kode OTP --}}
                 <div class="otp-box">
                     <div class="otp-label">Kode Verifikasi (OTP)</div>
                     <div class="otp-code">{{ $otp }}</div>
@@ -145,7 +145,7 @@
                     </div>
                 </div>
 
-                <!-- Security Warning -->
+                {{-- Peringatan Keamanan OTP --}}
                 <div class="warning-card">
                     <p>
                         <strong>Peringatan Keamanan:</strong> Jangan pernah membagikan kode OTP ini kepada siapa pun, termasuk pihak manajemen atau IT Helpdesk. Tim kami tidak akan pernah meminta kode rahasia ini.
@@ -157,7 +157,7 @@
                 </div>
             </div>
 
-            <!-- Footer -->
+            {{-- Footer Email --}}
             <div class="footer">
                 &copy; {{ date('Y') }} PT META Adhya Tirta Umbulan. Hak Cipta Dilindungi.<br>
                 Sistem Otomasi Notifikasi &bull; Email ini dikirimkan secara otomatis, mohon tidak membalas email ini.

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class PengajuanCarController extends Controller
 {
+    // Menampilkan riwayat pengajuan CAR milik pengguna saat ini
     public function index()
     {
         $user = Auth::user();
@@ -26,6 +27,7 @@ class PengajuanCarController extends Controller
         return view('car.carriwayat', compact('riwayatCar'));
     }
 
+    // Menampilkan form pembuatan pengajuan CAR baru
     public function create()
     {
         $user = Auth::user();
@@ -33,7 +35,7 @@ class PengajuanCarController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
-        // Format Otomatis Nomor CAR: [No] / META / PAS / CAR / [Romawi] / [Tahun]
+        // Format nomor CAR: [No] / META / PAS / CAR / [Romawi] / [Tahun]
         $tahunSekarang = date('Y');
         $bulanAngka = (int) date('m');
         $romawi = [
@@ -51,6 +53,7 @@ class PengajuanCarController extends Controller
         return view('car.carcreate', compact('nomorCar', 'daftarStasiun'));
     }
 
+    // Menyimpan formulir pengajuan CAR beserta rincian item pengadaan
     public function store(Request $request)
     {
         $user = Auth::user();

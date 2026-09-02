@@ -17,11 +17,13 @@ class ScheduleService
         2 => 'libur',
     ];
 
+    // Periksa apakah karyawan saat ini berada dalam rentang jam kerja aktif
     public function isUserWorkingNow(User $user): bool
     {
         $now = $this->now();
         $schedule = $this->getTodaySchedule($user, $now);
 
+        // Jika hari libur atau jadwal kosong, kembalikan false
         if (
             $schedule['is_day_off'] ||
             empty($schedule['scheduled_in']) ||
@@ -34,10 +36,12 @@ class ScheduleService
         $in = $this->normalizeTime($schedule['scheduled_in']);
         $out = $this->normalizeTime($schedule['scheduled_out']);
 
+        // Shift dalam hari yang sama (contoh: 08:00 - 17:00)
         if ($in < $out) {
             return $currentTime >= $in && $currentTime < $out;
         }
 
+        // Shift lintas tengah malam (contoh: 19:00 - 07:00)
         if ($in > $out) {
             return $currentTime >= $in || $currentTime < $out;
         }
@@ -45,6 +49,7 @@ class ScheduleService
         return false;
     }
 
+    // Ambil label status dan konfigurasi badge visual kerja karyawan
     public function getWorkingStatusText(User $user): array
     {
         $now = $this->now();
@@ -86,6 +91,7 @@ class ScheduleService
         ];
     }
 
+    // Ambil detail jadwal kerja karyawan untuk tanggal tertentu (normal atau roster)
     public function getTodaySchedule(User $user, $date = null): array
     {
         if ($date === null) {
@@ -100,10 +106,12 @@ class ScheduleService
             )->setTime(self::ROSTER_CHANGE_HOUR, 0, 0);
         }
 
+        // Jadwal tipe normal
         if ($user->schedule_type === 'normal' || empty($user->schedule_type)) {
             return $this->calculateNormalSchedule($user, $evalDate);
         }
 
+        // Jadwal tipe roster (rotasi mingguan dimulai hari Selasa)
         if ($user->schedule_type === 'roster') {
             if (empty($user->roster_start_date)) {
                 return $this->getShiftRosterDetail('pagi');
@@ -121,13 +129,14 @@ class ScheduleService
         ];
     }
 
+    // Hitung jarak geolokasi dalam satuan meter menggunakan formula Haversine
     public function calculateDistanceMeter(
         float $userLat,
         float $userLng,
         float $stationLat,
         float $stationLng
     ): float {
-        $earthRadius = 6371000;
+        $earthRadius = 6371000; // Radius rata-rata bumi dalam meter
         $latFrom = deg2rad($userLat);
         $lonFrom = deg2rad($userLng);
         $latTo = deg2rad($stationLat);
@@ -147,11 +156,13 @@ class ScheduleService
         return round($angle * $earthRadius, 2);
     }
 
+    // Ambil waktu saat ini dengan zona waktu Asia/Jakarta
     private function now(): Carbon
     {
         return Carbon::now(self::TIMEZONE);
     }
 
+    // Tentukan acuan Selasa pergantian shift roster terdekat
     private function getCurrentRosterTuesday(Carbon $dateTime): Carbon
     {
         $dateTime = $dateTime->copy()->setTimezone(self::TIMEZONE);
@@ -175,6 +186,7 @@ class ScheduleService
         return $tuesday;
     }
 
+    // Hitung pergeseran siklus shift roster (Pagi -> Malam -> Libur)
     private function calculateRosterByDateTime(User $user, Carbon $targetDate): array
     {
         $startDate = Carbon::parse($user->roster_start_date, self::TIMEZONE)
@@ -198,6 +210,7 @@ class ScheduleService
         return $this->calculateRosterByDateTime($user, $targetDate);
     }
 
+    // Hitung jadwal kerja normal berdasarkan daftar hari kerja aktif karyawan
     private function calculateNormalSchedule(User $user, Carbon $evalDate): array
     {
         $dayOfWeek = $evalDate->dayOfWeekIso;
@@ -207,6 +220,7 @@ class ScheduleService
             $allowedDays = json_decode($allowedDays, true);
         }
 
+        // Default hari kerja: Senin sampai Jumat jika belum diset
         if (empty($allowedDays) || ! is_array($allowedDays)) {
             $isWorkDay = ($dayOfWeek >= 1 && $dayOfWeek <= 5);
         } else {
@@ -219,6 +233,7 @@ class ScheduleService
             ];
             $dayNameIndo = $indoDays[$dayOfWeek];
 
+            // Evaluasi apakah hari saat ini cocok dengan daftar hari kerja diizinkan
             $isWorkDay =
                 in_array($dayNameShort, $allowedDaysLower, true) ||
                 in_array($dayNameFull, $allowedDaysLower, true) ||
@@ -245,6 +260,7 @@ class ScheduleService
         ];
     }
 
+    // Ambil konfigurasi jam kerja berdasarkan jenis shift roster (pagi, malam, atau libur)
     private function getShiftRosterDetail(string $shiftType): array
     {
         if ($shiftType === 'pagi') {
@@ -276,6 +292,7 @@ class ScheduleService
         ];
     }
 
+    // Normalisasi format string waktu menjadi format H:i:s
     private function normalizeTime(string $time): string
     {
         return strlen($time) === 5 ? $time.':00' : $time;

@@ -21,10 +21,10 @@ async function queueRequest(request) {
     let headers = Object.fromEntries(request.headers.entries());
 
     if (request.headers.get('content-type') && request.headers.get('content-type').includes('multipart/form-data')) {
-        // FormData needs special handling if we want to serialize it
+        // Serialisasi FormData untuk sinkronisasi offline
         const formData = await request.clone().formData();
         body = JSON.stringify(Object.fromEntries(formData.entries()));
-        headers['content-type'] = 'application/json'; // Convert to JSON for easier sync
+        headers['content-type'] = 'application/json';
     } else {
         body = await request.clone().text();
     }
@@ -48,12 +48,12 @@ async function queueRequest(request) {
             const registration = await navigator.serviceWorker.ready;
             await registration.sync.register('laravel-pwa-sync');
         } catch (e) {
-            console.error('[Laravel PWA] Background Sync registration failed:', e);
+            console.error('[Laravel PWA] Pendaftaran Background Sync gagal:', e);
         }
     }
 }
 
-// Intercept form submissions
+// Menangkap pengiriman formulir saat mode offline
 document.addEventListener('submit', async (event) => {
     if (!navigator.onLine) {
         const form = event.target;
@@ -71,13 +71,12 @@ document.addEventListener('submit', async (event) => {
             });
 
             await queueRequest(request);
-            alert('You are offline. Your form submission has been queued and will be synced when you are back online.');
+            alert('Koneksi internet terputus. Data formulir Anda telah disimpan dan akan disinkronkan otomatis saat kembali online.');
         }
     }
 });
 
-// Optional: Intercept fetch requests (might be too intrusive if not careful)
-// This is just a helper that developers can use
+// Pembantu antrean sinkronisasi global
 window.laravelPwaSync = {
     queue: queueRequest
 };

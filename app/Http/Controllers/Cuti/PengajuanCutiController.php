@@ -33,6 +33,7 @@ class PengajuanCutiController extends Controller
         $this->calendarScheduleService = $calendarScheduleService;
     }
 
+    // Menghitung jumlah hari kerja efektif (mengecualikan hari libur normal / roster)
     private function hitungHariKerjaEfektif(User $user, Carbon $tanggalMulai, Carbon $tanggalSelesai): int
     {
         $totalHariKerja = 0;
@@ -45,15 +46,13 @@ class PengajuanCutiController extends Controller
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
 
             if ($user->schedule_type === 'normal' || empty($user->schedule_type)) {
-                // USER NORMAL:
-                // Akhir pekan (is_day_off) dan Tanggal Merah Libur Nasional TIDAK DIHITUNG
+                // Jadwal Normal: Hari libur akhir pekan dan tanggal merah nasional tidak dihitung
                 $isNationalHoliday = isset($holidays[$dateString]);
                 if (!$daySchedule['is_day_off'] && !$isNationalHoliday) {
                     $totalHariKerja++;
                 }
             } else {
-                // USER ROSTER (24/7 Continuous Shift):
-                // Abaikan libur nasional. Hanya hitung hari yang bukan Hari Libur Roster (Off Day).
+                // Jadwal Roster: Hanya hari kerja aktif yang dihitung (libur roster dilewati)
                 if (!$daySchedule['is_day_off'] && ($daySchedule['shift_type'] ?? '') !== 'libur') {
                     $totalHariKerja++;
                 }
@@ -65,6 +64,7 @@ class PengajuanCutiController extends Controller
         return $totalHariKerja;
     }
 
+    // Menampilkan formulir pengajuan cuti/izin baru
     public function create()
     {
         $user = Auth::user();
@@ -91,6 +91,7 @@ class PengajuanCutiController extends Controller
         return view('cuti.cuticreate', compact('jenisCuti', 'sisaSaldo'));
     }
 
+    // Menyimpan pengajuan cuti/izin baru dari antarmuka web
     public function storeWeb(Request $request)
     {
         $user = Auth::user();
@@ -290,6 +291,7 @@ class PengajuanCutiController extends Controller
         }
     }
 
+    // Menampilkan riwayat seluruh pengajuan cuti milik pengguna saat ini
     public function riwayatView(Request $request)
     {
         $pengajuanCuti = DB::table('pengajuan_cutis')
@@ -303,6 +305,7 @@ class PengajuanCutiController extends Controller
         return view('cuti.cutiriwayat', compact('pengajuanCuti'));
     }
 
+    // Mengambil rincian data pengajuan cuti via JSON
     public function detailCutiJSON(int $id)
     {
         $cuti = PengajuanCuti::with(['jenisCuti', 'subCuti'])->findOrFail($id);
@@ -322,6 +325,7 @@ class PengajuanCutiController extends Controller
         ]);
     }
 
+    // Menghasilkan dokumen PDF cetak surat cuti
     public function cetakSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with([
@@ -358,6 +362,7 @@ class PengajuanCutiController extends Controller
         return $pdf->stream('Surat-Cuti-' . str_replace(' ', '_', $pengajuan->user->name) . '.pdf');
     }
 
+    // Mengambil daftar sub-cuti berdasarkan ID jenis cuti induk (JSON)
     public function handleSubCuti(int $id)
     {
         $jenis = JenisCuti::with('subCutis')->findOrFail($id);

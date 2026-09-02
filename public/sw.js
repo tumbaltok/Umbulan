@@ -6,18 +6,18 @@ const FILES_TO_CACHE = [
     OFFLINE_URL
 ];
 
-// Pre-cache critical resources
+// Pra-simpan aset kritis saat instalasi
 self.addEventListener("install", (event) => {
-    console.log('[Laravel PWA] Service Worker installing...');
+    console.log('[Laravel PWA] Service Worker menginstal...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(FILES_TO_CACHE))
     );
 });
 
-// Remove old caches
+// Pembersihan cache versi lama
 self.addEventListener("activate", (event) => {
-    console.log('[Laravel PWA] Service Worker activated.');
+    console.log('[Laravel PWA] Service Worker aktif.');
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(
@@ -32,24 +32,24 @@ self.addEventListener("activate", (event) => {
     self.clients.claim();
 });
 
-// Listen for skip waiting message
+// Handler pesan skip waiting
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
 
-// Fetch strategy
+// Strategi pengambilan data cache & jaringan
 self.addEventListener("fetch", (event) => {
 
     const request = event.request;
 
-    // ✅ Never intercept non-GET requests - let browser handle form POSTs natively
+    // Lewati permintaan non-GET agar diproses peramban secara native
     if (request.method !== 'GET') {
         return;
     }
 
-    // ✅ Handle page navigation (offline fallback)
+    // Navigasi halaman dengan fallback halaman offline
     if (request.mode === "navigate") {
         event.respondWith(
             fetch(request)
@@ -58,7 +58,7 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // ✅ Cache-first for static assets
+    // Prioritas Cache-First untuk aset statis
     if (
         request.destination === "style" ||
         request.destination === "script" ||
@@ -79,7 +79,7 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // ✅ Default: network-first with cache fallback
+    // Default: Network-First dengan fallback ke cache
     event.respondWith(
         fetch(request)
             .then(response => {
@@ -89,17 +89,12 @@ self.addEventListener("fetch", (event) => {
                 });
             })
             .catch(async (error) => {
-                // Retry failed API requests if Background Sync is supported
-                if (request.method === 'POST' && 'SyncManager' in self) {
-                    // We can't easily queue it here because we can't access IndexedDB easily without a library or boilerplate
-                    // But we've already handled form submissions in background-sync.js
-                }
                 return caches.match(request);
             })
     );
 });
 
-// Background Sync
+// Sinkronisasi data di latar belakang
 self.addEventListener('sync', (event) => {
     if (event.tag === 'laravel-pwa-sync') {
         event.waitUntil(syncRequests());

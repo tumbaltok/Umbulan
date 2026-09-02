@@ -37,9 +37,9 @@ class CalendarScheduleService
         $endDate = $startDate->copy()->endOfMonth();
         $holidays = $this->getNationalHolidays($year);
 
-        // Ambil Data Cuti User yang Disetujui (Mencakup Cuti Lintas Bulan)
+        // Ambil data cuti user yang disetujui (mencakup cuti lintas bulan)
         $approvedLeaves = PengajuanCuti::where('user_id', $user->id)
-            ->where('status_akhir', 'approved') // <--- Menggunakan status_akhir
+            ->where('status_akhir', 'approved') // Hanya ambil cuti yang telah disetujui
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('tanggal_mulai', [$startDate, $endDate])
                     ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])
@@ -57,7 +57,7 @@ class CalendarScheduleService
             $dateString = $currentDate->format('Y-m-d');
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
 
-            // 1. Cek Apakah Ada Cuti pada Tanggal Ini
+            // Cek apakah ada cuti aktif pada tanggal evaluasi
             $leaveInfo = null;
             foreach ($approvedLeaves as $leave) {
                 if ($currentDate->between(Carbon::parse($leave->tanggal_mulai), Carbon::parse($leave->tanggal_selesai))) {
@@ -66,23 +66,23 @@ class CalendarScheduleService
                 }
             }
 
-            // Determine Status & Box Color (Style GitHub)
+            // Tentukan status dan warna indikator kalender
             $statusType = 'normal_work';
             $colorClass = 'bg-emerald-500 hover:bg-emerald-600';
             $titleText = 'Jadwal Masuk Kerja';
             $descriptionText = '';
 
             if ($leaveInfo) {
-                // KONDISI CUTI -> KUNING
+                // Status cuti disetujui (warna kuning)
                 $statusType = 'cuti';
                 $colorClass = 'bg-amber-400 hover:bg-amber-500';
                 $titleText = 'Sedang Cuti';
                 $descriptionText = 'Pengajuan Cuti Disetujui: '.($leaveInfo->alasan_cuti ?? 'Izin Cuti');
             } elseif ($user->schedule_type === 'normal') {
-                // JADWAL NORMAL
+                // Status jadwal kerja normal
                 $isNationalHoliday = isset($holidays[$dateString]);
                 if ($daySchedule['is_day_off'] || $isNationalHoliday) {
-                    // LIBUR -> MERAH
+                    // Libur akhir pekan atau tanggal merah nasional (warna merah)
                     $statusType = 'libur';
                     $colorClass = 'bg-rose-500 hover:bg-rose-600';
                     $titleText = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : 'Libur Akhir Pekan';
@@ -91,17 +91,17 @@ class CalendarScheduleService
                     $descriptionText = "Masuk Kerja Normal ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";
                 }
             } else {
-                // JADWAL ROSTER (Abaikan Libur Nasional, Ikuti Rotasi Shift)
+                // Status jadwal roster (rotasi shift 12 jam)
                 if ($daySchedule['shift_type'] === 'pagi') {
-                    $colorClass = 'bg-emerald-500 hover:bg-emerald-600'; // Pagi -> Hijau
+                    $colorClass = 'bg-emerald-500 hover:bg-emerald-600'; // Shift pagi (warna hijau)
                     $titleText = 'Roster Shift Pagi';
                     $descriptionText = "Jam Kerja: {$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB (12 Jam)";
                 } elseif ($daySchedule['shift_type'] === 'malam') {
-                    $colorClass = 'bg-indigo-600 hover:bg-indigo-700'; // Malam -> Nila/Biru Tua
+                    $colorClass = 'bg-indigo-600 hover:bg-indigo-700'; // Shift malam (warna indigo)
                     $titleText = 'Roster Shift Malam';
                     $descriptionText = "Jam Kerja: {$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB (12 Jam)";
                 } else {
-                    $colorClass = 'bg-rose-500 hover:bg-rose-600'; // Libur Roster -> Merah
+                    $colorClass = 'bg-rose-500 hover:bg-rose-600'; // Libur roster (warna merah)
                     $statusType = 'libur';
                     $titleText = 'Roster Minggu Libur';
                     $descriptionText = 'Hari Libur Roster Shift';

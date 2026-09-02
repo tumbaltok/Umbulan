@@ -25,13 +25,13 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Halaman Selamat Datang / Landing Page Utama
+// Halaman utama / landing page
 Route::get('/', function () {
     return view('welcome3');
 });
 
 // ==========================================================
-// GRUP GUEST (Belum Login)
+// GRUP PENGGUNA TAMU (Belum Login)
 // ==========================================================
 Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
@@ -43,7 +43,7 @@ Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
     // ======================================================
-    // RUTE PEMULIHAN KATA SANDI (FORGOT / RESET PASSWORD VIA OTP)
+    // RUTE PEMULIHAN KATA SANDI (OTP)
     // ======================================================
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('forgot');
     Route::get('/forgot', fn () => redirect()->route('forgot'));
@@ -55,21 +55,20 @@ Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     Route::get('/forgot-password/reset', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('forgot.reset_password_view');
     Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('forgot.update');
 
-    // Kompatibilitas endpoint lama
+    // Kompatibilitas rute lama
     Route::post('/forgot/send-otp-mail', [ForgotPasswordController::class, 'sendOtp']);
     Route::post('/forgot/verify-otp-mail', [ForgotPasswordController::class, 'verifyOtp']);
     Route::post('/forgot/update', [ForgotPasswordController::class, 'resetPassword']);
 });
 
 // ==========================================================
-// GRUP AUTH (Sudah Login)
+// GRUP PENGGUNA TERAUTENTIKASI (Sudah Login)
 // ==========================================================
 Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 
     // ----------------------------------------------------------
-    // 1. TIER 1: RUTE VERIFIKASI EMAIL (Dikecualikan dari 'verified')
+    // 1. Verifikasi Email (Tier 1)
     // ----------------------------------------------------------
-    // Notice Verifikasi Email (Jika sudah verifikasi, lanjut ke verifikasi nomor telepon atau Dashboard)
     Route::get('/auth/verify-email', function (Request $request) {
         if ($request->user()->hasVerifiedEmail()) {
             if (!$request->user()->hasVerifiedPhone()) {
@@ -87,12 +86,10 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         return view('auth.verify-email');
     })->name('verification.notice');
 
-    // Kompatibilitas URL /email/verify
     Route::get('/email/verify', function () {
         return redirect()->route('verification.notice');
     });
 
-    // Eksekusi Link Verifikasi dari Email Pengguna
     Route::get('/auth/verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
@@ -101,7 +98,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
     })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
-    // Kompatibilitas link lama
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
@@ -110,14 +106,12 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
     })->middleware(['signed', 'throttle:6,1']);
 
-    // Kirim Ulang Link Verifikasi Email
     Route::post('/auth/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
 
-    // Kompatibilitas kirim ulang lama
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
 
@@ -125,7 +119,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     })->middleware('throttle:6,1');
 
     // ----------------------------------------------------------
-    // 2. TIER 2: RUTE VERIFIKASI WHATSAPP OTP (Wajib Email Terverifikasi)
+    // 2. Verifikasi WhatsApp OTP (Tier 2)
     // ----------------------------------------------------------
     Route::middleware('verified')->group(function () {
         Route::get('/auth/verify-phone', [PhoneVerificationController::class, 'notice'])->name('verification.phone.notice');
@@ -134,12 +128,12 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         Route::post('/auth/phone/update-number', [PhoneVerificationController::class, 'updateNumber'])->name('verification.phone.update');
     });
 
-    // Logout (Dapat diakses walau belum terverifikasi agar bisa beralih akun)
+    // Proses keluar akun (Logout)
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
     Route::get('/logout', fn () => redirect()->route('login'));
 
     // ----------------------------------------------------------
-    // 3. SELURUH RUTE INTERNAL (Wajib Dua Tahap: Email & WhatsApp Terverifikasi)
+    // 3. Rute Internal (Wajib Email & WhatsApp Terverifikasi)
     // ----------------------------------------------------------
     Route::middleware(['verified', 'phone.verified'])->group(function () {
 
@@ -148,59 +142,59 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
         Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
-        // Route Absensi & Pengecekan Lokasi/Wajah
+        // Presensi Kehadiran
         Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
         Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
 
-        // Route Pengaturan Jadwal Kerja & Registrasi Wajah User
+        // Jadwal Kerja & Registrasi Biometrik
         Route::post('/user/schedule/update', [JadwalController::class, 'updateSchedule'])->name('user.schedule.update');
         Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('user.face.register');
 
-        // Fitur Cuti (Riwayat & Detail)
+        // Modul Cuti
         Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
         Route::get('/cuti/riwayat/{id}/detail', [PengajuanCutiController::class, 'detailCutiJSON']);
 
-        // Fitur CAR (Riwayat)
+        // Modul CAR
         Route::get('/car/riwayat', [PengajuanCarController::class, 'index'])->name('car.riwayat');
 
-        // Fitur MPR (Riwayat)
+        // Modul MPR
         Route::get('/mpr/riwayat', [PengajuanMprController::class, 'index'])->name('mpr.riwayat');
 
-        // Fitur Internal (Wajib Akun Lengkap: Jadwal, TTD, & Biometrik Wajah)
+        // Pengajuan Modul (Wajib 5 Syarat Akun Lengkap)
         Route::middleware('account.complete')->group(function () {
-            // Form Cuti
+            // Pengajuan Cuti
             Route::get('/cuti/ajukan', [PengajuanCutiController::class, 'create'])->name('cuti.create');
             Route::post('/cuti/store', [PengajuanCutiController::class, 'storeWeb'])->name('cuti.storeWeb');
             Route::get('/cuti/{id}/pembungkus', [PengajuanCutiController::class, 'viewSuratCuti'])->name('cuti.viewSurat');
             Route::get('/cuti/{id}/cetak', [PengajuanCutiController::class, 'cetakSuratCuti'])->name('cuti.cetak');
             Route::get('/cuti/ambil-subcuti/{id}', [PengajuanCutiController::class, 'handleSubCuti'])->name('cuti.ambilSubCuti');
 
-            // Form & Cetak CAR
+            // Pengajuan & Cetak CAR
             Route::get('/car/ajukan', [PengajuanCarController::class, 'create'])->name('car.create');
             Route::post('/car/store', [PengajuanCarController::class, 'store'])->name('car.store');
             Route::get('/car/print/{id}', [DokumenCarController::class, 'print'])->name('car.print');
 
-            // Form & Cetak MPR
+            // Pengajuan & Cetak MPR
             Route::get('/mpr/ajukan', [PengajuanMprController::class, 'create'])->name('mpr.create');
             Route::post('/mpr/store', [PengajuanMprController::class, 'store'])->name('mpr.store');
             Route::get('/mpr/cetak/{id}', [DokumenMprController::class, 'cetakPdf'])->name('mpr.cetak');
         });
 
-        // Fitur Jadwal Kerja
+        // Pengaturan Shift Awal Roster
         Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
         Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
 
         // ==========================================================
-        // GRUP ATASAN (Khusus) - Wajib 'atasan' & 'verified'
+        // GRUP KHUSUS ATASAN & ADMINISTRATOR
         // ==========================================================
         Route::middleware('atasan')->group(function () {
-            // CRUD Role & Jabatan
+            // Manajemen Peran (Role)
             Route::get('/admin/role', [RoleController::class, 'index'])->name('admin.role.index');
             Route::post('/admin/role', [RoleController::class, 'store'])->name('admin.role.store');
             Route::put('/admin/role/{id}', [RoleController::class, 'update'])->name('admin.role.update');
             Route::delete('/admin/role/{id}', [RoleController::class, 'destroy'])->name('admin.role.destroy');
 
-            // Kelola Jobdesk Baru
+            // Manajemen Jobdesk
             Route::post('/admin/jobdesk', [RoleController::class, 'storeJobdesk'])->name('admin.jobdesk.store');
             Route::put('/admin/jobdesk/{id}', [RoleController::class, 'updateJobdesk'])->name('admin.jobdesk.update');
             Route::delete('/admin/jobdesk/{id}', [RoleController::class, 'destroyJobdesk'])->name('admin.jobdesk.destroy');

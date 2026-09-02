@@ -8,7 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DokumenCutiController extends Controller
 {
-    // Frame Halaman Preview Cetak (Web View)
+    // Menampilkan halaman pratinjau surat cuti
     public function viewSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
@@ -23,7 +23,7 @@ class DokumenCutiController extends Controller
         ]);
     }
 
-    // Ekspor atau Download DomPDF (Stream PDF)
+    // Menghasilkan dan mengunduh berkas PDF surat cuti resmi
     public function cetakSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with([
@@ -38,10 +38,10 @@ class DokumenCutiController extends Controller
             return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');
         }
 
-        // Ambil data penandatangan Tahap 1
+        // Data approver tahap 1
         $approverLevel1 = $pengajuan->approverTahap1;
 
-        // Jika hanya 1 level persetujuan (status_tahap_2 == 'not_required'), samakan Atasan 2 dengan Atasan 1
+        // Jika hanya 1 level approval, atasan 2 disamakan dengan atasan 1
         if ($pengajuan->status_tahap_2 === 'not_required' || empty($pengajuan->approver_tahap_2_id)) {
             $approverLevel2 = $approverLevel1;
         } else {

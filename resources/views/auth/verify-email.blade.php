@@ -6,12 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Verifikasi Alamat Email | PT META Adhya Tirta Umbulan</title>
 
-    <!-- Favicon -->
+    {{-- Favicon Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/iconfav.png') }}">
 
-    <!-- Tailwind CSS CDN -->
+    {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Kunci Halaman Auth Selalu Light Mode
@@ -54,7 +54,7 @@
         };
     </script>
 
-    <!-- FontAwesome & Google Fonts -->
+    {{-- FontAwesome dan Google Fonts --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -74,21 +74,21 @@
         }
     </style>
 
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="h-full bg-slate-50 text-slate-800 flex flex-col justify-between antialiased relative selection:bg-brand-500 selection:text-white">
 
-    <!-- Ambient Glowing Background Orbs -->
+    {{-- Elemen Background Gradien Dekoratif --}}
     <div class="fixed inset-0 pointer-events-none overflow-hidden bg-grid-pattern z-0">
         <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[360px] bg-gradient-to-tr from-brand-400/25 to-cyan-300/20 blur-3xl rounded-full"></div>
         <div class="absolute bottom-0 right-0 w-[420px] h-[320px] bg-gradient-to-tl from-sky-400/15 to-emerald-300/10 blur-3xl rounded-full"></div>
     </div>
 
-    <!-- Minimal Header: Branding Bulat Sempurna -->
+    {{-- Header Minimalis Logo Perusahaan --}}
     <header class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <!-- Logo PT Bulat Sempurna -->
+            {{-- Logo PT Perusahaan --}}
             <div class="w-11 h-11 rounded-full bg-white border border-slate-200/90 shadow-sm flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
                 <img src="{{ asset('images/iconfav.png') }}" alt="Logo PT Umbulan" class="w-full h-full object-contain rounded-full">
             </div>
@@ -99,24 +99,24 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    {{-- Kontainer Konten Utama --}}
     <main class="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
         <div class="w-full max-w-xl mx-auto">
 
-            <!-- Card Utama Glassmorphism Light Clean -->
+            {{-- Kartu Verifikasi Email --}}
             <div class="bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl shadow-slate-200/60 p-6 sm:p-10 transition-all duration-300 relative overflow-hidden">
 
-                <!-- Accent Water Line -->
+                {{-- Garis Aksen Warna Header --}}
                 <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-600 via-cyan-400 to-brand-500"></div>
 
-                <!-- Hero Section: Visual Icon Badge -->
+                {{-- Ikon dan Informasi Hero --}}
                 <div class="flex flex-col items-center text-center">
                     
-                    <!-- Layered Glowing Mail Shield Badge Bulat & Elegan -->
+                    {{-- Badge Visual Ikon Email --}}
                     <div class="relative mb-5 mt-2 animate-float">
                         <div class="absolute -inset-2 bg-gradient-to-r from-brand-500/20 to-cyan-400/20 rounded-full blur-md"></div>
                         <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 text-white shadow-xl shadow-brand-600/30 flex items-center justify-center border-2 border-white/60">
-                            <!-- Dual Icon: Mail + Verified Shield Badge -->
+                            {{-- Ikon Email dan Perisai Verifikasi --}}
                             <div class="relative flex items-center justify-center">
                                 <i class="fa-solid fa-envelope-open-text text-3xl sm:text-4xl text-cyan-100"></i>
                                 <span class="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-500 text-white border-2 border-white flex items-center justify-center text-[10px] sm:text-xs shadow-md">
@@ -126,7 +126,7 @@
                         </div>
                     </div>
 
-                    <!-- Title & Subtitle -->
+                    {{-- Judul dan Petunjuk Verifikasi --}}
                     <div class="space-y-2 mb-6">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-brand-50 text-brand-700 border border-brand-200/80">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping"></span>
@@ -140,7 +140,7 @@
                         </p>
                     </div>
 
-                    <!-- Flash Alert Status Saat Berhasil Resend Link -->
+                    {{-- Notifikasi Sukses Pengiriman Ulang Tautan --}}
                     @if (session('status') == 'verification-link-sent' || session('message') == 'verification-link-sent' || session('status'))
                         <div class="w-full mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-start gap-3 text-left transition-all shadow-xs">
                             <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
@@ -155,7 +155,7 @@
                         </div>
                     @endif
 
-                    <!-- User Information Chip (Target Email) -->
+                    {{-- Ringkasan Informasi Akun Karyawan --}}
                     <div class="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6 text-left">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3 min-w-0">
@@ -188,7 +188,7 @@
                         </div>
                     </div>
 
-                    <!-- 3 Step Quick Guidance -->
+                    {{-- Panduan Singkat Langkah Verifikasi --}}
                     <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-7 text-left">
                         <div class="p-3 rounded-xl bg-white border border-slate-200/80 flex items-start gap-2.5 shadow-2xs">
                             <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">1</span>
@@ -204,10 +204,10 @@
                         </div>
                     </div>
 
-                    <!-- Call To Action Actions -->
+                    {{-- Aksi Formulir dan Navigasi --}}
                     <div class="w-full space-y-3">
 
-                        <!-- Primary CTA: Resend Email -->
+                        {{-- Tombol Kirim Ulang Tautan Verifikasi --}}
                         <form method="POST" action="{{ route('verification.send') }}" id="resend-email-form" class="w-full">
                             @csrf
                             <button type="submit"
@@ -224,13 +224,13 @@
                             </button>
                         </form>
 
-                        <!-- Secondary Actions: Logout -->
+                        {{-- Tombol Keluar / Ganti Akun --}}
                         <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                             <span class="text-slate-500 text-center sm:text-left">
                                 Salah memasukkan alamat email?
                             </span>
                             
-                            <!-- Logout Button -->
+                            {{-- Form Pemicu Logout --}}
                             <form method="POST" action="{{ route('logout') }}" class="inline">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center gap-1.5 font-bold text-rose-600 hover:text-rose-700 py-1.5 px-3 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer">
@@ -246,7 +246,7 @@
 
             </div>
 
-            <!-- Security Footer Note -->
+            {{-- Footer Keamanan --}}
             <div class="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-halved text-[11px] text-brand-500"></i>
                 <span>Enkripsi Aman SSL 256-bit • Hak Cipta &copy; {{ date('Y') }} PT META Adhya Tirta Umbulan</span>
@@ -255,7 +255,7 @@
         </div>
     </main>
 
-    <!-- Page Scripts -->
+    {{-- Logika JavaScript Verifikasi Email --}}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Resend Form Cooldown & Loading State

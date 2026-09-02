@@ -30,12 +30,12 @@ class AppServiceProvider extends ServiceProvider
                 $hasAdminRole = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
                 if ($hasAdminRole) {
-                    // Admin Sistem: Akses pantau seluruh antrean global
+                    // Admin Sistem: Menghitung seluruh antrean pengajuan global
                     $jumlahCuti = PengajuanCuti::where('status_akhir', 'pending')->count();
                     $jumlahCar  = PengajuanCar::where('status_akhir', 'pending')->count();
                     $jumlahMpr  = PengajuanMpr::where('status_akhir', 'pending')->count();
                 } else {
-                    // 1. HITUNG ANTREAN CUTI BERDASARKAN DYNAMIC APPROVAL RULES (MULTI-ROLE + SELF EXCLUSION)
+                    // 1. Hitung antrean persetujuan cuti relevan untuk atasan (Dynamic Approval Rules)
                     $jumlahCuti = PengajuanCuti::where('user_id', '!=', $atasan->id)
                         ->where(function ($q) use ($atasanRoleIds) {
                             $q->where(function ($sub) use ($atasanRoleIds) {
@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                             });
                         })->count();
 
-                    // 2. HITUNG ANTREAN CAR BERDASARKAN DYNAMIC APPROVAL RULES (MULTI-ROLE + SELF EXCLUSION)
+                    // 2. Hitung antrean persetujuan CAR relevan untuk atasan (Dynamic Approval Rules)
                     $jumlahCar = PengajuanCar::where('user_id', '!=', $atasan->id)
                         ->where(function ($q) use ($atasanRoleIds) {
                             $q->where(function ($sub) use ($atasanRoleIds) {
@@ -91,7 +91,7 @@ class AppServiceProvider extends ServiceProvider
                             });
                         })->count();
 
-                    // 3. HITUNG ANTREAN MPR BERDASARKAN DYNAMIC APPROVAL RULES (MULTI-ROLE + SELF EXCLUSION)
+                    // 3. Hitung antrean persetujuan MPR relevan untuk atasan (Dynamic Approval Rules)
                     $jumlahMpr = PengajuanMpr::where('user_id', '!=', $atasan->id)
                         ->where(function ($q) use ($atasanRoleIds) {
                             $q->where(function ($sub) use ($atasanRoleIds) {

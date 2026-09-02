@@ -11,7 +11,7 @@ class SaldoCuti extends Model
 
     protected $table = 'saldo_cutis';
 
-    // WAJIB dimasukkan agar fungsi SaldoCuti::create() di controller bisa berjalan
+    // Kolom yang dapat diisi secara massal (mass assignment)
     protected $fillable = [
         'user_id',
         'jenis_cuti_id',
@@ -21,7 +21,7 @@ class SaldoCuti extends Model
         'tahun',
     ];
 
-    // Relasi dipindahkan ke sini
+    // Relasi balik ke master jenis cuti
     public function jenisCuti()
     {
         return $this->belongsTo(JenisCuti::class, 'jenis_cuti_id');

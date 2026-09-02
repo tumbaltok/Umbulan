@@ -6,17 +6,17 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Kata Sandi Baru - PT META Adhya Tirta Umbulan</title>
 
-    <!-- Favicon -->
+    {{-- Favicon Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
 
-    <!-- Kunci Halaman Selalu Light Mode -->
     <script>
+        // Kunci Halaman Selalu Light Mode
         document.documentElement.classList.remove('dark');
         localStorage.theme = 'light';
     </script>
 
-    <!-- Tailwind CSS CDN -->
+    {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -45,7 +45,7 @@
         };
     </script>
 
-    <!-- FontAwesome & Google Fonts -->
+    {{-- FontAwesome dan Google Fonts --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,18 +63,18 @@
         }
     </style>
 
-    <!-- PWA Head -->
+    {{-- Komponen Head PWA --}}
     @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Ambient Background Gradients -->
+    {{-- Elemen Background Gradien Dekoratif --}}
     <div class="fixed inset-0 pointer-events-none overflow-hidden bg-grid-subtle z-0">
         <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[320px] bg-gradient-to-tr from-sky-400/15 via-teal-300/15 to-emerald-300/10 blur-3xl rounded-full"></div>
         <div class="absolute bottom-0 right-0 w-[450px] h-[300px] bg-gradient-to-tl from-brand-300/15 to-sky-200/15 blur-3xl rounded-full"></div>
     </div>
 
-    <!-- Header / Branding -->
+    {{-- Header dan Navigasi Batal --}}
     <header class="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center p-1.5 shrink-0">
@@ -91,14 +91,14 @@
         </a>
     </header>
 
-    <!-- Main Content Container -->
+    {{-- Kontainer Konten Utama --}}
     <main class="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
         <div class="w-full max-w-md">
 
-            <!-- Card Utama -->
+            {{-- Kartu Reset Sandi --}}
             <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/60 overflow-hidden p-6 sm:p-8 transition-all">
 
-                <!-- Header Icon & Title -->
+                {{-- Header Ikon dan Judul --}}
                 <div class="text-center mb-6">
                     <div class="mx-auto w-14 h-14 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-brand-500/25 mb-4">
                         <i class="fa-solid fa-lock-open"></i>
@@ -109,7 +109,7 @@
                     </p>
                 </div>
 
-                <!-- User Identity Badge -->
+                {{-- Identitas Akun Karyawan --}}
                 <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm border border-brand-200/70 shrink-0">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -125,7 +125,7 @@
                     </div>
                 </div>
 
-                <!-- Error Messages Flash -->
+                {{-- Notifikasi Error Validasi Server --}}
                 @if($errors->any())
                     <div class="mb-5 p-4 rounded-2xl border flex items-start gap-3 bg-rose-50 border-rose-200 text-rose-800 text-xs sm:text-sm shadow-xs">
                         <i class="fa-solid fa-circle-exclamation text-rose-500 text-base shrink-0 mt-0.5"></i>
@@ -138,11 +138,11 @@
                     <div id="alert-message" class="font-medium"></div>
                 </div>
 
-                <!-- Form Reset Kata Sandi -->
+                {{-- Formulir Pembuatan Sandi Baru --}}
                 <form id="resetPasswordForm" onsubmit="handleResetPassword(event)" method="POST" action="{{ route('forgot.update') }}" class="space-y-5">
                     @csrf
 
-                    <!-- Field: Kata Sandi Baru -->
+                    {{-- Field Input Kata Sandi Baru --}}
                     <div>
                         <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                             Kata Sandi Baru
@@ -159,7 +159,7 @@
                             </button>
                         </div>
 
-                        <!-- Strength Meter Bar -->
+                        {{-- Indikator Kekuatan Sandi --}}
                         <div class="mt-2 space-y-1">
                             <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                                 <div id="strength-bar" class="h-full w-0 transition-all duration-300 rounded-full bg-slate-300"></div>
@@ -171,7 +171,7 @@
                         </div>
                     </div>
 
-                    <!-- Field: Konfirmasi Kata Sandi -->
+                    {{-- Field Konfirmasi Kata Sandi Baru --}}
                     <div>
                         <label for="password_confirmation" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                             Konfirmasi Kata Sandi Baru
@@ -190,7 +190,7 @@
                         <p id="match-indicator" class="text-[11px] mt-1.5 hidden"></p>
                     </div>
 
-                    <!-- Tombol Simpan -->
+                    {{-- Tombol Simpan Perubahan Sandi --}}
                     <button type="submit" id="btn-submit"
                         class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg shadow-brand-600/25 hover:shadow-brand-600/35 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer mt-3">
                         <span id="btn-submit-text">Perbarui Kata Sandi</span>
@@ -199,7 +199,7 @@
                     </button>
                 </form>
 
-                <!-- Footer Link Back to Login -->
+                {{-- Link Kembali ke Halaman Login --}}
                 <div class="mt-8 pt-6 border-t border-slate-100 text-center">
                     <a href="{{ route('login') }}" class="text-xs font-semibold text-slate-500 hover:text-brand-600 transition-colors inline-flex items-center gap-1.5">
                         <i class="fa-solid fa-arrow-left text-[10px]"></i>
@@ -209,7 +209,7 @@
 
             </div>
 
-            <!-- Security Footer Note -->
+            {{-- Footer Keamanan --}}
             <div class="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-halved text-[11px] text-brand-600"></i>
                 <span>Enkripsi Aman SSL 256-bit &bull; Hak Cipta &copy; {{ date('Y') }} PT META Adhya Tirta Umbulan</span>
@@ -218,7 +218,7 @@
         </div>
     </main>
 
-    <!-- Page JavaScript Logic -->
+    {{-- Logika JavaScript Reset Kata Sandi --}}
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
@@ -367,7 +367,7 @@
         });
     </script>
 
-    <!-- PWA Scripts -->
+    {{-- Pendaftaran Skrip PWA --}}
     @laravelPwa
     @pwaInstallButton
 </body>

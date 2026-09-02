@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class SaldoCutiController extends Controller
 {
+    // Menampilkan daftar saldo cuti pengguna saat ini
     public function index()
     {
         $user = Auth::user();
@@ -25,6 +26,7 @@ class SaldoCutiController extends Controller
         return view('saldo.saldoindex', compact('saldo', 'tahunSekarang'));
     }
 
+    // Melakukan inisialisasi / generate saldo cuti massal untuk seluruh karyawan
     public function generateSaldoMassal(Request $request)
     {
         /** @var User $user */
@@ -34,7 +36,7 @@ class SaldoCutiController extends Controller
             $user->load('role');
         }
 
-        // PERBAIKAN: Gunakan $user (bukan $operator)
+        // Verifikasi wewenang hak akses generate saldo
         $roleName = strtolower($user->role->role_name ?? '');
 
         if (! in_array($roleName, ['manager', 'admin', 'hrd', 'full akses'])) {
@@ -47,10 +49,11 @@ class SaldoCutiController extends Controller
         $users = User::all();
         $jenisCutis = JenisCuti::all();
 
-        foreach ($users as $u) { // Mengubah variabel iterasi menjadi $u agar tidak bentrok dengan $user
+        foreach ($users as $u) {
             foreach ($jenisCutis as $jc) {
 
                 $namaCuti = strtolower($jc->name_cuti ?? '');
+                // Lewati jenis cuti non-saldo kuota tahunan
                 if (str_contains($namaCuti, 'sakit') || str_contains($namaCuti, 'melahirkan')) {
                     continue;
                 }
