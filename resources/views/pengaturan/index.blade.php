@@ -9,14 +9,14 @@
         </div>
     @endif
 
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm overflow-hidden transition-colors">
-        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 rounded-t-2xl">
             <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Pengaturan Akun & Keamanan</h2>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Perbarui informasi profil, tanda tangan digital, dan amankan akun dengan kombinasi password baru.</p>
         </div>
 
         {{-- Form data umum, jadwal kerja, & keamanan --}}
-        <form action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
+        <form id="form-profile-account" action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
             @csrf
             @method('PUT')
 
@@ -592,10 +592,24 @@
                 </div>
             </div>
 
-            <div class="pt-4 flex justify-end border-t border-slate-100 dark:border-slate-700">
-                <button type="submit" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors cursor-pointer">
-                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
-                </button>
+            {{-- Floating / Sticky Action Bar --}}
+            <div class="sticky bottom-4 z-30 pt-3">
+                <div class="p-3.5 sm:px-5 sm:py-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-700/90 shadow-xl shadow-slate-900/10 dark:shadow-black/30 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all">
+                    <div class="hidden sm:flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse shrink-0"></span>
+                        <span>Perubahan data profil & keamanan akun dapat langsung disimpan.</span>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                        <button type="submit"
+                            id="btnSubmitProfile"
+                            form="form-profile-account"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-sm font-bold shadow-md shadow-sky-600/25 hover:shadow-lg hover:shadow-sky-600/35 transition-all cursor-pointer flex items-center justify-center gap-2 group disabled:opacity-75 disabled:cursor-not-allowed">
+                            <i id="btnSubmitProfileIcon" class="fa-solid fa-floppy-disk text-xs transition-transform group-hover:scale-110"></i>
+                            <i id="btnSubmitProfileSpinner" class="fa-solid fa-circle-notch fa-spin text-xs hidden"></i>
+                            <span id="btnSubmitProfileText">Simpan Perubahan</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -1222,6 +1236,31 @@
         const wrapper = document.getElementById('roleSelectWrapper');
         if (wrapper && !wrapper.contains(e.target)) {
             toggleRoleDropdown(false);
+        }
+    });
+
+    // Indikator loading & proteksi double submit form profil
+    const formProfile = document.getElementById('form-profile-account');
+    const btnSubmitProfile = document.getElementById('btnSubmitProfile');
+    const btnSubmitProfileIcon = document.getElementById('btnSubmitProfileIcon');
+    const btnSubmitProfileSpinner = document.getElementById('btnSubmitProfileSpinner');
+    const btnSubmitProfileText = document.getElementById('btnSubmitProfileText');
+
+    if (formProfile && btnSubmitProfile) {
+        formProfile.addEventListener('submit', function() {
+            btnSubmitProfile.disabled = true;
+            if (btnSubmitProfileIcon) btnSubmitProfileIcon.classList.add('hidden');
+            if (btnSubmitProfileSpinner) btnSubmitProfileSpinner.classList.remove('hidden');
+            if (btnSubmitProfileText) btnSubmitProfileText.innerText = 'Menyimpan...';
+        });
+    }
+
+    document.addEventListener('turbo:submit-end', function() {
+        if (btnSubmitProfile) {
+            btnSubmitProfile.disabled = false;
+            if (btnSubmitProfileIcon) btnSubmitProfileIcon.classList.remove('hidden');
+            if (btnSubmitProfileSpinner) btnSubmitProfileSpinner.classList.add('hidden');
+            if (btnSubmitProfileText) btnSubmitProfileText.innerText = 'Simpan Perubahan';
         }
     });
 </script>
