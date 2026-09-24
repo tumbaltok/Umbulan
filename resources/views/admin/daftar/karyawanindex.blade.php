@@ -42,10 +42,10 @@
     {{-- NAVIGASI TAB UTAMA (DEFAULT ACTIVATED: POHON ORGANISASI) --}}
     <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-xs transition-colors">
         <div class="flex space-x-2">
-            <button type="button" onclick="switchTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
+            <button type="button" onclick="switchKaryawanTab('tab-karyawan-pohon')" id="btn-tab-karyawan-pohon" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
                 <i class="fa-solid fa-sitemap mr-1.5"></i> Struktur Organisasi Karyawan
             </button>
-            <button type="button" onclick="switchTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
+            <button type="button" onclick="switchKaryawanTab('tab-karyawan-tabel')" id="btn-tab-karyawan-tabel" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
                 <i class="fa-solid fa-users mr-1.5"></i> Daftar Manajemen Karyawan
             </button>
         </div>
@@ -514,102 +514,150 @@
 @endif
 
 <script>
-    let activeKaryawanId = null;
-    let panzoomInstance = null;
-    let kRenderCounter = 0;
+    var activeKaryawanId = null;
+    var panzoomInstance = null;
+    var kRenderCounter = 0;
 
     // Data Karyawan & Roles langsung diambil dari Controller
-    const rawKaryawanData = JSON.parse(`{!! json_encode($daftarKaryawan ?? []) !!}`);
-    const rawRolesData    = JSON.parse(`{!! json_encode($daftarRole ?? []) !!}`);
+    var rawKaryawanData      = {!! json_encode($daftarKaryawan ?? []) !!};
+    var rawKaryawanRolesData = {!! json_encode($daftarRole ?? []) !!};
 
-    // Inisialisasi Mermaid.js
-    mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default',
-        securityLevel: 'loose',
-        flowchart: {
-            useMaxWidth: true,
-            htmlLabels: true,
-            curve: 'basis'
+    function ensureMermaidReadyKaryawan(callback) {
+        if (typeof window.mermaid !== 'undefined') {
+            if (!window.__mermaidKaryawanInitialized) {
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                    securityLevel: 'loose',
+                    flowchart: {
+                        useMaxWidth: true,
+                        htmlLabels: true,
+                        curve: 'basis'
+                    }
+                });
+                window.__mermaidKaryawanInitialized = true;
+            }
+            callback();
+            return;
         }
-    });
+
+        let attempts = 0;
+        const interval = setInterval(() => {
+            attempts++;
+            if (typeof window.mermaid !== 'undefined') {
+                clearInterval(interval);
+                if (!window.__mermaidKaryawanInitialized) {
+                    window.mermaid.initialize({
+                        startOnLoad: false,
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                        securityLevel: 'loose',
+                        flowchart: {
+                            useMaxWidth: true,
+                            htmlLabels: true,
+                            curve: 'basis'
+                        }
+                    });
+                    window.__mermaidKaryawanInitialized = true;
+                }
+                callback();
+            } else if (attempts > 60) {
+                clearInterval(interval);
+                console.error('Mermaid library load timeout');
+                const diagramContainer = document.getElementById('karyawanOrgDiagram');
+                if (diagramContainer) {
+                    diagramContainer.innerHTML = `
+                        <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                            Gagal memuat pustaka diagram. Periksa koneksi internet lalu klik tombol "Reload" di atas.
+                        </div>
+                    `;
+                }
+            }
+        }, 50);
+    }
 
     async function renderKaryawanOrgChart() {
         const diagramContainer = document.getElementById('karyawanOrgDiagram');
         if (!diagramContainer) return;
 
-        diagramContainer.innerHTML = '';
+        diagramContainer.innerHTML = `
+            <div class="flex items-center justify-center py-10 text-slate-400 text-xs">
+                <i class="fa-solid fa-circle-notch fa-spin text-lg mr-2 text-indigo-500"></i> Memuat struktur organisasi karyawan...
+            </div>
+        `;
 
-        let graphDef = 'graph TD\n';
-        graphDef += '    COMPANY["B O D"]\n\n';
+        ensureMermaidReadyKaryawan(async () => {
+            let graphDef = 'graph TD\n';
+            graphDef += '    COMPANY["B O D"]\n\n';
 
-        // 1. Kelompokkan karyawan berdasarkan seluruh roles yang ia miliki (Many-to-Many)
-        const karyawanPerRole = {};
-        if (rawKaryawanData && rawKaryawanData.length > 0) {
-            rawKaryawanData.forEach(u => {
-                const rolesList = u.roles || (u.role ? [u.role] : []);
-                if (rolesList.length > 0) {
-                    rolesList.forEach(r => {
-                        if (!karyawanPerRole[r.id]) {
-                            karyawanPerRole[r.id] = [];
-                        }
-                        karyawanPerRole[r.id].push(u);
-                    });
-                }
-            });
-        }
+            // 1. Kelompokkan karyawan berdasarkan seluruh roles yang ia miliki (Many-to-Many)
+            const karyawanPerRole = {};
+            if (rawKaryawanData && rawKaryawanData.length > 0) {
+                rawKaryawanData.forEach(u => {
+                    const rolesList = u.roles || (u.role ? [u.role] : []);
+                    if (rolesList.length > 0) {
+                        rolesList.forEach(r => {
+                            if (!karyawanPerRole[r.id]) {
+                                karyawanPerRole[r.id] = [];
+                            }
+                            karyawanPerRole[r.id].push(u);
+                        });
+                    }
+                });
+            }
 
-        // 2. Buat struktur diagram berdasarkan daftarRole
-        if (rawRolesData && rawRolesData.length > 0) {
-            rawRolesData.forEach(r => {
-                const nodeId = `R${r.id}`;
-                const cleanRoleName = (r.role_name || 'Role').replace(/["'()]/g, '');
+            // 2. Buat struktur diagram berdasarkan daftarRole
+            if (rawKaryawanRolesData && rawKaryawanRolesData.length > 0) {
+                rawKaryawanRolesData.forEach(r => {
+                    const nodeId = `R${r.id}`;
+                    const cleanRoleName = (r.role_name || 'Role').replace(/["'()\\<>{}]/g, ' ').trim();
 
-                let nodeLabel = `<b>${cleanRoleName}</b><br>──────────────`;
-                const listKaryawan = karyawanPerRole[r.id] || [];
+                    let nodeLabel = `<b>${cleanRoleName}</b><br>──────────────`;
+                    const listKaryawan = karyawanPerRole[r.id] || [];
 
-                if (listKaryawan.length > 0) {
-                    listKaryawan.forEach(emp => {
-                        const cleanName = (emp.name || '').replace(/["'()]/g, '');
-                        nodeLabel += `<br>${cleanName}`;
-                    });
-                } else {
-                    nodeLabel += `<br><i>Posisi Kosong</i>`;
-                }
+                    if (listKaryawan.length > 0) {
+                        listKaryawan.forEach(emp => {
+                            const cleanName = (emp.name || '').replace(/["'()\\<>{}]/g, ' ').trim();
+                            nodeLabel += `<br>${cleanName}`;
+                        });
+                    } else {
+                        nodeLabel += `<br><i>Posisi Kosong</i>`;
+                    }
 
-                graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
+                    graphDef += `    ${nodeId}["${nodeLabel}"]\n`;
 
-                if (r.parent_role_id && rawRolesData.some(parent => parent.id == r.parent_role_id)) {
-                    graphDef += `    R${r.parent_role_id} --> ${nodeId}\n`;
-                } else {
-                    graphDef += `    COMPANY --> ${nodeId}\n`;
-                }
-            });
-        }
+                    if (r.parent_role_id && rawKaryawanRolesData.some(parent => parent.id == r.parent_role_id)) {
+                        graphDef += `    R${r.parent_role_id} --> ${nodeId}\n`;
+                    } else {
+                        graphDef += `    COMPANY --> ${nodeId}\n`;
+                    }
+                });
+            }
 
-        try {
-            kRenderCounter++;
-            const elementId = `karyawanSvg_${kRenderCounter}`;
-            const { svg } = await mermaid.render(elementId, graphDef);
-            diagramContainer.innerHTML = svg;
+            try {
+                kRenderCounter++;
+                const elementId = `karyawanSvg_${Date.now()}_${kRenderCounter}`;
+                const { svg } = await window.mermaid.render(elementId, graphDef);
+                diagramContainer.innerHTML = svg;
 
-            initPanzoom();
+                initPanzoom();
 
-        } catch (err) {
-            console.error('Org-Chart Render Error:', err);
-            diagramContainer.innerHTML = `
-                <div class="text-center py-6 text-rose-500 text-xs font-semibold">
-                    <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-                    Gagal merender skema organisasi. Klik tombol "Reload" di atas.
-                </div>
-            `;
-        }
+            } catch (err) {
+                console.error('Org-Chart Render Error:', err);
+                diagramContainer.innerHTML = `
+                    <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                        Gagal merender skema organisasi. Klik tombol "Reload" di atas.
+                    </div>
+                `;
+            }
+        });
     }
 
     function initPanzoom() {
         const elem = document.getElementById('karyawanOrgDiagram');
         const parent = document.getElementById('mermaidParent');
-        if (!elem || !parent) return;
+        if (!elem || !parent || typeof window.Panzoom === 'undefined') return;
 
         if (panzoomInstance) {
             panzoomInstance.destroy();
@@ -628,26 +676,46 @@
 
         parent.addEventListener('wheel', panzoomInstance.zoomWithWheel);
 
-        document.getElementById('btnZoomIn').onclick = panzoomInstance.zoomIn;
-        document.getElementById('btnZoomOut').onclick = panzoomInstance.zoomOut;
-        document.getElementById('btnZoomReset').onclick = () => {
+        const btnIn = document.getElementById('btnZoomIn');
+        const btnOut = document.getElementById('btnZoomOut');
+        const btnReset = document.getElementById('btnZoomReset');
+
+        if (btnIn) btnIn.onclick = panzoomInstance.zoomIn;
+        if (btnOut) btnOut.onclick = panzoomInstance.zoomOut;
+        if (btnReset) btnReset.onclick = () => {
             panzoomInstance.reset();
             panzoomInstance.zoom(0.9);
         };
     }
 
-    function switchTab(tabId) {
-        localStorage.setItem('active_tab_karyawan', tabId);
+    function switchKaryawanTab(tabId) {
+        if (!document.getElementById('tab-karyawan-pohon')) return;
 
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        let targetTab = document.getElementById(tabId);
+        let activeBtn = document.getElementById('btn-' + tabId);
+
+        // Fallback otomatis jika tabId tidak valid agar halaman tidak pernah kosong
+        if (!targetTab || !activeBtn) {
+            tabId = 'tab-karyawan-pohon';
+            targetTab = document.getElementById('tab-karyawan-pohon');
+            activeBtn = document.getElementById('btn-tab-karyawan-pohon');
+        }
+
+        try {
+            localStorage.setItem('active_tab_karyawan', tabId);
+        } catch (e) {}
+
+        const container = targetTab ? targetTab.parentElement : document;
+        container.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
             btn.classList.add('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
         });
 
-        document.getElementById(tabId).classList.remove('hidden');
+        if (targetTab) {
+            targetTab.classList.remove('hidden');
+        }
 
-        const activeBtn = document.getElementById('btn-' + tabId);
         if (activeBtn) {
             activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
             activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
@@ -656,19 +724,31 @@
         if (tabId === 'tab-karyawan-pohon') {
             setTimeout(() => {
                 renderKaryawanOrgChart();
-            }, 50);
+            }, 60);
         }
     }
+    window.switchKaryawanTab = switchKaryawanTab;
 
-    document.addEventListener("DOMContentLoaded", function () {
-        // BACA TAB TERAKHIR DARI LOCALSTORAGE (JIKA KOSONG, DEFAULT KE TAB POHON)
-        const savedTab = localStorage.getItem('active_tab_karyawan') || 'tab-karyawan-pohon';
-        switchTab(savedTab);
+    function initKaryawanPage() {
+        if (!document.getElementById('tab-karyawan-pohon')) return;
+        window.switchTab = switchKaryawanTab;
 
+        // Otomatis langsung aktifkan tab Struktur Organisasi Karyawan
+        let savedTab = null;
+        try {
+            savedTab = localStorage.getItem('active_tab_karyawan');
+        } catch (e) {}
+        const defaultTab = (savedTab && document.getElementById(savedTab)) ? savedTab : 'tab-karyawan-pohon';
+        switchKaryawanTab(defaultTab);
+        bindKaryawanTableHandlers();
+    }
+
+    function bindKaryawanTableHandlers() {
         const searchInput = document.getElementById("searchKaryawanInput");
         const noResultRow = document.getElementById("noResultRow");
 
-        if (searchInput) {
+        if (searchInput && !searchInput.dataset.bound) {
+            searchInput.dataset.bound = "true";
             searchInput.addEventListener("input", function () {
                 const filter = this.value.toLowerCase().trim();
                 const rows = document.querySelectorAll("#karyawanTableBody .table-row-item");
@@ -702,48 +782,51 @@
         let currentSortColumn = -1;
         let isAscending = true;
 
-        headers.forEach(header => {
-            header.addEventListener("click", function () {
-                const columnIndex = parseInt(this.getAttribute("data-sort"));
-                const rowsArray = Array.from(tableBody.querySelectorAll(".table-row-item"));
+        if (tableBody && !tableBody.dataset.bound) {
+            tableBody.dataset.bound = "true";
+            headers.forEach(header => {
+                header.addEventListener("click", function () {
+                    const columnIndex = parseInt(this.getAttribute("data-sort"));
+                    const rowsArray = Array.from(tableBody.querySelectorAll(".table-row-item"));
 
-                if (currentSortColumn === columnIndex) {
-                    isAscending = !isAscending;
-                } else {
-                    isAscending = true;
-                    currentSortColumn = columnIndex;
-                }
-
-                headers.forEach(h => {
-                    const icon = h.querySelector("i");
-                    if (icon) {
-                        icon.className = "fa-solid fa-sort ml-1.5 text-slate-300";
+                    if (currentSortColumn === columnIndex) {
+                        isAscending = !isAscending;
+                    } else {
+                        isAscending = true;
+                        currentSortColumn = columnIndex;
                     }
+
+                    headers.forEach(h => {
+                        const icon = h.querySelector("i");
+                        if (icon) {
+                            icon.className = "fa-solid fa-sort ml-1.5 text-slate-300";
+                        }
+                    });
+
+                    const currentIcon = this.querySelector("i");
+                    if (currentIcon) {
+                        currentIcon.className = isAscending
+                            ? "fa-solid fa-sort-up ml-1.5 text-sky-600"
+                            : "fa-solid fa-sort-down ml-1.5 text-sky-600";
+                    }
+
+                    rowsArray.sort((rowA, rowB) => {
+                        let cellA = rowA.children[columnIndex].textContent.trim();
+                        let cellB = rowB.children[columnIndex].textContent.trim();
+
+                        cellA = cellA.replace(/[^\x20-\x7E]/g, '').trim();
+                        cellB = cellB.replace(/[^\x20-\x7E]/g, '').trim();
+
+                        return isAscending
+                            ? cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' })
+                            : cellB.localeCompare(cellA, undefined, { numeric: true, sensitivity: 'base' });
+                    });
+
+                    rowsArray.forEach(row => tableBody.appendChild(row));
+                    if (noResultRow) tableBody.appendChild(noResultRow);
                 });
-
-                const currentIcon = this.querySelector("i");
-                if (currentIcon) {
-                    currentIcon.className = isAscending
-                        ? "fa-solid fa-sort-up ml-1.5 text-sky-600"
-                        : "fa-solid fa-sort-down ml-1.5 text-sky-600";
-                }
-
-                rowsArray.sort((rowA, rowB) => {
-                    let cellA = rowA.children[columnIndex].textContent.trim();
-                    let cellB = rowB.children[columnIndex].textContent.trim();
-
-                    cellA = cellA.replace(/[^\x20-\x7E]/g, '').trim();
-                    cellB = cellB.replace(/[^\x20-\x7E]/g, '').trim();
-
-                    return isAscending
-                        ? cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' })
-                        : cellB.localeCompare(cellA, undefined, { numeric: true, sensitivity: 'base' });
-                });
-
-                rowsArray.forEach(row => tableBody.appendChild(row));
-                if (noResultRow) tableBody.appendChild(noResultRow);
             });
-        });
+        }
 
         const modal = document.getElementById("detailKaryawanModal");
         const backdrop = document.getElementById("detailModalBackdrop");
@@ -751,15 +834,28 @@
         const closeBtn2 = document.getElementById("closeDetailModalBtn2");
 
         function hideModal() {
+            if (!modal) return;
             modal.classList.remove("flex");
             modal.classList.add("hidden");
             document.body.classList.remove("overflow-hidden");
         }
 
-        if (closeBtn) closeBtn.addEventListener("click", hideModal);
-        if (closeBtn2) closeBtn2.addEventListener("click", hideModal);
-        if (backdrop) backdrop.addEventListener("click", hideModal);
+        if (closeBtn && !closeBtn.dataset.bound) {
+            closeBtn.dataset.bound = "true";
+            closeBtn.addEventListener("click", hideModal);
+        }
+        if (closeBtn2 && !closeBtn2.dataset.bound) {
+            closeBtn2.dataset.bound = "true";
+            closeBtn2.addEventListener("click", hideModal);
+        }
+        if (backdrop && !backdrop.dataset.bound) {
+            backdrop.dataset.bound = "true";
+            backdrop.addEventListener("click", hideModal);
+        }
+    }
 
+    if (!window.__karyawanClickDelegated) {
+        window.__karyawanClickDelegated = true;
         document.addEventListener("click", function(e) {
             const button = e.target.closest(".btn-detail-karyawan");
             if (button) {
@@ -767,7 +863,13 @@
                 loadDetailKaryawan(activeKaryawanId);
             }
         });
-    });
+    }
+
+    document.addEventListener("DOMContentLoaded", initKaryawanPage);
+    document.addEventListener("turbo:load", initKaryawanPage);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initKaryawanPage();
+    }
 
     function loadDetailKaryawan(karyawanId) {
         const modal = document.getElementById("detailKaryawanModal");

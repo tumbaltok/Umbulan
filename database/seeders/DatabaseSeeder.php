@@ -315,6 +315,12 @@ class DatabaseSeeder extends Seeder
             $isLevel1 = in_array($userData['name'], ['Reki M', 'Yoga Farely']) || ($userData['level'] ?? null) === 1;
             $userLevel = $isLevel1 ? 1 : 2;
 
+            // Verifikasi Biometrik Wajah: Khusus Yoga Farely (128-vektor float descriptor standar dlib / face-api)
+            $isYogaFarely = strtolower($userData['email'] ?? '') === 'yogafarely@meta.com' || strtolower($userData['name'] ?? '') === 'yoga farely';
+            $faceDescriptor = $isYogaFarely
+                ? array_map(fn($i) => round((sin($i) + 1) / 2, 6), range(0, 127))
+                : ($userData['face_descriptor'] ?? null);
+
             $user = User::create([
                 'nip'               => $userData['nip'],
                 'name'              => $userData['name'],
@@ -333,6 +339,7 @@ class DatabaseSeeder extends Seeder
                 'normal_check_in'   => $normalCheckIn,
                 'normal_check_out'  => $normalCheckOut,
                 'password'          => $defaultPassword,
+                'face_descriptor'   => $faceDescriptor,
             ]);
 
             $rolesToSync = $userData['roles'] ?? [$userData['role_id']];

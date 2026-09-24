@@ -572,19 +572,19 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let stationIndex = 0;
-    let defaultTypeGlobal = 'stasiun';
+    var stationIndex = 0;
+    var defaultTypeGlobal = 'stasiun';
 
     // Konstanta Default Koordinat Jawa Timur / Umbulan Pasuruan
-    const COMPANY_DEFAULT_LAT = -7.7572565;
-    const COMPANY_DEFAULT_LNG = 112.9314949;
-    const COMPANY_DEFAULT_RADIUS = 1000;
+    var COMPANY_DEFAULT_LAT = -7.7572565;
+    var COMPANY_DEFAULT_LNG = 112.9314949;
+    var COMPANY_DEFAULT_RADIUS = 1000;
 
     // Registry penyimpanan instance Leaflet Map form kalibrasi
-    const calibrationMaps = {};
+    var calibrationMaps = window.calibrationMaps || {};
 
     // Standard high-res Leaflet marker icon
-    const stationCustomMarkerIcon = L.icon({
+    var stationCustomMarkerIcon = L.icon({
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',

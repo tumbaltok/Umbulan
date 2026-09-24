@@ -12,6 +12,10 @@
         overflow-x: auto;
         min-height: 220px;
     }
+    #mermaidDiagram svg {
+        max-width: 100% !important;
+        height: auto !important;
+    }
 </style>
 @endpush
 
@@ -21,10 +25,10 @@
     {{-- NAVIGASI TAB UTAMA --}}
     <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-xs transition-colors">
         <div class="flex space-x-2">
-            <button type="button" onclick="switchTab('tab-hierarchy')" id="btn-tab-hierarchy" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
+            <button type="button" onclick="switchRoleTab('tab-hierarchy')" id="btn-tab-hierarchy" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
                 <i class="fa-solid fa-sitemap mr-1.5"></i> Skema Pohon & Matriks Atasan
             </button>
-            <button type="button" onclick="switchTab('tab-roles')" id="btn-tab-roles" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
+            <button type="button" onclick="switchRoleTab('tab-roles')" id="btn-tab-roles" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
                 <i class="fa-solid fa-user-shield mr-1.5"></i> Daftar Role
             </button>
         </div>
@@ -410,13 +414,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let roleIndex = 0;
+    var roleIndex = 0;
 
-    const sessionSuccess   = JSON.parse(`{!! json_encode(session('success')) !!}`);
-    const sessionError     = JSON.parse(`{!! json_encode(session('error')) !!}`);
-    const validationErrors = JSON.parse(`{!! json_encode($errors->all()) !!}`);
-
-    const rawRolesData = JSON.parse('@json($daftarRole)');
+    var sessionSuccess   = {!! json_encode(session('success')) !!};
+    var sessionError     = {!! json_encode(session('error')) !!};
+    var validationErrors = {!! json_encode($errors->all()) !!};
+    var rawRolesData     = {!! json_encode($daftarRole ?? []) !!};
 
     // SWITCH SUB-TAB MODUL MATRIKS HIERARKI (CUTI / CAR / MPR)
     function switchMatrixTab(tabName) {
@@ -498,67 +501,126 @@
         }
     }
 
-    mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default',
-        securityLevel: 'loose'
-    });
+    function ensureMermaidReady(callback) {
+        if (typeof window.mermaid !== 'undefined') {
+            if (!window.__mermaidInitialized) {
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                    securityLevel: 'loose'
+                });
+                window.__mermaidInitialized = true;
+            }
+            callback();
+            return;
+        }
 
-    let renderCounter = 0;
+        let attempts = 0;
+        const interval = setInterval(() => {
+            attempts++;
+            if (typeof window.mermaid !== 'undefined') {
+                clearInterval(interval);
+                if (!window.__mermaidInitialized) {
+                    window.mermaid.initialize({
+                        startOnLoad: false,
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                        securityLevel: 'loose'
+                    });
+                    window.__mermaidInitialized = true;
+                }
+                callback();
+            } else if (attempts > 60) {
+                clearInterval(interval);
+                console.error('Mermaid library load timeout');
+                const diagramContainer = document.getElementById('mermaidDiagram');
+                if (diagramContainer) {
+                    diagramContainer.innerHTML = `
+                        <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                            Gagal memuat pustaka diagram. Periksa koneksi internet lalu klik tombol "Refresh Diagram".
+                        </div>
+                    `;
+                }
+            }
+        }, 50);
+    }
+
+    var renderCounter = 0;
 
     async function renderMermaidDiagram() {
         const diagramContainer = document.getElementById('mermaidDiagram');
         if (!diagramContainer) return;
 
-        diagramContainer.innerHTML = '';
+        diagramContainer.innerHTML = `
+            <div class="flex items-center justify-center py-10 text-slate-400 text-xs">
+                <i class="fa-solid fa-circle-notch fa-spin text-lg mr-2 text-sky-500"></i> Memuat struktur organisasi...
+            </div>
+        `;
 
-        let graphDefinition = 'graph TD\n';
-        graphDefinition += '    COMPANY["B O D"]\n';
+        ensureMermaidReady(async () => {
+            let graphDefinition = 'graph TD\n';
+            graphDefinition += '    COMPANY["B O D"]\n';
 
-        if (rawRolesData && rawRolesData.length > 0) {
-            rawRolesData.forEach(r => {
-                const cleanRoleName = (r.role_name || '').replace(/["'()]/g, '');
+            if (rawRolesData && rawRolesData.length > 0) {
+                rawRolesData.forEach(r => {
+                    const cleanRoleName = (r.role_name || '').replace(/["'()\\<>{}]/g, ' ').trim();
+                    const nodeId = `R${r.id}`;
+                    const nodeLabel = `"${cleanRoleName}"`;
 
-                const nodeId = `R${r.id}`;
-                const nodeLabel = `"${cleanRoleName}"`;
+                    if (!r.parent_role_id || !rawRolesData.some(p => p.id == r.parent_role_id)) {
+                        graphDefinition += `    COMPANY --> ${nodeId}[${nodeLabel}]\n`;
+                    } else {
+                        const parentNodeId = `R${r.parent_role_id}`;
+                        graphDefinition += `    ${parentNodeId} --> ${nodeId}[${nodeLabel}]\n`;
+                    }
+                });
+            }
 
-                if (!r.parent_role_id) {
-                    graphDefinition += `    COMPANY --> ${nodeId}[${nodeLabel}]\n`;
-                } else {
-                    const parentNodeId = `R${r.parent_role_id}`;
-                    graphDefinition += `    ${parentNodeId} --> ${nodeId}[${nodeLabel}]\n`;
-                }
-            });
+            try {
+                renderCounter++;
+                const elementId = `mermaidSvg_${Date.now()}_${renderCounter}`;
+                const { svg } = await window.mermaid.render(elementId, graphDefinition);
+                diagramContainer.innerHTML = svg;
+            } catch (error) {
+                console.error('Mermaid Render Error:', error);
+                diagramContainer.innerHTML = `
+                    <div class="text-center py-6 text-rose-500 text-xs font-semibold">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
+                        Gagal merender skema. Klik tombol "Refresh Diagram" di atas.
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function switchRoleTab(tabId) {
+        if (!document.getElementById('tab-hierarchy')) return;
+
+        let targetTab = document.getElementById(tabId);
+        let activeBtn = document.getElementById('btn-' + tabId);
+
+        // Fallback otomatis jika tabId tidak valid agar halaman tidak pernah kosong
+        if (!targetTab || !activeBtn) {
+            tabId = 'tab-hierarchy';
+            targetTab = document.getElementById('tab-hierarchy');
+            activeBtn = document.getElementById('btn-tab-hierarchy');
         }
 
         try {
-            renderCounter++;
-            const elementId = `mermaidSvg_${renderCounter}`;
-            const { svg } = await mermaid.render(elementId, graphDefinition);
-            diagramContainer.innerHTML = svg;
-        } catch (error) {
-            console.error('Mermaid Render Error:', error);
-            diagramContainer.innerHTML = `
-                <div class="text-center py-6 text-rose-500 text-xs font-semibold">
-                    <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-                    Gagal merender skema. Klik tombol "Refresh Diagram" di atas.
-                </div>
-            `;
-        }
-    }
+            localStorage.setItem('active_tab_role', tabId);
+        } catch (e) {}
 
-    function switchTab(tabId) {
-        localStorage.setItem('active_tab_role', tabId);
-
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        const container = targetTab ? targetTab.parentElement : document;
+        container.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('bg-sky-600', 'text-white', 'shadow-xs');
             btn.classList.add('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
         });
 
-        document.getElementById(tabId).classList.remove('hidden');
+        if (targetTab) {
+            targetTab.classList.remove('hidden');
+        }
 
-        const activeBtn = document.getElementById('btn-' + tabId);
         if (activeBtn) {
             activeBtn.classList.add('bg-sky-600', 'text-white', 'shadow-xs');
             activeBtn.classList.remove('text-slate-500', 'hover:text-slate-800', 'hover:bg-slate-100');
@@ -567,15 +629,26 @@
         if (tabId === 'tab-hierarchy') {
             setTimeout(() => {
                 renderMermaidDiagram();
-            }, 50);
+            }, 60);
         }
     }
+    window.switchRoleTab = switchRoleTab;
+    window.switchTab = switchRoleTab;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const activeTabSession = JSON.parse(`{!! json_encode(session('active_tab')) !!}`);
-        const savedTab = localStorage.getItem('active_tab_role') || activeTabSession || 'tab-hierarchy';
+    function initRoleIndexPage() {
+        if (!document.getElementById('tab-hierarchy')) return;
 
-        switchTab(savedTab);
+        window.switchTab = switchRoleTab;
+
+        // Otomatis langsung aktifkan tab Skema Pohon & Matriks Atasan (atau dari session / localStorage)
+        const sessionTab = {!! json_encode(session('active_tab')) !!};
+        let savedTab = null;
+        try {
+            savedTab = localStorage.getItem('active_tab_role');
+        } catch (e) {}
+
+        const defaultTab = sessionTab || (savedTab && document.getElementById(savedTab) ? savedTab : 'tab-hierarchy');
+        switchRoleTab(defaultTab);
 
         if (sessionSuccess) {
             Swal.fire({
@@ -604,7 +677,13 @@
                 confirmColor: '#f59e0b'
             });
         }
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initRoleIndexPage);
+    document.addEventListener('turbo:load', initRoleIndexPage);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initRoleIndexPage();
+    }
 
     function konfirmasiHapus(formId, itemLabel) {
         Swal.fire({

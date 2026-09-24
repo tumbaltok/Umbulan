@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="turbo-cache-control" content="no-cache">
     <title>@yield('title') | PT META Adhya Tirta Umbulan</title>
 
     {{-- Favicon dan Ikon Aplikasi --}}
@@ -137,11 +138,121 @@
                 transition: max-height 0.35s ease-in-out !important;
             }
         }
+
+        /* --- ANIMASI TRANSISI HALAMAN HALUS --- */
+        @keyframes pageFadeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-transition-enter {
+            animation: pageFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: opacity, transform;
+        }
+
+        /* --- ANIMASI OVERLAY BERBASIS LOGO --- */
+        @keyframes logoBreathe {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.4));
+            }
+            50% {
+                transform: scale(1.06);
+                filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7));
+            }
+        }
+
+        @keyframes ambientPulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(0.92);
+            }
+            50% {
+                opacity: 0.75;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes spinSmooth {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes spinReverseSlow {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+
+        .animate-logo-breathe {
+            animation: logoBreathe 2s ease-in-out infinite;
+        }
+
+        .animate-ambient-pulse {
+            animation: ambientPulse 2.5s ease-in-out infinite;
+        }
+
+        .animate-spin-smooth {
+            animation: spinSmooth 1.4s linear infinite;
+        }
+
+        .animate-spin-reverse-slow {
+            animation: spinReverseSlow 3s linear infinite;
+        }
+
+        /* --- TURBO PROGRESS BAR NATIVE STYLING --- */
+        .turbo-progress-bar {
+            height: 3px !important;
+            background: linear-gradient(90deg, #0284c7, #06b6d4, #38bdf8) !important;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 0 0 4px rgba(6, 182, 212, 0.6) !important;
+            z-index: 99999 !important;
+            border-radius: 0 9999px 9999px 0;
+        }
     </style>
 
     @stack('styles')
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-100 flex overflow-hidden transition-colors duration-200">
+
+    {{-- Overlay Loading / Transisi Berbasis Logo Aplikasi --}}
+    <div id="pageLoadingOverlay"
+        class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-950/75 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 hidden select-none"
+        aria-hidden="true">
+        
+        <div class="relative flex items-center justify-center">
+            {{-- Ambient Aura Glow Khas Umbulan --}}
+            <div class="absolute w-36 h-36 rounded-full bg-gradient-to-tr from-sky-500/35 to-cyan-400/35 blur-2xl animate-ambient-pulse"></div>
+
+            {{-- Cincin Pemutar Luar (Spinner Ring) --}}
+            <div class="absolute w-24 h-24 rounded-full border-2 border-transparent border-t-cyan-400 border-r-sky-500 animate-spin-smooth"></div>
+
+            {{-- Cincin Pemutar Dalam Aksen Halus --}}
+            <div class="absolute w-20 h-20 rounded-full border border-sky-400/25 border-dashed animate-spin-reverse-slow"></div>
+
+            {{-- Wadah Logo Putih Elegan --}}
+            <div class="relative w-16 h-16 rounded-2xl bg-white p-2 shadow-2xl shadow-cyan-500/30 border border-white/80 flex items-center justify-center animate-logo-breathe">
+                <img src="{{ asset('images/favicon.png') }}"
+                    alt="Logo Umbulan"
+                    class="w-full h-full object-contain drop-shadow-sm">
+            </div>
+        </div>
+
+        {{-- Indikator Teks Memuat Halaman --}}
+        <div class="mt-6 flex flex-col items-center text-center">
+            <span class="text-xs font-bold tracking-wider text-slate-100 uppercase drop-shadow-sm">
+                META ADHYA TIRTA UMBULAN
+            </span>
+            <div class="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-cyan-300/90">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                <span>Memuat halaman...</span>
+            </div>
+        </div>
+    </div>
 
     @php
         $authUser     = Auth::user();
@@ -530,7 +641,7 @@
             </div>
         </header>
 
-        <main class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6">
+        <main id="mainContent" class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6 page-transition-enter">
             {{-- ALERT BANNER: WHATSAPP GATEWAY BELUM TERHUBUNG (KHUSUS LEVEL 1 / ADMIN) --}}
             @if($isAdminRole && !request()->routeIs('admin.whatsapp.*'))
                 @php
@@ -692,6 +803,18 @@
             closeNavbarProfileDropdown();
             closeSidebarMobile();
             closeLogoutModal();
+
+            // Pemicu animasi transisi konten halaman
+            if (typeof window.triggerPageTransition === 'function') {
+                window.triggerPageTransition();
+            } else {
+                const mc = document.getElementById('mainContent');
+                if (mc) {
+                    mc.classList.remove('page-transition-enter');
+                    void mc.offsetWidth;
+                    mc.classList.add('page-transition-enter');
+                }
+            }
 
             document.querySelectorAll('.dropdown-container[data-active="true"]').forEach(container => {
                 container.classList.add('dropdown-open');
