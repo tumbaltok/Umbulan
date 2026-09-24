@@ -723,9 +723,18 @@
     {{-- Tabel Riwayat Cuti Anda --}}
     <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
-            <div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-l-4 border-sky-500 pl-3">Riwayat Cuti Anda</h3>
-                <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-sky-500 rounded-full"></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4"></path>
+                        </svg>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat Cuti Anda</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
+                </div>
             </div>
             <a href="{{ url('/cuti/ajukan') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
                 <i class="fa-solid fa-plus text-[10px]"></i>
@@ -816,9 +825,17 @@
     {{-- Tabel Riwayat MPR Anda --}}
     <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden mt-6 transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
-            <div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-l-4 border-indigo-500 pl-3">Riwayat MPR Anda</h3>
-                <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-indigo-600 rounded-full"></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat MPR Anda</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
+                </div>
             </div>
             <a href="{{ url('/mpr/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
                 <i class="fa-solid fa-plus text-[10px]"></i>
@@ -911,9 +928,17 @@
     {{-- Tabel Riwayat CAR Anda --}}
     <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden mt-6 transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
-            <div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-l-4 border-purple-500 pl-3">Riwayat CAR Anda</h3>
-                <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-purple-500 rounded-full"></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat CAR Anda</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
+                </div>
             </div>
             <a href="{{ url('/car/ajukan') }}" class="bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
                 <i class="fa-solid fa-plus text-[10px]"></i>

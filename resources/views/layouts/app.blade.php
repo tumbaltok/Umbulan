@@ -889,116 +889,202 @@
     </script>
 
     {{-- MODAL POPUP DETAIL AKUN USER --}}
-    <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-        <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
+    <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md transition-opacity duration-300">
+        <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200/90 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
 
-            {{-- HEADER MODAL --}}
-            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-sky-600 to-indigo-700 text-white">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-id-card text-lg"></i>
-                    <h3 class="text-xs font-bold tracking-wide uppercase">Detail Informasi Akun Karyawan</h3>
-                </div>
-                <button onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer">
-                    <i class="fa-solid fa-xmark text-sm"></i>
-                </button>
-            </div>
+            {{-- HEADER ELEGAN DENGAN AMBIENT IDENTITY BANNER --}}
+            <div class="relative bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 text-white p-6 sm:p-7 overflow-hidden border-b border-white/10">
+                <!-- Ambient Subtle Water Glow -->
+                <div class="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+                <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
-            {{-- BODY MODAL --}}
-            <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-                {{-- RINGKASAN AVATAR & NAMA --}}
-                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md overflow-hidden shrink-0 border-2 border-white dark:border-slate-700">
-                        @if(Auth::user()->profile_photo)
-                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="User Photo" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                        @endif
+                <div class="relative z-10 flex items-center justify-between gap-3 mb-5">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 text-sky-300 border border-white/15">
+                            <i class="fa-solid fa-id-card-clip text-xs"></i>
+                        </span>
+                        <div>
+                            <span class="text-[10px] font-mono tracking-widest text-sky-400 font-bold uppercase block leading-none">Kartu Digital Karyawan</span>
+                            <span class="text-[11px] text-slate-300 font-medium tracking-tight">PT Meta Adhya Tirta Umbulan</span>
+                        </div>
                     </div>
-                    <div class="text-center sm:text-left space-y-1">
-                        <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-tight">{{ Auth::user()->name }}</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold">{{ Auth::user()->email }}</p>
-                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start mt-1.5">
+                    <button type="button" onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-sm focus:outline-none">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+
+                {{-- PROFILE HERO SHOWCASE --}}
+                <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                    <div class="relative shrink-0">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-extrabold text-2xl shadow-xl overflow-hidden ring-4 ring-white/15 dark:ring-slate-800 border border-white/20">
+                            @if(Auth::user()->profile_photo)
+                                <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Foto {{ Auth::user()->name }}" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            @endif
+                        </div>
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-slate-900 flex items-center justify-center text-[10px] text-white shadow-sm" title="Status Akun Aktif">
+                            <i class="fa-solid fa-check text-[9px]"></i>
+                        </span>
+                    </div>
+
+                    <div class="text-center sm:text-left space-y-1.5 flex-1 min-w-0">
+                        <h4 class="font-extrabold text-white text-lg sm:text-xl leading-tight tracking-tight truncate">{{ Auth::user()->name }}</h4>
+                        <p class="text-xs text-slate-300 font-medium flex items-center justify-center sm:justify-start gap-1.5 truncate">
+                            <i class="fa-regular fa-envelope text-[11px] text-sky-400"></i>
+                            <span class="truncate">{{ Auth::user()->email }}</span>
+                        </p>
+
+                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start pt-1">
                             @if(Auth::user()->roles && Auth::user()->roles->count() > 0)
                                 @foreach(Auth::user()->roles as $r)
-                                    <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300 rounded-md text-[10px] font-bold uppercase tracking-wider border border-sky-200 dark:border-sky-800">
+                                    <span class="px-2.5 py-0.5 bg-sky-500/20 text-sky-200 border border-sky-400/30 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
                                         {{ $r->role_name }}
                                     </span>
                                 @endforeach
                             @else
-                                <span class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                <span class="px-2.5 py-0.5 bg-white/10 text-slate-200 border border-white/15 rounded-lg text-[10px] font-bold uppercase tracking-wider">
                                     {{ Auth::user()->role->role_name ?? 'Karyawan' }}
                                 </span>
                             @endif
 
                             @if(Auth::user()->nip)
-                                <span class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-[10px] font-mono font-bold">
+                                <span class="px-2.5 py-0.5 bg-slate-800/90 text-slate-300 border border-slate-700 rounded-lg text-[10px] font-mono font-semibold">
                                     NIP: {{ Auth::user()->nip }}
                                 </span>
                             @endif
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- GRID DETAIL INFORMASI LENGKAP --}}
+            {{-- BODY MODAL: GRID DATA INFORMASI TERSTRUKTUR --}}
+            <div class="p-5 sm:p-6 space-y-4 max-h-[60vh] overflow-y-auto bg-slate-50/60 dark:bg-slate-900/60">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">NIP</span>
-                        <p class="font-bold text-slate-800 dark:text-slate-100 font-mono text-xs sm:text-sm">{{ Auth::user()->nip ?? '-' }}</p>
+
+                    {{-- NOMOR IDENTITAS PEGAWAI (NIP) --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-fingerprint text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Nomor Induk Pegawai</span>
+                            <p class="font-bold text-slate-900 dark:text-slate-100 font-mono text-xs sm:text-sm truncate">{{ Auth::user()->nip ?? '-' }}</p>
+                        </div>
                     </div>
 
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nomor WhatsApp</span>
-                        <p class="font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
-                            <span>{{ Auth::user()->phone_number ?? '-' }}</span>
-                            @if(Auth::user()->phone_verified_at)
-                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-0.5"></i> Terverifikasi
-                                </span>
-                            @else
-                                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">Belum Verifikasi</span>
-                            @endif
-                        </p>
-                    </div>
-
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Alamat Email</span>
-                        <p class="font-bold text-slate-800 dark:text-slate-100 truncate flex items-center justify-between">
-                            <span class="truncate">{{ Auth::user()->email }}</span>
-                            @if(Auth::user()->email_verified_at)
-                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded ml-1 shrink-0 border border-emerald-200 dark:border-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-0.5"></i> Terverifikasi
-                                </span>
-                            @else
-                                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-1.5 py-0.5 rounded ml-1 shrink-0 border border-amber-200 dark:border-amber-800">Belum Verifikasi</span>
-                            @endif
-                        </p>
-                    </div>
-
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
-                        <p class="font-bold text-slate-800 dark:text-slate-100">
-                            {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Perempuan' : 'Laki-Laki') }}
-                        </p>
-                    </div>
-
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Stasiun Penempatan</span>
-                        <p class="font-bold text-sky-600 dark:text-sky-400">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</p>
-                    </div>
-
-                    @if(Auth::user()->hasRole('AREA (PIPELINE)') || Auth::user()->hasRole(14))
-                        <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-1.5 shadow-xs col-span-1 sm:col-span-2">
+                    {{-- NOMOR WHATSAPP & VERIFIKASI --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area Cakupan (Rumah Meter)</span>
-                                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">WhatsApp</span>
+                                @if(Auth::user()->phone_verified_at)
+                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/70">
+                                        <i class="fa-solid fa-check text-[8px]"></i> Terverifikasi
+                                    </span>
+                                @else
+                                    <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/70">
+                                        Belum Verifikasi
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm truncate">
+                                {{ Auth::user()->phone_number ?? '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- ALAMAT EMAIL & VERIFIKASI --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-at text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Email Kedinasan</span>
+                                @if(Auth::user()->email_verified_at)
+                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/70">
+                                        <i class="fa-solid fa-check text-[8px]"></i> Terverifikasi
+                                    </span>
+                                @else
+                                    <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/70">
+                                        Belum Verifikasi
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs truncate" title="{{ Auth::user()->email }}">
+                                {{ Auth::user()->email }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- JENIS KELAMIN --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-venus-mars text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
+                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                                {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Perempuan' : 'Laki-Laki') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- STASIUN PENEMPATAN --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-building-user text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Stasiun Penempatan</span>
+                            <p class="font-bold text-sky-600 dark:text-sky-400 text-xs sm:text-sm truncate">
+                                {{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- TIPE JADWAL KERJA --}}
+                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Skema Jadwal Kerja</span>
+                            <p class="font-bold text-indigo-600 dark:text-indigo-400 text-xs truncate">
+                                @if(Auth::user()->schedule_type === 'roster')
+                                    Sistem Roster (Shift 12 Jam)
+                                @elseif(Auth::user()->schedule_type === 'normal')
+                                    Normal ({{ Auth::user()->normal_check_in ?? '08:00' }} - {{ Auth::user()->normal_check_out ?? '17:00' }})
+                                @else
+                                    Reguler / Belum Diatur
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- AREA CAKUPAN RUMAH METER (PIPELINE ROLE) --}}
+                    @if(Auth::user()->hasRole('AREA (PIPELINE)') || Auth::user()->hasRole(14))
+                        <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs col-span-1 sm:col-span-2 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-gauge-high text-xs"></i>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Area Cakupan Rumah Meter</span>
+                                </div>
+                                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
                                     {{ Auth::user()->assignedStations->count() }} Checkpoint
                                 </span>
                             </div>
-                            <div class="flex flex-wrap gap-1.5 pt-0.5">
+                            <div class="flex flex-wrap gap-1.5 pt-1">
                                 @forelse(Auth::user()->assignedStations as $rm)
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 rounded-lg text-xs font-semibold shadow-2xs">
-                                        <i class="fa-solid fa-gauge-high text-amber-500 text-[10px]"></i>
-                                        <span><strong class="font-bold font-mono">{{ $rm->kode_stasiun }}</strong> - {{ $rm->name }}</span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50/70 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50 rounded-lg text-[11px] font-semibold">
+                                        <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong>
+                                        <span class="text-slate-600 dark:text-slate-300">{{ $rm->name }}</span>
                                     </span>
                                 @empty
                                     <span class="text-slate-400 text-xs italic">Belum ada penugasan Rumah Meter khusus.</span>
@@ -1006,29 +1092,16 @@
                             </div>
                         </div>
                     @endif
-
-                    <div class="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl space-y-0.5 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tipe Jadwal Kerja</span>
-                        <p class="font-bold text-indigo-600 dark:text-indigo-400">
-                            @if(Auth::user()->schedule_type === 'roster')
-                                Sistem Roster / Shift 12 Jam
-                            @elseif(Auth::user()->schedule_type === 'normal')
-                                Normal ({{ Auth::user()->normal_check_in ?? '08:00' }} - {{ Auth::user()->normal_check_out ?? '17:00' }})
-                            @else
-                                Belum Diatur
-                            @endif
-                        </p>
-                    </div>
                 </div>
             </div>
 
             {{-- FOOTER MODAL --}}
-            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between">
-                <a href="{{ route('account.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-xs">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Pengaturan Akun</span>
+            <div class="p-4 sm:px-6 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3">
+                <a href="{{ route('account.index') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-semibold rounded-xl shadow-xs shadow-sky-600/30 transition-all cursor-pointer">
+                    <i class="fa-solid fa-gear text-xs"></i>
+                    <span>Kelola Profil & Keamanan</span>
                 </a>
-                <button onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                <button type="button" onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer">
                     Tutup
                 </button>
             </div>
