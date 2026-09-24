@@ -58,10 +58,25 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // Validasi uji keaktifan wajah (Liveness Anti-Spoofing) jika dikirimkan oleh klien
+            if ($request->has('is_liveness_verified') && !$request->boolean('is_liveness_verified', false)) {
+                $errorMsg = 'Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['is_liveness_verified' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['is_liveness_verified' => [$errorMsg]],
+                ], 422);
+            }
+
             $request->validate([
                 'latitude'             => 'required|numeric',
                 'longitude'            => 'required|numeric',
                 'is_face_verified'     => 'required|boolean',
+                'is_liveness_verified' => 'nullable|boolean',
                 'reason'               => 'nullable|string',
                 'reason_out_of_radius' => 'nullable|string',
                 'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
@@ -222,14 +237,29 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // Validasi uji keaktifan wajah (Liveness Anti-Spoofing) jika dikirimkan oleh klien
+            if ($request->has('is_liveness_verified') && !$request->boolean('is_liveness_verified', false)) {
+                $errorMsg = 'Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['is_liveness_verified' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['is_liveness_verified' => [$errorMsg]],
+                ], 422);
+            }
+
             $request->validate([
-                'latitude'         => 'required|numeric',
-                'longitude'        => 'required|numeric',
-                'is_face_verified' => 'required|boolean',
-                'reason'           => 'nullable|string',
-                'reason_checkout'  => 'nullable|string',
-                'evidence'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
-                'bukti_alasan'     => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+                'latitude'             => 'required|numeric',
+                'longitude'            => 'required|numeric',
+                'is_face_verified'     => 'required|boolean',
+                'is_liveness_verified' => 'nullable|boolean',
+                'reason'               => 'nullable|string',
+                'reason_checkout'      => 'nullable|string',
+                'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+                'bukti_alasan'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             ]);
 
             $now = Carbon::now('Asia/Jakarta');

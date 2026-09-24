@@ -570,6 +570,12 @@
 
                     <canvas id="webcamCanvas" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
                     
+                    {{-- Badge Status Liveness Anti-Spoofing --}}
+                    <div id="livenessBadge" class="absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 z-10 shadow-sm transition-all">
+                        <span id="livenessBadgeDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        <span id="livenessBadgeText">Liveness: Menunggu Wajah</span>
+                    </div>
+
                     <div id="cameraStatus" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan verifikasi biometrik...
                     </div>
@@ -1249,6 +1255,67 @@
     let latestRecordedDescriptor = null;
     let isFaceVerified = false;
 
+    // Liveness Detection (Anti-Spoofing) States
+    let isLivenessPassed = false;
+    let blinkCount = 0;
+    const REQUIRED_BLINKS = 1;
+    let isEyeClosedState = false;
+    let eyeClosedConsecutiveFrames = 0;
+    let livenessStartTime = null;
+    let isSpoofingCooldown = false;
+    const LIVENESS_TIMEOUT_MS = 8000; // 8 detik toleransi jika wajah cocok tanpa kedipan sama sekali (indikasi foto)
+    const EAR_THRESHOLD_CLOSED = 0.21;
+    const EAR_THRESHOLD_OPEN = 0.25;
+
+    // Perhitungan Jarak Euclidean 2 Titik Koordinat Landmark
+    function calculateLandmarkDistance(pt1, pt2) {
+        if (!pt1 || !pt2) return 0;
+        return Math.hypot(pt1.x - pt2.x, pt1.y - pt2.y);
+    }
+
+    // Perhitungan Eye Aspect Ratio (EAR) untuk Deteksi Kedipan Mata
+    function calculateEAR(eyePoints) {
+        if (!Array.isArray(eyePoints) || eyePoints.length < 6) return 0;
+        // Jarak vertikal kelopak mata
+        const v1 = calculateLandmarkDistance(eyePoints[1], eyePoints[5]);
+        const v2 = calculateLandmarkDistance(eyePoints[2], eyePoints[4]);
+        // Jarak horizontal sudut mata
+        const h = calculateLandmarkDistance(eyePoints[0], eyePoints[3]);
+        if (h === 0) return 0;
+        return (v1 + v2) / (2.0 * h);
+    }
+
+    function updateLivenessBadge(status, text) {
+        const badge = document.getElementById('livenessBadge');
+        const badgeDot = document.getElementById('livenessBadgeDot');
+        const badgeText = document.getElementById('livenessBadgeText');
+        if (!badge || !badgeDot || !badgeText) return;
+
+        badgeText.innerText = text;
+        if (status === 'passed') {
+            badge.className = "absolute top-2.5 right-2.5 bg-emerald-950/85 backdrop-blur-md text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/50 flex items-center gap-1.5 z-10 shadow-sm animate-pulse";
+            badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        } else if (status === 'active') {
+            badge.className = "absolute top-2.5 right-2.5 bg-amber-950/85 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-500/50 flex items-center gap-1.5 z-10 shadow-sm";
+            badgeDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+        } else if (status === 'failed') {
+            badge.className = "absolute top-2.5 right-2.5 bg-rose-950/85 backdrop-blur-md text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-rose-500/50 flex items-center gap-1.5 z-10 shadow-sm";
+            badgeDot.className = "w-2 h-2 rounded-full bg-rose-500";
+        } else {
+            badge.className = "absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 z-10 shadow-sm";
+            badgeDot.className = "w-2 h-2 rounded-full bg-slate-400";
+        }
+    }
+
+    function resetLivenessState() {
+        isLivenessPassed = false;
+        blinkCount = 0;
+        isEyeClosedState = false;
+        eyeClosedConsecutiveFrames = 0;
+        livenessStartTime = null;
+        updateLivenessBadge('idle', 'Liveness: Siaga');
+    }
+
     let isSubmittingFaceRegister = false;
     let stableDetectionCount = 0;
     let isAutoSubmittingAttendance = false;
@@ -1693,6 +1760,8 @@
         }
 
         isFaceVerified = false;
+        resetLivenessState();
+        isSpoofingCooldown = false;
         isAutoSubmittingAttendance = false;
         stableAttendanceFaceCount = 0;
         const btnLanjut = document.getElementById('btnVerifikasiLanjut');
@@ -1780,7 +1849,7 @@
         }
 
         faceDetectionInterval = setInterval(async () => {
-            if (!faceApiModelsLoaded || video.paused || video.ended || !video.videoWidth) return;
+            if (!faceApiModelsLoaded || video.paused || video.ended || !video.videoWidth || isSpoofingCooldown) return;
 
             const displaySize = { width: video.videoWidth, height: video.videoHeight };
             faceapi.matchDimensions(canvas, displaySize);
@@ -1814,6 +1883,7 @@
                     confidence = 0;
                     isFaceVerified = false;
                     stableAttendanceFaceCount = 0;
+                    resetLivenessState();
                     if (camStatus) {
                         camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
                         camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Biometrik wajah belum terdaftar. Presensi dinonaktifkan!`;
@@ -1828,10 +1898,99 @@
                 }
 
                 if (isMatch) {
+                    // 1. VALIDASI LIVENESS (ANTI-SPOOFING VIA EAR BLINK DETECTION)
+                    if (!isLivenessPassed) {
+                        if (livenessStartTime === null) {
+                            livenessStartTime = Date.now();
+                            updateLivenessBadge('active', 'Uji Keaktifan: Berkedip');
+                        }
+
+                        const elapsedMatch = Date.now() - livenessStartTime;
+
+                        // Perhitungan Eye Aspect Ratio (EAR) dari Facial Landmarks
+                        const landmarks = detection.landmarks;
+                        const leftEye = landmarks.getLeftEye();
+                        const rightEye = landmarks.getRightEye();
+                        const leftEAR = calculateEAR(leftEye);
+                        const rightEAR = calculateEAR(rightEye);
+                        const avgEAR = (leftEAR + rightEAR) / 2.0;
+
+                        // Evaluasi transisi mata terbuka -> tertutup -> terbuka kembali
+                        if (avgEAR < EAR_THRESHOLD_CLOSED) {
+                            eyeClosedConsecutiveFrames++;
+                            isEyeClosedState = true;
+                        } else if (avgEAR >= EAR_THRESHOLD_OPEN) {
+                            if (isEyeClosedState && eyeClosedConsecutiveFrames >= 1) {
+                                blinkCount++;
+                                isEyeClosedState = false;
+                                eyeClosedConsecutiveFrames = 0;
+                                if (blinkCount >= REQUIRED_BLINKS) {
+                                    isLivenessPassed = true;
+                                }
+                            } else {
+                                isEyeClosedState = false;
+                                eyeClosedConsecutiveFrames = 0;
+                            }
+                        }
+
+                        // DETEKSI SPOOFING: Jika wajah cocok selama > 8 detik tanpa pernah berkedip (foto statis / foto layar HP)
+                        if (elapsedMatch > LIVENESS_TIMEOUT_MS && !isLivenessPassed) {
+                            isSpoofingCooldown = true;
+                            resetLivenessState();
+                            isFaceVerified = false;
+                            stableAttendanceFaceCount = 0;
+                            updateLivenessBadge('failed', 'Liveness: Gagal (Spoofing)');
+
+                            const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                            if (btnLanjut) {
+                                btnLanjut.disabled = true;
+                                btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+                                btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+                            }
+
+                            if (camStatus) {
+                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg";
+                                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Verifikasi gagal. Harap gunakan wajah asli dan pastikan Anda berkedip/bergerak.`;
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Verifikasi Anti-Spoofing Gagal',
+                                text: 'Verifikasi gagal. Harap gunakan wajah asli dan pastikan Anda berkedip/bergerak.',
+                                confirmButtonText: 'Coba Lagi',
+                                confirmButtonColor: '#e11d48'
+                            }).then(() => {
+                                setTimeout(() => {
+                                    isSpoofingCooldown = false;
+                                }, 1200);
+                            });
+
+                            return;
+                        }
+
+                        // Jika belum lulus liveness, tahan auto-submit dan pandu karyawan untuk berkedip
+                        if (!isLivenessPassed) {
+                            const btnLanjut = document.getElementById('btnVerifikasiLanjut');
+                            if (btnLanjut) {
+                                btnLanjut.disabled = true;
+                                btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
+                                btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
+                            }
+
+                            if (camStatus && !isAutoSubmittingAttendance) {
+                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm flex items-center justify-center gap-1.5";
+                                camStatus.innerHTML = `<i class="fa-solid fa-eye animate-pulse text-amber-200"></i> Wajah Cocok (${confidence}%)! Silakan BERKEDIP untuk verifikasi wajah asli (${blinkCount}/${REQUIRED_BLINKS})...`;
+                            }
+                            return;
+                        }
+                    }
+
+                    // 2. KETIKA LIVENESS LOLOS & IDENTITAS COCOK
                     isFaceVerified = true;
                     stableAttendanceFaceCount++;
+                    updateLivenessBadge('passed', 'Liveness: Wajah Asli ✓');
 
-                    // Buka kunci tombol lanjut presensi saat verifikasi wajah berhasil cocok
+                    // Buka kunci tombol lanjut presensi saat verifikasi wajah berhasil cocok & live
                     const btnLanjut = document.getElementById('btnVerifikasiLanjut');
                     if (btnLanjut) {
                         btnLanjut.disabled = false;
@@ -1854,7 +2013,7 @@
                             // Jeda auto-submit untuk memunculkan form alasan wajib & bukti
                             if (camStatus) {
                                 camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
-                                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Cocok! Anda ${isLate ? 'Terlambat / Pulang Cepat' : 'Di Luar Radius'}. Membuka form konfirmasi alasan...`;
+                                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Hidup Terverifikasi! Anda ${isLate ? 'Terlambat / Pulang Cepat' : 'Di Luar Radius'}. Membuka form konfirmasi alasan...`;
                             }
                             setTimeout(() => {
                                 verifikasiDanLanjut();
@@ -1863,7 +2022,7 @@
                             // Auto-Submit Presensi Langsung (Tanpa harus klik submit manual)
                             if (camStatus) {
                                 camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
-                                camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Terverifikasi (${confidence}%)! Memproses presensi otomatis...`;
+                                camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Hidup Terverifikasi (${confidence}%)! Memproses presensi otomatis...`;
                             }
                             setTimeout(() => {
                                 if (mediaStream) {
@@ -1876,10 +2035,11 @@
                     } else if (!isAutoSubmittingAttendance) {
                         if (camStatus) {
                             camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
-                            camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Terverifikasi (${confidence}%)! Tahan posisi...`;
+                            camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Hidup Terverifikasi (${confidence}%)! Tahan posisi...`;
                         }
                     }
                 } else {
+                    resetLivenessState();
                     stableAttendanceFaceCount = 0;
                     isFaceVerified = false;
                     const btnLanjut = document.getElementById('btnVerifikasiLanjut');
@@ -1894,6 +2054,7 @@
                     }
                 }
             } else {
+                resetLivenessState();
                 stableAttendanceFaceCount = 0;
                 isFaceVerified = false;
                 const btnLanjut = document.getElementById('btnVerifikasiLanjut');
@@ -1907,7 +2068,7 @@
                     camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Posisikan wajah Anda di depan kamera...`;
                 }
             }
-        }, 300);
+        }, 150);
     }
 
     function verifikasiDanLanjut() {
@@ -1927,11 +2088,11 @@
             return;
         }
 
-        if (!isFaceVerified) {
+        if (!isFaceVerified || !isLivenessPassed) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Wajah Belum Terverifikasi',
-                text: 'Verifikasi biometrik wajah wajib berhasil sebelum melanjutkan presensi.',
+                title: 'Verifikasi Liveness Belum Lengkap',
+                text: 'Verifikasi biometrik wajah dan uji keaktifan (liveness detection dengan berkedip) wajib berhasil sebelum melanjutkan presensi.',
                 confirmButtonColor: '#0284c7'
             });
             return;
@@ -1969,12 +2130,12 @@
         }
 
         const txtStatusBiometrik = document.getElementById('txtStatusBiometrik');
-        if (isFaceVerified) {
+        if (isFaceVerified && isLivenessPassed) {
             txtStatusBiometrik.className = "font-bold text-emerald-600 flex items-center gap-1";
-            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi`;
+            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi & Live (Wajah Asli)`;
         } else {
             txtStatusBiometrik.className = "font-bold text-amber-600 flex items-center gap-1";
-            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-500"></i> Kamera Aktif`;
+            txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-500"></i> Belum Terverifikasi`;
         }
 
         isLateOrEarly = false;
@@ -2039,6 +2200,8 @@
 
     function tutupModalAbsen() {
         stopGpsTimer();
+        resetLivenessState();
+        isSpoofingCooldown = false;
 
         if (faceDetectionInterval) {
             clearInterval(faceDetectionInterval);
@@ -2147,11 +2310,11 @@
             return;
         }
 
-        if (!isFaceVerified) {
+        if (!isFaceVerified || !isLivenessPassed) {
             Swal.fire({
                 icon: 'error',
                 title: 'Presensi Ditolak',
-                text: 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.',
+                text: 'Verifikasi biometrik wajah dan uji keaktifan (liveness detection) wajib berhasil sebelum melakukan presensi.',
                 confirmButtonColor: '#e11d48'
             });
             return;
@@ -2181,13 +2344,14 @@
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('latitude', document.getElementById('absen_lat').value || '0');
         formData.append('longitude', document.getElementById('absen_long').value || '0');
-        formData.append('is_face_verified', isFaceVerified ? '1' : '0');
+        formData.append('is_face_verified', (isFaceVerified && isLivenessPassed) ? '1' : '0');
+        formData.append('is_liveness_verified', isLivenessPassed ? '1' : '0');
         formData.append('reason', reasonValue);
         formData.append('reason_out_of_radius', reasonValue);
         formData.append('reason_checkout', reasonValue);
 
         const inputHiddenFace = document.getElementById('absen_is_face_verified');
-        if (inputHiddenFace) inputHiddenFace.value = isFaceVerified ? '1' : '0';
+        if (inputHiddenFace) inputHiddenFace.value = (isFaceVerified && isLivenessPassed) ? '1' : '0';
 
         const evidenceInput = document.getElementById('inputEvidenceFile');
         if (evidenceInput && evidenceInput.files.length > 0) {

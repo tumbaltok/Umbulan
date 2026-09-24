@@ -210,4 +210,62 @@ class AttendanceFaceSecurityTest extends TestCase
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('Verifikasi biometrik wajah wajib berhasil', $data['message']);
     }
+
+    public function test_checkin_fails_when_liveness_flag_is_false()
+    {
+        $user = new User([
+            'id' => 998,
+            'name' => 'User Checkin Liveness False',
+            'email' => 'checkinlivenessfalse@test.com',
+        ]);
+        $user->face_descriptor = $this->generateDummy128Descriptor();
+
+        $controller = app(KehadiranController::class);
+
+        $request = Request::create('/attendance/check-in', 'POST', [
+            'latitude' => -7.2575,
+            'longitude' => 112.7521,
+            'is_face_verified' => true,
+            'is_liveness_verified' => false,
+        ]);
+        $request->headers->set('Accept', 'application/json');
+        $request->setUserResolver(fn () => $user);
+
+        $response = $controller->checkIn($request);
+
+        $this->assertEquals(422, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertFalse($data['success']);
+        $this->assertStringContainsString('Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil', $data['message']);
+        $this->assertArrayHasKey('is_liveness_verified', $data['errors']);
+    }
+
+    public function test_checkout_fails_when_liveness_flag_is_false()
+    {
+        $user = new User([
+            'id' => 999,
+            'name' => 'User Checkout Liveness False',
+            'email' => 'checkoutlivenessfalse@test.com',
+        ]);
+        $user->face_descriptor = $this->generateDummy128Descriptor();
+
+        $controller = app(KehadiranController::class);
+
+        $request = Request::create('/attendance/check-out', 'POST', [
+            'latitude' => -7.2575,
+            'longitude' => 112.7521,
+            'is_face_verified' => true,
+            'is_liveness_verified' => false,
+        ]);
+        $request->headers->set('Accept', 'application/json');
+        $request->setUserResolver(fn () => $user);
+
+        $response = $controller->checkOut($request);
+
+        $this->assertEquals(422, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertFalse($data['success']);
+        $this->assertStringContainsString('Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil', $data['message']);
+        $this->assertArrayHasKey('is_liveness_verified', $data['errors']);
+    }
 }
