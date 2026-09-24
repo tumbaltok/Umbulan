@@ -224,7 +224,7 @@
                         <textarea id="testMessage" name="message" rows="4" required placeholder="Tuliskan pesan uji coba di sini..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-all"></textarea>
                     </div>
 
-                    <button type="submit" id="submitTestBtn" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 cursor-pointer active:scale-98">
+                    <button type="submit" id="submitTestBtn" class="w-full py-3 px-4 bg-[#128C7E] hover:bg-[#0e7065] active:bg-[#075E54] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#128C7E]/25 flex items-center justify-center space-x-2 cursor-pointer active:scale-98" style="background-color: #128C7E; color: #ffffff;">
                         <i class="fa-solid fa-paper-plane text-xs" id="submitTestIcon"></i>
                         <span id="submitTestText">Kirim Pesan Uji Coba</span>
                     </button>
