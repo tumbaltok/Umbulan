@@ -368,7 +368,9 @@
     </div>
 
 </div>
+@endsection
 
+@push('modals')
 {{-- MODAL FORM TAMBAH / EDIT STASIUN DENGAN PETA KALIBRASI INTERAKTIF LEAFLET --}}
 <div id="modalFormStasiun" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 overflow-y-auto">
     <div class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="tutupModalFormStasiun()"></div>
@@ -563,7 +565,7 @@
         </div>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 {{-- Library Peta Leaflet JS --}}
@@ -1329,9 +1331,14 @@
         tambahBarisStasiun();
 
         const modal = document.getElementById('modalFormStasiun');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('overflow-hidden');
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
 
         // Pastikan ukuran peta Leaflet dihitung ulang setelah modal tampil sempurna
         setTimeout(() => {
@@ -1364,9 +1371,14 @@
         tambahBarisStasiun(stasiun);
 
         const modal = document.getElementById('modalFormStasiun');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('overflow-hidden');
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
 
         // Invalidate size untuk menghilangkan tile abu-abu
         setTimeout(() => {
@@ -1384,8 +1396,10 @@
 
     function tutupModalFormStasiun() {
         const modal = document.getElementById('modalFormStasiun');
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
         document.body.classList.remove('overflow-hidden');
 
         // Bersihkan registry maps
@@ -1415,14 +1429,21 @@
         mapResizeObserver.observe(mapContainer);
 
         function openMapModal() {
-            mapModal.classList.remove("hidden");
-            mapModal.classList.add("flex");
-            document.body.classList.add("overflow-hidden");
+            if (mapModal) {
+                if (mapModal.parentElement !== document.body) {
+                    document.body.appendChild(mapModal);
+                }
+                mapModal.classList.remove("hidden");
+                mapModal.classList.add("flex");
+                document.body.classList.add("overflow-hidden");
+            }
         }
 
         function closeMapModal() {
-            mapModal.classList.remove("flex");
-            mapModal.classList.add("hidden");
+            if (mapModal) {
+                mapModal.classList.remove("flex");
+                mapModal.classList.add("hidden");
+            }
             document.body.classList.remove("overflow-hidden");
         }
 
@@ -1514,27 +1535,41 @@
         const contentSectionDetail = document.getElementById("modalDataContentDetail");
 
         function openStaffModal() {
-            modalStaff.classList.remove("hidden");
-            modalStaff.classList.add("flex");
-            document.body.classList.add("overflow-hidden");
+            if (modalStaff) {
+                if (modalStaff.parentElement !== document.body) {
+                    document.body.appendChild(modalStaff);
+                }
+                modalStaff.classList.remove("hidden");
+                modalStaff.classList.add("flex");
+                document.body.classList.add("overflow-hidden");
+            }
         }
 
         function closeStaffModal() {
-            modalStaff.classList.remove("flex");
-            modalStaff.classList.add("hidden");
+            if (modalStaff) {
+                modalStaff.classList.remove("flex");
+                modalStaff.classList.add("hidden");
+            }
             document.body.classList.remove("overflow-hidden");
         }
 
         function openDetailModal() {
-            modalDetail.classList.remove("hidden");
-            modalDetail.classList.add("flex");
-            document.body.classList.add("overflow-hidden");
+            if (modalDetail) {
+                if (modalDetail.parentElement !== document.body) {
+                    document.body.appendChild(modalDetail);
+                }
+                modalDetail.classList.remove("hidden");
+                modalDetail.classList.add("flex");
+                document.body.classList.add("overflow-hidden");
+            }
         }
 
         function closeDetailModal() {
-            modalDetail.classList.remove("flex");
-            modalDetail.classList.add("hidden");
-            if (modalStaff.classList.contains("hidden")) {
+            if (modalDetail) {
+                modalDetail.classList.remove("flex");
+                modalDetail.classList.add("hidden");
+            }
+            if (modalStaff && modalStaff.classList.contains("hidden")) {
                 document.body.classList.remove("overflow-hidden");
             }
         }

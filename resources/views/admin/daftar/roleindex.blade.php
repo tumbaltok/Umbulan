@@ -478,38 +478,39 @@
     </div>
 
 </div>
+@endsection
 
+@push('modals')
 {{-- MODAL FORM TAMBAH / EDIT ROLE --}}
-<div id="modalFormRole" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
-    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalFormRole()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-xl p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4">
+<div id="modalFormRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalFormRole()">
+    <div id="modalFormRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4 shrink-0">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base" id="judulModalFormRole">Tambah Role Baru</h3>
-            <button type="button" onclick="tutupModalFormRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg cursor-pointer">
+            <button type="button" onclick="tutupModalFormRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="formRoleAction" action="{{ route('admin.role.store') }}" method="POST" class="space-y-4 overflow-y-auto pr-1 flex-1">
+        <form id="formRoleAction" action="{{ route('admin.role.store') }}" method="POST" class="space-y-4 overflow-y-auto pr-1 flex-1 flex flex-col justify-between">
             @csrf
             <input type="hidden" name="_method" id="methodFormRole" value="POST">
 
             <div id="roleRowsContainer" class="space-y-4"></div>
 
             <div id="btnTambahRoleContainer" class="pt-2">
-                <button type="button" onclick="tambahBarisRole()" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-sky-600 border border-dashed border-sky-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors">
+                <button type="button" onclick="tambahBarisRole()" class="w-full py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-sky-600 dark:text-sky-400 border border-dashed border-sky-300 dark:border-sky-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer">
                     <i class="fa-solid fa-plus text-[10px]"></i> Tambah Baris Role Lain
                 </button>
             </div>
 
-            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 shrink-0">
-                <button type="button" onclick="tutupModalFormRole()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs">Simpan Data Role</button>
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0 mt-4">
+                <button type="button" onclick="tutupModalFormRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">Batal</button>
+                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer">Simpan Data Role</button>
             </div>
         </form>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -867,8 +868,24 @@
         tambahBarisRole();
 
         const modal = document.getElementById('modalFormRole');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        const modalCard = document.getElementById('modalFormRoleCard');
+
+        if (modal) {
+            // Pastikan modal menempel di document.body agar posisi fixed selalu floating di tengah viewport
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
     }
 
     function bukaModalEditRole(button) {
@@ -885,14 +902,52 @@
         tambahBarisRole(role);
 
         const modal = document.getElementById('modalFormRole');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        const modalCard = document.getElementById('modalFormRoleCard');
+
+        if (modal) {
+            // Pastikan modal menempel di document.body agar posisi fixed selalu floating di tengah viewport
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
     }
 
     function tutupModalFormRole() {
         const modal = document.getElementById('modalFormRole');
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
+        const modalCard = document.getElementById('modalFormRoleCard');
+
+        if (modalCard) {
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+        }
+
+        setTimeout(() => {
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        }, 150);
     }
+
+    // Listener tombol Escape untuk modal form role
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modalFormRole');
+            if (modal && !modal.classList.contains('hidden')) {
+                tutupModalFormRole();
+            }
+        }
+    });
 </script>
 @endpush
