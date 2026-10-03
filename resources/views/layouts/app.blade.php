@@ -12,15 +12,22 @@
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-circle.png') }}">
     <script>
-        @auth
-            if (localStorage.getItem('theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
+        (function() {
+            @auth
+                // Default: Tema Light untuk user awal / login pertama
+                var savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    if (!savedTheme) {
+                        localStorage.setItem('theme', 'light');
+                    }
+                }
+            @else
                 document.documentElement.classList.remove('dark');
-            }
-        @else
-            document.documentElement.classList.remove('dark');
-        @endauth
+            @endauth
+        })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
@@ -547,10 +554,23 @@
                 <button type="button"
                     id="themeToggleBtn"
                     onclick="toggleThemeMode()"
-                    class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-amber-400 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
-                    title="Ganti Mode Tema (Dark / Light)">
-                    <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
+                    class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                    title="Ganti Mode Tema">
+                    <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-500 text-sm"></i>
                 </button>
+                <script>
+                    (function() {
+                        var icon = document.getElementById('themeToggleIcon');
+                        var btn = document.getElementById('themeToggleBtn');
+                        if (document.documentElement.classList.contains('dark')) {
+                            if (icon) icon.className = 'fa-solid fa-moon text-slate-300 text-sm';
+                            if (btn) btn.setAttribute('title', 'Beralih ke Mode Terang (Light Mode)');
+                        } else {
+                            if (icon) icon.className = 'fa-solid fa-sun text-amber-500 text-sm';
+                            if (btn) btn.setAttribute('title', 'Beralih ke Mode Gelap (Dark Mode)');
+                        }
+                    })();
+                </script>
                 @endauth
 
                 {{-- PROFILE DROPDOWN NAVBAR --}}
@@ -705,14 +725,19 @@
 
         function syncThemeIcon() {
             const icon = document.getElementById('themeToggleIcon');
+            const btn = document.getElementById('themeToggleBtn');
             if (!icon) return;
             const isDark = document.documentElement.classList.contains('dark');
             if (isDark) {
                 icon.className = 'fa-solid fa-moon text-slate-300 text-sm';
+                if (btn) btn.setAttribute('title', 'Beralih ke Mode Terang (Light Mode)');
             } else {
-                icon.className = 'fa-solid fa-sun text-amber-400 text-sm';
+                icon.className = 'fa-solid fa-sun text-amber-500 text-sm';
+                if (btn) btn.setAttribute('title', 'Beralih ke Mode Gelap (Dark Mode)');
             }
         }
+        window.syncThemeIcon = syncThemeIcon;
+        window.toggleThemeMode = toggleThemeMode;
 
         {{-- DROPDOWN NAVBAR PROFIL --}}
         function toggleNavbarProfileDropdown(e) {
@@ -892,65 +917,90 @@
     <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md transition-opacity duration-300">
         <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200/90 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
 
-            {{-- HEADER ELEGAN DENGAN AMBIENT IDENTITY BANNER --}}
-            <div class="relative bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 text-white p-6 sm:p-7 overflow-hidden border-b border-white/10">
-                <!-- Ambient Subtle Water Glow -->
-                <div class="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-                <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+            {{-- HEADER SANGAT ELEGAN DENGAN DESAIN DEEP NAVY SAPPHIRE METALLIC SMART CARD --}}
+            <div class="relative text-white p-6 sm:p-7 overflow-hidden border-b border-sky-400/20"
+                 style="background: linear-gradient(135deg, #06152b 0%, #0c2748 45%, #0f365d 75%, #081d36 100%); box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);">
+                
+                <!-- Ambient Subtle Sapphire & Cyan Corner Glow (Tanpa memudarkan teks) -->
+                <div class="absolute -top-12 -right-12 w-64 h-64 rounded-full pointer-events-none opacity-30 blur-2xl"
+                     style="background: radial-gradient(circle, rgba(14, 165, 233, 0.4) 0%, rgba(14, 165, 233, 0) 70%);"></div>
+                <div class="absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none opacity-25 blur-2xl"
+                     style="background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, rgba(6, 182, 212, 0) 70%);"></div>
 
+                <!-- Subtle Micro-Geometric Identity Texture -->
+                <div class="absolute inset-0 pointer-events-none opacity-[0.04]"
+                     style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 16px 16px;"></div>
+
+                <!-- Watermark Wave Accent -->
+                <div class="absolute -right-8 -bottom-8 pointer-events-none opacity-5 text-sky-300">
+                    <i class="fa-solid fa-water text-9xl"></i>
+                </div>
+
+                {{-- TOP HEADER BAR --}}
                 <div class="relative z-10 flex items-center justify-between gap-3 mb-5">
-                    <div class="flex items-center space-x-2">
-                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 text-sky-300 border border-white/15">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-sky-500/15 text-sky-400 border border-sky-400/30 shadow-xs shadow-sky-500/20">
                             <i class="fa-solid fa-id-card-clip text-xs"></i>
                         </span>
                         <div>
-                            <span class="text-[10px] font-mono tracking-widest text-sky-400 font-bold uppercase block leading-none">Kartu Digital Karyawan</span>
-                            <span class="text-[11px] text-slate-300 font-medium tracking-tight">PT Meta Adhya Tirta Umbulan</span>
+                            <span class="text-[10px] font-mono tracking-widest text-sky-300 font-extrabold uppercase block leading-none">Kartu Digital Karyawan</span>
+                            <span class="text-xs text-slate-200 font-bold tracking-tight">PT Meta Adhya Tirta Umbulan</span>
                         </div>
                     </div>
-                    <button type="button" onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-sm focus:outline-none">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Aktif</span>
+                        </span>
+                        <button type="button" onclick="closeProfileDetailModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/15 backdrop-blur-sm focus:outline-none active:scale-95" title="Tutup">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- PROFILE HERO SHOWCASE --}}
                 <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-4">
                     <div class="relative shrink-0">
-                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-extrabold text-2xl shadow-xl overflow-hidden ring-4 ring-white/15 dark:ring-slate-800 border border-white/20">
+                        <div class="w-20 h-20 rounded-2xl text-white flex items-center justify-center font-black text-2xl shadow-xl overflow-hidden ring-4 ring-sky-400/25 border-2 border-sky-300/40"
+                             style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
                             @if(Auth::user()->profile_photo)
                                 <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Foto {{ Auth::user()->name }}" class="w-full h-full object-cover">
                             @else
                                 {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                             @endif
                         </div>
-                        <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-slate-900 flex items-center justify-center text-[10px] text-white shadow-sm" title="Status Akun Aktif">
-                            <i class="fa-solid fa-check text-[9px]"></i>
+                        <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 ring-2 ring-slate-900 flex items-center justify-center text-[10px] text-white shadow-md" title="Akun Terverifikasi & Aktif">
+                            <i class="fa-solid fa-check text-[10px]"></i>
                         </span>
                     </div>
 
-                    <div class="text-center sm:text-left space-y-1.5 flex-1 min-w-0">
-                        <h4 class="font-extrabold text-white text-lg sm:text-xl leading-tight tracking-tight truncate">{{ Auth::user()->name }}</h4>
-                        <p class="text-xs text-slate-300 font-medium flex items-center justify-center sm:justify-start gap-1.5 truncate">
-                            <i class="fa-regular fa-envelope text-[11px] text-sky-400"></i>
-                            <span class="truncate">{{ Auth::user()->email }}</span>
-                        </p>
+                    <div class="text-center sm:text-left space-y-2 flex-1 min-w-0">
+                        <div>
+                            <h4 class="font-extrabold text-white text-xl sm:text-2xl leading-tight tracking-tight drop-shadow-sm truncate">{{ Auth::user()->name }}</h4>
+                            <p class="text-xs text-sky-200/90 font-medium flex items-center justify-center sm:justify-start gap-1.5 mt-0.5 truncate">
+                                <i class="fa-regular fa-envelope text-[11px] text-sky-400"></i>
+                                <span class="truncate">{{ Auth::user()->email }}</span>
+                            </p>
+                        </div>
 
-                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start pt-1">
+                        <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start pt-0.5">
                             @if(Auth::user()->roles && Auth::user()->roles->count() > 0)
                                 @foreach(Auth::user()->roles as $r)
-                                    <span class="px-2.5 py-0.5 bg-sky-500/20 text-sky-200 border border-sky-400/30 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
-                                        {{ $r->role_name }}
+                                    <span class="px-3 py-1 bg-sky-500/20 text-sky-200 border border-sky-400/35 rounded-xl text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-xs flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-halved text-[9px] text-sky-300"></i>
+                                        <span>{{ $r->role_name }}</span>
                                     </span>
                                 @endforeach
                             @else
-                                <span class="px-2.5 py-0.5 bg-white/10 text-slate-200 border border-white/15 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                                    {{ Auth::user()->role->role_name ?? 'Karyawan' }}
+                                <span class="px-3 py-1 bg-sky-500/20 text-sky-200 border border-sky-400/35 rounded-xl text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user text-[9px] text-sky-300"></i>
+                                    <span>{{ Auth::user()->role->role_name ?? 'Karyawan' }}</span>
                                 </span>
                             @endif
 
                             @if(Auth::user()->nip)
-                                <span class="px-2.5 py-0.5 bg-slate-800/90 text-slate-300 border border-slate-700 rounded-lg text-[10px] font-mono font-semibold">
-                                    NIP: {{ Auth::user()->nip }}
+                                <span class="px-3 py-1 bg-slate-950/80 text-cyan-300 border border-cyan-500/30 rounded-xl text-[10px] font-mono font-bold tracking-wide shadow-xs flex items-center gap-1.5">
+                                    <span>NIP: {{ Auth::user()->nip }}</span>
                                 </span>
                             @endif
                         </div>
@@ -964,8 +1014,8 @@
 
                     {{-- NOMOR IDENTITAS PEGAWAI (NIP) --}}
                     <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-solid fa-fingerprint text-xs"></i>
+                        <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-id-card text-xs"></i>
                         </div>
                         <div class="min-w-0 flex-1 space-y-0.5">
                             <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Nomor Induk Pegawai</span>
@@ -1000,11 +1050,11 @@
                     {{-- ALAMAT EMAIL & VERIFIKASI --}}
                     <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
                         <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-solid fa-at text-xs"></i>
+                            <i class="fa-solid fa-envelope text-xs"></i>
                         </div>
                         <div class="min-w-0 flex-1 space-y-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Email Kedinasan</span>
+                                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Email</span>
                                 @if(Auth::user()->email_verified_at)
                                     <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/70">
                                         <i class="fa-solid fa-check text-[8px]"></i> Terverifikasi
@@ -1097,11 +1147,13 @@
 
             {{-- FOOTER MODAL --}}
             <div class="p-4 sm:px-6 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3">
-                <a href="{{ route('account.index') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-semibold rounded-xl shadow-xs shadow-sky-600/30 transition-all cursor-pointer">
-                    <i class="fa-solid fa-gear text-xs"></i>
-                    <span>Kelola Profil & Keamanan</span>
+                <a href="{{ route('account.index') }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 hover:brightness-110 cursor-pointer"
+                   style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(2, 132, 199, 0.35);">
+                    <i class="fa-solid fa-gear text-xs text-sky-200"></i>
+                    <span class="text-white font-bold tracking-wide">Kelola Profil & Keamanan</span>
                 </a>
-                <button type="button" onclick="closeProfileDetailModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer">
+                <button type="button" onclick="closeProfileDetailModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/80 dark:border-slate-700 transition-all duration-200 cursor-pointer">
                     Tutup
                 </button>
             </div>
@@ -1225,6 +1277,7 @@
         });
 
         document.getElementById('logoutModalForm')?.addEventListener('submit', function() {
+            localStorage.setItem('theme', 'light');
             const btn = document.getElementById('btnConfirmLogout');
             if (btn && !btn.dataset.submitted) {
                 btn.dataset.submitted = "true";

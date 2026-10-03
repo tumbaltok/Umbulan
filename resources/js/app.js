@@ -75,11 +75,29 @@ document.addEventListener('turbo:load', () => {
     hidePageLoading();
     triggerPageTransition();
 
-    // Inisialisasi ulang tema Dark / Light
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    // Inisialisasi tema Dark / Light (Default: Light Mode untuk user awal / login)
+    if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.classList.add('dark');
     } else {
         document.documentElement.classList.remove('dark');
+        if (!localStorage.getItem('theme')) {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Selalu sinkronkan tampilan ikon tombol switch tema
+    if (typeof window.syncThemeIcon === 'function') {
+        window.syncThemeIcon();
+    } else {
+        const icon = document.getElementById('themeToggleIcon');
+        const btn = document.getElementById('themeToggleBtn');
+        if (icon) {
+            const isDark = document.documentElement.classList.contains('dark');
+            icon.className = isDark ? 'fa-solid fa-moon text-slate-300 text-sm' : 'fa-solid fa-sun text-amber-500 text-sm';
+            if (btn) {
+                btn.setAttribute('title', isDark ? 'Beralih ke Mode Terang (Light Mode)' : 'Beralih ke Mode Gelap (Dark Mode)');
+            }
+        }
     }
 
     // Trigger event khusus untuk re-inisialisasi komponen

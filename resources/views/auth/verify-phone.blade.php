@@ -14,8 +14,11 @@
     {{-- Konfigurasi Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Kunci Halaman Auth Selalu Light Mode
+        // Kunci Halaman Auth Selalu Light Mode & pastikan default adalah 'light' jika belum diset
         document.documentElement.classList.remove('dark');
+        if (!localStorage.getItem('theme')) {
+            localStorage.setItem('theme', 'light');
+        }
     </script>
     <script>
         tailwind.config = {
