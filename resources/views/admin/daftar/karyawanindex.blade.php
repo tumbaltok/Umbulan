@@ -26,6 +26,108 @@
         height: auto !important;
         max-height: 100% !important;
     }
+
+    /* ==========================================================================
+       DARK MODE STYLING KHUSUS DIAGRAM PETA STRUKTUR ORGANISASI KARYAWAN
+       (Hanya aktif pada Dark Mode - Mode Terang / Light Mode 100% Tidak Berubah)
+       ========================================================================== */
+    html.dark .mermaid-container {
+        background: radial-gradient(ellipse at top, #111e38 0%, #080d1a 100%) !important;
+        border: 1px solid rgba(56, 189, 248, 0.22) !important;
+        box-shadow: inset 0 2px 25px rgba(0, 0, 0, 0.55), 0 10px 25px -5px rgba(2, 6, 23, 0.7) !important;
+    }
+
+    /* Garis Penghubung / Relasi Alur Hirarki (Edges) */
+    html.dark .mermaid-container svg .edgePath path,
+    html.dark .mermaid-container svg .edgePath .path,
+    html.dark .mermaid-container svg .edgePaths path,
+    html.dark .mermaid-container svg path.flowchart-link,
+    html.dark .mermaid-container svg g.edgePath path,
+    html.dark .mermaid-container svg path.edge-thickness-normal {
+        stroke: #38bdf8 !important; /* Sky-400 cerah, kontras tinggi & menyala di latar gelap */
+        stroke-width: 2.2px !important;
+        stroke-linecap: round !important;
+        stroke-linejoin: round !important;
+        opacity: 0.95 !important;
+        filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.45)) !important;
+    }
+
+    /* Ujung Mata Panah (Markers / Arrowheads) */
+    html.dark .mermaid-container svg marker path,
+    html.dark .mermaid-container svg defs marker path,
+    html.dark .mermaid-container svg marker[id*="flowchart"] path,
+    html.dark .mermaid-container svg marker[id*="point"] path,
+    html.dark .mermaid-container svg .arrowheadPath,
+    html.dark .mermaid-container svg marker * {
+        fill: #38bdf8 !important;
+        stroke: #38bdf8 !important;
+        stroke-width: 1px !important;
+        opacity: 1 !important;
+    }
+
+    /* Kotak Jabatan / Role Card Standar */
+    html.dark .mermaid-container svg .node rect,
+    html.dark .mermaid-container svg .node polygon,
+    html.dark .mermaid-container svg .node circle,
+    html.dark .mermaid-container svg .node .label-container,
+    html.dark .mermaid-container svg g.node > rect {
+        fill: #1e293b !important; /* Slate 800 dark metallic card */
+        stroke: #38bdf8 !important; /* Border Sky-400 tegas */
+        stroke-width: 1.5px !important;
+        rx: 10px !important;
+        ry: 10px !important;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* Efek Interaktif / Hover pada Kotak Jabatan */
+    html.dark .mermaid-container svg .node:hover rect,
+    html.dark .mermaid-container svg .node:hover polygon,
+    html.dark .mermaid-container svg .node:hover .label-container,
+    html.dark .mermaid-container svg g.node:hover > rect {
+        fill: #0c4a6e !important; /* Sky 900 */
+        stroke: #67e8f9 !important; /* Cyan 300 Glow */
+        stroke-width: 2.2px !important;
+        filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.7)) !important;
+        cursor: pointer !important;
+    }
+
+    /* Kotak Puncak Pimpinan (B O D / Root Company) */
+    html.dark .mermaid-container svg .node[id*="COMPANY"] rect,
+    html.dark .mermaid-container svg .node#flowchart-COMPANY rect,
+    html.dark .mermaid-container svg g[id*="COMPANY"] > rect,
+    html.dark .mermaid-container svg g[id*="COMPANY"] .label-container {
+        fill: #0369a1 !important; /* Sky 700 Sapphire Accent */
+        stroke: #7dd3fc !important; /* Sky 300 Glow */
+        stroke-width: 2.5px !important;
+        filter: drop-shadow(0 0 16px rgba(14, 165, 233, 0.6)) !important;
+    }
+
+    /* Tipografi & Teks Jabatan (Putih Bersih, Tebal & Sangat Jelas) */
+    html.dark .mermaid-container svg .node .label,
+    html.dark .mermaid-container svg .node .label text,
+    html.dark .mermaid-container svg .node text,
+    html.dark .mermaid-container svg .node .nodeLabel,
+    html.dark .mermaid-container svg .node span,
+    html.dark .mermaid-container svg .node div,
+    html.dark .mermaid-container svg .node b,
+    html.dark .mermaid-container svg .node strong {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+        font-family: inherit !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    /* Subteks / Nama Karyawan / Divider Tambahan */
+    html.dark .mermaid-container svg .node i,
+    html.dark .mermaid-container svg .node span i,
+    html.dark .mermaid-container svg .node em {
+        color: #94a3b8 !important;
+        fill: #94a3b8 !important;
+        font-weight: 500 !important;
+    }
 </style>
 @endpush
 
@@ -527,7 +629,7 @@
             if (!window.__mermaidKaryawanInitialized) {
                 window.mermaid.initialize({
                     startOnLoad: false,
-                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                    theme: 'default',
                     securityLevel: 'loose',
                     flowchart: {
                         useMaxWidth: true,
@@ -549,7 +651,7 @@
                 if (!window.__mermaidKaryawanInitialized) {
                     window.mermaid.initialize({
                         startOnLoad: false,
-                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                        theme: 'default',
                         securityLevel: 'loose',
                         flowchart: {
                             useMaxWidth: true,

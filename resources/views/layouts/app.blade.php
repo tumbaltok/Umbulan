@@ -719,6 +719,7 @@
             const isDark = html.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             syncThemeIcon();
+            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
             @endauth
         }
 
