@@ -154,13 +154,12 @@
             }
             100% {
                 opacity: 1;
-                transform: translateY(0);
+                transform: none;
             }
         }
 
         .page-transition-enter {
-            animation: pageFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            will-change: opacity, transform;
+            animation: pageFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* --- ANIMASI OVERLAY BERBASIS LOGO --- */
@@ -1296,6 +1295,7 @@
         });
     </script>
 
+    @stack('modals')
     @stack('scripts')
 </body>
 </html>

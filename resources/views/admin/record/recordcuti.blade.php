@@ -208,7 +208,7 @@
                 <h3 class="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1">
                     {{ number_format($metrics['approved']) }}
                 </h3>
-                <p class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Disetujui penuh L1/L2</p>
+                <p class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Disetujui penuh</p>
             </div>
             <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center text-xl border border-emerald-100 dark:border-emerald-800 shrink-0">
                 <i class="fa-solid fa-circle-check"></i>

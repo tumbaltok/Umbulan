@@ -258,15 +258,15 @@
     </div>
 
 </div>
+@endsection
 
+@push('modals')
 {{-- MODAL POPUP DETAIL KARYAWAN --}}
-<div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div id="detailModalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+<div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) { const modal = document.getElementById('detailKaryawanModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden'); }">
+    <div id="detailKaryawanModalCard" class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-5 sm:p-6 relative z-10 transform transition-all duration-200 my-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700/80">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Detail Lengkap Karyawan</h3>
-            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
+            <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -383,9 +383,8 @@
 </div>
 
 {{-- MODAL EDIT SALDO CUTI UTAMA --}}
-<div id="editSaldoModal" class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="tutupModalEditSaldo()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700">
+<div id="editSaldoModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) tutupModalEditSaldo()">
+    <div id="editSaldoModalCard" class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700 my-auto text-left">
         <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
 
         <form id="formEditSaldo" onsubmit="submitEditSaldo(event)" class="space-y-3">
@@ -407,47 +406,48 @@
 </div>
 
 {{-- MODAL KELOLA MULTI-ROLE KARYAWAN --}}
-<div id="modalKelolaRole" class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="tutupModalKelolaRole()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700 m-4">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+<div id="modalKelolaRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalKelolaRole()">
+    <div id="modalKelolaRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3 shrink-0">
             <div>
                 <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                     <i class="fa-solid fa-user-gear text-sky-600 dark:text-sky-400"></i> Kelola Peran / Jabatan Karyawan
                 </h3>
                 <p id="labelKelolaRoleNama" class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5"></p>
             </div>
-            <button type="button" onclick="tutupModalKelolaRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer">
+            <button type="button" onclick="tutupModalKelolaRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="formKelolaRole" onsubmit="submitKelolaRole(event)" class="space-y-4">
+        <form id="formKelolaRole" onsubmit="submitKelolaRole(event)" class="space-y-4 overflow-y-auto pr-1 flex-1 flex flex-col justify-between">
             @csrf
             @method('PUT')
             <input type="hidden" id="kelola_role_user_id" name="user_id">
 
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                        Pilih Peran yang Diemban (Multi-Role)
-                    </label>
-                    <span class="text-[10px] text-slate-400 font-medium">Bisa pilih lebih dari satu peran</span>
-                </div>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-                    @foreach($daftarRole as $r)
-                        <label class="flex items-center space-x-2.5 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all text-xs">
-                            <input type="checkbox" name="roles[]" value="{{ $r->id }}"
-                                class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer kelola-role-checkbox">
-                            <span class="font-semibold text-slate-700 dark:text-slate-200 leading-tight">{{ $r->role_name }}</span>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                            Pilih Peran yang Diemban (Multi-Role)
                         </label>
-                    @endforeach
+                        <span class="text-[10px] text-slate-400 font-medium">Bisa pilih lebih dari satu peran</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                        @foreach($daftarRole as $r)
+                            <label class="flex items-center space-x-2.5 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all text-xs">
+                                <input type="checkbox" name="roles[]" value="{{ $r->id }}"
+                                    class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer kelola-role-checkbox">
+                                <span class="font-semibold text-slate-700 dark:text-slate-200 leading-tight">{{ $r->role_name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
                 </div>
-                <span id="kelola-role-error" class="text-xs text-rose-500 mt-1.5 hidden font-medium">Silakan pilih minimal satu role/jabatan.</span>
 
                 {{-- Input Penugasan Multi-Select Rumah Meter (Khusus Role AREA (PIPELINE)) --}}
-                <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                <div id="kelolaRoleRumahMeterContainer" class="hidden transition-all pt-3 border-t border-slate-100 dark:border-slate-700">
                     <div class="flex items-center justify-between mb-2">
                         <label class="block text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-gauge-high text-amber-600 dark:text-amber-400"></i> Penugasan Rumah Meter (Pipeline)
@@ -458,7 +458,7 @@
                             <button type="button" onclick="selectAllKelolaRm(false)" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline cursor-pointer">Reset</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-2.5 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-xl">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2.5 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-xl">
                         @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
                             @foreach($daftarRumahMeter as $rm)
                                 <label class="flex items-center space-x-2 p-1.5 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-800/60 rounded-lg cursor-pointer hover:border-amber-400 text-xs select-none shadow-2xs">
@@ -474,7 +474,7 @@
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0 mt-4">
                 <button type="button" onclick="tutupModalKelolaRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
                     Batal
                 </button>
@@ -485,7 +485,7 @@
         </form>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 {{-- Library Diagram Mermaid.js --}}
@@ -835,9 +835,16 @@
 
         function hideModal() {
             if (!modal) return;
-            modal.classList.remove("flex");
-            modal.classList.add("hidden");
-            document.body.classList.remove("overflow-hidden");
+            const modalCard = document.getElementById("detailKaryawanModalCard");
+            if (modalCard) {
+                modalCard.classList.remove('scale-100', 'opacity-100');
+                modalCard.classList.add('scale-95', 'opacity-0');
+            }
+            setTimeout(() => {
+                modal.classList.remove("flex");
+                modal.classList.add("hidden");
+                document.body.classList.remove("overflow-hidden");
+            }, 150);
         }
 
         if (closeBtn && !closeBtn.dataset.bound) {
@@ -873,12 +880,25 @@
 
     function loadDetailKaryawan(karyawanId) {
         const modal = document.getElementById("detailKaryawanModal");
+        const modalCard = document.getElementById("detailKaryawanModalCard");
         const loadingSection = document.getElementById("modalLoading");
         const contentSection = document.getElementById("modalDataContent");
 
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-        document.body.classList.add("overflow-hidden");
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
 
         loadingSection.classList.remove("hidden");
         contentSection.classList.add("hidden");
@@ -1089,14 +1109,41 @@
         document.getElementById('input_sisa_saldo').value = currentSaldo;
 
         const modalEdit = document.getElementById('editSaldoModal');
-        modalEdit.classList.remove('hidden');
-        modalEdit.classList.add('flex');
+        const modalCard = document.getElementById('editSaldoModalCard');
+
+        if (modalEdit) {
+            if (modalEdit.parentElement !== document.body) {
+                document.body.appendChild(modalEdit);
+            }
+            document.body.classList.add('overflow-hidden');
+            modalEdit.classList.remove('hidden');
+            modalEdit.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
     }
 
     function tutupModalEditSaldo() {
         const modalEdit = document.getElementById('editSaldoModal');
-        modalEdit.classList.remove('flex');
-        modalEdit.classList.add('hidden');
+        const modalCard = document.getElementById('editSaldoModalCard');
+
+        if (modalCard) {
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+        }
+
+        setTimeout(() => {
+            if (modalEdit) {
+                modalEdit.classList.remove('flex');
+                modalEdit.classList.add('hidden');
+            }
+            document.body.classList.remove('overflow-hidden');
+        }, 150);
     }
 
     function submitEditSaldo(e) {
@@ -1179,8 +1226,24 @@
         if (errorMsg) errorMsg.classList.add('hidden');
 
         const modal = document.getElementById('modalKelolaRole');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        const modalCard = document.getElementById('modalKelolaRoleCard');
+
+        if (modal) {
+            // Pastikan modal menempel di document.body agar posisi fixed selalu floating center di viewport
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
     }
 
     function evalKelolaRolePipeline() {
@@ -1207,17 +1270,47 @@
         });
     }
 
-    // Pasang listener untuk perubahan checkbox role di modal kelola role
+    // Pasang listener untuk perubahan checkbox role di modal kelola role & Escape key
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('.kelola-role-checkbox').forEach(cb => {
             cb.addEventListener('change', evalKelolaRolePipeline);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modalRole = document.getElementById('modalKelolaRole');
+                if (modalRole && !modalRole.classList.contains('hidden')) {
+                    tutupModalKelolaRole();
+                }
+                const modalEdit = document.getElementById('editSaldoModal');
+                if (modalEdit && !modalEdit.classList.contains('hidden')) {
+                    tutupModalEditSaldo();
+                }
+                const modalDetail = document.getElementById('detailKaryawanModal');
+                if (modalDetail && !modalDetail.classList.contains('hidden')) {
+                    const closeBtn = document.getElementById("closeDetailModalBtn");
+                    if (closeBtn) closeBtn.click();
+                }
+            }
         });
     });
 
     function tutupModalKelolaRole() {
         const modal = document.getElementById('modalKelolaRole');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        const modalCard = document.getElementById('modalKelolaRoleCard');
+
+        if (modalCard) {
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+        }
+
+        setTimeout(() => {
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        }, 150);
     }
 
     async function submitKelolaRole(e) {
