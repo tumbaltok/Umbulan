@@ -113,6 +113,29 @@ $reqUnverified->setUserResolver(fn() => $user);
 $resUnverified = $kehadiranController->checkIn($reqUnverified);
 assertTest($resUnverified->getStatusCode() === 422, "Check-in blocked with HTTP 422 when is_face_verified is false");
 
+// [C-01 TEST] Test: Attacker tries Postman bypass with is_face_verified=true but without face_descriptor
+$reqPostmanBypass = Request::create('/attendance/check-in', 'POST', [
+    'latitude' => -7.2575,
+    'longitude' => 112.7521,
+    'is_face_verified' => true,
+]);
+$reqPostmanBypass->headers->set('Accept', 'application/json');
+$reqPostmanBypass->setUserResolver(fn() => $user);
+$resPostmanBypass = $kehadiranController->checkIn($reqPostmanBypass);
+assertTest($resPostmanBypass->getStatusCode() === 422, "Check-in blocked with HTTP 422 when face_descriptor is missing from camera");
+
+// [C-01 TEST] Test: Attacker sends another person's / mismatched face descriptor (Euclidean Distance > 0.58)
+$mismatchedDescriptor = array_fill(0, 128, 0.0);
+$reqSpoofedDescriptor = Request::create('/attendance/check-in', 'POST', [
+    'latitude' => -7.2575,
+    'longitude' => 112.7521,
+    'is_face_verified' => true,
+    'face_descriptor' => $mismatchedDescriptor,
+]);
+$reqSpoofedDescriptor->headers->set('Accept', 'application/json');
+$reqSpoofedDescriptor->setUserResolver(fn() => $user);
+$resSpoofed = $kehadiranController->checkIn($reqSpoofedDescriptor);
+assertTest($resSpoofed->getStatusCode() === 422, "Check-in blocked with HTTP 422 when face_descriptor does not match server embedding");
 
 // 2. TEST NORMAL ON-TIME CHECK-IN WITHIN RADIUS (NO SELFIE SAVED TO DISK)
 echo "\n--- TEST 2: Normal On-Time Check-In within Radius ---\n";
@@ -127,6 +150,7 @@ $reqCheckIn = Request::create('/attendance/check-in', 'POST', [
     'latitude' => $stationLat,
     'longitude' => $stationLong,
     'is_face_verified' => true,
+    'face_descriptor' => $dummy128Descriptor,
 ]);
 $reqCheckIn->setUserResolver(fn() => $user);
 
@@ -155,8 +179,10 @@ $reqOutsideNoReason = Request::create('/attendance/check-in', 'POST', [
     'latitude' => -1.0000,
     'longitude' => 100.0000,
     'is_face_verified' => true,
+    'face_descriptor' => $dummy128Descriptor,
     'reason' => '', // Empty reason
 ]);
+$reqOutsideNoReason->headers->set('Accept', 'application/json');
 $reqOutsideNoReason->setUserResolver(fn() => $user2);
 
 $resOutsideNoReason = $kehadiranController->checkIn($reqOutsideNoReason);
@@ -167,6 +193,7 @@ $reqOutsideWithReason = Request::create('/attendance/check-in', 'POST', [
     'latitude' => -1.0000,
     'longitude' => 100.0000,
     'is_face_verified' => true,
+    'face_descriptor' => $dummy128Descriptor,
     'reason' => 'Sedang dinas luar kota meeting dengan supplier pipa',
 ]);
 $reqOutsideWithReason->setUserResolver(fn() => $user2);
@@ -223,6 +250,7 @@ $reqCheckOut = Request::create('/attendance/check-out', 'POST', [
     'latitude' => $stationLat,
     'longitude' => $stationLong,
     'is_face_verified' => true,
+    'face_descriptor' => $dummy128Descriptor,
     'reason' => 'Pulang kerja shift selesai',
 ]);
 $reqCheckOut->setUserResolver(fn() => $user);

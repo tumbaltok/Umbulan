@@ -146,56 +146,29 @@ class PengajuanCutiController extends Controller
 
         if ($subCutiId) {
             $subDb = SubCuti::find($subCutiId);
-            if ($subDb && strtolower($subDb->nama_sub_cuti) === 'haid') {
-                $totalHaidBulanIni = PengajuanCuti::where('user_id', $user->id)
-                    ->where('sub_cuti_id', $subCutiId)
-                    ->whereIn('status_akhir', ['pending', 'approved'])
-                    ->whereMonth('tanggal_mulai', $bulanSekarang)
-                    ->whereYear('tanggal_mulai', $tahunSekarang)
-                    ->sum('total_hari');
+            if ($subDb) {
+                $namaSub = strtolower($subDb->nama_sub_cuti);
 
-                if (($totalHaidBulanIni + $totalHari) > 2) {
-                    return back()->withErrors(['error' => 'Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan.'])->withInput();
+                // [L-04 FIX] Validasi Gender: Cuti Haid & Melahirkan hanya untuk Karyawan Perempuan (gender_id = 2)
+                if (str_contains($namaSub, 'haid') || str_contains($namaSub, 'lahir')) {
+                    if ((int)$user->gender_id !== 2) {
+                        return back()->withErrors(['error' => 'Pengajuan ' . $subDb->nama_sub_cuti . ' hanya diperuntukkan bagi karyawan perempuan.'])->withInput();
+                    }
+                }
+
+                if (str_contains($namaSub, 'haid')) {
+                    $totalHaidBulanIni = PengajuanCuti::where('user_id', $user->id)
+                        ->where('sub_cuti_id', $subCutiId)
+                        ->whereIn('status_akhir', ['pending', 'approved'])
+                        ->whereMonth('tanggal_mulai', $bulanSekarang)
+                        ->whereYear('tanggal_mulai', $tahunSekarang)
+                        ->sum('total_hari');
+
+                    if (($totalHaidBulanIni + $totalHari) > 2) {
+                        return back()->withErrors(['error' => 'Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan.'])->withInput();
+                    }
                 }
             }
-        }
-
-        if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
-            $cutiTahunanId = $this->getCutiTahunanId();
-            $saldo = SaldoCuti::where('user_id', $user->id)
-                ->where('jenis_cuti_id', $cutiTahunanId)
-                ->where('tahun', $tahunSekarang)
-                ->first();
-
-            if (! $saldo) {
-                return redirect()->back()->withErrors(['error' => 'Sisa kuota cuti tahunan Anda belum diatur oleh admin.'])->withInput();
-            }
-
-            try {
-                $this->validasiDanCekSaldo($user->id, $jenisCutiId, $subCutiId, $tahunSekarang, $totalHari);
-            } catch (\Exception $e) {
-                return back()->withErrors(['error' => $e->getMessage()])->withInput();
-            }
-        }
-
-        $cutiBentrok = DB::table('pengajuan_cutis')
-            ->where('user_id', $user->id)
-            ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
-            ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
-                $query->where(function ($q) use ($tanggalMulaiBaru) {
-                    $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
-                })
-                    ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
-                        $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
-                    })
-                    ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
-                        $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
-                    });
-            })
-            ->first();
-
-        if ($cutiBentrok) {
-            return back()->withErrors(['error' => 'Ditolak! Terdapat pengajuan yang berstatus sama di tanggal tersebut.'])->withInput();
         }
 
         $namaDokumen = null;
@@ -244,6 +217,46 @@ class PengajuanCutiController extends Controller
 
         DB::beginTransaction();
         try {
+            // [C-02 FIX] Validasi kuota saldo DI DALAM transaksi DB dengan pessimistic row-locking
+            if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
+                $cutiTahunanId = $this->getCutiTahunanId();
+                $saldo = SaldoCuti::where('user_id', $user->id)
+                    ->where('jenis_cuti_id', $cutiTahunanId)
+                    ->where('tahun', $tahunSekarang)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $saldo) {
+                    DB::rollBack();
+                    return redirect()->back()->withErrors(['error' => 'Sisa kuota cuti tahunan Anda belum diatur oleh admin.'])->withInput();
+                }
+
+                $this->validasiDanCekSaldo($user->id, $jenisCutiId, $subCutiId, $tahunSekarang, $totalHari);
+            }
+
+            // [C-02 FIX] Pengecekan cuti bentrok di dalam transaksi ber-lock
+            $cutiBentrok = DB::table('pengajuan_cutis')
+                ->where('user_id', $user->id)
+                ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
+                ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                    $query->where(function ($q) use ($tanggalMulaiBaru) {
+                        $q->where('tanggal_mulai', '<=', $tanggalMulaiBaru)->where('tanggal_selesai', '>=', $tanggalMulaiBaru);
+                    })
+                        ->orWhere(function ($q) use ($tanggalSelesaiBaru) {
+                            $q->where('tanggal_mulai', '<=', $tanggalSelesaiBaru)->where('tanggal_selesai', '>=', $tanggalSelesaiBaru);
+                        })
+                        ->orWhere(function ($q) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                            $q->where('tanggal_mulai', '>=', $tanggalMulaiBaru)->where('tanggal_selesai', '<=', $tanggalSelesaiBaru);
+                        });
+                })
+                ->lockForUpdate()
+                ->first();
+
+            if ($cutiBentrok) {
+                DB::rollBack();
+                return back()->withErrors(['error' => 'Ditolak! Terdapat pengajuan yang berstatus sama di tanggal tersebut.'])->withInput();
+            }
+
             $pengajuan = PengajuanCuti::create([
                 'user_id'             => $user->id,
                 'jenis_cuti_id'       => $jenisCutiId,
@@ -284,10 +297,16 @@ class PengajuanCutiController extends Controller
             }
 
             return redirect()->route('cuti.riwayat')->with('success', 'Pengajuan cuti/ijin berhasil dikirim!');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error("Gagal memproses pengajuan cuti user ID {$user->id}: " . $e->getMessage());
 
-            return back()->withErrors(['error' => 'Terjadi kesalahan sistem: '.$e->getMessage()])->withInput();
+            // Tampilkan pesan validasi bisnis yang ramah, hindari ekspos internal SQL/sistem
+            $errorMsg = ($e instanceof \Exception && $e->getCode() === 0 && !str_contains($e->getMessage(), 'SQLSTATE'))
+                ? $e->getMessage()
+                : 'Terjadi kesalahan sistem saat memproses pengajuan cuti Anda. Silakan coba kembali.';
+
+            return back()->withErrors(['error' => $errorMsg])->withInput();
         }
     }
 
@@ -305,10 +324,26 @@ class PengajuanCutiController extends Controller
         return view('cuti.cutiriwayat', compact('pengajuanCuti'));
     }
 
-    // Mengambil rincian data pengajuan cuti via JSON
+    // Mengambil rincian data pengajuan cuti via JSON [C-03 FIX IDOR]
     public function detailCutiJSON(int $id)
     {
         $cuti = PengajuanCuti::with(['jenisCuti', 'subCuti'])->findOrFail($id);
+        $user = Auth::user();
+
+        // [C-03 FIX] Validasi Kepemilikan & Hak Akses:
+        // Hanya pemilik pengajuan, Atasan terkait, atau Admin Level 1 yang berhak mengakses
+        $isOwner = ((int)$cuti->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$cuti->approver_tahap_1_id === (int)$user->id)
+            || ((int)$cuti->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk melihat rincian pengajuan ini.',
+            ], 403);
+        }
 
         return response()->json([
             'name_cuti' => $cuti->jenisCuti->name_cuti ?? '-',
@@ -325,7 +360,34 @@ class PengajuanCutiController extends Controller
         ]);
     }
 
-    // Menghasilkan dokumen PDF cetak surat cuti
+    // Menampilkan halaman pratinjau surat cuti
+    public function viewSuratCuti(int $id)
+    {
+        $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
+        $user = Auth::user();
+
+        // Validasi Otorisasi: Hanya pemilik, approver terkait, atau Admin Level 1
+        $isOwner = ((int)$pengajuan->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$pengajuan->approver_tahap_1_id === (int)$user->id)
+            || ((int)$pengajuan->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk melihat surat cuti ini.');
+        }
+
+        if ($pengajuan->status_akhir !== 'approved') {
+            return redirect()->back()->with('error', 'Surat cuti belum dapat dilihat karena belum disetujui sepenuhnya.');
+        }
+
+        return view('cuti.pembungkus_pdf', [
+            'id' => $id,
+            'title' => 'Surat Cuti - ' . $pengajuan->user->name,
+        ]);
+    }
+
+    // Menghasilkan dokumen PDF cetak surat cuti [C-04 FIX IDOR]
     public function cetakSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with([
@@ -336,6 +398,19 @@ class PengajuanCutiController extends Controller
             'approverTahap1.role',
             'approverTahap2.role'
         ])->findOrFail($id);
+
+        $user = Auth::user();
+
+        // [C-04 FIX] Validasi Otorisasi: Hanya pemilik pengajuan, approver terkait, atau Admin Level 1
+        $isOwner = ((int)$pengajuan->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$pengajuan->approver_tahap_1_id === (int)$user->id)
+            || ((int)$pengajuan->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk mencetak surat cuti ini.');
+        }
 
         if ($pengajuan->status_akhir !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum disetujui sepenuhnya.');

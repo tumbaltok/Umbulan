@@ -90,15 +90,63 @@ class PersetujuanCutiController extends Controller
 
         $atasan = Auth::user();
         $tindakan = $request->tindakan;
-        $pengajuan = PengajuanCuti::findOrFail($id);
 
-        // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
-        if ($pengajuan->user_id === $atasan->id) {
-            return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
+        $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
+        if (empty($atasanRoleIds) && !empty($atasan->role_id)) {
+            $atasanRoleIds = [(int)$atasan->role_id];
         }
+        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
 
         DB::beginTransaction();
         try {
+            // [C-02 FIX] Kunci baris pengajuan cuti (lockForUpdate) untuk mencegah double-approval
+            $pengajuan = PengajuanCuti::with(['user.roles'])->lockForUpdate()->findOrFail($id);
+
+            // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
+            if ((int)$pengajuan->user_id === (int)$atasan->id) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
+            }
+
+            // Cek apakah status sudah bukan pending
+            if ($pengajuan->status_akhir !== 'pending') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Pengajuan ini sudah pernah diproses sebelumnya.');
+            }
+
+            // [M-04 FIX] Validasi Wewenang Approver: Pastikan approver memiliki role yang sesuai aturan dinamis
+            if (!$isAdmin) {
+                $isTahap1 = ($pengajuan->status_tahap_1 === 'pending');
+                $isTahap2 = ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending');
+
+                $submitter = $pengajuan->user;
+                $requiredRoleId = null;
+
+                $cutiRules = [];
+                $rules = [];
+                foreach ($submitter->roles as $r) {
+                    if (!empty($r->approval_rules['cuti'])) {
+                        $cutiRules = $r->approval_rules['cuti'];
+                        $rules = $r->approval_rules;
+                        break;
+                    }
+                }
+                if (empty($cutiRules) && $submitter->role) {
+                    $rules = $submitter->role->approval_rules ?? [];
+                    $cutiRules = $rules['cuti'] ?? [];
+                }
+
+                if ($isTahap1) {
+                    $requiredRoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+                } elseif ($isTahap2) {
+                    $requiredRoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+                }
+
+                if ($requiredRoleId && !in_array((int)$requiredRoleId, $atasanRoleIds)) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak memiliki wewenang jabatan untuk memproses persetujuan tahap ini.');
+                }
+            }
             // 1. PENOLAKAN PENGAJUAN (REJECT - FIRST TO ACT)
             if ($tindakan === 'rejected') {
                 $isTahap1Pending = $pengajuan->status_tahap_1 === 'pending';
@@ -194,10 +242,11 @@ class PersetujuanCutiController extends Controller
             DB::commit();
 
             return redirect()->back()->with('error', 'Pengajuan sudah diproses sebelumnya.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error("Gagal memproses persetujuan cuti ID {$id}: " . $e->getMessage());
 
-            return redirect()->back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat memproses persetujuan cuti.');
         }
     }
 }

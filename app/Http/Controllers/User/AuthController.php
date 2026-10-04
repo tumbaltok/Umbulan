@@ -79,6 +79,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $primaryRoleId,
+            'level' => 3, // [C-05 FIX] Set eksplisit level 3 (Staff/Karyawan Biasa)
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
             'password' => Hash::make($request->password),
@@ -210,6 +211,16 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
 
+        // [L-02 FIX] Rate limiting percobaan verifikasi OTP email (maksimal 5 kali percobaan per menit)
+        $throttleKey = 'verify-otp-email:' . strtolower($request->input('email')) . '|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Terlalu banyak percobaan verifikasi OTP yang salah. Coba lagi dalam {$seconds} detik.",
+            ], 429);
+        }
+
         $sessionOtpHash = session('reset_otp_hash');
         $sessionEmail = session('reset_email');
         $sessionExpires = session('reset_otp_expires');
@@ -219,9 +230,13 @@ class AuthController extends Controller
         }
 
         if (! Hash::check($request->otp, $sessionOtpHash)) {
+            RateLimiter::hit($throttleKey, 60);
             Log::warning("Gagal verifikasi OTP email untuk: {$request->email} dari IP: {$request->ip()}");
             return response()->json(['status' => 'error', 'message' => 'Kode OTP salah.'], 400);
         }
+
+        RateLimiter::clear($throttleKey);
+        $request->session()->regenerate();
 
         session([
             'otp_verified_for' => $request->email,

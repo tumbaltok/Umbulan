@@ -163,8 +163,25 @@ class JadwalController extends Controller
             }
         }
 
+        // [H-06 FIX] Validasi ketat format vektor biometrik wajah (wajib 128 elemen float numerik)
+        if (!is_array($descriptor) || count($descriptor) !== 128) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format vektor biometrik tidak valid. Wajib berupa 128 nilai koordinat numerik.',
+            ], 422);
+        }
+
+        foreach ($descriptor as $val) {
+            if (!is_numeric($val) || $val < -2.0 || $val > 2.0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nilai elemen vektor biometrik berada di luar rentang valid.',
+                ], 422);
+            }
+        }
+
         $user->update([
-            'face_descriptor' => $descriptor,
+            'face_descriptor' => array_map('floatval', $descriptor),
         ]);
 
         return response()->json([

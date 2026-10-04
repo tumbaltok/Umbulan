@@ -41,13 +41,36 @@ class WhatsAppSettingController extends Controller
         return response()->json($qrData);
     }
 
-    // Mengirim pesan uji coba koneksi WhatsApp Gateway
+    // Mengirim pesan uji coba koneksi WhatsApp Gateway (Khusus Admin Level 1 & Rate Limited) [H-04 FIX]
     public function sendTest(Request $request): JsonResponse
     {
+        $user = Auth::user();
+
+        // [H-04 FIX] Batasi pengiriman pesan test hanya untuk Administrator Level 1
+        $isAdmin = $user->isLevel1() || $user->hasRole('ADMIN') || (int)$user->role_id === 1;
+        if (!$isAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya akun Administrator Level 1 yang berwenang mengirim pesan uji coba WhatsApp.',
+            ], 403);
+        }
+
+        // [H-04 FIX] Rate limiting: maksimal 5 kali pengujian per jam
+        $throttleKey = 'wa-send-test:' . $user->id;
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'success' => false,
+                'message' => "Batas pengiriman pesan uji coba tercapai. Silakan coba lagi dalam {$seconds} detik.",
+            ], 429);
+        }
+
         $request->validate([
             'phone_number' => 'required|string|min:10|max:16',
             'message'      => 'required|string|max:1000',
         ]);
+
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 3600);
 
         $status = $this->whatsAppService->getStatus();
         if (($status['status'] ?? '') !== 'connected') {
@@ -76,13 +99,13 @@ class WhatsAppSettingController extends Controller
         ], 500);
     }
 
-    // Memutuskan koneksi sesi WhatsApp Gateway (khusus Administrator Level 1)
+    // Memutuskan koneksi sesi WhatsApp Gateway (khusus Administrator Level 1) [L-01 FIX]
     public function disconnect(): JsonResponse
     {
         $user = Auth::user();
 
-        // Verifikasi wewenang hak akses Level 1
-        $isLevel1 = $user->hasRole('ADMIN') || $user->roles->contains(fn($r) => $r->level == 1) || $user->role_id === 1;
+        // [L-01 FIX] Gunakan method kanonikal isLevel1() dan cek konsisten
+        $isLevel1 = $user->isLevel1() || $user->hasRole('ADMIN') || (int)$user->role_id === 1;
         if (!$isLevel1) {
             return response()->json([
                 'success' => false,

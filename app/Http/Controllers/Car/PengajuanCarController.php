@@ -111,20 +111,20 @@ class PengajuanCarController extends Controller
             $statusAkhir  = 'pending';
         }
 
-        // Format nomor CAR jika belum terisi
-        $tahunSekarang = date('Y');
-        $bulanAngka = (int) date('m');
-        $romawi = [
-            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
-        ];
-        $bulanRomawi = $romawi[$bulanAngka] ?? 'I';
-        $totalTahunIni = PengajuanCar::whereYear('created_at', $tahunSekarang)->count();
-        $nomorUrut = $totalTahunIni + 1;
-        $nomorCarAuto = "{$nomorUrut} / META / PAS / CAR / {$bulanRomawi} / {$tahunSekarang}";
-
         DB::beginTransaction();
         try {
+            // [M-01 FIX] Generate nomor CAR secara atomik di dalam transaksi dengan row-locking
+            $tahunSekarang = date('Y');
+            $bulanAngka = (int) date('m');
+            $romawi = [
+                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
+            ];
+            $bulanRomawi = $romawi[$bulanAngka] ?? 'I';
+            $totalTahunIni = PengajuanCar::whereYear('created_at', $tahunSekarang)->lockForUpdate()->count();
+            $nomorUrut = $totalTahunIni + 1;
+            $nomorCarAuto = "{$nomorUrut} / META / PAS / CAR / {$bulanRomawi} / {$tahunSekarang}";
+
             $carHeader = PengajuanCar::create([
                 'user_id'               => $user->id,
                 'nomor_car'             => $request->nomor_car ?: $nomorCarAuto,

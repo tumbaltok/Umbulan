@@ -12,6 +12,17 @@ class DokumenCutiController extends Controller
     public function viewSuratCuti(int $id)
     {
         $pengajuan = PengajuanCuti::with(['user'])->findOrFail($id);
+        $user = auth()->user();
+
+        $isOwner = ((int)$pengajuan->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$pengajuan->approver_tahap_1_id === (int)$user->id)
+            || ((int)$pengajuan->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk melihat surat cuti ini.');
+        }
 
         if ($pengajuan->status_akhir !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');
@@ -33,6 +44,17 @@ class DokumenCutiController extends Controller
             'approverTahap1.role',
             'approverTahap2.role'
         ])->findOrFail($id);
+        $user = auth()->user();
+
+        $isOwner = ((int)$pengajuan->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$pengajuan->approver_tahap_1_id === (int)$user->id)
+            || ((int)$pengajuan->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk mencetak surat cuti ini.');
+        }
 
         if ($pengajuan->status_akhir !== 'approved') {
             return redirect()->back()->with('error', 'Surat cuti belum dapat dicetak karena belum disetujui sepenuhnya.');

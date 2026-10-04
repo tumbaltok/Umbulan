@@ -324,8 +324,8 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['otp' => $msg]);
         }
 
-        // Validasi kesesuaian OTP dengan hash
-        if (!Hash::check($request->otp, $sessionOtpHash) && $request->otp !== $sessionOtpHash) {
+        // [H-02 FIX] Validasi kesesuaian OTP HANYA dengan Hash::check(), hapus raw hash fallback
+        if (!Hash::check($request->otp, $sessionOtpHash)) {
             $attempts++;
             session(['reset_attempts' => $attempts]);
 
@@ -341,6 +341,9 @@ class ForgotPasswordController extends Controller
             }
             return back()->withErrors(['otp' => $msg]);
         }
+
+        // [H-01 FIX] Regenerate session ID untuk mencegah session fixation
+        $request->session()->regenerate();
 
         // Otorisasi token pemulihan setelah OTP valid
         $authToken = Str::random(40);

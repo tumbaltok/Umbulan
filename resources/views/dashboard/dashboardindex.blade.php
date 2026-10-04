@@ -1345,6 +1345,7 @@
     let stableDetectionCount = 0;
     let isAutoSubmittingAttendance = false;
     let stableAttendanceFaceCount = 0;
+    let latestCameraFaceDescriptor = null;
 
     let countdownInterval = null;
     let secondsLeft = 5;
@@ -1901,6 +1902,7 @@
                     // Threshold Euclidean Distance: <= 0.55 adalah MATCH
                     if (distance <= 0.55) {
                         isMatch = true;
+                        latestCameraFaceDescriptor = Array.from(detection.descriptor);
                     }
                 } else {
                     // CEGAH BYPASS: Jangan pernah set isMatch = true jika descriptor kosong / tidak valid
@@ -2371,6 +2373,9 @@
         formData.append('longitude', document.getElementById('absen_long').value || '0');
         formData.append('is_face_verified', (isFaceVerified && isLivenessPassed) ? '1' : '0');
         formData.append('is_liveness_verified', isLivenessPassed ? '1' : '0');
+        if (latestCameraFaceDescriptor && latestCameraFaceDescriptor.length === 128) {
+            formData.append('face_descriptor', JSON.stringify(latestCameraFaceDescriptor));
+        }
         formData.append('reason', reasonValue);
         formData.append('reason_out_of_radius', reasonValue);
         formData.append('reason_checkout', reasonValue);

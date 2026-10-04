@@ -15,6 +15,17 @@ class DokumenMprController extends Controller
     {
         $mpr = PengajuanMpr::with(['user.role', 'user.station', 'supervisor', 'manager', 'items'])->findOrFail($id);
 
+        $user = auth()->user();
+        $isOwner = ((int)$mpr->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$mpr->approver_tahap_1_id === (int)$user->id)
+            || ((int)$mpr->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk mencetak dokumen MPR ini.');
+        }
+
         if ($mpr->status_akhir === 'rejected') {
             return redirect()->back()->with('error', 'Dokumen MPR yang ditolak tidak dapat dicetak.');
         }

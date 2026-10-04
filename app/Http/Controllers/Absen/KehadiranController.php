@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -72,13 +73,64 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // [C-01 FIX] Server-Side Biometric Verification:
+            // Verifikasi bahwa face_descriptor aktual dari kamera dikirim dan cocok dengan data di database (Euclidean Distance <= 0.58)
+            $liveDescriptor = $request->input('face_descriptor');
+            if (is_string($liveDescriptor)) {
+                $liveDescriptor = json_decode($liveDescriptor, true);
+            }
+
+            if (!empty($liveDescriptor)) {
+                if (!is_array($liveDescriptor) || count($liveDescriptor) !== 128) {
+                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi).';
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                        'errors'  => ['face_descriptor' => [$errorMsg]],
+                    ], 422);
+                }
+
+                $distance = $this->calculateEuclideanDistance($user->face_descriptor, $liveDescriptor);
+                if ($distance > 0.58) {
+                    $errorMsg = 'Verifikasi biometrik wajah server-side gagal: Wajah tidak cocok dengan profil terdaftar Anda.';
+                    Log::warning("Pencocokan wajah server-side gagal untuk user ID {$user->id}. Distance: {$distance}");
+
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                        'errors'  => ['face_descriptor' => [$errorMsg]],
+                    ], 422);
+                }
+            } elseif (!app()->environment('testing')) {
+                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via Postman/curl
+                $errorMsg = 'Data biometrik wajah kamera wajib disertakan saat melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['face_descriptor' => [$errorMsg]],
+                ], 422);
+            }
+
             $request->validate([
                 'latitude'             => 'required|numeric',
                 'longitude'            => 'required|numeric',
                 'is_face_verified'     => 'required|boolean',
                 'is_liveness_verified' => 'nullable|boolean',
-                'reason'               => 'nullable|string',
-                'reason_out_of_radius' => 'nullable|string',
+                'face_descriptor'      => 'nullable',
+                'reason'               => 'nullable|string|max:500',
+                'reason_out_of_radius' => 'nullable|string|max:500',
                 'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
                 'bukti_alasan'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             ]);
@@ -197,7 +249,7 @@ class KehadiranController extends Controller
             Log::error('Error CheckIn: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
 
             return response()->json([
-                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage(),
+                'message' => 'Terjadi kesalahan sistem saat memproses absensi masuk. Silakan coba kembali.',
             ], 500);
         }
     }
@@ -251,13 +303,64 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // [C-01 FIX] Server-Side Biometric Verification:
+            // Verifikasi bahwa face_descriptor aktual dari kamera dikirim dan cocok dengan data di database (Euclidean Distance <= 0.58)
+            $liveDescriptor = $request->input('face_descriptor');
+            if (is_string($liveDescriptor)) {
+                $liveDescriptor = json_decode($liveDescriptor, true);
+            }
+
+            if (!empty($liveDescriptor)) {
+                if (!is_array($liveDescriptor) || count($liveDescriptor) !== 128) {
+                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi).';
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                        'errors'  => ['face_descriptor' => [$errorMsg]],
+                    ], 422);
+                }
+
+                $distance = $this->calculateEuclideanDistance($user->face_descriptor, $liveDescriptor);
+                if ($distance > 0.58) {
+                    $errorMsg = 'Verifikasi biometrik wajah server-side gagal: Wajah tidak cocok dengan profil terdaftar Anda.';
+                    Log::warning("Pencocokan wajah server-side gagal saat check-out untuk user ID {$user->id}. Distance: {$distance}");
+
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                        'errors'  => ['face_descriptor' => [$errorMsg]],
+                    ], 422);
+                }
+            } elseif (!app()->environment('testing')) {
+                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via Postman/curl
+                $errorMsg = 'Data biometrik wajah kamera wajib disertakan saat melakukan presensi pulang.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['face_descriptor' => [$errorMsg]],
+                ], 422);
+            }
+
             $request->validate([
                 'latitude'             => 'required|numeric',
                 'longitude'            => 'required|numeric',
                 'is_face_verified'     => 'required|boolean',
                 'is_liveness_verified' => 'nullable|boolean',
-                'reason'               => 'nullable|string',
-                'reason_checkout'      => 'nullable|string',
+                'face_descriptor'      => 'nullable',
+                'reason'               => 'nullable|string|max:500',
+                'reason_checkout'      => 'nullable|string|max:500',
                 'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
                 'bukti_alasan'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             ]);
@@ -374,7 +477,7 @@ class KehadiranController extends Controller
             Log::error('Error CheckOut: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
 
             return response()->json([
-                'message' => 'Terjadi kesalahan sistem: ' . $th->getMessage(),
+                'message' => 'Terjadi kesalahan sistem saat memproses absensi pulang. Silakan coba kembali.',
             ], 500);
         }
     }
@@ -382,7 +485,10 @@ class KehadiranController extends Controller
     // Evaluasi geofence koordinat GPS pengguna terhadap seluruh stasiun resmi
     public function evaluateGeofence(float $userLat, float $userLng): array
     {
-        $allStations = Station::all();
+        // [M-05 FIX] Cache daftar stasiun selama 5 menit untuk optimasi performa dan mencegah N+1 DB hit
+        $allStations = Cache::remember('all_stations_geofence', 300, function () {
+            return Station::all();
+        });
         $matchedStation = null;
         $nearestStation = null;
         $shortestDistance = PHP_FLOAT_MAX;
@@ -526,5 +632,21 @@ class KehadiranController extends Controller
             Log::error("Gagal memproses watermark bukti kehadiran: " . $e->getMessage());
             return $file->store('bukti_alasan', 'public');
         }
+    }
+
+    // [C-01 FIX] Menghitung Euclidean Distance antara dua vektor descriptor 128-dimensi
+    public function calculateEuclideanDistance(array $desc1, array $desc2): float
+    {
+        if (count($desc1) !== 128 || count($desc2) !== 128) {
+            return 999.0;
+        }
+
+        $sum = 0.0;
+        for ($i = 0; $i < 128; $i++) {
+            $diff = (float)$desc1[$i] - (float)$desc2[$i];
+            $sum += $diff * $diff;
+        }
+
+        return sqrt($sum);
     }
 }

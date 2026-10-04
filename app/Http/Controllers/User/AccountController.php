@@ -115,162 +115,168 @@ class AccountController extends Controller
             'new_password' => 'nullable|min:8|confirmed',
             'schedule_type' => 'nullable|in:normal,roster',
             'normal_work_days' => 'nullable|array',
-            'normal_check_in' => 'nullable|string',
-            'normal_check_out' => 'nullable|string',
+            'normal_check_in' => ['nullable', 'date_format:H:i'],
+            'normal_check_out' => ['nullable', 'date_format:H:i'],
             'roster_start_date' => 'nullable|date',
         ]);
 
-        $updateData = [];
+        try {
+            $updateData = [];
 
-        if ($request->has('nip')) {
-            $updateData['nip'] = $request->nip;
-        }
-        if ($request->has('name')) {
-            $updateData['name'] = $request->name;
-        }
-
-        // CEK PERUBAHAN EMAIL
-        if ($request->has('email')) {
-            if ($request->email !== $user->email) {
-                $updateData['email'] = $request->email;
-                $updateData['email_verified_at'] = null;
+            if ($request->has('nip')) {
+                $updateData['nip'] = $request->nip;
             }
-        }
-
-        // CEK PERUBAHAN NO TELEPON
-        if ($request->has('phone_number')) {
-            if ($request->phone_number !== $user->phone_number) {
-                $updateData['phone_number'] = $request->phone_number;
-                $updateData['phone_verified_at'] = null;
+            if ($request->has('name')) {
+                $updateData['name'] = $request->name;
             }
-        }
 
-        // CEK APAKAH PENGGUNA MEMILIKI HAK AKSES ADMINISTRATOR (LEVEL 1 / ROLE ADMIN)
-        $isAdmin = $user->isLevel1()
-            || (int)$user->role_id === 1
-            || $user->hasRole('ADMIN')
-            || $user->roles->contains('id', 1);
-
-        // PROTEKSI INTEGRITAS DATA: FIELD GENDER TIDAK DAPAT DITIMPA/DIUBAH OLEH USER BIASA
-        if ($isAdmin && $request->filled('gender_id')) {
-            $updateData['gender_id'] = $request->gender_id;
-        }
-
-        if ($request->has('station_id')) {
-            $updateData['station_id'] = $request->station_id;
-        }
-
-        // SIMPAN JADWAL KERJA
-        if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
-            $updateData['schedule_type'] = $request->schedule_type;
-
-            if ($request->schedule_type === 'normal') {
-                $updateData['normal_work_days'] = $request->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                $updateData['normal_check_in'] = $request->normal_check_in ?? '08:00';
-                $updateData['normal_check_out'] = $request->normal_check_out ?? '17:00';
-                $updateData['roster_start_date'] = null;
-            } elseif ($request->schedule_type === 'roster') {
-                if ($request->filled('roster_start_date')) {
-                    $updateData['roster_start_date'] = $request->roster_start_date;
-                } else {
-                    $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+            // CEK PERUBAHAN EMAIL
+            if ($request->has('email')) {
+                if ($request->email !== $user->email) {
+                    $updateData['email'] = $request->email;
+                    $updateData['email_verified_at'] = null;
                 }
-                $updateData['normal_work_days'] = null;
-            }
-        }
-
-        // SIMPAN PASSWORD BARU
-        if ($request->filled('new_password')) {
-            if (! Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'Password lama yang Anda masukkan salah.'])->withInput();
-            }
-            $updateData['password'] = Hash::make($request->new_password);
-        }
-
-        // UPLOAD FOTO PROFIL
-        if ($request->hasFile('profile_photo')) {
-            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
-                Storage::disk('public')->delete($user->profile_photo);
-            }
-            $updateData['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
-        }
-
-        // UPLOAD & PROSES TTD OTOMATIS TRANSPARAN
-        if ($request->hasFile('signature')) {
-            $file = $request->file('signature');
-
-            if ($user->signature && Storage::disk('public')->exists($user->signature)) {
-                Storage::disk('public')->delete($user->signature);
             }
 
-            $transparentImageData = $this->makeSignatureBackgroundTransparent($file->getPathname());
-
-            if ($transparentImageData) {
-                $filename = 'signatures/ttd_' . $user->id . '_' . time() . '.png';
-                Storage::disk('public')->put($filename, $transparentImageData);
-                $updateData['signature'] = $filename;
-            } else {
-                $updateData['signature'] = $file->store('signatures', 'public');
+            // CEK PERUBAHAN NO TELEPON
+            if ($request->has('phone_number')) {
+                if ($request->phone_number !== $user->phone_number) {
+                    $updateData['phone_number'] = $request->phone_number;
+                    $updateData['phone_verified_at'] = null;
+                }
             }
-        }
 
-        // LOGIKA PENYIMPANAN ROLE / JABATAN
-        $roleQuery = Role::query();
-        if (!$user->isLevel1()) {
-            $roleQuery->where('role_name', 'NOT LIKE', '%ADMIN%')->where('id', '!=', 1);
-        }
+            // CEK APAKAH PENGGUNA MEMILIKI HAK AKSES ADMINISTRATOR (LEVEL 1 / ROLE ADMIN)
+            $isAdmin = $user->isLevel1()
+                || (int)$user->role_id === 1
+                || $user->hasRole('ADMIN')
+                || $user->roles->contains('id', 1);
 
-        if ($request->filled('role')) {
-            $inputNames = array_filter(array_map('trim', explode(',', $request->role)));
-            if (!empty($inputNames)) {
-                $validRoleIds = (clone $roleQuery)->where(function ($q) use ($inputNames) {
-                        foreach ($inputNames as $rName) {
-                            $q->orWhereRaw('LOWER(role_name) = ?', [strtolower($rName)]);
+            // [H-03 & C-05 FIX] PROTEKSI INTEGRITAS DATA:
+            // Field sensitif (gender_id, station_id, level, role, roles) HANYA dapat diubah oleh Administrator (Level 1)
+            if ($isAdmin) {
+                if ($request->filled('gender_id')) {
+                    $updateData['gender_id'] = $request->gender_id;
+                }
+                if ($request->has('station_id')) {
+                    $updateData['station_id'] = $request->station_id;
+                }
+                if ($request->filled('level')) {
+                    $updateData['level'] = (int)$request->level;
+                }
+
+                // LOGIKA PENYIMPANAN ROLE / JABATAN (HANYA ADMIN)
+                $roleQuery = Role::query();
+                if ($request->filled('role')) {
+                    $inputNames = array_filter(array_map('trim', explode(',', $request->role)));
+                    if (!empty($inputNames)) {
+                        $validRoleIds = (clone $roleQuery)->where(function ($q) use ($inputNames) {
+                                foreach ($inputNames as $rName) {
+                                    $q->orWhereRaw('LOWER(role_name) = ?', [strtolower($rName)]);
+                                }
+                            })
+                            ->pluck('id')
+                            ->toArray();
+
+                        if (!empty($validRoleIds)) {
+                            $syncData = [];
+                            foreach ($validRoleIds as $idx => $rId) {
+                                $syncData[$rId] = ['is_primary' => ($idx === 0)];
+                            }
+                            $user->roles()->sync($syncData);
+                            $updateData['role_id'] = $validRoleIds[0];
                         }
-                    })
-                    ->pluck('id')
-                    ->toArray();
-
-                if (!empty($validRoleIds)) {
-                    $syncData = [];
-                    foreach ($validRoleIds as $idx => $rId) {
-                        $syncData[$rId] = ['is_primary' => ($idx === 0)];
                     }
-                    $user->roles()->sync($syncData);
-                    $updateData['role_id'] = $validRoleIds[0];
+                } elseif ($request->has('roles') && is_array($request->roles)) {
+                    $validRoleIds = (clone $roleQuery)->whereIn('id', $request->roles)
+                        ->pluck('id')
+                        ->toArray();
+                    if (!empty($validRoleIds)) {
+                        $syncData = [];
+                        foreach ($validRoleIds as $idx => $rId) {
+                            $syncData[$rId] = ['is_primary' => ($idx === 0)];
+                        }
+                        $user->roles()->sync($syncData);
+                        $updateData['role_id'] = $validRoleIds[0];
+                    }
+                } elseif ($request->has('role_id') && ! empty($request->role_id)) {
+                    $selectedRole = (clone $roleQuery)->find($request->role_id);
+                    if ($selectedRole) {
+                        $updateData['role_id'] = $request->role_id;
+                        $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
+                    }
                 }
             }
-        } elseif ($request->has('roles') && is_array($request->roles)) {
-            $validRoleIds = (clone $roleQuery)->whereIn('id', $request->roles)
-                ->pluck('id')
-                ->toArray();
-            if (!empty($validRoleIds)) {
-                $syncData = [];
-                foreach ($validRoleIds as $idx => $rId) {
-                    $syncData[$rId] = ['is_primary' => ($idx === 0)];
+
+            // SIMPAN JADWAL KERJA
+            if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
+                $updateData['schedule_type'] = $request->schedule_type;
+
+                if ($request->schedule_type === 'normal') {
+                    $updateData['normal_work_days'] = $request->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                    $updateData['normal_check_in'] = $request->normal_check_in ?? '08:00';
+                    $updateData['normal_check_out'] = $request->normal_check_out ?? '17:00';
+                    $updateData['roster_start_date'] = null;
+                } elseif ($request->schedule_type === 'roster') {
+                    if ($request->filled('roster_start_date')) {
+                        $updateData['roster_start_date'] = $request->roster_start_date;
+                    } else {
+                        $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+                    }
+                    $updateData['normal_work_days'] = null;
                 }
-                $user->roles()->sync($syncData);
-                $updateData['role_id'] = $validRoleIds[0];
             }
-        } elseif ($request->has('role_id') && ! empty($request->role_id)) {
-            $selectedRole = (clone $roleQuery)->find($request->role_id);
-            if ($selectedRole) {
-                $updateData['role_id'] = $request->role_id;
-                $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
+
+            // SIMPAN PASSWORD BARU
+            if ($request->filled('new_password')) {
+                if (! Hash::check($request->current_password, $user->password)) {
+                    return back()->withErrors(['current_password' => 'Password lama yang Anda masukkan salah.'])->withInput();
+                }
+                $updateData['password'] = Hash::make($request->new_password);
             }
+
+            // UPLOAD FOTO PROFIL
+            if ($request->hasFile('profile_photo')) {
+                if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
+                    Storage::disk('public')->delete($user->profile_photo);
+                }
+                $updateData['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
+            }
+
+            // UPLOAD & PROSES TTD OTOMATIS TRANSPARAN
+            if ($request->hasFile('signature')) {
+                $file = $request->file('signature');
+
+                if ($user->signature && Storage::disk('public')->exists($user->signature)) {
+                    Storage::disk('public')->delete($user->signature);
+                }
+
+                $transparentImageData = $this->makeSignatureBackgroundTransparent($file->getPathname());
+
+                if ($transparentImageData) {
+                    $filename = 'signatures/ttd_' . $user->id . '_' . time() . '.png';
+                    Storage::disk('public')->put($filename, $transparentImageData);
+                    $updateData['signature'] = $filename;
+                } else {
+                    $updateData['signature'] = $file->store('signatures', 'public');
+                }
+            }
+
+            $user->update($updateData);
+
+            // SINKRONISASI RUMAH METER (KHUSUS ROLE AREA (PIPELINE) & ADMIN ONLY)
+            if ($isAdmin) {
+                $isPipeline = $user->fresh()->hasRole('AREA (PIPELINE)') || $user->fresh()->hasRole(14);
+                if ($isPipeline && $request->has('assigned_stations')) {
+                    $user->assignedStations()->sync($request->assigned_stations ?? []);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
+        } catch (\Throwable $e) {
+            Log::error("Gagal update profil user ID {$user->id}: " . $e->getMessage());
+            return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui profil. Silakan coba kembali.'])->withInput();
         }
-
-        $user->update($updateData);
-
-        // SINKRONISASI RUMAH METER (KHUSUS ROLE AREA (PIPELINE))
-        $isPipeline = $user->fresh()->hasRole('AREA (PIPELINE)') || $user->fresh()->hasRole(14);
-        if ($isPipeline) {
-            if ($request->has('assigned_stations')) {
-                $user->assignedStations()->sync($request->assigned_stations ?? []);
-            }
-        }
-
-        return redirect()->back()->with('success', 'Informasi akun dan pengaturan profil berhasil diperbarui!');
     }
 
     // Mengubah latar belakang gambar tanda tangan menjadi transparan secara otomatis

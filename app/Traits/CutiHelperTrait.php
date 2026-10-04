@@ -77,9 +77,11 @@ trait CutiHelperTrait
 
         $cutiTahunanId = $this->getCutiTahunanId();
 
+        // [C-02 FIX] Penguncian baris saldo (pessimistic lock) untuk mencegah race condition saat concurrent submission
         $saldo = SaldoCuti::where('user_id', $userId)
             ->where('jenis_cuti_id', $cutiTahunanId)
             ->where('tahun', $tahun)
+            ->lockForUpdate()
             ->first();
 
         if (!$saldo) {
@@ -88,11 +90,12 @@ trait CutiHelperTrait
 
         $sisaSaldoDatabase = (int) $saldo->sisa_saldo;
 
-        // Hitung total hari cuti yang masih berstatus pending
+        // Hitung total hari cuti yang masih berstatus pending dengan lock baris
         $queryPending = DB::table('pengajuan_cutis')
             ->where('user_id', $userId)
             ->where('jenis_cuti_id', $cutiTahunanId)
-            ->where('status_akhir', 'pending');
+            ->where('status_akhir', 'pending')
+            ->lockForUpdate();
 
         $totalCutiPending = (int) $queryPending->sum('total_hari');
         $saldoEfektif = $sisaSaldoDatabase - $totalCutiPending;

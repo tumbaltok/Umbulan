@@ -19,6 +19,17 @@ class DokumenCarController extends Controller
             'approverTahap2.role'
         ])->findOrFail($id);
 
+        $user = auth()->user();
+        $isOwner = ((int)$car->user_id === (int)$user->id);
+        $isAdmin = $user->isLevel1();
+        $isApprover = $user->isLevel2()
+            || ((int)$car->approver_tahap_1_id === (int)$user->id)
+            || ((int)$car->approver_tahap_2_id === (int)$user->id);
+
+        if (!$isOwner && !$isAdmin && !$isApprover) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk mencetak dokumen CAR ini.');
+        }
+
         if ($car->status_akhir !== 'approved') {
             return redirect()->back()->with('error', 'Dokumen CAR belum disetujui secara penuh.');
         }

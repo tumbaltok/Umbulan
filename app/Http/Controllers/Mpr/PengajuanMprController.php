@@ -130,20 +130,21 @@ class PengajuanMprController extends Controller
             $statusAkhir  = 'pending';
         }
 
-        $now = Carbon::now();
-        $nomorMpr = $request->nomor_mpr;
-        if (empty($nomorMpr)) {
-            $romawi = [
-                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
-            ];
-            $bulanRomawi = $romawi[$now->month] ?? 'I';
-            $urutan = PengajuanMpr::whereYear('tanggal_pengajuan', $now->year)->count() + 1;
-            $nomorMpr = "{$urutan} / META / PAS / MPR / {$bulanRomawi} / {$now->year}";
-        }
-
         DB::beginTransaction();
         try {
+            // [M-01 FIX] Generate nomor MPR secara atomik di dalam transaksi dengan row-locking
+            $now = Carbon::now();
+            $nomorMpr = $request->nomor_mpr;
+            if (empty($nomorMpr)) {
+                $romawi = [
+                    1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                    7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+                ];
+                $bulanRomawi = $romawi[$now->month] ?? 'I';
+                $urutan = PengajuanMpr::whereYear('tanggal_pengajuan', $now->year)->lockForUpdate()->count() + 1;
+                $nomorMpr = "{$urutan} / META / PAS / MPR / {$bulanRomawi} / {$now->year}";
+            }
+
             $mpr = PengajuanMpr::create([
                 'user_id'             => $user->id,
                 'nomor_mpr'           => $nomorMpr,

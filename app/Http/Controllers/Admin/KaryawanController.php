@@ -167,8 +167,9 @@ class KaryawanController extends Controller
                 'is_face_registered' => ! empty($karyawan->face_descriptor),
             ], 200);
 
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan server: '.$e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            Log::error("Gagal mengambil detail karyawan: " . $e->getMessage());
+            return response()->json(['message' => 'Terjadi kesalahan sistem saat memuat data karyawan.'], 500);
         }
     }
 
@@ -198,9 +199,17 @@ class KaryawanController extends Controller
         ]);
     }
 
-    // Memperbarui sisa saldo cuti karyawan
+    // Memperbarui sisa saldo cuti karyawan (Khusus Admin Level 1) [M-03 FIX]
     public function updateSaldoCuti(Request $request, int $id)
     {
+        $currentUser = Auth::user();
+        if (!$currentUser->isLevel1() && !$currentUser->hasRole('ADMIN')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya Administrator Level 1 yang berwenang memperbarui sisa saldo cuti.',
+            ], 403);
+        }
+
         $request->validate([
             'sisa_saldo' => 'required|integer|min:0',
         ]);
@@ -216,9 +225,17 @@ class KaryawanController extends Controller
         ]);
     }
 
-    // Memperbarui penugasan peran (role) dan stasiun Rumah Meter karyawan
+    // Memperbarui penugasan peran (role) dan stasiun Rumah Meter karyawan (Khusus Admin Level 1)
     public function updateRoles(Request $request, int $id)
     {
+        $currentUser = Auth::user();
+        if (!$currentUser->isLevel1() && !$currentUser->hasRole('ADMIN')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya Administrator Level 1 yang berwenang mengubah peran/jabatan karyawan.',
+            ], 403);
+        }
+
         $request->validate([
             'roles' => 'required|array|min:1',
             'roles.*' => 'exists:roles,id',
