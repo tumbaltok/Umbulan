@@ -32,7 +32,7 @@ class PersetujuanMprController extends Controller
             // Admin Sistem: Akses memantau seluruh antrean MPR yang pending
             $query->where('status_akhir', 'pending');
         } else {
-            $query->where(function ($q) use ($atasanRoleIds) {
+            $query->where(function ($q) use ($atasanRoleIds, $atasan) {
                 // Tahap 1 Pending: Atasan bertindak sebagai Approver Tahap 1
                 $q->where(function ($sub) use ($atasanRoleIds) {
                     $sub->where('status_tahap_1', 'pending')
@@ -45,11 +45,12 @@ class PersetujuanMprController extends Controller
                             });
                         });
                 })
-                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2
-                ->orWhere(function ($sub) use ($atasanRoleIds) {
+                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2 (Anti-Collusion: bukan approver tahap 1)
+                ->orWhere(function ($sub) use ($atasanRoleIds, $atasan) {
                     $sub->where('status_tahap_1', 'approved')
                         ->where('status_tahap_2', 'pending')
                         ->where('status_tahap_2', '!=', 'not_required')
+                        ->where('approver_tahap_1_id', '!=', $atasan->id)
                         ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
                             $rq->where(function ($jsonQ) use ($atasanRoleIds) {
                                 foreach ($atasanRoleIds as $roleId) {
@@ -79,12 +80,11 @@ class PersetujuanMprController extends Controller
             return redirect()->back()->with('error', 'Tindakan persetujuan tidak valid.');
         }
 
+        // [RE-02 FIX] Validasi wajib catatan penolakan pada MPR
         if ($tindakan === 'rejected' && empty($request->input('catatan_penolakan'))) {
-            // Jika reject tidak memiliki catatan penolakan spesifik, beri catatan default jika null
-            $catatanPenolakan = $request->input('catatan_penolakan') ?? 'Ditolak oleh penanggung jawab role.';
-        } else {
-            $catatanPenolakan = $request->input('catatan_penolakan');
+            return redirect()->back()->with('error', 'Catatan penolakan wajib diisi saat menolak pengajuan MPR.');
         }
+        $catatanPenolakan = $request->input('catatan_penolakan');
 
         $atasan = Auth::user();
         $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
@@ -101,6 +101,14 @@ class PersetujuanMprController extends Controller
             if ((int)$pengajuan->user_id === (int)$atasan->id) {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
+            }
+
+            // [RE-03 FIX] Proteksi Anti-Collusion: Cegah Approver Tahap 1 memproses persetujuan/penolakan Tahap 2
+            if ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending') {
+                if ((int)$pengajuan->approver_tahap_1_id === (int)$atasan->id) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Aksi ditolak: Anda telah memproses Tahap 1 dan tidak dapat memproses Tahap 2 pada pengajuan yang sama (Anti-Collusion Protection)!');
+                }
             }
 
             // Cek apakah status sudah bukan pending

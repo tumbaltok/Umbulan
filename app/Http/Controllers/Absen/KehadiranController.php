@@ -46,6 +46,20 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // Validasi verifikasi biometrik wajah
+            if (!$request->boolean('is_face_verified', false)) {
+                $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['is_face_verified' => $errorMsg]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'errors'  => ['is_face_verified' => [$errorMsg]],
+                ], 422);
+            }
+
             // Validasi uji keaktifan wajah (Liveness Anti-Spoofing) jika dikirimkan oleh klien
             if ($request->has('is_liveness_verified') && !$request->boolean('is_liveness_verified', false)) {
                 $errorMsg = 'Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil sebelum melakukan presensi.';

@@ -131,7 +131,8 @@ trait CutiHelperTrait
     {
         $apakahMemotongSaldo = $this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id);
 
-        if ($apakahMemotongSaldo) {
+        // [RE-07 FIX] Idempotency Guard: Pastikan saldo belum pernah dipotong sebelumnya
+        if (!$pengajuan->is_cut_saldo && $apakahMemotongSaldo) {
             $this->potongSaldoDatabase($pengajuan);
             $pengajuan->update(['is_cut_saldo' => true]);
         }
