@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\Car\PengajuanCar;
 use App\Models\User\User;
 use App\Services\WhatsAppService;
@@ -196,9 +197,8 @@ class PersetujuanCarController extends Controller
                                 ->where('id', '!=', $submitter->id)
                                 ->whereNotNull('phone_verified_at')
                                 ->get();
-                            $waService = app(WhatsAppService::class);
                             foreach ($step2Approvers as $app2) {
-                                $waService->sendNewSubmissionNotification('car', $pengajuan, $app2, 2);
+                                SendWhatsAppNotification::sendNewSubmission('car', $pengajuan, $app2, 2);
                             }
                         }
                     } catch (\Exception $e) {

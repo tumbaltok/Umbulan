@@ -55,10 +55,10 @@ Route::middleware(['guest', 'prevent-back-history'])->group(function () {
     Route::get('/forgot-password/reset', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('forgot.reset_password_view');
     Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('forgot.update');
 
-    // Kompatibilitas rute lama
-    Route::post('/forgot/send-otp-mail', [ForgotPasswordController::class, 'sendOtp']);
-    Route::post('/forgot/verify-otp-mail', [ForgotPasswordController::class, 'verifyOtp']);
-    Route::post('/forgot/update', [ForgotPasswordController::class, 'resetPassword']);
+    // [SEC-12 FIX] Route legacy forgot password (dipelihara untuk backward compatibility, tetap dalam proteksi middleware guest)
+    Route::post('/forgot/send-otp-mail', [ForgotPasswordController::class, 'sendOtp'])->name('legacy.forgot.send_otp');
+    Route::post('/forgot/verify-otp-mail', [ForgotPasswordController::class, 'verifyOtp'])->name('legacy.forgot.verify_otp');
+    Route::post('/forgot/update', [ForgotPasswordController::class, 'resetPassword'])->name('legacy.forgot.update');
 });
 
 // ==========================================================

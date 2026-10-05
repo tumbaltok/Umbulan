@@ -6,6 +6,7 @@ use App\Models\Absen\Kehadiran;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\Cuti\SaldoCuti;
+use App\Traits\Auditable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, Auditable;
 
     protected $fillable = [
         'nip',
@@ -58,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'phone_otp_expires_at' => 'datetime',
             'password' => 'hashed',
             'normal_work_days' => 'array',
-            'face_descriptor' => 'array',
+            'face_descriptor' => 'encrypted:array',
             'roster_start_date' => 'date',
             'jobdesk' => 'array',
         ];

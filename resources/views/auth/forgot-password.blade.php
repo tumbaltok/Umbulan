@@ -309,10 +309,10 @@
             .then(data => {
                 if (data.status === 'success') {
                     // Update user card
-                    document.getElementById('user-display-name').innerText = data.user.name;
-                    document.getElementById('user-display-nip').innerText = 'NIP: ' + data.user.nip;
-                    document.getElementById('user-avatar-initials').innerText = data.user.initials;
-                    document.getElementById('selected-user-id').value = data.user.id;
+                    document.getElementById('user-display-name').innerText = data.user?.name || 'Akun Terverifikasi';
+                    document.getElementById('user-display-nip').innerText = data.user?.nip ? 'Status Akun: ' + data.user.nip : '';
+                    document.getElementById('user-avatar-initials').innerText = data.user?.initials || 'AT';
+                    document.getElementById('selected-user-id').value = data.user?.id || '';
 
                     // Update channels
                     const emailChannel = data.channels.find(c => c.id === 'email');

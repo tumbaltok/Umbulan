@@ -11,6 +11,7 @@ use App\Models\User\User;
 use App\Services\CalendarScheduleService;
 use App\Services\ScheduleService;
 use App\Traits\CutiHelperTrait;
+use App\Jobs\SendWhatsAppNotification;
 use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -287,9 +288,8 @@ class PengajuanCutiController extends Controller
                         ->whereNotNull('phone_verified_at')
                         ->get();
 
-                    $waService = app(WhatsAppService::class);
                     foreach ($approvers as $approver) {
-                        $waService->sendNewSubmissionNotification('cuti', $pengajuan, $approver, 1);
+                        SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $approver, 1);
                     }
                 } catch (\Exception $waEx) {
                     Log::error('Gagal mengirim notifikasi WA cuti baru: ' . $waEx->getMessage());

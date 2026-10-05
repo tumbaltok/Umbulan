@@ -37,6 +37,7 @@ return [
 
     'whatsapp' => [
         'url' => env('WHATSAPP_SERVICE_URL', 'http://127.0.0.1:3001'),
+        'secret_token' => env('WHATSAPP_SECRET_TOKEN'),
     ],
 
 ];

@@ -11,10 +11,23 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppService
 {
     protected string $baseUrl;
+    protected ?string $secretToken;
 
-    public function __construct(?string $baseUrl = null)
+    public function __construct(?string $baseUrl = null, ?string $secretToken = null)
     {
         $this->baseUrl = rtrim($baseUrl ?? config('services.whatsapp.url', 'http://127.0.0.1:3001'), '/');
+        $this->secretToken = $secretToken ?? config('services.whatsapp.secret_token') ?? env('WHATSAPP_SECRET_TOKEN');
+    }
+
+    // [SEC-14 FIX] HTTP Client dengan header otentikasi X-Secret-Token untuk Baileys microservice
+    protected function client(int $timeout = 10)
+    {
+        $headers = [];
+        if (!empty($this->secretToken)) {
+            $headers['X-Secret-Token'] = $this->secretToken;
+        }
+
+        return Http::withHeaders($headers)->timeout($timeout);
     }
 
     // Normalisasi nomor telepon ke format baku internasional Indonesia (62xxx)
@@ -45,7 +58,7 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(10)->post("{$this->baseUrl}/send-message", [
+            $response = $this->client(10)->post("{$this->baseUrl}/send-message", [
                 'number'  => $target,
                 'message' => $message,
             ]);
@@ -91,7 +104,7 @@ class WhatsAppService
     public function getStatus(): array
     {
         try {
-            $response = Http::timeout(3)->get("{$this->baseUrl}/status");
+            $response = $this->client(3)->get("{$this->baseUrl}/status");
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -131,7 +144,7 @@ class WhatsAppService
     public function getQr(): array
     {
         try {
-            $response = Http::timeout(5)->get("{$this->baseUrl}/qr");
+            $response = $this->client(5)->get("{$this->baseUrl}/qr");
 
             if ($response->successful()) {
                 return $response->json();
@@ -154,7 +167,7 @@ class WhatsAppService
         Cache::forget('whatsapp_gateway_status');
 
         try {
-            $response = Http::timeout(10)->post("{$this->baseUrl}/disconnect");
+            $response = $this->client(10)->post("{$this->baseUrl}/disconnect");
 
             if ($response->successful()) {
                 return $response->json();

@@ -40,14 +40,48 @@ class ForgotPasswordController extends Controller
         $user = $this->findUserByIdentity($identity);
 
         if (!$user) {
-            $msg = 'Akun dengan Email atau Nomor WhatsApp tersebut tidak ditemukan dalam sistem kami.';
+            // [SEC-02 FIX] Anti-account enumeration: response seragam saat akun tidak ditemukan
+            session()->forget('reset_candidate_id');
+            $isEmail = filter_var($identity, FILTER_VALIDATE_EMAIL);
+
+            $channels = [
+                [
+                    'id' => 'email',
+                    'name' => 'Email Kepegawaian',
+                    'description' => 'Kirim kode verifikasi ke kotak masuk email Anda.',
+                    'target_masked' => $isEmail ? $this->maskEmail($identity) : 'u***@***.***',
+                    'icon' => 'fa-solid fa-envelope',
+                    'available' => true,
+                ],
+                [
+                    'id' => 'whatsapp',
+                    'name' => 'WhatsApp Gateway',
+                    'description' => 'Kirim kode verifikasi instan ke nomor WhatsApp Anda.',
+                    'target_masked' => !$isEmail ? $this->maskPhone($identity) : '******',
+                    'icon' => 'fa-brands fa-whatsapp',
+                    'available' => true,
+                ],
+            ];
+
+            $responseData = [
+                'status' => 'success',
+                'message' => 'Identifikasi akun selesai. Silakan tentukan saluran pengiriman kode verifikasi.',
+                'user' => [
+                    'name' => 'Akun Pengguna',
+                    'nip' => 'Terlindungi',
+                    'initials' => 'AP',
+                ],
+                'channels' => $channels,
+            ];
+
             if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 404);
+                return response()->json($responseData);
             }
-            return back()->withInput()->withErrors(['identity' => $msg]);
+
+            return back()->with('identification', $responseData);
         }
 
-        // Siapkan data saluran pengiriman (channel) yang valid
+        // Siapkan data saluran pengiriman (channel) yang valid tanpa mengekspos identifier sensitif
         $channels = [];
 
         // 1. Channel Email (Selalu ada karena email wajib pada sistem)
@@ -56,7 +90,6 @@ class ForgotPasswordController extends Controller
                 'id' => 'email',
                 'name' => 'Email Kepegawaian',
                 'description' => 'Kirim kode verifikasi ke kotak masuk email Anda.',
-                'target' => $user->email,
                 'target_masked' => $this->maskEmail($user->email),
                 'icon' => 'fa-solid fa-envelope',
                 'available' => true,
@@ -71,22 +104,22 @@ class ForgotPasswordController extends Controller
             'description' => $hasPhone 
                 ? 'Kirim kode verifikasi instan ke nomor WhatsApp Anda.' 
                 : 'Nomor WhatsApp belum terdaftar pada akun ini.',
-            'target' => $user->phone_number,
             'target_masked' => $hasPhone ? $this->maskPhone($user->phone_number) : null,
             'icon' => 'fa-brands fa-whatsapp',
             'available' => $hasPhone,
         ];
 
-        // Simpan sementara user_id kandidat di sesi
+        // [SEC-02 FIX] Simpan identifier pengguna hanya di session server-side
         session(['reset_candidate_id' => $user->id]);
 
+        // Hapus data sensitif (id, name, nip) dari payload response JSON
         $responseData = [
             'status' => 'success',
+            'message' => 'Identifikasi akun selesai. Silakan tentukan saluran pengiriman kode verifikasi.',
             'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'nip' => $user->nip ?? '-',
-                'initials' => $this->getInitials($user->name),
+                'name' => 'Akun Pengguna',
+                'nip' => 'Terlindungi',
+                'initials' => 'AP',
             ],
             'channels' => $channels,
         ];
@@ -102,7 +135,7 @@ class ForgotPasswordController extends Controller
     public function sendOtp(Request $request, WhatsAppService $whatsAppService): JsonResponse|RedirectResponse
     {
         $request->validate([
-            'user_id' => 'required_without:identity|nullable|exists:users,id',
+            'user_id' => 'nullable',
             'identity' => 'nullable|string|max:255',
             'channel' => 'required|string|in:email,whatsapp',
         ], [
@@ -111,20 +144,26 @@ class ForgotPasswordController extends Controller
         ]);
 
         $user = null;
-        if ($request->filled('user_id')) {
-            $user = User::find($request->user_id);
+        if (session()->has('reset_candidate_id')) {
+            $user = User::find(session('reset_candidate_id'));
         } elseif ($request->filled('identity')) {
             $user = $this->findUserByIdentity(trim($request->identity));
-        } elseif (session()->has('reset_candidate_id')) {
-            $user = User::find(session('reset_candidate_id'));
+        } elseif ($request->filled('user_id')) {
+            $user = User::find($request->user_id);
         }
 
         if (!$user) {
-            $msg = 'Akun pengguna tidak ditemukan. Silakan masukkan kembali identitas akun Anda.';
+            // [SEC-02 FIX] Anti-account enumeration: simulasikan sukses pengiriman OTP jika akun tidak terdaftar
             if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 404);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Jika akun terdaftar pada sistem kami, kode verifikasi OTP telah dikirimkan ke saluran yang dipilih.',
+                    'redirect_url' => route('forgot.verify_otp_view'),
+                    'channel' => $request->channel,
+                    'cooldown_seconds' => 60,
+                ]);
             }
-            return redirect()->route('forgot')->withErrors(['identity' => $msg]);
+            return redirect()->route('forgot.verify_otp_view')->with('success', 'Jika akun terdaftar pada sistem kami, kode verifikasi OTP telah dikirimkan ke saluran yang dipilih.');
         }
 
         $channel = $request->channel;

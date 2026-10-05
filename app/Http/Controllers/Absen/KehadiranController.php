@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -45,20 +46,6 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // Validasi keberhasilan pencocokan biometrik wajah
-            if (!$request->boolean('is_face_verified', false)) {
-                $errorMsg = 'Verifikasi biometrik wajah wajib berhasil sebelum melakukan presensi.';
-                if (!$request->expectsJson() && !$request->ajax()) {
-                    return back()->withErrors(['is_face_verified' => $errorMsg]);
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMsg,
-                    'errors'  => ['is_face_verified' => [$errorMsg]],
-                ], 422);
-            }
-
             // Validasi uji keaktifan wajah (Liveness Anti-Spoofing) jika dikirimkan oleh klien
             if ($request->has('is_liveness_verified') && !$request->boolean('is_liveness_verified', false)) {
                 $errorMsg = 'Verifikasi keaktifan wajah (Liveness Anti-Spoofing) wajib berhasil sebelum melakukan presensi.';
@@ -73,8 +60,8 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // [C-01 FIX] Server-Side Biometric Verification:
-            // Verifikasi bahwa face_descriptor aktual dari kamera dikirim dan cocok dengan data di database (Euclidean Distance <= 0.58)
+            // [SEC-01 FIX] Server-Side Biometric Verification:
+            // Wajibkan verifikasi face_descriptor aktual dari kamera terhadap data profil (Euclidean Distance <= 0.58)
             $liveDescriptor = $request->input('face_descriptor');
             if (is_string($liveDescriptor)) {
                 $liveDescriptor = json_decode($liveDescriptor, true);
@@ -82,7 +69,7 @@ class KehadiranController extends Controller
 
             if (!empty($liveDescriptor)) {
                 if (!is_array($liveDescriptor) || count($liveDescriptor) !== 128) {
-                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi).';
+                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi float).';
                     if (!$request->expectsJson() && !$request->ajax()) {
                         return back()->withErrors(['face_descriptor' => $errorMsg]);
                     }
@@ -92,6 +79,22 @@ class KehadiranController extends Controller
                         'message' => $errorMsg,
                         'errors'  => ['face_descriptor' => [$errorMsg]],
                     ], 422);
+                }
+
+                // Validasi bahwa seluruh elemen adalah float/numerik
+                foreach ($liveDescriptor as $val) {
+                    if (!is_numeric($val)) {
+                        $errorMsg = 'Nilai vektor biometrik wajah harus berupa float yang valid.';
+                        if (!$request->expectsJson() && !$request->ajax()) {
+                            return back()->withErrors(['face_descriptor' => $errorMsg]);
+                        }
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => $errorMsg,
+                            'errors'  => ['face_descriptor' => [$errorMsg]],
+                        ], 422);
+                    }
                 }
 
                 $distance = $this->calculateEuclideanDistance($user->face_descriptor, $liveDescriptor);
@@ -110,7 +113,7 @@ class KehadiranController extends Controller
                     ], 422);
                 }
             } elseif (!app()->environment('testing')) {
-                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via Postman/curl
+                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via API/curl
                 $errorMsg = 'Data biometrik wajah kamera wajib disertakan saat melakukan presensi.';
                 if (!$request->expectsJson() && !$request->ajax()) {
                     return back()->withErrors(['face_descriptor' => $errorMsg]);
@@ -123,10 +126,10 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // [SEC-10 FIX] Validasi range koordinat GPS latitude [-90,90] dan longitude [-180,180]
             $request->validate([
-                'latitude'             => 'required|numeric',
-                'longitude'            => 'required|numeric',
-                'is_face_verified'     => 'required|boolean',
+                'latitude'             => 'required|numeric|between:-90,90',
+                'longitude'            => 'required|numeric|between:-180,180',
                 'is_liveness_verified' => 'nullable|boolean',
                 'face_descriptor'      => 'nullable',
                 'reason'               => 'nullable|string|max:500',
@@ -139,21 +142,7 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Periksa apakah karyawan sudah melakukan absen masuk hari ini
-            $attendance = Kehadiran::where('user_id', $user->id)
-                ->where(function ($q) use ($today) {
-                    $q->whereDate('date', $today)
-                        ->orWhereDate('created_at', $today);
-                })
-                ->first();
-
-            if ($attendance && $attendance->check_in !== null) {
-                return response()->json([
-                    'message' => 'Anda sudah melakukan absen masuk hari ini!',
-                ], 400);
-            }
-
-            // 2. Evaluasi jadwal kerja karyawan
+            // 1. Evaluasi jadwal kerja karyawan
             $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
             if (isset($schedule['is_day_off']) && $schedule['is_day_off']) {
                 return response()->json([
@@ -161,14 +150,14 @@ class KehadiranController extends Controller
                 ], 400);
             }
 
-            // 3. Evaluasi geolokasi terhadap seluruh stasiun dan Rumah Meter
+            // 2. Evaluasi geolokasi terhadap seluruh stasiun dan Rumah Meter
             $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
             $isInRadius = $geo['isInRadius'];
             $matchedStation = $geo['matchedStation'];
             $nearestStation = $geo['nearestStation'];
             $distanceMeters = $geo['distanceMeters'];
 
-            // 4. Evaluasi status keterlambatan
+            // 3. Evaluasi status keterlambatan
             $isLate = false;
             $scheduledInStr = $schedule['scheduled_in'] ?? null;
 
@@ -183,7 +172,7 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 5. Validasi alasan jika terlambat atau berada di luar radius
+            // 4. Validasi alasan jika terlambat atau berada di luar radius
             $reason = trim((string) ($request->reason ?? $request->reason_out_of_radius));
             if ((!$isInRadius || $isLate) && empty($reason)) {
                 $kondisi = [];
@@ -198,7 +187,7 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // 6. Proses unggah dan watermark dokumen/foto bukti alasan
+            // 5. Proses unggah dan watermark dokumen/foto bukti alasan
             $evidenceFile = $request->file('evidence') ?? $request->file('bukti_alasan');
             $evidencePath = null;
 
@@ -212,37 +201,69 @@ class KehadiranController extends Controller
             }
 
             $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
-            $isFaceVerified = $request->boolean('is_face_verified', false);
+            $isFaceVerified = true;
 
-            // 7. Simpan atau perbarui catatan absensi masuk
-            $absensi = Kehadiran::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'date'    => $today,
-                ],
-                [
-                    'shift_type'              => $shiftType,
-                    'scheduled_in'            => $scheduledInStr,
-                    'scheduled_out'           => $schedule['scheduled_out'] ?? null,
-                    'check_in'                => $waktuSekarang,
-                    'check_in_lat'            => (string) $request->latitude,
-                    'check_in_long'           => (string) $request->longitude,
-                    'check_in_distance'       => round($distanceMeters, 2),
-                    'is_in_radius_check_in'   => $isInRadius,
-                    'is_late'                 => $isLate,
-                    'is_face_verified_in'     => $isFaceVerified,
-                    'reason_in'               => !empty($reason) ? $reason : null,
-                    'reason_out_of_radius_in' => !empty($reason) ? $reason : null,
-                    'evidence_in'             => $evidencePath,
-                    'status'                  => $isLate ? 'Terlambat' : 'Hadir',
-                ]
-            );
+            // [SEC-09 FIX] Bungkus proses check-in ke dalam DB::transaction dengan lockForUpdate untuk mencegah race condition
+            $result = DB::transaction(function () use (
+                $user, $today, $waktuSekarang, $shiftType, $scheduledInStr, $schedule,
+                $request, $distanceMeters, $isInRadius, $isLate, $isFaceVerified, $reason, $evidencePath
+            ) {
+                // Periksa apakah karyawan sudah melakukan absen masuk hari ini dengan lockForUpdate
+                $attendance = Kehadiran::where('user_id', $user->id)
+                    ->where(function ($q) use ($today) {
+                        $q->whereDate('date', $today)
+                            ->orWhereDate('created_at', $today);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($attendance && $attendance->check_in !== null) {
+                    return [
+                        'status'  => 400,
+                        'message' => 'Anda sudah melakukan absen masuk hari ini!',
+                    ];
+                }
+
+                $absensi = Kehadiran::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'date'    => $today,
+                    ],
+                    [
+                        'shift_type'              => $shiftType,
+                        'scheduled_in'            => $scheduledInStr,
+                        'scheduled_out'           => $schedule['scheduled_out'] ?? null,
+                        'check_in'                => $waktuSekarang,
+                        'check_in_lat'            => (string) $request->latitude,
+                        'check_in_long'           => (string) $request->longitude,
+                        'check_in_distance'       => round($distanceMeters, 2),
+                        'is_in_radius_check_in'   => $isInRadius,
+                        'is_late'                 => $isLate,
+                        'is_face_verified_in'     => $isFaceVerified,
+                        'reason_in'               => !empty($reason) ? $reason : null,
+                        'reason_out_of_radius_in' => !empty($reason) ? $reason : null,
+                        'evidence_in'             => $evidencePath,
+                        'status'                  => $isLate ? 'Terlambat' : 'Hadir',
+                    ]
+                );
+
+                return [
+                    'status'  => 200,
+                    'absensi' => $absensi,
+                ];
+            });
+
+            if ($result['status'] !== 200) {
+                return response()->json([
+                    'message' => $result['message'],
+                ], $result['status']);
+            }
 
             $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil melakukan absen masuk di ' . $locName . '. Selamat bekerja!',
-                'data'    => $absensi,
+                'data'    => $result['absensi'],
             ], 200);
 
         } catch (\Throwable $th) {
@@ -303,8 +324,8 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
-            // [C-01 FIX] Server-Side Biometric Verification:
-            // Verifikasi bahwa face_descriptor aktual dari kamera dikirim dan cocok dengan data di database (Euclidean Distance <= 0.58)
+            // [SEC-01 FIX] Server-Side Biometric Verification:
+            // Wajibkan verifikasi face_descriptor aktual dari kamera terhadap profil terdaftar (Euclidean Distance <= 0.58)
             $liveDescriptor = $request->input('face_descriptor');
             if (is_string($liveDescriptor)) {
                 $liveDescriptor = json_decode($liveDescriptor, true);
@@ -312,7 +333,7 @@ class KehadiranController extends Controller
 
             if (!empty($liveDescriptor)) {
                 if (!is_array($liveDescriptor) || count($liveDescriptor) !== 128) {
-                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi).';
+                    $errorMsg = 'Data biometrik wajah dari kamera tidak valid (wajib 128 dimensi float).';
                     if (!$request->expectsJson() && !$request->ajax()) {
                         return back()->withErrors(['face_descriptor' => $errorMsg]);
                     }
@@ -322,6 +343,22 @@ class KehadiranController extends Controller
                         'message' => $errorMsg,
                         'errors'  => ['face_descriptor' => [$errorMsg]],
                     ], 422);
+                }
+
+                // Validasi bahwa seluruh elemen adalah float/numerik
+                foreach ($liveDescriptor as $val) {
+                    if (!is_numeric($val)) {
+                        $errorMsg = 'Nilai vektor biometrik wajah harus berupa float yang valid.';
+                        if (!$request->expectsJson() && !$request->ajax()) {
+                            return back()->withErrors(['face_descriptor' => $errorMsg]);
+                        }
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => $errorMsg,
+                            'errors'  => ['face_descriptor' => [$errorMsg]],
+                        ], 422);
+                    }
                 }
 
                 $distance = $this->calculateEuclideanDistance($user->face_descriptor, $liveDescriptor);
@@ -340,7 +377,7 @@ class KehadiranController extends Controller
                     ], 422);
                 }
             } elseif (!app()->environment('testing')) {
-                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via Postman/curl
+                // Di luar testing, wajib menyertakan live face descriptor untuk mencegah bypass via API/curl
                 $errorMsg = 'Data biometrik wajah kamera wajib disertakan saat melakukan presensi pulang.';
                 if (!$request->expectsJson() && !$request->ajax()) {
                     return back()->withErrors(['face_descriptor' => $errorMsg]);
@@ -353,10 +390,10 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            // [SEC-10 FIX] Validasi range koordinat GPS latitude [-90,90] dan longitude [-180,180]
             $request->validate([
-                'latitude'             => 'required|numeric',
-                'longitude'            => 'required|numeric',
-                'is_face_verified'     => 'required|boolean',
+                'latitude'             => 'required|numeric|between:-90,90',
+                'longitude'            => 'required|numeric|between:-180,180',
                 'is_liveness_verified' => 'nullable|boolean',
                 'face_descriptor'      => 'nullable',
                 'reason'               => 'nullable|string|max:500',
@@ -369,21 +406,21 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Periksa keberadaan catatan absen masuk hari ini
-            $attendance = Kehadiran::where('user_id', $user->id)
+            // 1. Periksa jadwal dan keberadaan catatan absen masuk hari ini terlebih dahulu untuk validasi shift
+            $preAttendance = Kehadiran::where('user_id', $user->id)
                 ->where(function ($q) use ($today) {
                     $q->whereDate('date', $today)
                         ->orWhereDate('created_at', $today);
                 })
                 ->first();
 
-            if (!$attendance || $attendance->check_in === null) {
+            if (!$preAttendance || $preAttendance->check_in === null) {
                 return response()->json([
                     'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.',
                 ], 400);
             }
 
-            if ($attendance->check_out !== null) {
+            if ($preAttendance->check_out !== null) {
                 return response()->json([
                     'message' => 'Anda sudah melakukan absen pulang hari ini!',
                 ], 400);
@@ -398,11 +435,11 @@ class KehadiranController extends Controller
 
             // 3. Evaluasi apakah karyawan pulang lebih awal
             $isEarly = false;
-            if (!empty($attendance->scheduled_out) && $attendance->scheduled_out !== '--:--') {
+            if (!empty($preAttendance->scheduled_out) && $preAttendance->scheduled_out !== '--:--') {
                 try {
                     $currentMinutes = $now->hour * 60 + $now->minute;
-                    [$hOut, $mOut] = explode(':', $attendance->scheduled_out);
-                    [$hIn, $mIn]   = explode(':', $attendance->scheduled_in ?? '00:00');
+                    [$hOut, $mOut] = explode(':', $preAttendance->scheduled_out);
+                    [$hIn, $mIn]   = explode(':', $preAttendance->scheduled_in ?? '00:00');
 
                     $schedOutMinutes = ((int) $hOut) * 60 + ((int) $mOut);
                     $schedInMinutes  = ((int) $hIn) * 60 + ((int) $mIn);
@@ -450,27 +487,66 @@ class KehadiranController extends Controller
                 $evidencePath = $this->processAndWatermarkEvidence($evidenceFile, 'checkout', $user, $statusWatermark, $now);
             }
 
-            $isFaceVerified = $request->boolean('is_face_verified', false);
+            $isFaceVerified = true;
 
-            // 6. Simpan catatan absensi pulang ke database
-            $attendance->update([
-                'check_out'              => $waktuSekarang,
-                'check_out_lat'          => (string) $request->latitude,
-                'check_out_long'         => (string) $request->longitude,
-                'check_out_distance'     => round($distanceMeters, 2),
-                'is_in_radius_check_out' => $isInRadius,
-                'is_early_checkout'      => $isEarly,
-                'is_face_verified_out'   => $isFaceVerified,
-                'reason_out'             => !empty($reason) ? $reason : null,
-                'reason_checkout'        => !empty($reason) ? $reason : null,
-                'evidence_out'           => $evidencePath,
-            ]);
+            // [SEC-09 FIX] Bungkus proses check-out ke dalam DB::transaction dengan lockForUpdate
+            $result = DB::transaction(function () use (
+                $user, $today, $waktuSekarang, $request, $distanceMeters, $isInRadius,
+                $isEarly, $isFaceVerified, $reason, $evidencePath
+            ) {
+                $attendance = Kehadiran::where('user_id', $user->id)
+                    ->where(function ($q) use ($today) {
+                        $q->whereDate('date', $today)
+                            ->orWhereDate('created_at', $today);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$attendance || $attendance->check_in === null) {
+                    return [
+                        'status'  => 400,
+                        'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.',
+                    ];
+                }
+
+                if ($attendance->check_out !== null) {
+                    return [
+                        'status'  => 400,
+                        'message' => 'Anda sudah melakukan absen pulang hari ini!',
+                    ];
+                }
+
+                // Simpan catatan absensi pulang ke database
+                $attendance->update([
+                    'check_out'              => $waktuSekarang,
+                    'check_out_lat'          => (string) $request->latitude,
+                    'check_out_long'         => (string) $request->longitude,
+                    'check_out_distance'     => round($distanceMeters, 2),
+                    'is_in_radius_check_out' => $isInRadius,
+                    'is_early_checkout'      => $isEarly,
+                    'is_face_verified_out'   => $isFaceVerified,
+                    'reason_out'             => !empty($reason) ? $reason : null,
+                    'reason_checkout'        => !empty($reason) ? $reason : null,
+                    'evidence_out'           => $evidencePath,
+                ]);
+
+                return [
+                    'status'     => 200,
+                    'attendance' => $attendance,
+                ];
+            });
+
+            if ($result['status'] !== 200) {
+                return response()->json([
+                    'message' => $result['message'],
+                ], $result['status']);
+            }
 
             $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil melakukan absen pulang di ' . $locName . '. Hati-hati di jalan!',
-                'data'    => $attendance,
+                'data'    => $result['attendance'],
             ], 200);
 
         } catch (\Throwable $th) {

@@ -119,10 +119,34 @@ class KaryawanController extends Controller
     public function showDetail(int $id): JsonResponse
     {
         try {
+            $currentUser = Auth::user();
+            if (! $currentUser) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
             $karyawan = User::with(['roles', 'station', 'assignedStations', 'saldoCuti.jenisCuti'])->find($id);
 
             if (! $karyawan) {
                 return response()->json(['message' => 'Karyawan tidak ditemukan'], 404);
+            }
+
+            // [SEC-08 FIX] Otorisasi IDOR: Validasi kepemilikan / hierarki role untuk Atasan Level 2
+            $userRoles = $currentUser->roles;
+            $isAdminRole = $currentUser->isLevel1() || $userRoles->contains('id', 1) || $currentUser->role_id === 1;
+            $hasTopRole  = $userRoles->contains(fn($r) => empty($r->parent_role_id));
+
+            // Jika bukan administrator dan bukan melihat profil diri sendiri, pastikan target adalah bawahan hierarkis
+            if (! $isAdminRole && ! $hasTopRole && $currentUser->id !== $karyawan->id) {
+                $userRoleIds = $userRoles->pluck('id')->filter()->toArray();
+                $subordinateRoleIds = Role::getAllChildRoleIds($userRoleIds);
+                $targetRoleIds = $karyawan->roles->pluck('id')->toArray();
+
+                $isSubordinate = !empty(array_intersect($targetRoleIds, $subordinateRoleIds));
+                if (! $isSubordinate) {
+                    return response()->json([
+                        'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mengakses rincian data karyawan ini.',
+                    ], 403);
+                }
             }
 
             $todaySchedule = $this->scheduleService->getTodaySchedule($karyawan);

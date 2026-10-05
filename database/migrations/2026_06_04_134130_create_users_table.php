@@ -23,7 +23,7 @@ return new class extends Migration
             $table->time('normal_check_in')->nullable();
             $table->time('normal_check_out')->nullable();
             $table->date('roster_start_date')->nullable();
-            $table->json('face_descriptor')->nullable();
+            $table->longText('face_descriptor')->nullable();
             $table->string('profile_photo')->nullable();
             $table->string('signature')->nullable();
             $table->string('phone_number')->nullable();

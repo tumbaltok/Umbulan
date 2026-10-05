@@ -7,8 +7,10 @@ use App\Models\User\User;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PhoneVerificationController extends Controller
 {
@@ -49,11 +51,8 @@ class PhoneVerificationController extends Controller
         // Generate OTP 6 digit angka
         $otp = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Simpan hash OTP dan masa berlaku 5 menit
-        $user->forceFill([
-            'phone_otp' => Hash::make($otp),
-            'phone_otp_expires_at' => now()->addMinutes(5),
-        ])->save();
+        // [SEC-03 FIX] Simpan hash OTP di Cache selama 5 menit
+        Cache::put("phone_otp_{$user->id}", Hash::make($otp), now()->addMinutes(5));
 
         // Format pesan notifikasi WhatsApp
         $message = "*[ERP META ADHYA TIRTA UMBULAN]*\n"
@@ -79,6 +78,17 @@ class PhoneVerificationController extends Controller
     // Memvalidasi kode OTP yang dimasukkan oleh pengguna
     public function verify(Request $request)
     {
+        $user = $request->user();
+        $throttleKey = 'phone-otp-verify:' . $user->id . '|' . $request->ip();
+
+        // [SEC-04 FIX] Rate Limiting: Maksimal 5 percobaan gagal per IP/User (lockout 300 detik)
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()->withErrors([
+                'otp' => "Terlalu banyak percobaan verifikasi OTP gagal. Silakan coba lagi dalam {$seconds} detik.",
+            ]);
+        }
+
         $request->validate([
             'otp' => 'required|string|size:6',
         ], [
@@ -86,17 +96,20 @@ class PhoneVerificationController extends Controller
             'otp.size' => 'Kode OTP harus terdiri dari tepat 6 digit angka.',
         ]);
 
-        $user = $request->user();
+        // [SEC-03 FIX] Ambil OTP ter-hash dari Cache
+        $cachedOtpHash = Cache::get("phone_otp_{$user->id}");
 
-        // Cek masa berlaku kode OTP
-        if (!$user->phone_otp || !$user->phone_otp_expires_at || now()->isAfter($user->phone_otp_expires_at)) {
+        if (!$cachedOtpHash) {
             return back()->withErrors([
                 'otp' => 'Kode OTP telah kedaluwarsa atau belum dikirimkan. Silakan klik tombol kirim ulang OTP.',
             ]);
         }
 
-        // Verifikasi kesesuaian OTP
-        if (Hash::check($request->otp, $user->phone_otp) || $request->otp === $user->phone_otp) {
+        // [SEC-03 FIX] Verifikasi HANYA menggunakan Hash::check() tanpa fallback plaintext
+        if (Hash::check($request->otp, $cachedOtpHash)) {
+            RateLimiter::clear($throttleKey);
+            Cache::forget("phone_otp_{$user->id}");
+
             $user->forceFill([
                 'phone_verified_at' => now(),
                 'phone_otp' => null,
@@ -113,10 +126,13 @@ class PhoneVerificationController extends Controller
             return redirect()->intended('/dashboard')->with('success', 'Nomor WhatsApp Anda berhasil diverifikasi!');
         }
 
-        Log::warning("[PhoneVerificationController] Percobaan OTP gagal untuk User ID: {$user->id}");
+        RateLimiter::hit($throttleKey, 300);
+        $remaining = RateLimiter::remaining($throttleKey, 5);
+
+        Log::warning("[PhoneVerificationController] Percobaan OTP gagal untuk User ID: {$user->id}. Sisa: {$remaining}");
 
         return back()->withErrors([
-            'otp' => 'Kode OTP yang Anda masukkan salah. Silakan periksa kembali pesan WhatsApp Anda.',
+            'otp' => "Kode OTP yang Anda masukkan salah. Sisa kesempatan: {$remaining}.",
         ]);
     }
 
@@ -142,9 +158,12 @@ class PhoneVerificationController extends Controller
         $user->forceFill([
             'phone_number' => $newPhone,
             'phone_verified_at' => null,
-            'phone_otp' => Hash::make($otp),
-            'phone_otp_expires_at' => now()->addMinutes(5),
+            'phone_otp' => null,
+            'phone_otp_expires_at' => null,
         ])->save();
+
+        // [SEC-03 FIX] Simpan hash OTP di Cache selama 5 menit
+        Cache::put("phone_otp_{$user->id}", Hash::make($otp), now()->addMinutes(5));
 
         // Format pesan resmi
         $message = "*[ERP META ADHYA TIRTA UMBULAN]*\n"

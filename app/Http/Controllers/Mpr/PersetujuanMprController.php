@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mpr;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWhatsAppNotification;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\User;
 use App\Services\WhatsAppService;
@@ -199,9 +200,8 @@ class PersetujuanMprController extends Controller
                                 ->where('id', '!=', $submitter->id)
                                 ->whereNotNull('phone_verified_at')
                                 ->get();
-                            $waService = app(WhatsAppService::class);
                             foreach ($step2Approvers as $app2) {
-                                $waService->sendNewSubmissionNotification('mpr', $pengajuan, $app2, 2);
+                                SendWhatsAppNotification::sendNewSubmission('mpr', $pengajuan, $app2, 2);
                             }
                         }
                     } catch (\Exception $e) {

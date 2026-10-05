@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AccountController extends Controller
@@ -102,6 +103,7 @@ class AccountController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'gender_id' => 'nullable|integer',
             'station_id' => 'nullable|integer|exists:stations,id',
+            'level' => 'nullable|integer|in:1,2,3',
             'role_id' => 'nullable|integer|exists:roles,id',
             'role' => 'nullable|string|max:255',
             'roles' => 'nullable|array',
@@ -162,7 +164,11 @@ class AccountController extends Controller
                     $updateData['station_id'] = $request->station_id;
                 }
                 if ($request->filled('level')) {
-                    $updateData['level'] = (int)$request->level;
+                    $newLevel = (int)$request->level;
+                    if ($user->level !== $newLevel) {
+                        Log::warning("[SEC-05 AUDIT] Mutasi level akun: User ID {$user->id} ({$user->name}) diubah dari Level {$user->level} menjadi Level {$newLevel} oleh User ID " . Auth::id());
+                    }
+                    $updateData['level'] = $newLevel;
                 }
 
                 // LOGIKA PENYIMPANAN ROLE / JABATAN (HANYA ADMIN)
