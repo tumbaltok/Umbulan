@@ -20,7 +20,7 @@ class AccountReadinessGuardTest extends TestCase
         $user->phone_verified_at = now();
         $user->face_descriptor = null; // Biometrik belum
         $user->signature = null;       // TTD belum
-        $user->schedule_type = 'normal';
+        $user->schedule_type = 'reguler_5_hari';
 
         // 1. Cek evaluasi model
         $status = $user->getAccountCompletionStatus();
@@ -57,7 +57,7 @@ class AccountReadinessGuardTest extends TestCase
         $user->phone_verified_at = now();
         $user->face_descriptor = [0.1, 0.2];
         $user->signature = 'signatures/dummy.png';
-        $user->schedule_type = 'normal';
+        $user->schedule_type = 'reguler_5_hari';
 
         $this->assertTrue($user->isAccountComplete());
         $status = $user->getAccountCompletionStatus();
@@ -87,7 +87,7 @@ class AccountReadinessGuardTest extends TestCase
         $user->phone_verified_at = now();
         $user->face_descriptor = null;
         $user->signature = null;
-        $user->schedule_type = 'normal';
+        $user->schedule_type = 'reguler_5_hari';
 
         auth()->setUser($user);
 

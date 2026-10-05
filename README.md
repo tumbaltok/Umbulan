@@ -53,7 +53,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
 
 ## 1. Tujuan & Ruang Lingkup Sistem
 
-**ERP META Adhya Tirta Umbulan** dirancang secara khusus untuk mendukung operasional harian perusahaan penyedia dan transmisi air bersih skala regional (Sistem Penyediaan Air Minum / SPAM Regional Umbulan). Ruang lingkup operasional sistem mencakup dua lingkungan kerja yang memiliki karakteristik dan regulasi kerja berbeda:
+**ERP META Adhya Tirta Umbulan** dirancang secara khusus untuk mendukung operasional harian perusahaan penyedia dan transmisi air bersih skala regional (Sistem Penyediaan Air Minum / SPAM Regional Umbulan). Ruang lingkup operasional sistem mencakup lingkungan kerja administratif dan lapangan yang dibakukan ke dalam **3 Tipe Jadwal Kerja Fixed (Baku)**:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -61,22 +61,30 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
 │             Transmisi Air Bersih Sepanjang 93 Km (Pasuruan - Gresik)            │
 └──────────────────────────────────────┬──────────────────────────────────────────┘
                                        │
-            ┌──────────────────────────┴──────────────────────────┐
-            ▼                                                     ▼
-┌──────────────────────────────────────┐  ┌──────────────────────────────────────┐
-│       KANTOR UTAMA (ADMINISTRATIF)   │  │    STASIUN LAPANGAN (OPERASIONAL)    │
-│ • Jadwal Kerja: Normal               │  │ • Jadwal Kerja: Roster 3 Shift       │
-│ • 5 Hari Kerja (Senin - Jumat)       │  │ • 24/7 Continuous Operations         │
-│ • Jam Operasional: 08:00 - 17:00 WIB │  │ • Durasi Shift: 12 Jam (Pagi/Malam)  │
-│ • Mengikuti Tanggal Merah SKB 3 Men. │  │ • Mengabaikan Tanggal Merah Nasional │
-│ • Libur Akhir Pekan (Sabtu & Minggu) │  │ • Libur Berdasarkan Jadwal Off Day   │
-└──────────────────────────────────────┘  └──────────────────────────────────────┘
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼
+┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+│   REGULER 5 HARI     │   │   REGULER 6 HARI     │   │    ROSTER / SHIFT    │
+│ • Senin s/d Jumat    │   │ • Senin s/d Sabtu    │   │ • 24/7 Continuous    │
+│ • 07:00 – 16:00 WIB  │   │ • Sen-Jum: 07-16 WIB │   │ • Shift Pagi: 07-19  │
+│ • Libur: Sab & Min   │   │ • Sabtu: 07-12 WIB   │   │ • Shift Malam: 19-07 │
+│ • Libur Nasional SKB │   │ • Libur: Minggu (OFF)│   │ • Rotasi Tiap Selasa │
+│   3 Menteri (Resmi)  │   │ • Libur Nasional SKB │   │ • Mengabaikan Tanggal│
+│                      │   │   3 Menteri (Resmi)  │   │   Merah Nasional     │
+└──────────────────────┘   └──────────────────────┘   └──────────────────────┘
 ```
 
-1. **Lingkungan Kerja Kantor Utama (Administratif):**
-   - Beroperasi dengan jadwal kerja **Normal** (Senin s/d Jumat, 5 hari kerja, 08:00 – 17:00 WIB).
-   - Menikmati hak libur akhir pekan (Sabtu & Minggu) dan seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah Indonesia (SKB 3 Menteri).
-2. **Lingkungan Kerja Stasiun Lapangan (Operasional Transmisi 24/7):**
+1. **Tipe 1: Reguler 5 Hari (`reguler_5_hari`):**
+   - Diperuntukkan bagi staf kantor administratif dan unit kerja dengan pola 5 hari kerja (Senin s/d Jumat).
+   - Jam kerja baku otomatis terkunci pada pukul **07:00 – 16:00 WIB**.
+   - Hak libur akhir pekan pada hari Sabtu & Minggu (OFF) serta mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah Indonesia (SKB 3 Menteri).
+2. **Tipe 2: Reguler 6 Hari (`reguler_6_hari`):**
+   - Diperuntukkan bagi staf teknis atau pendukung lapangan dengan pola 6 hari kerja (Senin s/d Sabtu).
+   - Jam kerja baku:
+     * **Senin s/d Jumat:** Pukul **07:00 – 16:00 WIB**.
+     * **Khusus Hari Sabtu (Setengah Hari):** Pukul **07:00 – 12:00 WIB**.
+   - Hak libur pada hari Minggu (OFF) serta mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah Indonesia (SKB 3 Menteri).
+3. **Tipe 3: Roster / Shift Operasional 24/7 (`roster`):**
    - Mengelola operasional transmisi air bersih sepanjang 93 kilometer dari mata air Umbulan (Kabupaten Pasuruan) melintasi Kota Pasuruan, Kabupaten Sidoarjo, Kota Surabaya, hingga Kabupaten Gresik.
    - Mengoperasikan 4 Stasiun Utama/Booster (Stasiun Mata Air Umbulan, Stasiun Pompa Bangil, Stasiun Pasuruan, Stasiun Surabaya) dan 18 Stasiun Rumah Meter (*Offtake*).
    - Beroperasi tanpa henti (*24/7 continuous operations*) dengan **Sistem Kerja Roster 3 Shift** (Minggu I Pagi, Minggu II Malam, Minggu III Libur Roster).
@@ -264,6 +272,9 @@ Pada menu pengaturan profil ([AccountController.php](app/Http/Controllers/User/A
    - Backend memblokir upaya non-admin yang mencoba menaikkan wewenangnya sendiri ke role Admin.
 3. **Penugasan Multi-Stasiun Rumah Meter (Role PIPELINE):**
    - Khusus staf lapangan dengan peran `AREA (PIPELINE)`, sistem menyediakan form pemilihan multi-stasiun Rumah Meter via tabel relasi `station_user`. Staf pipeline dapat ditugaskan untuk mengawasi beberapa Rumah Meter sekaligus di sepanjang jalur pipa.
+4. **Standarisasi Pengaturan Jadwal Kerja Mandiri:**
+   - Karyawan memilih 1 dari 3 Tipe Jadwal Kerja Baku (`reguler_5_hari`, `reguler_6_hari`, atau `roster`).
+   - Jam masuk, jam pulang, dan hari kerja terkunci secara otomatis oleh sistem (*preset*) jika memilih tipe Reguler. Pemilihan tipe Roster mengaktifkan konfigurasi shift awal dan kalkulasi rotasi mingguan.
 
 ### D. Kriteria Mutlak Kelayakan Pengajuan (`EnsureAccountIsComplete`)
 Middleware [EnsureAccountIsComplete.php](app/Http/Middleware/EnsureAccountIsComplete.php) memvalidasi status kelengkapan akun sebelum mengizinkan pembuatan formulir Cuti, CAR, maupun MPR:
@@ -271,7 +282,7 @@ Middleware [EnsureAccountIsComplete.php](app/Http/Middleware/EnsureAccountIsComp
 2. Nomor WhatsApp terisi dan terverifikasi (`phone_verified_at != null`).
 3. Biometrik wajah telah direkam (`count(face_descriptor) === 128`).
 4. Tanda tangan digital telah tersimpan (`signature != null`).
-5. Jadwal kerja operasional aktif (`schedule_type` normal atau roster).
+5. Jadwal kerja operasional aktif (`schedule_type`: `reguler_5_hari`, `reguler_6_hari`, atau `roster`).
 
 ---
 
@@ -291,12 +302,52 @@ $$d = R \cdot \Delta\sigma$$
 * Method `evaluateGeofence` pada [KehadiranController.php](app/Http/Controllers/Absen/KehadiranController.php) melakukan iterasi ke seluruh stasiun untuk menentukan `shortestDistance`. Jika $d \le \text{radius stasiun}$ (default 50 – 100 meter), pengguna dinyatakan **Di Dalam Radius**.
 * Administrator dapat mengkalibrasi posisi stasiun secara visual pada halaman `/admin/stations` menggunakan pointer peta interaktif (*drag-and-drop*) atau *URL parser Google Maps*.
 
-### B. Rotasi Shift Roster Operasional (Continuous Shift 24/7)
-* Jadwal staf operasional lapangan dihitung secara algoritmik oleh `ScheduleService.php`.
-* Rotasi terjadi serentak setiap **Hari Selasa pukul 07:00 WIB**:
-  * **Minggu I:** Shift Pagi ($07:00 - 19:00\text{ WIB}$, durasi 12 jam kerja).
-  * **Minggu II:** Shift Malam ($19:00 - 07:00\text{ WIB}$, durasi 12 jam kerja).
-  * **Minggu III:** Minggu Libur Roster (*Off Day* pemulihan fisik).
+### B. Standarisasi 3 Tipe Jadwal Kerja Operasional Baku
+
+Sistem membakukan dan menyederhanakan konfigurasi jadwal kerja seluruh karyawan ke dalam **3 Tipe Jadwal Tetap (*Fixed Rules*)**. Konfigurasi jam masuk, jam pulang, dan hari kerja telah dikunci serta diprogram secara otomatis oleh sistem (*preset*) pada [ScheduleService.php](app/Services/ScheduleService.php) guna mencegah deviasi maupun manipulasi jam operasional manual:
+
+#### 1. Matriks Komparasi 3 Tipe Jadwal Kerja
+
+| Parameter | Tipe 1: Reguler 5 Hari | Tipe 2: Reguler 6 Hari | Tipe 3: Roster / Shift |
+| :--- | :--- | :--- | :--- |
+| **Identitas Nilai / Enum** | `reguler_5_hari` | `reguler_6_hari` | `roster` |
+| **Label UI Resmi** | `Reguler (5 Hari: Senin – Jumat)` | `Reguler (6 Hari: Senin – Sabtu, Setengah Hari)` | `Roster / Shift` |
+| **Hari Kerja Aktif** | Senin s/d Jumat (5 Hari Kerja) | Senin s/d Sabtu (6 Hari Kerja) | Rotasi 3 Pekan Siklis (24/7) |
+| **Hari Libur (OFF)** | Sabtu & Minggu (OFF) | Minggu (OFF) | Jadwal OFF Roster (Pekan ke-3) |
+| **Jam Masuk Baku** | Fixed **07:00 WIB** | Fixed **07:00 WIB** | Shift Pagi: **07:00 WIB**<br>Shift Malam: **19:00 WIB** |
+| **Jam Pulang Baku** | Fixed **16:00 WIB** | Sen–Jum: **16:00 WIB**<br>Sabtu: **12:00 WIB** (Setengah Hari) | Shift Pagi: **19:00 WIB**<br>Shift Malam: **07:00 WIB** |
+| **Kalibrasi Hari Libur** | Mengikuti SKB 3 Menteri | Mengikuti SKB 3 Menteri | Mengabaikan Tanggal Merah Nasional |
+| **Keterlambatan (`is_late`)**| Check-in > 07:00 WIB | Check-in > 07:00 WIB | Pagi > 07:00 WIB / Malam > 19:00 WIB |
+| **Pulang Awal (`isEarly`)** | Check-out < 16:00 WIB | Sen–Jum < 16:00 WIB / Sabtu < 12:00 WIB | Sesuai jam selesai shift masing-masing |
+
+#### 2. Logika Algoritmik Backend ([ScheduleService.php](app/Services/ScheduleService.php))
+1. **Reguler 5 Hari (`calculateReguler5HariSchedule`):**
+   - Mengevaluasi hari berjalan melalui ISO Day of Week ($1 = \text{Senin} \dots 7 = \text{Minggu}$).
+   - **Senin s/d Jumat (Hari 1–5):** `scheduled_in = '07:00:00'`, `scheduled_out = '16:00:00'`, `is_day_off = false`.
+   - **Sabtu & Minggu (Hari 6 & 7):** `is_day_off = true` (Libur Akhir Pekan).
+2. **Reguler 6 Hari (`calculateReguler6HariSchedule`):**
+   - **Senin s/d Jumat (Hari 1–5):** `scheduled_in = '07:00:00'`, `scheduled_out = '16:00:00'`, `is_day_off = false`.
+   - **Khusus Hari Sabtu (Hari 6):** `scheduled_in = '07:00:00'`, `scheduled_out = '12:00:00'` (Setengah Hari Kerja), `is_day_off = false`.
+   - **Hari Minggu (Hari 7):** `is_day_off = true` (Libur Hari Minggu).
+3. **Roster / Shift 24/7 (`calculateRosterByDateTime`):**
+   - Diperuntukkan bagi staf operasional transmisi non-stop 24 jam dengan rotasi mingguan yang berganti serentak setiap **Hari Selasa pukul 07:00 WIB**:
+     * **Pekan I:** Shift Pagi ($07:00 - 19:00\text{ WIB}$, durasi 12 jam kerja).
+     * **Pekan II:** Shift Malam ($19:00 - 07:00\text{ WIB}$, durasi 12 jam kerja).
+     * **Pekan III:** Minggu Libur Roster (*Off Day* pemulihan fisik).
+   - Seluruh logika, struktur data rotasi 3 pekan, dan formula rotasi shift roster yang telah ada dipertahankan seutuhnya tanpa modifikasi fungsionalitas.
+
+#### 3. Penegakan Validasi Presensi & Keterlambatan ([KehadiranController.php](app/Http/Controllers/Absen/KehadiranController.php))
+- **Blokir Presensi Hari Libur:** Sistem memeriksa status `is_day_off` dari `ScheduleService::getTodaySchedule()`. Upaya absen masuk pada hari libur otomatis ditolak dengan respon: *"Hari ini adalah jadwal libur (OFF) Anda"*.
+- **Evaluasi Keterlambatan Masuk:** Keterlambatan check-in dihitung saat jam presensi aktual melebihi jam masuk baku ($> 07:00\text{ WIB}$). Jika terlambat, karyawan wajib mengisi alasan tertulis dan mengunggah foto bukti berstempel watermark dinamis.
+- **Evaluasi Jam Pulang:** Check-out sebelum jam pulang baku ($< 16:00\text{ WIB}$ pada hari biasa atau $< 12:00\text{ WIB}$ pada hari Sabtu untuk Reguler 6 Hari) ditandai sebagai pulang lebih awal (`isEarly = true`).
+
+#### 4. Pengalaman Antarmuka Pengguna (UI/UX)
+- **Halaman Profil Karyawan (`/profile`):**
+  * Dropdown pemilihan menampilkan 3 opsi berlabel rapi dan profesional.
+  * Ketika opsi Reguler 5 Hari atau Reguler 6 Hari dipilih, form input jam masuk/pulang manual dan checkbox hari kerja otomatis disembunyikan/dinonaktifkan, lalu digantikan oleh **Badge & Kartu Informasi Baku** yang menjelaskan jam operasional tetap.
+  * Ketika opsi Roster dipilih, sistem secara cerdas menampilkan antarmuka pemilihan shift awal beserta pratinjau (*preview*) rotasi 3 pekan ke depan.
+- **Modal Detail Karyawan Admin (`/admin/karyawan`):**
+  * Dilengkapi penanda badge warna tematik: Sky Blue untuk Reguler 5 Hari, Teal untuk Reguler 6 Hari, dan Purple untuk Roster.
 
 ### C. Pemindaian Biometrik Wajah Client-Side 128-Vektor
 * Model *neural network* Face-API.js mengeksekusi arsitektur `TinyFaceDetector` (resolusi input 224x224, threshold 0.5) untuk melacak wajah dan mengekstrak 68 titik kontur (*face landmarks*).
@@ -361,21 +412,21 @@ Jika karyawan terpaksa presensi di luar radius stasiun atau terlambat karena ken
 ### A. Kalibrasi Akurasi Hari Libur Nasional (SKB 3 Menteri)
 Dikelola oleh [HolidayService.php](app/Services/HolidayService.php) yang menyimpan master data baku Surat Keputusan Bersama (SKB) 3 Menteri untuk tahun 2025, 2026, dan 2027. Service dilengkapi mekanisme caching 30 hari untuk menjamin deteksi akurat hari libur keagamaan yang sifatnya dinamis (seperti Idul Fitri, Nyepi, Waisak, dan Maulid Nabi Muhammad SAW).
 
-### B. Perbedaan Perhitungan Hari Efektif: Normal vs Roster
-Method `hitungHariKerjaEfektif` pada [PengajuanCutiController.php](app/Http/Controllers/Cuti/PengajuanCutiController.php) memperlakukan kedua kelompok kerja secara presisi dan adil:
+### B. Perbedaan Perhitungan Hari Efektif: Reguler vs Roster
+Method `hitungHariKerjaEfektif` pada [PengajuanCutiController.php](app/Http/Controllers/Cuti/PengajuanCutiController.php) memperlakukan ketiga kelompok kerja secara presisi dan adil:
 
 ```text
-                          [ Evaluasi Tanggal Cuti ]
-                                      │
-                 ┌────────────────────┴────────────────────┐
-                 ▼                                         ▼
-         STAF JADWAL NORMAL                       STAF JADWAL ROSTER
-  • Hari Sabtu & Minggu diabaikan.         • Tanggal merah nasional diabaikan.
-  • Tanggal Merah SKB diabaikan.           • Cuti pada tanggal merah tetap
-  • Hanya hari kerja aktif yang              memotong kuota jika hari tersebut
-    memotong saldo cuti.                     merupakan dinas aktif (Pagi/Malam).
-  • Peringatan jika seluruh rentang        • Cuti TIDAK MEMOTONG kuota HANYA
-    adalah Hari Libur Nasional.              jika bertepatan dengan Libur Roster.
+                                 [ Evaluasi Tanggal Cuti ]
+                                             │
+             ┌───────────────────────────────┼───────────────────────────────┐
+             ▼                               ▼                               ▼
+    REGULER 5 HARI (SEN-JUM)        REGULER 6 HARI (SEN-SAB)              ROSTER / SHIFT
+• Sabtu & Minggu diabaikan (OFF).• Hanya Minggu diabaikan (OFF).  • Tanggal merah nasional diabaikan.
+• Tanggal Merah SKB diabaikan.   • Sabtu kerja aktif (setengah).  • Cuti pada tanggal merah tetap
+• Hanya hari kerja aktif yang    • Tanggal Merah SKB diabaikan.     memotong kuota jika hari tersebut
+  memotong saldo cuti.           • Hanya hari kerja aktif yang      merupakan dinas aktif (Pagi/Malam).
+• Peringatan jika seluruh          memotong saldo cuti.           • Cuti TIDAK MEMOTONG kuota HANYA
+  rentang adalah Libur Nasional.                                    jika bertepatan dgn Libur Roster.
 ```
 
 ### C. Aturan Baku Pemotongan Saldo Cuti ([CutiHelperTrait.php](app/Traits/CutiHelperTrait.php))
@@ -502,9 +553,9 @@ Otomatisasi pemeliharaan sistem didefinisikan secara deklaratif pada [routes/con
    - Menerapkan batasan jeda minimal 2 jam antar pengingat (`last_notified_at <= now() - 2 hours`) agar atasan tidak dibanjiri notifikasi berulang.
 3. **Penyaring Jam Kerja Atasan (*Work Hours Guard*):**
    - Scheduler memeriksa jadwal dinas penanggung jawab persetujuan via `ScheduleService::isUserWorkingNow($approver)`:
-     * **Atasan Staf Normal:** Notifikasi pengingat **HANYA DIKIRIMKAN** pada hari Senin s/d Jumat pada rentang jam dinas resmi (08:00 – 17:00 WIB).
+     * **Atasan Staf Reguler (5 atau 6 Hari):** Notifikasi pengingat **HANYA DIKIRIMKAN** pada hari dinas aktif (Senin–Jumat untuk Reguler 5 Hari, atau Senin–Sabtu untuk Reguler 6 Hari) pada rentang jam dinas resmi.
      * **Atasan Staf Roster:** Notifikasi pengingat **HANYA DIKIRIMKAN** jika atasan yang bersangkutan sedang berada di dalam jam dinas shift aktif miliknya (Shift Pagi 07:00 – 19:00 WIB atau Shift Malam 19:00 – 07:00 WIB).
-     * Jika atasan sedang berada di luar jam kerja atau sedang menikmati **Hari Libur Roster (Off Day)**, pengiriman pesan otomatis ditunda demi menghormati waktu istirahat karyawan.
+     * Jika atasan sedang berada di luar jam kerja, akhir pekan (OFF), atau sedang menikmati **Hari Libur Roster (Off Day)**, pengiriman pesan otomatis ditunda demi menghormati waktu istirahat karyawan.
 
 ---
 

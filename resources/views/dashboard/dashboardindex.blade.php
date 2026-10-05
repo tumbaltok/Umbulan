@@ -182,7 +182,7 @@
                             @endif
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                            {{ $accStatus['schedule_set'] ? 'Sistem kerja ' . strtoupper(auth()->user()->schedule_type) : 'Jadwal kerja belum diatur' }}
+                            {{ $accStatus['schedule_set'] ? auth()->user()->schedule_label : 'Jadwal kerja belum diatur' }}
                         </div>
                     </div>
                     @if(!$accStatus['schedule_set'])
@@ -266,6 +266,14 @@
                     @if($user->schedule_type === 'roster')
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
                             Sistem Roster
+                        </span>
+                    @elseif($user->schedule_type === 'reguler_6_hari')
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50">
+                            Reguler 6 Hari
+                        </span>
+                    @elseif($user->schedule_type === 'reguler_5_hari' || $user->schedule_type === 'normal')
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800/50">
+                            Reguler 5 Hari
                         </span>
                     @endif
                 </div>
@@ -440,11 +448,11 @@
             @else
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
-                    <span>Masuk Kerja Normal</span>
+                    <span>Hari Kerja Aktif</span>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-md bg-rose-500"></span>
-                    <span>Akhir Pekan / Tanggal Merah</span>
+                    <span>Libur / Tanggal Merah</span>
                 </div>
             @endif
 

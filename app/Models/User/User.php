@@ -100,11 +100,40 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     protected $attributes = [
-        'schedule_type' => null,
+        'schedule_type' => 'reguler_5_hari',
     ];
 
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
+
+    public const SCHEDULE_REGULER_5 = 'reguler_5_hari';
+    public const SCHEDULE_REGULER_6 = 'reguler_6_hari';
+    public const SCHEDULE_ROSTER = 'roster';
+
+    public function getScheduleLabelAttribute(): string
+    {
+        return match ($this->schedule_type) {
+            'reguler_5_hari', 'normal' => 'Reguler 5 Hari (Senin – Jumat)',
+            'reguler_6_hari' => 'Reguler 6 Hari (Senin – Sabtu, Setengah Hari)',
+            'roster' => 'Roster / Shift',
+            default => 'Belum Diatur',
+        };
+    }
+
+    public function isRoster(): bool
+    {
+        return $this->schedule_type === self::SCHEDULE_ROSTER;
+    }
+
+    public function isReguler5Hari(): bool
+    {
+        return in_array($this->schedule_type, [self::SCHEDULE_REGULER_5, 'normal']) || empty($this->schedule_type);
+    }
+
+    public function isReguler6Hari(): bool
+    {
+        return $this->schedule_type === self::SCHEDULE_REGULER_6;
+    }
 
     // Relasi Many-to-Many ke tabel roles via pivot role_user
     public function roles(): BelongsToMany

@@ -417,6 +417,7 @@
                 <div class="space-y-4">
 
                     {{-- BADGE MODE BACA --}}
+                    {{-- BADGE MODE BACA --}}
                     @if($scheduleAlreadySet)
                         <div id="schedule_read_mode" class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                             <div class="flex items-center gap-3">
@@ -441,6 +442,20 @@
                                             @endif
                                         </p>
                                     </div>
+                                @elseif($user->schedule_type === 'reguler_6_hari')
+                                    <div class="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-sm shrink-0 border border-teal-200 dark:border-teal-800">
+                                        <i class="fa-solid fa-business-time"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                            Reguler (6 Hari: Senin – Sabtu)
+                                        </p>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            Sen–Jum: 07:00 – 16:00 WIB &bull; Sabtu: 07:00 – 12:00 WIB (1/2 Hari)
+                                        </p>
+                                    </div>
                                 @else
                                     <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center text-sm shrink-0 border border-sky-200 dark:border-sky-800">
                                         <i class="fa-solid fa-business-time"></i>
@@ -449,10 +464,10 @@
                                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
                                         <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                                             <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-                                            Jam Kerja Normal
+                                            Reguler (5 Hari: Senin – Jumat)
                                         </p>
                                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            {{ $user->normal_check_in ?? '08:00' }} – {{ $user->normal_check_out ?? '17:00' }} WIB
+                                            Senin s/d Jumat: 07:00 – 16:00 WIB &bull; Sabtu & Minggu (OFF)
                                         </p>
                                     </div>
                                 @endif
@@ -469,38 +484,70 @@
                         {{-- Pilihan Jenis Jadwal --}}
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
-                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-1/2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all">
+                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-2/3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all font-medium">
                                 <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
-                                <option value="normal" {{ $activeScheduleType === 'normal' ? 'selected' : '' }}>Normal</option>
-                                <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>Roster/Shift</option>
+                                <option value="reguler_5_hari" {{ in_array($activeScheduleType, ['reguler_5_hari', 'normal']) ? 'selected' : '' }}>
+                                    Reguler (5 Hari: Senin – Jumat)
+                                </option>
+                                <option value="reguler_6_hari" {{ $activeScheduleType === 'reguler_6_hari' ? 'selected' : '' }}>
+                                    Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
+                                </option>
+                                <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>
+                                    Roster / Shift
+                                </option>
                             </select>
                         </div>
 
-                        {{-- Form Opsi Jadwal Normal --}}
-                        <div id="section_normal_schedule" class="hidden p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-4">
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Pilih Hari Kerja</label>
-                            @php
-                                $workDays = old('normal_work_days', $user->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
-                            @endphp
-                            <div class="flex flex-wrap gap-3">
-                                @foreach(['Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu', 'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu', 'Sun' => 'Minggu'] as $key => $dayLabel)
-                                    <label class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
-                                        <input type="checkbox" name="normal_work_days[]" value="{{ $key }}" {{ in_array($key, (array)$workDays) ? 'checked' : '' }} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
-                                        <span>{{ $dayLabel }}</span>
-                                    </label>
-                                @endforeach
+                        {{-- Card Info Jadwal Reguler 5 Hari --}}
+                        <div id="section_reguler_5_info" class="hidden p-4 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl space-y-3">
+                            <div class="flex items-center gap-2 text-sky-800 dark:text-sky-300 font-bold text-xs uppercase tracking-wider">
+                                <i class="fa-solid fa-calendar-check text-sky-600 dark:text-sky-400"></i>
+                                Ketentuan Baku Jadwal Reguler 5 Hari
                             </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Jumat</span>
+                                </div>
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Masuk & Pulang</span>
+                                    <span class="text-xs font-bold text-sky-600 dark:text-sky-400">07:00 – 16:00 WIB</span>
+                                </div>
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                    <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Sabtu & Minggu (OFF)</span>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info text-sky-500"></i>
+                                Mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri). Jam kerja dibakukan secara otomatis oleh sistem.
+                            </p>
+                        </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Masuk</label>
-                                    <input type="time" name="normal_check_in" value="{{ old('normal_check_in', $user->normal_check_in ?? '08:00') }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs">
+                        {{-- Card Info Jadwal Reguler 6 Hari --}}
+                        <div id="section_reguler_6_info" class="hidden p-4 bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/60 rounded-2xl space-y-3">
+                            <div class="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
+                                <i class="fa-solid fa-calendar-check text-teal-600 dark:text-teal-400"></i>
+                                Ketentuan Baku Jadwal Reguler 6 Hari
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Sabtu</span>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Pulang</label>
-                                    <input type="time" name="normal_check_out" value="{{ old('normal_check_out', $user->normal_check_out ?? '17:00') }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs">
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja Baku</span>
+                                    <span class="text-xs font-bold text-teal-600 dark:text-teal-400">Sen–Jum: 07:00–16:00<br>Sabtu: 07:00–12:00 WIB</span>
+                                </div>
+                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                    <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Minggu (OFF)</span>
                                 </div>
                             </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info text-teal-500"></i>
+                                Khusus hari Sabtu berlaku setengah hari kerja (pulang pukul 12:00 WIB). Mengikuti Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri).
+                            </p>
                         </div>
 
                         {{-- Form Opsi Jadwal Roster --}}
@@ -883,17 +930,23 @@
 
     function toggleScheduleOptions() {
         const scheduleType = document.getElementById('schedule_type')?.value;
-        const sectionNormal = document.getElementById('section_normal_schedule');
+        const sectionReguler5 = document.getElementById('section_reguler_5_info');
+        const sectionReguler6 = document.getElementById('section_reguler_6_info');
         const sectionRoster = document.getElementById('section_roster_schedule');
 
-        if (!scheduleType || !sectionNormal || !sectionRoster) return;
+        if (!scheduleType) return;
 
-        if (scheduleType === 'normal') {
-            sectionNormal.classList.remove('hidden');
-            sectionRoster.classList.add('hidden');
+        if (sectionReguler5) sectionReguler5.classList.add('hidden');
+        if (sectionReguler6) sectionReguler6.classList.add('hidden');
+        if (sectionRoster) sectionRoster.classList.add('hidden');
+
+        if (scheduleType === 'reguler_6_hari') {
+            if (sectionReguler6) sectionReguler6.classList.remove('hidden');
+        } else if (scheduleType === 'roster') {
+            if (sectionRoster) sectionRoster.classList.remove('hidden');
         } else {
-            sectionNormal.classList.add('hidden');
-            sectionRoster.classList.remove('hidden');
+            // Default: reguler_5_hari atau fallback normal
+            if (sectionReguler5) sectionReguler5.classList.remove('hidden');
         }
     }
 

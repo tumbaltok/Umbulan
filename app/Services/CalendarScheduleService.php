@@ -78,17 +78,17 @@ class CalendarScheduleService
                 $colorClass = 'bg-amber-400 hover:bg-amber-500';
                 $titleText = 'Sedang Cuti';
                 $descriptionText = 'Pengajuan Cuti Disetujui: '.($leaveInfo->alasan_cuti ?? 'Izin Cuti');
-            } elseif ($user->schedule_type === 'normal') {
-                // Status jadwal kerja normal
+            } elseif ($user->schedule_type !== 'roster') {
+                // Status jadwal kerja Reguler (5 Hari atau 6 Hari)
                 $isNationalHoliday = isset($holidays[$dateString]);
                 if ($daySchedule['is_day_off'] || $isNationalHoliday) {
                     // Libur akhir pekan atau tanggal merah nasional (warna merah)
                     $statusType = 'libur';
                     $colorClass = 'bg-rose-500 hover:bg-rose-600';
-                    $titleText = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : 'Libur Akhir Pekan';
-                    $descriptionText = $isNationalHoliday ? $holidays[$dateString] : 'Hari Libur Kerja Normal';
+                    $titleText = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Libur Kerja');
+                    $descriptionText = $isNationalHoliday ? $holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Hari Libur');
                 } else {
-                    $descriptionText = "Masuk Kerja Normal ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";
+                    $descriptionText = "Masuk Kerja ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";
                 }
             } else {
                 // Status jadwal roster (rotasi shift 12 jam)

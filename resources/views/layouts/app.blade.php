@@ -1107,10 +1107,12 @@
                             <p class="font-bold text-indigo-600 dark:text-indigo-400 text-xs truncate">
                                 @if(Auth::user()->schedule_type === 'roster')
                                     Sistem Roster (Shift 12 Jam)
-                                @elseif(Auth::user()->schedule_type === 'normal')
-                                    Normal ({{ Auth::user()->normal_check_in ?? '08:00' }} - {{ Auth::user()->normal_check_out ?? '17:00' }})
+                                @elseif(Auth::user()->schedule_type === 'reguler_6_hari')
+                                    Reguler 6 Hari (Sen–Sab)
+                                @elseif(Auth::user()->schedule_type === 'reguler_5_hari' || Auth::user()->schedule_type === 'normal')
+                                    Reguler 5 Hari (07:00–16:00)
                                 @else
-                                    Reguler / Belum Diatur
+                                    {{ Auth::user()->schedule_label ?? 'Belum Diatur' }}
                                 @endif
                             </p>
                         </div>

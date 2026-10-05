@@ -74,6 +74,12 @@ class ScheduleService
             } else {
                 $detailText = 'OFF (Libur Roster)';
             }
+        } elseif ($user->schedule_type === 'reguler_6_hari') {
+            if ($todaySchedule['is_day_off']) {
+                $detailText = 'OFF (Libur Hari Minggu)';
+            } else {
+                $detailText = 'OFF (Luar Jam Kerja)';
+            }
         } else {
             if ($todaySchedule['is_day_off']) {
                 $detailText = 'OFF (Libur Akhir Pekan)';
@@ -91,7 +97,7 @@ class ScheduleService
         ];
     }
 
-    // Ambil detail jadwal kerja karyawan untuk tanggal tertentu (normal atau roster)
+    // Ambil detail jadwal kerja karyawan untuk tanggal tertentu (Reguler 5 Hari, Reguler 6 Hari, atau Roster)
     public function getTodaySchedule(User $user, $date = null): array
     {
         if ($date === null) {
@@ -106,13 +112,13 @@ class ScheduleService
             )->setTime(self::ROSTER_CHANGE_HOUR, 0, 0);
         }
 
-        // Jadwal tipe normal
-        if ($user->schedule_type === 'normal' || empty($user->schedule_type)) {
-            return $this->calculateNormalSchedule($user, $evalDate);
+        $scheduleType = $user->schedule_type ?? 'reguler_5_hari';
+        if ($scheduleType === 'normal') {
+            $scheduleType = 'reguler_5_hari';
         }
 
         // Jadwal tipe roster (rotasi mingguan dimulai hari Selasa)
-        if ($user->schedule_type === 'roster') {
+        if ($scheduleType === 'roster') {
             if (empty($user->roster_start_date)) {
                 return $this->getShiftRosterDetail('pagi');
             }
@@ -120,13 +126,13 @@ class ScheduleService
             return $this->calculateRosterByDateTime($user, $evalDate);
         }
 
-        return [
-            'shift_type' => 'libur',
-            'shift_name' => 'Libur',
-            'scheduled_in' => null,
-            'scheduled_out' => null,
-            'is_day_off' => true,
-        ];
+        // Jadwal tipe Reguler 6 Hari (Senin - Sabtu, Sabtu 07:00 - 12:00)
+        if ($scheduleType === 'reguler_6_hari') {
+            return $this->calculateReguler6HariSchedule($user, $evalDate);
+        }
+
+        // Default: Jadwal tipe Reguler 5 Hari (Senin - Jumat, 07:00 - 16:00)
+        return $this->calculateReguler5HariSchedule($user, $evalDate);
     }
 
     // Hitung jarak geolokasi dalam satuan meter menggunakan formula Haversine
@@ -210,54 +216,71 @@ class ScheduleService
         return $this->calculateRosterByDateTime($user, $targetDate);
     }
 
-    // Hitung jadwal kerja normal berdasarkan daftar hari kerja aktif karyawan
-    private function calculateNormalSchedule(User $user, Carbon $evalDate): array
+    // Hitung jadwal kerja Reguler 5 Hari: Senin - Jumat (07:00 - 16:00), Sabtu & Minggu OFF
+    private function calculateReguler5HariSchedule(User $user, Carbon $evalDate): array
     {
-        $dayOfWeek = $evalDate->dayOfWeekIso;
-        $allowedDays = $user->normal_work_days;
+        $dayOfWeek = $evalDate->dayOfWeekIso; // 1 = Senin s/d 7 = Minggu
 
-        if (is_string($allowedDays)) {
-            $allowedDays = json_decode($allowedDays, true);
-        }
-
-        // Default hari kerja: Senin sampai Jumat jika belum diset
-        if (empty($allowedDays) || ! is_array($allowedDays)) {
-            $isWorkDay = ($dayOfWeek >= 1 && $dayOfWeek <= 5);
-        } else {
-            $allowedDaysLower = array_map('strtolower', $allowedDays);
-            $dayNameShort = strtolower($evalDate->format('D'));
-            $dayNameFull = strtolower($evalDate->format('l'));
-            $indoDays = [
-                1 => 'senin', 2 => 'selasa', 3 => 'rabu',
-                4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu',
-            ];
-            $dayNameIndo = $indoDays[$dayOfWeek];
-
-            // Evaluasi apakah hari saat ini cocok dengan daftar hari kerja diizinkan
-            $isWorkDay =
-                in_array($dayNameShort, $allowedDaysLower, true) ||
-                in_array($dayNameFull, $allowedDaysLower, true) ||
-                in_array($dayNameIndo, $allowedDaysLower, true) ||
-                in_array((string) $dayOfWeek, $allowedDaysLower, true);
-        }
-
-        if ($isWorkDay) {
+        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
             return [
-                'shift_type' => 'normal',
-                'shift_name' => 'Kerja Normal',
-                'scheduled_in' => $user->normal_check_in ?? '08:00:00',
-                'scheduled_out' => $user->normal_check_out ?? '17:00:00',
+                'shift_type' => 'reguler_5_hari',
+                'shift_name' => 'Reguler 5 Hari (07:00 - 16:00)',
+                'scheduled_in' => '07:00:00',
+                'scheduled_out' => '16:00:00',
                 'is_day_off' => false,
             ];
         }
 
         return [
             'shift_type' => 'libur',
-            'shift_name' => 'Hari Libur (Normal)',
+            'shift_name' => 'Hari Libur (Akhir Pekan)',
             'scheduled_in' => null,
             'scheduled_out' => null,
             'is_day_off' => true,
         ];
+    }
+
+    // Hitung jadwal kerja Reguler 6 Hari: Senin - Jumat (07:00 - 16:00), Sabtu (07:00 - 12:00), Minggu OFF
+    private function calculateReguler6HariSchedule(User $user, Carbon $evalDate): array
+    {
+        $dayOfWeek = $evalDate->dayOfWeekIso; // 1 = Senin s/d 7 = Minggu
+
+        // Senin s/d Jumat: 07:00 - 16:00 WIB
+        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+            return [
+                'shift_type' => 'reguler_6_hari',
+                'shift_name' => 'Reguler 6 Hari (07:00 - 16:00)',
+                'scheduled_in' => '07:00:00',
+                'scheduled_out' => '16:00:00',
+                'is_day_off' => false,
+            ];
+        }
+
+        // Khusus Sabtu: 07:00 - 12:00 WIB (Setengah Hari)
+        if ($dayOfWeek === 6) {
+            return [
+                'shift_type' => 'reguler_6_hari_sabtu',
+                'shift_name' => 'Reguler Sabtu Setengah Hari (07:00 - 12:00)',
+                'scheduled_in' => '07:00:00',
+                'scheduled_out' => '12:00:00',
+                'is_day_off' => false,
+            ];
+        }
+
+        // Hari Minggu: OFF (Libur)
+        return [
+            'shift_type' => 'libur',
+            'shift_name' => 'Hari Libur (Minggu)',
+            'scheduled_in' => null,
+            'scheduled_out' => null,
+            'is_day_off' => true,
+        ];
+    }
+
+    // Backward compatibility alias untuk calculateNormalSchedule
+    private function calculateNormalSchedule(User $user, Carbon $evalDate): array
+    {
+        return $this->calculateReguler5HariSchedule($user, $evalDate);
     }
 
     // Ambil konfigurasi jam kerja berdasarkan jenis shift roster (pagi, malam, atau libur)

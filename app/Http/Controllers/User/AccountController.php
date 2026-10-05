@@ -115,10 +115,7 @@ class AccountController extends Controller
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
-            'schedule_type' => 'nullable|in:normal,roster',
-            'normal_work_days' => 'nullable|array',
-            'normal_check_in' => ['nullable', 'date_format:H:i'],
-            'normal_check_out' => ['nullable', 'date_format:H:i'],
+            'schedule_type' => 'nullable|in:reguler_5_hari,reguler_6_hari,roster,normal',
             'roster_start_date' => 'nullable|date',
         ]);
 
@@ -216,20 +213,31 @@ class AccountController extends Controller
 
             // SIMPAN JADWAL KERJA
             if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
-                $updateData['schedule_type'] = $request->schedule_type;
+                $scheduleType = $request->schedule_type;
+                if ($scheduleType === 'normal') {
+                    $scheduleType = 'reguler_5_hari';
+                }
+                $updateData['schedule_type'] = $scheduleType;
 
-                if ($request->schedule_type === 'normal') {
-                    $updateData['normal_work_days'] = $request->normal_work_days ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                    $updateData['normal_check_in'] = $request->normal_check_in ?? '08:00';
-                    $updateData['normal_check_out'] = $request->normal_check_out ?? '17:00';
+                if ($scheduleType === 'reguler_5_hari') {
+                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                    $updateData['normal_check_in'] = '07:00:00';
+                    $updateData['normal_check_out'] = '16:00:00';
                     $updateData['roster_start_date'] = null;
-                } elseif ($request->schedule_type === 'roster') {
+                } elseif ($scheduleType === 'reguler_6_hari') {
+                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    $updateData['normal_check_in'] = '07:00:00';
+                    $updateData['normal_check_out'] = '16:00:00';
+                    $updateData['roster_start_date'] = null;
+                } elseif ($scheduleType === 'roster') {
                     if ($request->filled('roster_start_date')) {
                         $updateData['roster_start_date'] = $request->roster_start_date;
                     } else {
                         $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
                     }
                     $updateData['normal_work_days'] = null;
+                    $updateData['normal_check_in'] = null;
+                    $updateData['normal_check_out'] = null;
                 }
             }
 

@@ -157,7 +157,7 @@
         const isPria = (userGender === 'pria' || userGender === 'male' || userGender === '1');
 
         // SINKRONISASI JADWAL USER
-        const scheduleType = "{{ auth()->user()->schedule_type ?? 'normal' }}";
+        const scheduleType = "{{ auth()->user()->schedule_type ?? 'reguler_5_hari' }}";
         const rosterOffDates = JSON.parse('{!! json_encode($rosterOffDates ?? []) !!}');
         const rawHolidays = JSON.parse('{!! json_encode($holidays ?? []) !!}');
 
@@ -196,15 +196,20 @@
             const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
             const dayOfWeek = dateObj.getDay(); // 0 = Minggu, 6 = Sabtu
 
-            if (scheduleType === 'normal') {
+            if (scheduleType === 'reguler_6_hari') {
                 if (dayOfWeek === 0) return "Hari Minggu (Libur Kerja)";
-                if (dayOfWeek === 6) return "Hari Sabtu (Libur Kerja)";
                 if (holidaysList.includes(dateString)) {
                     return holidayNamesMap[dateString] ? `Libur Nasional: ${holidayNamesMap[dateString]}` : "Hari Libur Nasional";
                 }
             } else if (scheduleType === 'roster') {
                 if (rosterOffDates.includes(dateString)) {
                     return "Jadwal OFF Roster (Libur Shift)";
+                }
+            } else {
+                if (dayOfWeek === 0) return "Hari Minggu (Libur Kerja)";
+                if (dayOfWeek === 6) return "Hari Sabtu (Libur Kerja)";
+                if (holidaysList.includes(dateString)) {
+                    return holidayNamesMap[dateString] ? `Libur Nasional: ${holidayNamesMap[dateString]}` : "Hari Libur Nasional";
                 }
             }
 

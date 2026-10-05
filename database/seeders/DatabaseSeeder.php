@@ -304,9 +304,9 @@ class DatabaseSeeder extends Seeder
                 $normalCheckIn   = null;
                 $normalCheckOut  = null;
             } else {
-                $scheduleType    = 'normal';
+                $scheduleType    = 'reguler_5_hari';
                 $rosterStartDate = null;
-                $normalWorkDays  = '1,2,3,4,5';
+                $normalWorkDays  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
                 $normalCheckIn   = '07:00:00';
                 $normalCheckOut  = '16:00:00';
             }
