@@ -21,17 +21,12 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        /* Custom animation for floating elements */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        .float-animation {
-            animation: float 4s ease-in-out infinite;
-        }
-        /* Custom wave style */
         .wave-bg {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+            background: radial-gradient(circle at 15% 15%, #0369a1 0%, #075985 40%, #082f49 100%);
+        }
+        .water-pattern {
+            background-image: radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
     </style>
     {{-- Komponen Head PWA --}}
@@ -41,45 +36,99 @@
 
     <div class="bg-white dark:bg-slate-800 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:min-h-[600px] border border-slate-100 dark:border-slate-700 transition-all duration-300 my-4 md:my-0">
 
-        <div class="w-full md:w-1/2 wave-bg text-white p-6 sm:p-8 md:p-12 flex flex-col justify-between relative overflow-hidden shrink-0">
+        {{-- Sisi Kiri: Branding & Infrastruktur Mega Transmisi Air Umbulan --}}
+        <div class="w-full md:w-1/2 wave-bg text-white p-6 sm:p-8 md:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
+            {{-- Elemen Grafis Latar Belakang (Grid & Water Wave) --}}
+            <div class="absolute inset-0 water-pattern opacity-70 pointer-events-none"></div>
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
                 <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                 </svg>
             </div>
 
-            <div class="z-10 flex items-center space-x-3">
-                <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center overflow-hidden shrink-0">
-                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+            {{-- 1. Logo Brand Perusahaan --}}
+            <div class="z-10 flex items-center space-x-3.5">
+                <div class="bg-white/15 p-1.5 rounded-2xl backdrop-blur-md border border-white/20 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg shadow-slate-950/20 overflow-hidden shrink-0">
+                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo PT META" class="w-full h-full object-cover rounded-xl">
                 </div>
 
                 <div>
-                    <h2 class="font-bold tracking-wide text-xs sm:text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[9px] sm:text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
+                    <h2 class="font-extrabold tracking-wide text-xs sm:text-sm text-cyan-200 leading-tight">META ADHYA TIRTA UMBULAN</h2>
+                    <p class="text-[9px] sm:text-[10px] text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Transmisi Air Baku Terpadu
+                    </p>
                 </div>
             </div>
 
-            <div class="my-auto py-8 z-10 hidden md:flex flex-col items-start text-left">
-                <div class="float-animation mb-6">
-                    <svg class="w-56 h-56 text-cyan-100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M40 100H160" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
-                        <path d="M100 40V160" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
-                        <circle cx="100" cy="100" r="30" fill="#0c4a6e" stroke="currentColor" stroke-width="4"/>
-                        <circle cx="100" cy="100" r="15" fill="#38bdf8"/>
-                        <circle cx="40" cy="100" r="8" fill="currentColor"/>
-                        <circle cx="160" cy="100" r="8" fill="currentColor"/>
-                        <circle cx="100" cy="40" r="8" fill="currentColor"/>
-                        <circle cx="100" cy="160" r="8" fill="currentColor"/>
-                    </svg>
+            {{-- 2. Visual Showcase Fasilitas Transmisi Skala Mega & Sambutan --}}
+            <div class="my-auto py-6 z-10 hidden md:flex flex-col items-start w-full">
+                {{-- Foto Nyata Fasilitas Transmisi Air Umbulan --}}
+                <div class="relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-sky-950/60 mb-4 group">
+                    <img src="{{ asset('images/water_transmission_hero.jpg') }}" alt="Fasilitas Transmisi Air Umbulan" class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+
+                    {{-- Badge Status Telemetri Live --}}
+                    <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/15 text-[10px] text-cyan-200 font-medium shadow-md">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                        </span>
+                        <span>Transmisi Aktif • 4.000 L/s</span>
+                    </div>
+
+                    {{-- Label Kapasitas & Jaringan Wilayah --}}
+                    <div class="absolute bottom-2.5 left-2.5 right-2.5 text-white">
+                        <div class="flex items-center justify-between text-[10.5px] font-bold text-white mb-0.5">
+                            <span>SPAM Regional Umbulan</span>
+                            <span class="text-cyan-300 font-mono text-[9.5px]">Ø 1500mm</span>
+                        </div>
+                        <p class="text-[9px] text-cyan-100/80 font-light truncate">
+                            Jaringan Transmisi Pasuruan &rarr; Sidoarjo &rarr; Surabaya &rarr; Gresik
+                        </p>
+                    </div>
                 </div>
-                <h1 class="text-3xl font-extrabold leading-tight mb-3">Sistem Informasi Pengajuan Cuti Karyawan</h1>
-                <p class="text-white/80 text-sm max-w-sm font-light">
-                    Kelola kehadiran dan pengajuan izin cuti Anda dengan cepat, efisien, demi menjaga kelancaran distribusi air bersih masyarakat.
+
+                {{-- Badging & Headline --}}
+                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[9.5px] font-bold tracking-wider text-cyan-200 uppercase mb-2">
+                    <i class="fa-solid fa-water text-cyan-300 text-[10px]"></i>
+                    <span>Infrastruktur Strategis Air Baku</span>
+                </div>
+
+                <h1 class="text-xl sm:text-2xl font-extrabold leading-tight text-white mb-2 tracking-tight">
+                    Portal Operasional & Kepegawaian
+                </h1>
+                
+                <p class="text-cyan-100/85 text-xs font-light leading-relaxed mb-4">
+                    Akses terpadu seluruh personel untuk Presensi Biometrik Wajah, Monitoring Stasiun Offtake, Pengajuan CAR & MPR, serta Administrasi Kepegawaian.
                 </p>
+
+                {{-- 3 Metrik Utama Skala Industri --}}
+                <div class="grid grid-cols-3 gap-2 w-full">
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2 text-center transition hover:bg-white/15">
+                        <div class="text-base font-black text-cyan-200 leading-none">4.000 <span class="text-[9px] font-semibold text-cyan-300">L/s</span></div>
+                        <div class="text-[8.5px] text-white/70 uppercase tracking-wider font-semibold mt-1">Debit Air</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2 text-center transition hover:bg-white/15">
+                        <div class="text-base font-black text-white leading-none">93.7 <span class="text-[9px] font-semibold text-slate-300">Km</span></div>
+                        <div class="text-[8.5px] text-white/70 uppercase tracking-wider font-semibold mt-1">Transmisi</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2 text-center transition hover:bg-white/15">
+                        <div class="text-base font-black text-cyan-200 leading-none">22 <span class="text-[9px] font-semibold text-cyan-300">Titik</span></div>
+                        <div class="text-[8.5px] text-white/70 uppercase tracking-wider font-semibold mt-1">Stasiun</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="z-10 text-[10px] sm:text-xs text-white/50 hidden md:block">
-                &copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan. All rights reserved.
+            {{-- 3. Footer Hak Cipta & Keamanan --}}
+            <div class="z-10 text-[10px] sm:text-xs text-white/60 flex items-center justify-between border-t border-white/15 pt-3">
+                <span>&copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan</span>
+                <span class="flex items-center gap-1 text-[9px] text-cyan-200/90 font-medium">
+                    <i class="fa-solid fa-shield-halved text-cyan-300"></i> Sistem Resmi
+                </span>
             </div>
         </div>
 

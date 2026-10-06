@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        tailwind.config = { darkMode: 'class' };
         // Kunci Halaman Auth Selalu Light Mode & pastikan default adalah 'light' jika belum diset
         document.documentElement.classList.remove('dark');
         if (!localStorage.getItem('theme')) {
@@ -28,7 +29,11 @@
             animation: float 5s ease-in-out infinite;
         }
         .wave-bg {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+            background: radial-gradient(circle at 15% 15%, #0369a1 0%, #075985 40%, #082f49 100%);
+        }
+        .water-pattern {
+            background-image: radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
     </style>
     {{-- Komponen Head PWA --}}
@@ -37,50 +42,113 @@
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
 
     {{-- Kontainer Utama Registrasi --}}
-    <div class="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[700px] transition-all duration-300">
+    <div class="bg-white w-full max-w-6xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-auto lg:min-h-[700px] border border-slate-100 transition-all duration-300">
 
-        {{-- Sisi Kiri: Branding dan Informasi Perusahaan --}}
-        <div class="lg:w-5/12 wave-bg text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
-            {{-- Elemen Grafis Gelombang Dekoratif --}}
+        {{-- Sisi Kiri: Branding & Infrastruktur Mega Transmisi Air Umbulan --}}
+        <div class="lg:w-5/12 wave-bg text-white p-4 sm:p-6 lg:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
+            {{-- Elemen Grafis Latar Belakang (Grid & Water Wave) --}}
+            <div class="absolute inset-0 water-pattern opacity-70 pointer-events-none"></div>
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
             <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
                 <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                 </svg>
             </div>
 
-            {{-- Logo Brand Perusahaan --}}
-            <div class="z-10 flex items-center space-x-3">
-                <div class="bg-white/20 p-1 rounded-full backdrop-blur-md border border-white/20 w-12 h-12 flex items-center justify-center overflow-hidden shrink-0">
-                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+            {{-- 1. Logo Brand Perusahaan (Tampil di Desktop & Mobile sebagai header ringkas) --}}
+            <div class="z-10 flex items-center space-x-3.5">
+                <div class="bg-white/15 p-1.5 rounded-2xl backdrop-blur-md border border-white/20 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg shadow-slate-950/20 overflow-hidden shrink-0">
+                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo PT META" class="w-full h-full object-cover rounded-xl">
                 </div>
 
                 <div>
-                    <h2 class="font-bold tracking-wide text-sm text-cyan-200">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[10px] text-white/70 uppercase tracking-widest font-semibold">Penyaluran Air Bersih</p>
+                    <h2 class="font-extrabold tracking-wide text-xs sm:text-base text-cyan-200 leading-tight">META ADHYA TIRTA UMBULAN</h2>
+                    <p class="text-[9px] sm:text-[10px] text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Transmisi Air Baku Terpadu
+                    </p>
                 </div>
             </div>
 
-            {{-- Ilustrasi dan Pesan Sambutan --}}
-            <div class="my-auto py-8 z-10 hidden lg:flex flex-col items-start">
-                <div class="float-animation mb-6">
-                    <svg class="w-48 h-48 text-cyan-100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M30 70H170" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
-                        <path d="M100 30V150" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
-                        <rect x="75" y="75" width="50" height="50" rx="12" fill="#0c4a6e" stroke="currentColor" stroke-width="4"/>
-                        <circle cx="100" cy="100" r="12" fill="#22d3ee" class="animate-pulse"/>
-                        <path d="M100 135L105 145H95L100 135Z" fill="currentColor"/>
-                        <path d="M155 70L145 65V75L155 70Z" fill="currentColor"/>
-                    </svg>
+            {{-- 2. Visual Showcase Fasilitas Transmisi Skala Mega & Sambutan (Hanya Tampil di Desktop lg:flex, Disembunyikan di Mobile) --}}
+            <div class="my-auto py-6 z-10 hidden lg:flex flex-col items-start w-full">
+                {{-- Foto Nyata Fasilitas Transmisi Air Umbulan --}}
+                <div class="relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-sky-950/60 mb-5 group">
+                    <img src="{{ asset('images/water_transmission_hero.jpg') }}" alt="Fasilitas Transmisi Air Umbulan" class="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+
+                    {{-- Badge Status Telemetri Live --}}
+                    <div class="absolute top-3 left-3 flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/15 text-[10px] text-cyan-200 font-medium shadow-md">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                        </span>
+                        <span>Sistem Transmisi Aktif • 4.000 L/s</span>
+                    </div>
+
+                    {{-- Label Kapasitas & Jaringan Wilayah --}}
+                    <div class="absolute bottom-3 left-3 right-3 text-white">
+                        <div class="flex items-center justify-between text-[11px] font-bold text-white mb-0.5">
+                            <span>SPAM Regional Umbulan</span>
+                            <span class="text-cyan-300 font-mono text-[10px]">Ø 1500mm</span>
+                        </div>
+                        <p class="text-[9.5px] text-cyan-100/80 font-light truncate">
+                            Jaringan Transmisi Pasuruan &rarr; Sidoarjo &rarr; Surabaya &rarr; Gresik
+                        </p>
+                    </div>
                 </div>
-                <h1 class="text-3xl font-extrabold leading-tight mb-4">Langkah Awal Bergabung bersama Kami</h1>
-                <p class="text-white/80 text-sm max-w-sm font-light leading-relaxed">
-                    Daftarkan akun kepegawaian Anda untuk mengakses pengajuan cuti terintegrasi. Pastikan data atasan dan penempatan stasiun sesuai dengan SK penugasan Anda.
+
+                {{-- Badging & Headline --}}
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-bold tracking-wider text-cyan-200 uppercase mb-2.5">
+                    <i class="fa-solid fa-water text-cyan-300 text-xs"></i>
+                    <span>Infrastruktur Strategis Air Baku</span>
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight text-white mb-2.5 tracking-tight">
+                    Portal Terpadu Operasional & Kepegawaian
+                </h1>
+                
+                <p class="text-cyan-100/85 text-xs sm:text-sm font-light leading-relaxed mb-5">
+                    Daftarkan akun kedinasan resmi Anda untuk mengakses sistem ERP terpadu: Presensi Biometrik Wajah, Monitoring Stasiun Offtake, Pengajuan CAR & MPR, serta Administrasi Kepegawaian.
                 </p>
+
+                {{-- 3 Metrik Utama Skala Industri --}}
+                <div class="grid grid-cols-3 gap-2 w-full mb-4">
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
+                        <div class="text-base sm:text-lg font-black text-cyan-200 leading-none">4.000 <span class="text-[10px] font-semibold text-cyan-300">L/s</span></div>
+                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Debit Transmisi</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
+                        <div class="text-base sm:text-lg font-black text-white leading-none">93.7 <span class="text-[10px] font-semibold text-slate-300">Km</span></div>
+                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Pipa Transmisi</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
+                        <div class="text-base sm:text-lg font-black text-cyan-200 leading-none">22 <span class="text-[10px] font-semibold text-cyan-300">Titik</span></div>
+                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Stasiun & Offtake</div>
+                    </div>
+                </div>
+
+                {{-- Pilar Layanan Operasional --}}
+                <div class="grid grid-cols-1 gap-2 w-full text-xs text-white/90">
+                    <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Presensi Geofencing & Biometrik Wajah 22 Stasiun</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-file-shield text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Tata Kelola CAR, MPR & Perizinan Dinas Akuntabel</span>
+                    </div>
+                </div>
             </div>
 
-            {{-- Footer Hak Cipta --}}
-            <div class="z-10 text-xs text-white/50">
-                &copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan. All rights reserved.
+            {{-- 3. Footer Hak Cipta & Keamanan (Disembunyikan di Mobile) --}}
+            <div class="z-10 pt-4 border-t border-white/15 hidden lg:flex flex-col sm:flex-row items-center justify-between text-[11px] text-cyan-100/70 gap-2">
+                <span>&copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan</span>
+                <span class="flex items-center gap-1.5 text-[10px] font-medium text-cyan-200/90">
+                    <i class="fa-solid fa-shield-halved text-cyan-300"></i> Sistem ERP Operasional Resmi
+                </span>
             </div>
         </div>
 
@@ -88,9 +156,17 @@
         <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
 
             <div>
-                <div class="mb-6">
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Registrasi Karyawan</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-1">Lengkapi data di bawah sesuai dengan database kepegawaian Anda.</p>
+                <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-5">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-100 text-sky-700 text-[11px] font-bold tracking-wide uppercase mb-1">
+                            <i class="fa-solid fa-id-card-clip text-[10px]"></i> Formulir Akun Resmi
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Registrasi Karyawan</h2>
+                        <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Lengkapi data di bawah sesuai database penugasan & SK kepegawaian Anda.</p>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 font-medium shrink-0">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i> Verifikasi Aktif
+                    </div>
                 </div>
 
                 {{-- Kotak Notifikasi Dinamis JS --}}
@@ -211,43 +287,48 @@
                             {{-- Dropdown Pilihan Multi-Role/Jabatan --}}
                             <div class="md:col-span-2 relative" id="roleDropdownWrapper">
                                 <div class="flex items-center justify-between mb-1.5">
-                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                                         Peran / Jabatan
                                     </label>
                                     <span class="text-[10px] text-slate-400 font-medium">* Bisa pilih lebih dari satu peran</span>
                                 </div>
 
                                 {{-- Trigger Panel Dropdown Peran --}}
-                                <div id="roleDropdownTrigger" onclick="toggleRoleDropdown()"
-                                     class="min-h-[42px] w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none shadow-2xs hover:border-sky-400 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500">
-                                    <div id="selectedRolesPills" class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
-                                        <span id="rolePlaceholder" class="text-slate-400 text-xs sm:text-sm py-1">Pilih satu atau beberapa jabatan...</span>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 z-10">
+                                        <i class="fa-solid fa-briefcase text-xs"></i>
                                     </div>
-                                    <div class="flex items-center gap-2 text-slate-400 shrink-0 pl-1">
-                                        <span id="roleCountBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">0</span>
-                                        <i id="roleChevronIcon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                                    <div id="roleDropdownTrigger" onclick="toggleRoleDropdown()"
+                                         class="min-h-[42px] w-full pl-9 pr-3 py-1.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none hover:border-slate-300 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500 focus-within:bg-white shadow-2xs">
+                                        <div id="selectedRolesPills" class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
+                                            <span id="rolePlaceholder" class="text-slate-400 text-xs sm:text-sm py-1">Pilih satu atau beberapa jabatan...</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-slate-400 shrink-0 pl-1">
+                                            <span id="roleCountBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-sky-100 text-sky-700 rounded-full border border-sky-200">0</span>
+                                            <i id="roleChevronIcon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {{-- Panel Melayang Dropdown Peran --}}
-                                <div id="roleDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-2.5 animate-in fade-in zoom-in-95 duration-150">
+                                <div id="roleDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 animate-in fade-in zoom-in-95 duration-150">
                                     {{-- Kolom Pencarian Cepat Peran --}}
                                     <div class="relative mb-2">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                                         </div>
                                         <input type="text" id="roleSearchInput" onkeyup="filterRoleList(this.value)" placeholder="Cari nama jabatan..."
-                                               class="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all">
-                                        <button type="button" onclick="clearRoleSearch()" id="clearRoleSearchBtn" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                               class="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all">
+                                        <button type="button" onclick="clearRoleSearch()" id="clearRoleSearchBtn" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
                                             <i class="fa-solid fa-circle-xmark text-xs"></i>
                                         </button>
                                     </div>
 
                                     {{-- Status dan Tombol Reset Pilihan --}}
-                                    <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
-                                        <span id="roleFilterSummary">Daftar Jabatan:</span>
-                                        <button type="button" onclick="resetSelectedRoles()" class="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-semibold cursor-pointer text-[10px]">
-                                            Reset Pilihan
+                                    <div class="flex items-center justify-between px-1 pb-2 border-b border-slate-100 text-[11px] text-slate-500">
+                                        <span id="roleFilterSummary" class="font-medium">Daftar Jabatan:</span>
+                                        <button type="button" onclick="resetSelectedRoles()" class="text-rose-500 hover:text-rose-600 font-semibold cursor-pointer text-[10px] flex items-center gap-1">
+                                            <i class="fa-solid fa-rotate-left text-[9px]"></i> Reset Pilihan
                                         </button>
                                     </div>
 
@@ -258,13 +339,13 @@
                                                 @php
                                                     $isSelected = (is_array(old('roles')) && in_array($role->id, old('roles'))) || old('role_id') == $role->id;
                                                 @endphp
-                                                <label class="role-item flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors text-xs select-none" data-name="{{ strtolower($role->role_name) }}">
+                                                <label class="role-item flex items-center justify-between p-2 rounded-xl hover:bg-sky-50 cursor-pointer transition-colors text-xs select-none" data-name="{{ strtolower($role->role_name) }}">
                                                     <div class="flex items-center space-x-2.5 min-w-0">
                                                         <input type="checkbox" name="roles[]" value="{{ $role->id }}" data-label="{{ $role->role_name }}"
                                                                {{ $isSelected ? 'checked' : '' }}
                                                                onchange="onRoleCheckboxChange()"
-                                                               class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer role-checkbox">
-                                                        <span class="font-medium text-slate-700 dark:text-slate-200 truncate">{{ $role->role_name }}</span>
+                                                               class="rounded border-slate-300 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer role-checkbox">
+                                                        <span class="font-medium text-slate-700 truncate">{{ $role->role_name }}</span>
                                                     </div>
                                                     <span class="text-[10px] text-slate-400 font-mono">#{{ $role->id }}</span>
                                                 </label>
@@ -283,20 +364,20 @@
 
                             {{-- Penugasan Rumah Meter (Khusus Peran Area Pipeline) --}}
                             <div class="md:col-span-2 hidden transition-all duration-300" id="pipelineRumahMeterContainer">
-                                <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
+                                <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-3">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                         <div>
-                                            <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <label class="block text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
                                                 <i class="fa-solid fa-gauge-high text-amber-600"></i> Cakupan Rumah Meter (Role Pipeline)
                                             </label>
-                                            <p class="text-[11px] text-amber-700/80 dark:text-amber-400 font-medium mt-0.5">
+                                            <p class="text-[11px] text-amber-700 font-medium mt-0.5">
                                                 Pilih satu atau beberapa Checkpoint Rumah Meter yang menjadi wilayah tugas Anda:
                                             </p>
                                         </div>
                                         <div class="flex items-center gap-2 self-end sm:self-auto">
-                                            <button type="button" onclick="selectAllRumahMeter(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 dark:text-amber-300 underline cursor-pointer">Pilih Semua</button>
+                                            <button type="button" onclick="selectAllRumahMeter(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer">Pilih Semua</button>
                                             <span class="text-amber-300 text-xs">|</span>
-                                            <button type="button" onclick="selectAllRumahMeter(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 underline cursor-pointer">Reset</button>
+                                            <button type="button" onclick="selectAllRumahMeter(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 underline cursor-pointer">Reset</button>
                                         </div>
                                     </div>
 
@@ -306,12 +387,12 @@
                                                 @php
                                                     $isRmChecked = is_array(old('assigned_stations')) && in_array($rm->id, old('assigned_stations'));
                                                 @endphp
-                                                <label class="flex items-center space-x-2 p-2 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-900/50 rounded-xl cursor-pointer hover:border-amber-400 transition-all text-xs select-none shadow-2xs">
+                                                <label class="flex items-center space-x-2 p-2 bg-white border border-amber-200/80 rounded-xl cursor-pointer hover:border-amber-400 transition-all text-xs select-none shadow-2xs">
                                                     <input type="checkbox" name="assigned_stations[]" value="{{ $rm->id }}"
                                                         {{ $isRmChecked ? 'checked' : '' }}
-                                                        class="rounded border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer rm-checkbox">
-                                                    <span class="font-medium text-slate-700 dark:text-slate-200 truncate">
-                                                        <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
+                                                        class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer rm-checkbox">
+                                                    <span class="font-medium text-slate-700 truncate">
+                                                        <strong class="font-mono text-amber-700">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
                                                     </span>
                                                 </label>
                                             @endforeach
@@ -405,8 +486,8 @@
                 </form>
 
                 <div class="mt-6 text-center text-xs sm:text-sm text-slate-500">
-                    Sudah memiliki akun portal cuti?
-                    <a href="login" class="font-bold text-sky-600 hover:text-sky-700 hover:underline">Masuk Sekarang</a>
+                    Sudah memiliki akun kepegawaian?
+                    <a href="{{ route('login') }}" class="font-bold text-sky-600 hover:text-sky-700 hover:underline">Masuk ke Dashboard</a>
                 </div>
             </div>
 
@@ -507,9 +588,9 @@
                     const label = cb.getAttribute('data-label') || 'Role';
                     const val = cb.value;
                     pillsHtml += `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 shadow-2xs transition-all">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs transition-all">
                             <span class="truncate max-w-[120px] sm:max-w-[160px]">${escapeHtml(label)}</span>
-                            <button type="button" onclick="uncheckRole('${val}', event)" class="text-sky-500 hover:text-rose-500 dark:hover:text-rose-400 p-0.5 rounded transition-colors cursor-pointer" title="Hapus ${escapeHtml(label)}">
+                            <button type="button" onclick="uncheckRole('${val}', event)" class="text-sky-500 hover:text-rose-600 p-0.5 rounded transition-colors cursor-pointer" title="Hapus ${escapeHtml(label)}">
                                 <i class="fa-solid fa-xmark text-[10px]"></i>
                             </button>
                         </span>
