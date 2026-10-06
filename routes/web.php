@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 
 // Halaman utama / landing page
 Route::get('/', function () {
-    return view('welcome3');
+    return view('welcome');
 });
 
 // ==========================================================

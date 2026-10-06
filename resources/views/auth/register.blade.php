@@ -67,78 +67,88 @@
                     <h2 class="font-extrabold tracking-wide text-xs sm:text-base text-cyan-200 leading-tight">META ADHYA TIRTA UMBULAN</h2>
                     <p class="text-[9px] sm:text-[10px] text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Transmisi Air Baku Terpadu
+                        Portal Layanan Karyawan
                     </p>
                 </div>
             </div>
 
-            {{-- 2. Visual Showcase Fasilitas Transmisi Skala Mega & Sambutan (Hanya Tampil di Desktop lg:flex, Disembunyikan di Mobile) --}}
+            {{-- 2. Visual Informasi Registrasi Akun & Panduan Kepegawaian (Tampil di Desktop lg:flex, Disembunyikan di Mobile) --}}
             <div class="my-auto py-6 z-10 hidden lg:flex flex-col items-start w-full">
-                {{-- Foto Nyata Fasilitas Transmisi Air Umbulan --}}
-                <div class="relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-sky-950/60 mb-5 group">
-                    <img src="{{ asset('images/water_transmission_hero.jpg') }}" alt="Fasilitas Transmisi Air Umbulan" class="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+                {{-- Kartu Status & Validasi Registrasi Akun --}}
+                <div class="w-full bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-sky-950/50 mb-5 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
 
-                    {{-- Badge Status Telemetri Live --}}
-                    <div class="absolute top-3 left-3 flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/15 text-[10px] text-cyan-200 font-medium shadow-md">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                        </span>
-                        <span>Sistem Transmisi Aktif • 4.000 L/s</span>
+                    {{-- Header Kartu Registrasi --}}
+                    <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3.5">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+                            </span>
+                            <span class="text-[11px] font-bold text-cyan-200 tracking-wider uppercase font-mono">REGISTRASI AKUN • RESMI</span>
+                        </div>
+                        <div id="liveClock" class="text-[11px] font-mono text-cyan-300 font-semibold bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/10">
+                            {{ date('H:i:s') }} WIB
+                        </div>
                     </div>
 
-                    {{-- Label Kapasitas & Jaringan Wilayah --}}
-                    <div class="absolute bottom-3 left-3 right-3 text-white">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-white mb-0.5">
-                            <span>SPAM Regional Umbulan</span>
-                            <span class="text-cyan-300 font-mono text-[10px]">Ø 1500mm</span>
+                    {{-- Grid 3 Pilar Validasi Pendaftaran --}}
+                    <div class="grid grid-cols-3 gap-2 text-center mb-3.5">
+                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Identitas</span>
+                            <span class="text-xs sm:text-sm font-black text-cyan-200 font-mono">Tervalidasi</span>
+                            <span class="text-[9px] text-white/60 block">Email & NIK</span>
                         </div>
-                        <p class="text-[9.5px] text-cyan-100/80 font-light truncate">
-                            Jaringan Transmisi Pasuruan &rarr; Sidoarjo &rarr; Surabaya &rarr; Gresik
-                        </p>
+                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Penugasan</span>
+                            <span class="text-xs sm:text-sm font-black text-white font-mono">Resmi</span>
+                            <span class="text-[9px] text-white/60 block">Role & Unit</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Keamanan</span>
+                            <span class="text-xs sm:text-sm font-black text-emerald-300 font-mono">Terenkripsi</span>
+                            <span class="text-[9px] text-white/60 block">Akses TLS</span>
+                        </div>
+                    </div>
+
+                    {{-- Baris Status Pendaftaran --}}
+                    <div class="flex items-center justify-between text-[10px] text-cyan-100/90 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 font-mono">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-check text-cyan-300"></i> Sistem Registrasi Kedinasan Terpadu
+                        </span>
+                        <span class="text-emerald-300 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check text-[9px]"></i> Portal Siap
+                        </span>
                     </div>
                 </div>
 
                 {{-- Badging & Headline --}}
-                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-bold tracking-wider text-cyan-200 uppercase mb-2.5">
-                    <i class="fa-solid fa-water text-cyan-300 text-xs"></i>
-                    <span>Infrastruktur Strategis Air Baku</span>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-bold tracking-wider text-cyan-200 uppercase mb-2.5">
+                    <i class="fa-solid fa-id-card-clip text-cyan-300 text-xs"></i>
+                    <span>Aktivasi Akun Kepegawaian</span>
                 </div>
 
                 <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight text-white mb-2.5 tracking-tight">
-                    Portal Terpadu Operasional & Kepegawaian
+                    Pendaftaran Akun Karyawan
                 </h1>
                 
                 <p class="text-cyan-100/85 text-xs sm:text-sm font-light leading-relaxed mb-5">
-                    Daftarkan akun kedinasan resmi Anda untuk mengakses sistem ERP terpadu: Presensi Biometrik Wajah, Monitoring Stasiun Offtake, Pengajuan CAR & MPR, serta Administrasi Kepegawaian.
+                    Lengkapi pendaftaran akun resmi kedinasan Anda untuk mengakses portal mandiri karyawan: Presensi biometrik wajah berbasis lokasi kerja, pengajuan dokumen dinas (CAR & MPR), serta administrasi kepegawaian.
                 </p>
 
-                {{-- 3 Metrik Utama Skala Industri --}}
-                <div class="grid grid-cols-3 gap-2 w-full mb-4">
-                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
-                        <div class="text-base sm:text-lg font-black text-cyan-200 leading-none">4.000 <span class="text-[10px] font-semibold text-cyan-300">L/s</span></div>
-                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Debit Transmisi</div>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
-                        <div class="text-base sm:text-lg font-black text-white leading-none">93.7 <span class="text-[10px] font-semibold text-slate-300">Km</span></div>
-                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Pipa Transmisi</div>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-2.5 text-center transition hover:bg-white/15">
-                        <div class="text-base sm:text-lg font-black text-cyan-200 leading-none">22 <span class="text-[10px] font-semibold text-cyan-300">Titik</span></div>
-                        <div class="text-[9px] text-white/70 uppercase tracking-wider font-semibold mt-1">Stasiun & Offtake</div>
-                    </div>
-                </div>
-
-                {{-- Pilar Layanan Operasional --}}
+                {{-- 3 Panduan Pendaftaran Karyawan --}}
                 <div class="grid grid-cols-1 gap-2 w-full text-xs text-white/90">
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
-                        <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Presensi Geofencing & Biometrik Wajah 22 Stasiun</span>
+                        <i class="fa-solid fa-envelope-circle-check text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Gunakan Email Perusahaan & Identitas Sesuai SK Kepegawaian</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
-                        <i class="fa-solid fa-file-shield text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Tata Kelola CAR, MPR & Perizinan Dinas Akuntabel</span>
+                        <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Presensi Biometrik Wajah Berbasis Geofencing Lokasi Kerja</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-shield-halved text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Multi-Tier Authorization & Validasi Alur Dokumen Dinas</span>
                     </div>
                 </div>
             </div>
@@ -147,7 +157,7 @@
             <div class="z-10 pt-4 border-t border-white/15 hidden lg:flex flex-col sm:flex-row items-center justify-between text-[11px] text-cyan-100/70 gap-2">
                 <span>&copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan</span>
                 <span class="flex items-center gap-1.5 text-[10px] font-medium text-cyan-200/90">
-                    <i class="fa-solid fa-shield-halved text-cyan-300"></i> Sistem ERP Operasional Resmi
+                    <i class="fa-solid fa-shield-halved text-cyan-300"></i> Sistem Resmi Terenkripsi
                 </span>
             </div>
         </div>
@@ -806,6 +816,16 @@
                 window.location.reload();
             }
         });
+
+        // Jam Real-Time Portal Presensi (WIB)
+        function updateLiveClock() {
+            const clockEl = document.getElementById('liveClock');
+            if (!clockEl) return;
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            clockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB`;
+        }
+        setInterval(updateLiveClock, 1000);
     </script>
 
     @laravelPwa
