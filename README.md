@@ -146,8 +146,8 @@ Sistem memadukan pembagian hak akses **Level Pengguna (Level 1 - 3)** dengan **R
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
 │  LEVEL 2: Pengawas Menengah (Manager, Kepala Bidang, Supervisor)       │
-│  • Hak Akses: Monitoring / Read-Only                                  │
-│  • Pengecualian: Memiliki hak mutlak Approve / Reject pada rute       │
+│  • Hak Akses: Monitoring / Read-Only                                   │
+│  • Pengecualian: Memiliki hak mutlak Approve / Reject pada rute        │
 │                  persetujuan (admin.persetujuan.*)                     │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
@@ -1460,6 +1460,15 @@ echo "=================================================================="
    bash deploy.sh
    ```
    *Skrip otomatis menarik kode baru, mengompilasi Vite, memigrasi tabel database baru, menyinkronkan antrean, dan merilis versi terbaru tanpa downtime berkepanjangan.*
+
+#### 🔑 Kredensial Super Administrator Bawaan (Akses Awal):
+Data master esensial (Gender, Stasiun, Role) dan 1 akun Administrator utama telah diinjeksikan otomatis melalui migrasi database:
+- **Email:** `admin@meta.com`
+- **Password:** `Admin123.`
+- **Level Akses:** `1` (Super Administrator / Akses Penuh Sistem ERP)
+
+> [!IMPORTANT]
+> Segera lakukan pembaruan kata sandi akun administrator ini setelah berhasil login pertama kali melalui menu **Pengaturan Akun**.
 
 ### 11.15. Checklist Pengujian Pasca-Deploy (Go-Live Verification)
 

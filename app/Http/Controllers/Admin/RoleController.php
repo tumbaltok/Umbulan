@@ -237,4 +237,37 @@ class RoleController extends Controller
             ->with('success', 'Skema hierarki dan aturan persetujuan modul berhasil diperbarui!')
             ->with('active_tab', 'tab-hierarchy');
     }
+
+    // Menghapus data peran (role)
+    public function destroy(int $id)
+    {
+        $role = Role::findOrFail($id);
+
+        // 1. Proteksi role inti sistem
+        if (strtoupper($role->role_name) === 'SUPER ADMIN') {
+            return redirect()->back()
+                ->with('error', 'Role SUPER ADMIN adalah peran inti sistem dan tidak dapat dihapus!')
+                ->with('active_tab', 'tab-roles');
+        }
+
+        // 2. Proteksi jika masih ada karyawan yang menggunakan role ini
+        $usersCount = $role->users()->count();
+        if ($usersCount > 0) {
+            return redirect()->back()
+                ->with('error', "Role '{$role->role_name}' tidak dapat dihapus karena masih digunakan oleh {$usersCount} karyawan. Silakan alihkan jabatan karyawan terlebih dahulu.")
+                ->with('active_tab', 'tab-roles');
+        }
+
+        // 3. Lepaskan keterkaitan bawahan jika role ini menjadi atasan
+        Role::where('parent_role_id', $id)->update(['parent_role_id' => null]);
+
+        // 4. Hapus role
+        $roleName = $role->role_name;
+        $role->delete();
+
+        return redirect()->back()
+            ->with('success', "Role '{$roleName}' berhasil dihapus!")
+            ->with('active_tab', 'tab-roles');
+    }
 }
+
