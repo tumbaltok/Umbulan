@@ -9,14 +9,22 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Reset saldo cuti haid bulanan otomatis setiap tanggal 1 pukul 00:00 WIB
-Schedule::command('saldo:reset-haid')->monthlyOn(1, '00:00');
+// [SEC-09 FIX] Reset saldo cuti haid bulanan otomatis setiap tanggal 1 pukul 00:00 WIB
+Schedule::command('saldo:reset-haid')
+    ->monthlyOn(1, '00:00')
+    ->withoutOverlapping(60)
+    ->runInBackground();
 
-// Reset saldo cuti tahunan otomatis setiap tanggal 1 Januari pukul 00:00 WIB
-Schedule::command('saldo:reset-tahunan')->yearlyOn(1, 1, '00:00');
+// [SEC-09 FIX] Reset saldo cuti tahunan otomatis setiap tanggal 1 Januari pukul 00:00 WIB
+Schedule::command('saldo:reset-tahunan')
+    ->yearlyOn(1, 1, '00:00')
+    ->withoutOverlapping(60)
+    ->runInBackground();
 
-// Pengingat WhatsApp berkala (setiap 10 menit) untuk pengajuan pending dengan proteksi jam kerja
+// [SEC-09 FIX] Pengingat WhatsApp berkala (setiap 10 menit) untuk pengajuan pending dengan proteksi jam kerja
 Schedule::command('pengajuan:followup-wa')
     ->everyTenMinutes()
+    ->withoutOverlapping(15)
+    ->runInBackground()
     ->timezone('Asia/Jakarta');
 

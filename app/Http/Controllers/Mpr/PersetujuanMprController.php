@@ -145,7 +145,13 @@ class PersetujuanMprController extends Controller
                     $requiredRoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
                 }
 
-                if ($requiredRoleId && !in_array((int)$requiredRoleId, $atasanRoleIds)) {
+                // [SEC-05 FIX] Fail-Closed Authorization: Wajib terdefinisi dan cocok dengan role atasan
+                if (empty($requiredRoleId)) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Aksi ditolak: Aturan wewenang persetujuan MPR untuk pengajuan ini belum dikonfigurasi dalam sistem.');
+                }
+
+                if (!in_array((int)$requiredRoleId, $atasanRoleIds)) {
                     DB::rollBack();
                     return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak memiliki wewenang jabatan untuk memproses persetujuan MPR tahap ini.');
                 }

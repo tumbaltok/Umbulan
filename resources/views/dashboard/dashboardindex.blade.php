@@ -1666,6 +1666,8 @@
                 (pos) => {
                     const userLat = pos.coords.latitude;
                     const userLng = pos.coords.longitude;
+                    const gpsAccuracy = pos.coords.accuracy || 0;
+                    window.currentGpsAccuracy = gpsAccuracy;
 
                     document.getElementById('absen_lat').value = userLat;
                     document.getElementById('absen_long').value = userLng;
@@ -1798,6 +1800,17 @@
         isSpoofingCooldown = false;
         isAutoSubmittingAttendance = false;
         stableAttendanceFaceCount = 0;
+
+        // [SEC-01 FIX] Ambil time-based biometric challenge nonce dari server
+        window.currentBiometricNonce = null;
+        fetch('{{ route("attendance.biometric_challenge") }}', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success && res.nonce) {
+                    window.currentBiometricNonce = res.nonce;
+                }
+            })
+            .catch(err => console.error("Gagal inisialisasi nonce biometrik:", err));
         const btnLanjut = document.getElementById('btnVerifikasiLanjut');
         if (btnLanjut) {
             btnLanjut.disabled = true; // Kunci tombol sampai wajah terverifikasi cocok
@@ -2379,6 +2392,10 @@
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('latitude', document.getElementById('absen_lat').value || '0');
         formData.append('longitude', document.getElementById('absen_long').value || '0');
+        formData.append('accuracy', window.currentGpsAccuracy || '10');
+        if (window.currentBiometricNonce) {
+            formData.append('biometric_nonce', window.currentBiometricNonce);
+        }
         formData.append('is_face_verified', (isFaceVerified && isLivenessPassed) ? '1' : '0');
         formData.append('is_liveness_verified', isLivenessPassed ? '1' : '0');
         if (latestCameraFaceDescriptor && latestCameraFaceDescriptor.length === 128) {

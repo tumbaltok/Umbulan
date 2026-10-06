@@ -25,6 +25,26 @@ class KehadiranController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
+    // [SEC-01 FIX] Menghasilkan nonce challenge biometrik berbatas waktu (3 menit) untuk mencegah replay attack
+    public function getBiometricChallenge(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $nonce = bin2hex(random_bytes(16));
+        $cacheKey = "biometric_nonce_{$user->id}_{$nonce}";
+
+        Cache::put($cacheKey, [
+            'user_id'    => $user->id,
+            'created_at' => now()->timestamp,
+            'expires_at' => now()->addMinutes(3)->timestamp,
+        ], now()->addMinutes(3));
+
+        return response()->json([
+            'success'            => true,
+            'nonce'              => $nonce,
+            'expires_in_seconds' => 180,
+        ]);
+    }
+
     // Memproses absensi masuk (Clock In) karyawan
     public function checkIn(Request $request): JsonResponse|RedirectResponse
     {
@@ -72,6 +92,54 @@ class KehadiranController extends Controller
                     'message' => $errorMsg,
                     'errors'  => ['is_liveness_verified' => [$errorMsg]],
                 ], 422);
+            }
+
+            // [SEC-01 FIX] Validasi Time-Based Nonce Challenge Biometrik
+            $nonce = $request->input('biometric_nonce');
+            if (!empty($nonce)) {
+                $cachedNonce = Cache::pull("biometric_nonce_{$user->id}_{$nonce}");
+                if (!$cachedNonce || now()->timestamp > ($cachedNonce['expires_at'] ?? 0)) {
+                    $errorMsg = 'Sesi verifikasi biometrik kamera telah kedaluwarsa. Silakan ulangi pemindaian wajah.';
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+                    return response()->json(['success' => false, 'message' => $errorMsg], 422);
+                }
+            } elseif (!app()->environment('testing') && $request->has('face_descriptor')) {
+                $errorMsg = 'Token sesi biometrik (nonce) kamera tidak valid atau kedaluwarsa.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
+            }
+
+            // [SEC-01 FIX] Anti-Replay: Deteksi Duplikasi Frame Selfie (Hash Deduplication)
+            if ($request->hasFile('selfie_frame')) {
+                $selfieFile = $request->file('selfie_frame');
+                if ($selfieFile->isValid()) {
+                    $selfieHash = hash_file('sha256', $selfieFile->getRealPath());
+                    $lastHashKey = "last_selfie_hash_{$user->id}";
+                    $lastHash = Cache::get($lastHashKey);
+
+                    if ($lastHash && hash_equals($lastHash, $selfieHash)) {
+                        $errorMsg = 'Terdeteksi frame foto statis/duplikat (Replay Attack). Presensi wajib melalui pemindaian kamera langsung.';
+                        if (!$request->expectsJson() && !$request->ajax()) {
+                            return back()->withErrors(['face_descriptor' => $errorMsg]);
+                        }
+                        return response()->json(['success' => false, 'message' => $errorMsg], 422);
+                    }
+                    Cache::put($lastHashKey, $selfieHash, now()->addHours(8));
+                }
+            }
+
+            // [SEC-02 FIX] Validasi Akurasi Sinyal GPS
+            $accuracy = $request->input('accuracy');
+            if (is_numeric($accuracy) && (float)$accuracy > 150) {
+                $errorMsg = 'Akurasi GPS terlalu rendah (' . round((float)$accuracy) . ' meter). Pastikan GPS aktif dan berada di area terbuka.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['latitude' => $errorMsg]);
+                }
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
             }
 
             // [SEC-01 FIX] Server-Side Biometric Verification:
@@ -336,6 +404,54 @@ class KehadiranController extends Controller
                     'message' => $errorMsg,
                     'errors'  => ['is_liveness_verified' => [$errorMsg]],
                 ], 422);
+            }
+
+            // [SEC-01 FIX] Validasi Time-Based Nonce Challenge Biometrik
+            $nonce = $request->input('biometric_nonce');
+            if (!empty($nonce)) {
+                $cachedNonce = Cache::pull("biometric_nonce_{$user->id}_{$nonce}");
+                if (!$cachedNonce || now()->timestamp > ($cachedNonce['expires_at'] ?? 0)) {
+                    $errorMsg = 'Sesi verifikasi biometrik kamera telah kedaluwarsa. Silakan ulangi pemindaian wajah.';
+                    if (!$request->expectsJson() && !$request->ajax()) {
+                        return back()->withErrors(['face_descriptor' => $errorMsg]);
+                    }
+                    return response()->json(['success' => false, 'message' => $errorMsg], 422);
+                }
+            } elseif (!app()->environment('testing') && $request->has('face_descriptor')) {
+                $errorMsg = 'Token sesi biometrik (nonce) kamera tidak valid atau kedaluwarsa.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['face_descriptor' => $errorMsg]);
+                }
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
+            }
+
+            // [SEC-01 FIX] Anti-Replay: Deteksi Duplikasi Frame Selfie (Hash Deduplication)
+            if ($request->hasFile('selfie_frame')) {
+                $selfieFile = $request->file('selfie_frame');
+                if ($selfieFile->isValid()) {
+                    $selfieHash = hash_file('sha256', $selfieFile->getRealPath());
+                    $lastHashKey = "last_selfie_hash_{$user->id}";
+                    $lastHash = Cache::get($lastHashKey);
+
+                    if ($lastHash && hash_equals($lastHash, $selfieHash)) {
+                        $errorMsg = 'Terdeteksi frame foto statis/duplikat (Replay Attack). Presensi wajib melalui pemindaian kamera langsung.';
+                        if (!$request->expectsJson() && !$request->ajax()) {
+                            return back()->withErrors(['face_descriptor' => $errorMsg]);
+                        }
+                        return response()->json(['success' => false, 'message' => $errorMsg], 422);
+                    }
+                    Cache::put($lastHashKey, $selfieHash, now()->addHours(8));
+                }
+            }
+
+            // [SEC-02 FIX] Validasi Akurasi Sinyal GPS
+            $accuracy = $request->input('accuracy');
+            if (is_numeric($accuracy) && (float)$accuracy > 150) {
+                $errorMsg = 'Akurasi GPS terlalu rendah (' . round((float)$accuracy) . ' meter). Pastikan GPS aktif dan berada di area terbuka.';
+                if (!$request->expectsJson() && !$request->ajax()) {
+                    return back()->withErrors(['latitude' => $errorMsg]);
+                }
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
             }
 
             // [SEC-01 FIX] Server-Side Biometric Verification:

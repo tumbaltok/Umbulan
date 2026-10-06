@@ -209,35 +209,36 @@ class AccountController extends Controller
                         $user->roles()->sync([$request->role_id => ['is_primary' => true]]);
                     }
                 }
-            }
 
-            // SIMPAN JADWAL KERJA
-            if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
-                $scheduleType = $request->schedule_type;
-                if ($scheduleType === 'normal') {
-                    $scheduleType = 'reguler_5_hari';
-                }
-                $updateData['schedule_type'] = $scheduleType;
-
-                if ($scheduleType === 'reguler_5_hari') {
-                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                    $updateData['normal_check_in'] = '07:00:00';
-                    $updateData['normal_check_out'] = '16:00:00';
-                    $updateData['roster_start_date'] = null;
-                } elseif ($scheduleType === 'reguler_6_hari') {
-                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                    $updateData['normal_check_in'] = '07:00:00';
-                    $updateData['normal_check_out'] = '16:00:00';
-                    $updateData['roster_start_date'] = null;
-                } elseif ($scheduleType === 'roster') {
-                    if ($request->filled('roster_start_date')) {
-                        $updateData['roster_start_date'] = $request->roster_start_date;
-                    } else {
-                        $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+                // [SEC-03 FIX] PROTEKSI JADWAL KERJA:
+                // Jadwal kerja (schedule_type, roster_start_date) HANYA dapat diubah oleh Administrator
+                if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
+                    $scheduleType = $request->schedule_type;
+                    if ($scheduleType === 'normal') {
+                        $scheduleType = 'reguler_5_hari';
                     }
-                    $updateData['normal_work_days'] = null;
-                    $updateData['normal_check_in'] = null;
-                    $updateData['normal_check_out'] = null;
+                    $updateData['schedule_type'] = $scheduleType;
+
+                    if ($scheduleType === 'reguler_5_hari') {
+                        $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                        $updateData['normal_check_in'] = '07:00:00';
+                        $updateData['normal_check_out'] = '16:00:00';
+                        $updateData['roster_start_date'] = null;
+                    } elseif ($scheduleType === 'reguler_6_hari') {
+                        $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                        $updateData['normal_check_in'] = '07:00:00';
+                        $updateData['normal_check_out'] = '16:00:00';
+                        $updateData['roster_start_date'] = null;
+                    } elseif ($scheduleType === 'roster') {
+                        if ($request->filled('roster_start_date')) {
+                            $updateData['roster_start_date'] = $request->roster_start_date;
+                        } else {
+                            $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+                        }
+                        $updateData['normal_work_days'] = null;
+                        $updateData['normal_check_in'] = null;
+                        $updateData['normal_check_out'] = null;
+                    }
                 }
             }
 

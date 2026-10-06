@@ -158,15 +158,11 @@ class PengajuanCutiController extends Controller
                 }
 
                 if (str_contains($namaSub, 'haid')) {
-                    $totalHaidBulanIni = PengajuanCuti::where('user_id', $user->id)
-                        ->where('sub_cuti_id', $subCutiId)
-                        ->whereIn('status_akhir', ['pending', 'approved'])
-                        ->whereMonth('tanggal_mulai', $bulanSekarang)
-                        ->whereYear('tanggal_mulai', $tahunSekarang)
-                        ->sum('total_hari');
-
-                    if (($totalHaidBulanIni + $totalHari) > 2) {
-                        return back()->withErrors(['error' => 'Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan.'])->withInput();
+                    // [SEC-06 FIX] Validasi Lintas Bulan Kalender (Cross-Month Boundary Guard)
+                    $mulaiBulan = Carbon::parse($request->tanggal_mulai)->month;
+                    $selesaiBulan = Carbon::parse($request->tanggal_selesai)->month;
+                    if ($mulaiBulan !== $selesaiBulan) {
+                        return back()->withErrors(['error' => 'Pengajuan Cuti Haid tidak boleh melintasi pergantian bulan kalender. Silakan buat pengajuan terpisah untuk masing-masing bulan.'])->withInput();
                     }
                 }
             }
@@ -204,6 +200,11 @@ class PengajuanCutiController extends Controller
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';
             $statusAkhir  = 'approved';
+        } elseif (empty($approver1RoleId)) {
+            // [SEC-04 FIX] Fail-Closed: Tolak jika alur approval belum dikonfigurasi
+            return back()->withErrors([
+                'error' => 'Alur persetujuan cuti untuk jabatan Anda belum dikonfigurasi oleh Administrator. Silakan hubungi admin HRD.'
+            ])->withInput();
         } elseif ($levels === 2 && !empty($approver2RoleId)) {
             // Alur 2 Step Berjenjang
             $statusTahap1 = 'pending';
@@ -218,6 +219,22 @@ class PengajuanCutiController extends Controller
 
         DB::beginTransaction();
         try {
+            // [SEC-06 FIX] Validasi Kuota Cuti Haid Atomik dengan Row-Locking di dalam transaksi DB
+            if ($subCutiId && isset($subDb) && str_contains(strtolower($subDb->nama_sub_cuti), 'haid')) {
+                $totalHaidBulanIni = DB::table('pengajuan_cutis')
+                    ->where('user_id', $user->id)
+                    ->where('sub_cuti_id', $subCutiId)
+                    ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
+                    ->whereMonth('tanggal_mulai', $bulanSekarang)
+                    ->whereYear('tanggal_mulai', $tahunSekarang)
+                    ->lockForUpdate()
+                    ->sum('total_hari');
+
+                if (((int)$totalHaidBulanIni + $totalHari) > 2) {
+                    DB::rollBack();
+                    return back()->withErrors(['error' => 'Batas jatah kuota Cuti Haid maksimal adalah 2 hari per bulan. Sisa kuota tidak mencukupi.'])->withInput();
+                }
+            }
             // [C-02 FIX] Validasi kuota saldo DI DALAM transaksi DB dengan pessimistic row-locking
             if ($this->alurPotongSaldo($jenisCutiId, $subCutiId)) {
                 $cutiTahunanId = $this->getCutiTahunanId();

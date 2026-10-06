@@ -16,7 +16,7 @@ class WhatsAppService
     public function __construct(?string $baseUrl = null, ?string $secretToken = null)
     {
         $this->baseUrl = rtrim($baseUrl ?? config('services.whatsapp.url', 'http://127.0.0.1:3001'), '/');
-        $this->secretToken = $secretToken ?? config('services.whatsapp.secret_token') ?? env('WHATSAPP_SECRET_TOKEN');
+        $this->secretToken = $secretToken ?? config('services.whatsapp.secret_token') ?? env('WHATSAPP_SECRET_TOKEN', 'umbulan_internal_wa_secret_key_2026');
     }
 
     // [SEC-14 FIX] HTTP Client dengan header otentikasi X-Secret-Token untuk Baileys microservice

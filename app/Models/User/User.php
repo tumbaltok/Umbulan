@@ -277,10 +277,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return array_values(array_unique(array_filter($ids)));
     }
 
-    // Cek apakah user memegang setidaknya satu role di level puncak (Top Level)
+    // [SEC-04 FIX] Cek apakah user memegang role di level puncak eksekutif sah (Direksi / BOD / GM)
     public function isTopLevel(): bool
     {
-        return $this->roles->contains(fn($r) => empty($r->parent_role_id));
+        return $this->roles->contains(function ($r) {
+            if (!empty($r->parent_role_id)) {
+                return false;
+            }
+            $name = strtoupper(trim($r->role_name ?? ''));
+            return str_contains($name, 'DIREKTUR')
+                || str_contains($name, 'DIRECTOR')
+                || str_contains($name, 'GENERAL MANAGER')
+                || str_contains($name, 'BOD')
+                || str_contains($name, 'PRESIDENT')
+                || (int)($r->id ?? 0) === 1;
+        });
     }
 
     // Cek apakah user memiliki hak akses Level 1 (Full Access / Administrator)

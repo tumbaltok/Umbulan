@@ -136,34 +136,67 @@ class DokumenMprController extends Controller
         return $pdf->stream('MPR-' . str_replace('/', '-', $mpr->nomor_mpr) . '.pdf');
     }
 
-    // Mengonversi path file gambar menjadi representasi data Base64
+    // [SEC-07 FIX] Mengonversi path file gambar menjadi Base64 dengan proteksi ketat Path Traversal
     private function imageToBase64(?string $relativePath): ?string
     {
         if (empty($relativePath)) {
             return null;
         }
 
-        $possiblePaths = [
-            public_path('storage/' . $relativePath),
-            storage_path('app/public/' . $relativePath),
-            public_path($relativePath),
-        ];
+        // 1. Sanitasi traversal sequences
+        $sanitized = str_replace(['../', '..\\', "\0"], '', $relativePath);
+        $cleanRelative = ltrim($sanitized, '/\\');
 
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path) && is_file($path)) {
-                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                $mime = match ($ext) {
-                    'png' => 'image/png',
-                    'jpg', 'jpeg' => 'image/jpeg',
-                    'webp' => 'image/webp',
-                    'gif' => 'image/gif',
-                    default => 'image/png',
-                };
-                $data = file_get_contents($path);
-                return 'data:' . $mime . ';base64,' . base64_encode($data);
+        // 2. Batasi root direktori yang sah
+        $allowedBases = [
+            realpath(storage_path('app/public')),
+            realpath(public_path('images')),
+            realpath(public_path('storage')),
+        ];
+        $allowedBases = array_filter($allowedBases);
+
+        $targetFile = null;
+        foreach ($allowedBases as $base) {
+            $candidate = realpath($base . DIRECTORY_SEPARATOR . $cleanRelative);
+            if ($candidate && is_file($candidate)) {
+                foreach ($allowedBases as $b) {
+                    if (str_starts_with($candidate, $b)) {
+                        $targetFile = $candidate;
+                        break 2;
+                    }
+                }
             }
         }
 
-        return null;
+        if (!$targetFile) {
+            $candidateDirect = realpath($relativePath);
+            if ($candidateDirect && is_file($candidateDirect)) {
+                foreach ($allowedBases as $b) {
+                    if (str_starts_with($candidateDirect, $b)) {
+                        $targetFile = $candidateDirect;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$targetFile || !file_exists($targetFile)) {
+            return null;
+        }
+
+        // 3. Batasi hanya ekstensi gambar yang sah
+        $ext = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'])) {
+            return null;
+        }
+
+        $mime = match ($ext) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            default => 'image/jpeg',
+        };
+
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($targetFile));
     }
 }

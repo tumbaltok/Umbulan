@@ -118,6 +118,11 @@ class PengajuanMprController extends Controller
             $statusTahap1 = 'approved';
             $statusTahap2 = 'not_required';
             $statusAkhir  = 'approved';
+        } elseif (empty($approver1RoleId)) {
+            // [SEC-04 FIX] Fail-Closed: Tolak jika alur approval belum dikonfigurasi
+            return back()->withErrors([
+                'error' => 'Alur persetujuan (Approver 1) untuk jabatan Anda belum dikonfigurasi oleh Administrator. Pengajuan MPR tidak dapat diproses demi keamanan operasional.'
+            ])->withInput();
         } elseif ($levels === 2 && !empty($approver2RoleId)) {
             // Alur 2 Step Berjenjang
             $statusTahap1 = 'pending';

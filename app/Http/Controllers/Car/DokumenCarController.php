@@ -72,17 +72,62 @@ class DokumenCarController extends Controller
         return $pdf->stream('CAR_' . sprintf('%03d', $car->id) . '.pdf');
     }
 
-    // Mengonversi path file gambar lokal menjadi representasi data Base64
+    // [SEC-07 FIX] Mengonversi path file gambar menjadi Base64 dengan proteksi ketat Path Traversal
     private function imageToBase64(?string $path): ?string
     {
-        if ($path && file_exists($path)) {
-            $type = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-            if ($type === 'svg') {
-                $type = 'svg+xml';
-            }
-            $data = file_get_contents($path);
-            return 'data:image/' . $type . ';base64,' . base64_encode($data);
+        if (empty($path)) {
+            return null;
         }
-        return null;
+
+        // 1. Sanitasi traversal sequences
+        $sanitized = str_replace(['../', '..\\', "\0"], '', $path);
+        $cleanRelative = ltrim($sanitized, '/\\');
+
+        // 2. Batasi root direktori yang sah
+        $allowedBases = [
+            realpath(storage_path('app/public')),
+            realpath(public_path('images')),
+            realpath(public_path('storage')),
+        ];
+        $allowedBases = array_filter($allowedBases);
+
+        $targetFile = null;
+        foreach ($allowedBases as $base) {
+            $candidate = realpath($base . DIRECTORY_SEPARATOR . $cleanRelative);
+            if ($candidate && is_file($candidate)) {
+                foreach ($allowedBases as $b) {
+                    if (str_starts_with($candidate, $b)) {
+                        $targetFile = $candidate;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        if (!$targetFile) {
+            $candidateDirect = realpath($path);
+            if ($candidateDirect && is_file($candidateDirect)) {
+                foreach ($allowedBases as $b) {
+                    if (str_starts_with($candidateDirect, $b)) {
+                        $targetFile = $candidateDirect;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$targetFile || !file_exists($targetFile)) {
+            return null;
+        }
+
+        // 3. Batasi hanya ekstensi gambar yang sah
+        $ext = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'svg'])) {
+            return null;
+        }
+
+        $type = ($ext === 'svg') ? 'svg+xml' : $ext;
+        $data = file_get_contents($targetFile);
+        return 'data:image/' . $type . ';base64,' . base64_encode($data);
     }
 }

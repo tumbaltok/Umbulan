@@ -101,7 +101,7 @@ Aplikasi dibangun menggunakan arsitektur modular berlapis (*multi-tier architect
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                          PRESENTATION TIER                             │
-│  Blade Templates + Tailwind CSS v4 + Turbo Drive + SweetAlert2 + PWA  │
+│  Blade Templates + Tailwind CSS v4 + Turbo Drive + SweetAlert2 + PWA   │
 ├────────────────────────────────────────────────────────────────────────┤
 │                     CLIENT-SIDE BIOMETRIC ENGINE                       │
 │     Face-API.js (TinyFaceDetector + FaceRecognitionNet 128-vektor)     │
@@ -137,10 +137,10 @@ Sistem memadukan pembagian hak akses **Level Pengguna (Level 1 - 3)** dengan **R
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│  LEVEL 1: System Administrator & Eksekutif (BOD, GM)                  │
-│  • Hak Akses: Penuh (Full Control & Bypass Operasi)                   │
+│  LEVEL 1: System Administrator & Eksekutif (BOD, GM)                   │
+│  • Hak Akses: Penuh (Full Control & Bypass Operasi)                    │
 │  • Wewenang: Master data, reset biometrik, konfigurasi role hierarchy, │
-│              monitoring seluruh antrean approval pending              │
+│              monitoring seluruh antrean approval pending               │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
@@ -152,7 +152,7 @@ Sistem memadukan pembagian hak akses **Level Pengguna (Level 1 - 3)** dengan **R
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
 │  LEVEL 3: Staf Pelaksana, Operator Stasiun & Pipeline                  │
-│  • Hak Akses: Pemohon Pengajuan (Requester) & Pelaksana Presensi      │
+│  • Hak Akses: Pemohon Pengajuan (Requester) & Pelaksana Presensi       │
 │  • Dilarang masuk ke seluruh panel administratif (/admin/*)            │
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -499,7 +499,7 @@ Modul WhatsApp Gateway dibangun sebagai microservice Node.js mandiri yang berope
 ┌────────┴────────────────────────────────────────┐
 │  • Mutex Promise Queue (Jeda 500ms per pesan)   │
 │  • Keep-Alive Heartbeat (15s Ping Interval)     │
-│  • Baileys Socket (@whiskeysockets/baileys)    │
+│  • Baileys Socket (@whiskeysockets/baileys)     │
 │  • Sesi Multi-File Auth (auth_session/)         │
 └────────┬────────────────────────────────────────┘
          │
@@ -1107,6 +1107,14 @@ server {
         access_log off;
     }
 
+    # [SEC-10 FIX] Proteksi Keamanan: Blokir Eksekusi Skrip PHP di Direktori Unggahan Publik
+    location ^~ /storage/ {
+        location ~ \.(php|phar|phtml|sh|py|pl|cgi)$ {
+            deny all;
+            return 404;
+        }
+    }
+
     # FastCGI PHP 8.3-FPM Handler
     location ~ \.php$ {
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
@@ -1189,8 +1197,21 @@ Isi dengan skrip otomasi produksi berikut:
 #!/usr/bin/env bash
 set -e
 
+# [SEC-11 FIX] Trap Handler: Kembalikan aplikasi ke 'UP' jika terjadi error
+cleanup() {
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo "❌ [DEPLOY ERROR] Deployment gagal dengan status code $EXIT_CODE! Mengembalikan aplikasi ke ONLINE..."
+        php artisan up || true
+    fi
+}
+trap cleanup EXIT ERR
+
+# [SEC-11 FIX] Generate secret token maintenance acak dinamis
+BYPASS_SECRET=$(openssl rand -hex 16 2>/dev/null || echo "umbulan_maint_$(date +%s)")
 echo "🚀 [1/9] Mengaktifkan Mode Pemeliharaan (Maintenance Mode)..."
-php artisan down --render="errors::503" --secret="bypass-kunci-rahasia-anda"
+echo "🔑 Bypass Token Sementara: $BYPASS_SECRET"
+php artisan down --render="errors::503" --secret="$BYPASS_SECRET"
 
 echo "📥 [2/9] Menarik perubahan kode terbaru dari Git..."
 git pull origin main

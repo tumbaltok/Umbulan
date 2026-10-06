@@ -143,6 +143,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
         // Presensi Kehadiran
+        Route::get('/attendance/biometric-challenge', [KehadiranController::class, 'getBiometricChallenge'])->name('attendance.biometric_challenge');
         Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
         Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
 

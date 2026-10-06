@@ -24,6 +24,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// [SEC-08 FIX] Proteksi Autentikasi Internal via Shared Secret Token
+const EXPECTED_SECRET = process.env.WHATSAPP_SECRET_TOKEN || 'umbulan_internal_wa_secret_key_2026';
+
+app.use((req, res, next) => {
+    // Health check publik tanpa otentikasi hanya untuk probe status dasar
+    if (req.path === '/status' && req.method === 'GET') {
+        return next();
+    }
+
+    const clientSecret = req.headers['x-secret-token'] || req.headers['x-internal-secret'] || (req.headers['authorization'] ? req.headers['authorization'].replace('Bearer ', '') : null);
+    if (!clientSecret || clientSecret !== EXPECTED_SECRET) {
+        return res.status(401).json({
+            success: false,
+            message: 'Unauthorized: Akses ditolak. Kredensial rahasia microservice tidak valid atau tidak disertakan.'
+        });
+    }
+
+    next();
+});
+
 const AUTH_PATH = path.join(__dirname, 'auth_session');
 
 let sock = null;
@@ -352,8 +372,8 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[WhatsApp Gateway Unhandled Rejection]:', reason);
 });
 
-// Mulai server dan inisialisasi socket Baileys
-app.listen(PORT, () => {
-    console.log(`[WhatsApp Gateway Microservice] Aktif di http://127.0.0.1:${PORT}`);
+// [SEC-08 FIX] Kunci binding mutlak ke localhost 127.0.0.1 untuk mencegah paparan ke 0.0.0.0 / internet publik
+app.listen(PORT, '127.0.0.1', () => {
+    console.log(`[WhatsApp Gateway Microservice] Terkunci aman di http://127.0.0.1:${PORT}`);
     startWhatsAppSocket();
 });
