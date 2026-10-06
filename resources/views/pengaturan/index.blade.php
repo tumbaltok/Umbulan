@@ -393,225 +393,300 @@
             <hr class="border-slate-100 dark:border-slate-700">
 
             {{-- PENGATURAN JADWAL KERJA --}}
-            <div id="schedule_setting" class="p-4 rounded-2xl transition-all duration-300">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Pengaturan Jadwal Kerja</h3>
-                <p class="text-xs text-slate-400 mb-4">Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster).</p>
+            @php
+                $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
+                $scheduleAlreadySet = !empty($user->schedule_type);
 
-                @php
-                    $activeScheduleType = old('schedule_type', $user->schedule_type ?? '');
-                    $scheduleAlreadySet = !empty($user->schedule_type);
-
-                    $currentDbShift = 'pagi';
-                    if ($user->schedule_type === 'roster') {
-                        try {
-                            $scheduleService = app(App\Services\ScheduleService::class);
-                            $todaySchedule = $scheduleService->getTodaySchedule($user);
-                            $currentDbShift = $todaySchedule['shift_type'] ?? 'pagi';
-                        } catch (\Exception $e) {
-                            $currentDbShift = 'pagi';
-                        }
+                $currentDbShift = 'pagi';
+                if ($user->schedule_type === 'roster') {
+                    try {
+                        $scheduleService = app(App\Services\ScheduleService::class);
+                        $todaySchedule = $scheduleService->getTodaySchedule($user);
+                        $currentDbShift = $todaySchedule['shift_type'] ?? 'pagi';
+                    } catch (\Exception $e) {
+                        $currentDbShift = 'pagi';
                     }
-                    $selectedRosterShift = old('current_shift_choice', $currentDbShift);
-                @endphp
+                }
+                $selectedRosterShift = old('current_shift_choice', $currentDbShift);
+            @endphp
+
+            <div id="schedule_setting" class="p-4 rounded-2xl transition-all duration-300">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Pengaturan Jadwal Kerja</h3>
+                    @if($scheduleAlreadySet)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                            <i class="fa-solid fa-lock text-[10px]"></i> Terkunci (Anti-Cheating)
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-2xs">
+                            <i class="fa-solid fa-pen-clip text-[10px]"></i> Pengaturan Awal
+                        </span>
+                    @endif
+                </div>
+
+                <p class="text-xs text-slate-400 mb-4">
+                    @if($scheduleAlreadySet)
+                        Status jadwal kerja operasional akun Anda terkunci demi integritas absensi kedinasan.
+                    @else
+                        Pilih jenis jadwal kerja yang berlaku untuk akun Anda (Normal atau Roster). Pengaturan ini hanya dapat dilakukan satu kali.
+                    @endif
+                </p>
 
                 <div class="space-y-4">
 
-                    {{-- BADGE MODE BACA --}}
-                    {{-- BADGE MODE BACA --}}
+                    {{-- KARTU MODE BACA JADWAL TERKUNCI (JIKA SUDAH DI-SET) --}}
                     @if($scheduleAlreadySet)
-                        <div id="schedule_read_mode" class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                            <div class="flex items-center gap-3">
-                                @if($user->schedule_type === 'roster')
-                                    <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-sm shrink-0 border border-amber-200 dark:border-amber-800">
-                                        <i class="fa-solid fa-rotate"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
-                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-                                            Sistem Roster / Shift (12 Jam)
-                                        </p>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            Shift Saat Ini:
-                                            @if($currentDbShift === 'pagi')
-                                                <span class="font-bold text-emerald-600 dark:text-emerald-400">Shift Pagi (07:00 – 19:00 WIB)</span>
-                                            @elseif($currentDbShift === 'malam')
-                                                <span class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam (19:00 – 07:00 WIB)</span>
-                                            @else
-                                                <span class="font-bold text-rose-600 dark:text-rose-400">OFF / Libur</span>
-                                            @endif
-                                        </p>
-                                    </div>
-                                @elseif($user->schedule_type === 'reguler_6_hari')
-                                    <div class="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-sm shrink-0 border border-teal-200 dark:border-teal-800">
-                                        <i class="fa-solid fa-business-time"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
-                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-                                            Reguler (6 Hari: Senin – Sabtu)
-                                        </p>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            Sen–Jum: 07:00 – 16:00 WIB &bull; Sabtu: 07:00 – 12:00 WIB (1/2 Hari)
-                                        </p>
-                                    </div>
-                                @else
-                                    <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center text-sm shrink-0 border border-sky-200 dark:border-sky-800">
-                                        <i class="fa-solid fa-business-time"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
-                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-                                            Reguler (5 Hari: Senin – Jumat)
-                                        </p>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            Senin s/d Jumat: 07:00 – 16:00 WIB &bull; Sabtu & Minggu (OFF)
-                                        </p>
-                                    </div>
-                                @endif
+                        <div id="schedule_read_mode" class="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+                                <div class="flex items-center gap-3">
+                                    @if($user->schedule_type === 'roster')
+                                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-base shrink-0 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                                            <i class="fa-solid fa-rotate"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                                Sistem Roster / Shift (12 Jam)
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                Shift Saat Ini:
+                                                @if($currentDbShift === 'pagi')
+                                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Shift Pagi (07:00 – 19:00 WIB)</span>
+                                                @elseif($currentDbShift === 'malam')
+                                                    <span class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam (19:00 – 07:00 WIB)</span>
+                                                @else
+                                                    <span class="font-bold text-rose-600 dark:text-rose-400">OFF / Libur</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @elseif($user->schedule_type === 'reguler_6_hari')
+                                        <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-base shrink-0 border border-teal-200 dark:border-teal-800 shadow-2xs">
+                                            <i class="fa-solid fa-business-time"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                                Reguler (6 Hari: Senin – Sabtu)
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                Sen–Jum: 07:00 – 16:00 WIB &bull; Sabtu: 07:00 – 12:00 WIB (1/2 Hari)
+                                            </p>
+                                        </div>
+                                    @else
+                                        <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center text-base shrink-0 border border-sky-200 dark:border-sky-800 shadow-2xs">
+                                            <i class="fa-solid fa-business-time"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                                Reguler (5 Hari: Senin – Jumat)
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                Senin s/d Jumat: 07:00 – 16:00 WIB &bull; Sabtu & Minggu (OFF)
+                                            </p>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Aksi: Admin Ubah Jadwal & Karyawan Hubungi Admin --}}
+                                <div class="flex items-center gap-2 self-start sm:self-center">
+                                    @if(!empty($isAdmin))
+                                        <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Ubah jadwal sebagai Administrator">
+                                            <i class="fa-solid fa-user-shield text-amber-600 dark:text-amber-400"></i>
+                                            <span>Ubah (Admin)</span>
+                                        </button>
+                                    @endif
+                                    <button type="button" onclick="openScheduleContactAdminModal()" class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm text-emerald-600"></i>
+                                        <span>Hubungi Admin</span>
+                                    </button>
+                                </div>
                             </div>
-                            <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:border-sky-500 hover:text-sky-600 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                Ubah Jadwal
-                            </button>
+
+                            {{-- Alert Informasi Terkunci & Petunjuk Hubungi Admin --}}
+                            <div class="p-3 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                                <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 mt-0.5 text-sm shrink-0"></i>
+                                <div class="leading-relaxed">
+                                    <p class="font-bold text-amber-950 dark:text-amber-100">
+                                        Jadwal Kerja Terkunci (Pencegahan Kecurangan/Anti-Cheating)
+                                    </p>
+                                    <p class="text-[11px] text-amber-800/90 dark:text-amber-300/90 mt-0.5">
+                                        Pengaturan jadwal kerja akun Anda telah aktif dan dinonaktifkan (disable) agar tidak dapat diubah-ubah secara mandiri. Apabila terdapat <strong>kesalahan input</strong> saat pengaturan awal atau terdapat <strong>perubahan/mutasi shift dinas resmi</strong>, silakan klik tombol <strong>Hubungi Admin</strong> untuk mengajukan penyesuaian resmi ke Administrator Sistem.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+
+                        {{-- Hidden inputs jika bukan admin untuk memastikan nilai jadwal tidak terhapus saat submit form profil --}}
+                        @if(empty($isAdmin))
+                            <input type="hidden" name="schedule_type" value="{{ $user->schedule_type }}">
+                            @if($user->schedule_type === 'roster' && $user->roster_start_date)
+                                <input type="hidden" name="roster_start_date" value="{{ \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') }}">
+                            @endif
+                        @endif
                     @endif
 
-                    {{-- FORM EDIT --}}
-                    <div id="schedule_edit_mode" class="{{ $scheduleAlreadySet ? 'hidden' : '' }} space-y-4">
-                        {{-- Pilihan Jenis Jadwal --}}
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
-                            <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-2/3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all font-medium">
-                                <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
-                                <option value="reguler_5_hari" {{ in_array($activeScheduleType, ['reguler_5_hari', 'normal']) ? 'selected' : '' }}>
-                                    Reguler (5 Hari: Senin – Jumat)
-                                </option>
-                                <option value="reguler_6_hari" {{ $activeScheduleType === 'reguler_6_hari' ? 'selected' : '' }}>
-                                    Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
-                                </option>
-                                <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>
-                                    Roster / Shift
-                                </option>
-                            </select>
-                        </div>
+                    {{-- FORM EDIT (Hanya jika belum di-set ATAU jika pengguna adalah Administrator) --}}
+                    @if(!$scheduleAlreadySet || !empty($isAdmin))
+                        <div id="schedule_edit_mode" class="{{ $scheduleAlreadySet ? 'hidden' : '' }} space-y-4">
+                            @if($scheduleAlreadySet && !empty($isAdmin))
+                                <div class="flex items-center justify-between pb-2 border-b border-amber-200 dark:border-amber-800/60 mb-1">
+                                    <span class="text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-shield"></i> Mode Pengeditan Khusus Administrator
+                                    </span>
+                                    <button type="button" onclick="cancelScheduleEditMode()" class="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-semibold underline cursor-pointer">
+                                        Batal Ubah
+                                    </button>
+                                </div>
+                            @elseif(!$scheduleAlreadySet)
+                                <div class="p-3.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl flex items-start gap-3 text-xs text-sky-900 dark:text-sky-200 mb-2">
+                                    <i class="fa-solid fa-circle-info text-sky-600 dark:text-sky-400 mt-0.5 text-base shrink-0"></i>
+                                    <div class="leading-relaxed">
+                                        <p class="font-bold text-sky-950 dark:text-sky-100">
+                                            Perhatian: Pengaturan Jadwal Kerja Hanya Dapat Disetel Sekali
+                                        </p>
+                                        <p class="text-[11px] text-sky-800/90 dark:text-sky-300/90 mt-0.5">
+                                            Pilih tipe jadwal kerja dengan cermat sesuai surat tugas/penugasan Anda. Setelah disimpan, pengaturan jadwal akan <strong>otomatis dikunci permanen (disable)</strong> untuk mencegah kecurangan/cheating absensi. Jika terdapat kesalahan input, Anda harus menghubungi Administrator.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
 
-                        {{-- Card Info Jadwal Reguler 5 Hari --}}
-                        <div id="section_reguler_5_info" class="hidden p-4 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl space-y-3">
-                            <div class="flex items-center gap-2 text-sky-800 dark:text-sky-300 font-bold text-xs uppercase tracking-wider">
-                                <i class="fa-solid fa-calendar-check text-sky-600 dark:text-sky-400"></i>
-                                Ketentuan Baku Jadwal Reguler 5 Hari
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
-                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Jumat</span>
-                                </div>
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Masuk & Pulang</span>
-                                    <span class="text-xs font-bold text-sky-600 dark:text-sky-400">07:00 – 16:00 WIB</span>
-                                </div>
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
-                                    <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Sabtu & Minggu (OFF)</span>
-                                </div>
-                            </div>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-info text-sky-500"></i>
-                                Mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri). Jam kerja dibakukan secara otomatis oleh sistem.
-                            </p>
-                        </div>
-
-                        {{-- Card Info Jadwal Reguler 6 Hari --}}
-                        <div id="section_reguler_6_info" class="hidden p-4 bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/60 rounded-2xl space-y-3">
-                            <div class="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
-                                <i class="fa-solid fa-calendar-check text-teal-600 dark:text-teal-400"></i>
-                                Ketentuan Baku Jadwal Reguler 6 Hari
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
-                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Sabtu</span>
-                                </div>
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja Baku</span>
-                                    <span class="text-xs font-bold text-teal-600 dark:text-teal-400">Sen–Jum: 07:00–16:00<br>Sabtu: 07:00–12:00 WIB</span>
-                                </div>
-                                <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
-                                    <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Minggu (OFF)</span>
-                                </div>
-                            </div>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-info text-teal-500"></i>
-                                Khusus hari Sabtu berlaku setengah hari kerja (pulang pukul 12:00 WIB). Mengikuti Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri).
-                            </p>
-                        </div>
-
-                        {{-- Form Opsi Jadwal Roster --}}
-                        <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl space-y-4">
+                            {{-- Pilihan Jenis Jadwal --}}
                             <div>
-                                <label class="block text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
-                                <p class="text-[11px] text-amber-700 dark:text-amber-400 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
-
-                                <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
-                                        <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
-                                        <div>
-                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Pagi</span>
-                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">07:00 - 19:00 WIB</span>
-                                        </div>
-                                    </label>
-                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
-                                        <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
-                                        <div>
-                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Malam</span>
-                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">19:00 - 07:00 WIB</span>
-                                        </div>
-                                    </label>
-                                    <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-red-500 transition-all">
-                                        <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
-                                        <div>
-                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">OFF</span>
-                                            <span class="text-[10px] text-slate-500 dark:text-slate-400">OFF / Libur</span>
-                                        </div>
-                                    </label>
-                                </div>
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
+                                <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-2/3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all font-medium">
+                                    <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
+                                    <option value="reguler_5_hari" {{ in_array($activeScheduleType, ['reguler_5_hari', 'normal']) ? 'selected' : '' }}>
+                                        Reguler (5 Hari: Senin – Jumat)
+                                    </option>
+                                    <option value="reguler_6_hari" {{ $activeScheduleType === 'reguler_6_hari' ? 'selected' : '' }}>
+                                        Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
+                                    </option>
+                                    <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>
+                                        Roster / Shift
+                                    </option>
+                                </select>
                             </div>
 
-                            {{-- BOX PRATINJAU HASIL ROTASI --}}
-                            <div id="roster_preview_box" class="p-3 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/60 rounded-xl shadow-sm text-xs space-y-2">
-                                <div class="font-bold text-amber-900 dark:text-amber-300 border-b border-slate-100 dark:border-slate-700 pb-1.5 flex items-center">
-                                    <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
+                            {{-- Card Info Jadwal Reguler 5 Hari --}}
+                            <div id="section_reguler_5_info" class="hidden p-4 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl space-y-3">
+                                <div class="flex items-center gap-2 text-sky-800 dark:text-sky-300 font-bold text-xs uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar-check text-sky-600 dark:text-sky-400"></i>
+                                    Ketentuan Baku Jadwal Reguler 5 Hari
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700 dark:text-slate-300">
-                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
-                                        <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
-                                        <span id="preview_week_1" class="font-bold text-sky-600 dark:text-sky-400">Shift Pagi</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Jumat</span>
                                     </div>
-                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
-                                        <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
-                                        <span id="preview_week_2" class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam</span>
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Masuk & Pulang</span>
+                                        <span class="text-xs font-bold text-sky-600 dark:text-sky-400">07:00 – 16:00 WIB</span>
                                     </div>
-                                    <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
-                                        <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
-                                        <span id="preview_week_3" class="font-bold text-emerald-600 dark:text-emerald-400">Minggu Libur</span>
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                        <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Sabtu & Minggu (OFF)</span>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-sky-500"></i>
+                                    Mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri). Jam kerja dibakukan secara otomatis oleh sistem.
+                                </p>
+                            </div>
+
+                            {{-- Card Info Jadwal Reguler 6 Hari --}}
+                            <div id="section_reguler_6_info" class="hidden p-4 bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/60 rounded-2xl space-y-3">
+                                <div class="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar-check text-teal-600 dark:text-teal-400"></i>
+                                    Ketentuan Baku Jadwal Reguler 6 Hari
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Sabtu</span>
+                                    </div>
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja Baku</span>
+                                        <span class="text-xs font-bold text-teal-600 dark:text-teal-400">Sen–Jum: 07:00–16:00<br>Sabtu: 07:00–12:00 WIB</span>
+                                    </div>
+                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                        <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Minggu (OFF)</span>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-teal-500"></i>
+                                    Khusus hari Sabtu berlaku setengah hari kerja (pulang pukul 12:00 WIB). Mengikuti Tanggal Merah Hari Libur Nasional resmi pemerintah (SKB 3 Menteri).
+                                </p>
+                            </div>
+
+                            {{-- Form Opsi Jadwal Roster --}}
+                            <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
+                                    <p class="text-[11px] text-amber-700 dark:text-amber-400 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
+
+                                    <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                                            <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Pagi</span>
+                                                <span class="text-[10px] text-slate-500 dark:text-slate-400">07:00 - 19:00 WIB</span>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
+                                            <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Malam</span>
+                                                <span class="text-[10px] text-slate-500 dark:text-slate-400">19:00 - 07:00 WIB</span>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-red-500 transition-all">
+                                            <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">OFF</span>
+                                                <span class="text-[10px] text-slate-500 dark:text-slate-400">OFF / Libur</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- BOX PRATINJAU HASIL ROTASI --}}
+                                <div id="roster_preview_box" class="p-3 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/60 rounded-xl shadow-sm text-xs space-y-2">
+                                    <div class="font-bold text-amber-900 dark:text-amber-300 border-b border-slate-100 dark:border-slate-700 pb-1.5 flex items-center">
+                                        <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700 dark:text-slate-300">
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                            <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
+                                            <span id="preview_week_1" class="font-bold text-sky-600 dark:text-sky-400">Shift Pagi</span>
+                                        </div>
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                            <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
+                                            <span id="preview_week_2" class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam</span>
+                                        </div>
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                            <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
+                                            <span id="preview_week_3" class="font-bold text-emerald-600 dark:text-emerald-400">Minggu Libur</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
 
             <hr class="border-slate-100 dark:border-slate-700">
 
             <div>
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Keamanan Akun</h3>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">Keamanan Akun</h3>
                 <p class="text-xs text-slate-400 mb-4">Kosongkan kolom di bawah ini jika Anda tidak ingin mengubah password akun.</p>
 
                 <div class="space-y-4">
@@ -883,6 +958,147 @@
 
     </div>
 </div>
+
+{{-- MODAL HUBUNGI ADMIN UNTUK PERUBAHAN JADWAL KERJA --}}
+<div id="modalScheduleContactAdmin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
+        
+        {{-- Header Modal Hubungi Admin Jadwal --}}
+        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200 dark:border-emerald-800">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
+                        Penyesuaian Jadwal Kerja
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Hubungi Administrator untuk Koreksi atau Perubahan Jadwal
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeScheduleContactAdminModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        {{-- Body Modal Hubungi Admin Jadwal --}}
+        <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            
+            {{-- Alert Informasi Keamanan Jadwal --}}
+            <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
+                <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 mt-0.5 text-base shrink-0"></i>
+                <div class="leading-relaxed">
+                    <p class="font-bold text-amber-950 dark:text-amber-100 mb-1">Pengaturan Jadwal Kerja Terkunci</p>
+                    <p>
+                        Jadwal kerja Anda saat ini (<span class="font-bold underline">
+                            @if($user->schedule_type === 'roster')
+                                Sistem Roster / Shift (12 Jam)
+                            @elseif($user->schedule_type === 'reguler_6_hari')
+                                Reguler (6 Hari: Sen–Sab)
+                            @else
+                                Reguler (5 Hari: Sen–Jum)
+                            @endif
+                        </span>) telah dikunci demi integritas absensi kedinasan. Apabila terjadi <strong>salah input</strong> atau <strong>pergantian shift dinas</strong>, silakan hubungi salah satu Administrator di bawah ini untuk pembaruan data resmi.
+                    </p>
+                </div>
+            </div>
+
+            {{-- Daftar Kontak Administrator Sistem --}}
+            <div class="space-y-3 pt-1">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200 px-1">
+                    <span>Pilih Administrator Tujuan:</span>
+                    <span class="text-[11px] text-slate-400 font-medium">{{ isset($adminUsers) ? $adminUsers->count() : 0 }} Admin Tersedia</span>
+                </div>
+
+                @if(isset($adminUsers) && $adminUsers->count() > 0)
+                    <div class="space-y-2.5">
+                        @foreach($adminUsers as $admin)
+                            @php
+                                $cleanPhone = preg_replace('/[^0-9]/', '', $admin->phone_number);
+                                if (str_starts_with($cleanPhone, '0')) {
+                                    $cleanPhone = '62' . substr($cleanPhone, 1);
+                                } elseif (str_starts_with($cleanPhone, '8')) {
+                                    $cleanPhone = '62' . $cleanPhone;
+                                }
+
+                                $scheduleLabelForWa = match($user->schedule_type) {
+                                    'roster' => 'Sistem Roster / Shift (12 Jam)',
+                                    'reguler_6_hari' => 'Reguler (6 Hari: Sen–Sab)',
+                                    'reguler_5_hari', 'normal' => 'Reguler (5 Hari: Sen–Jum)',
+                                    default => 'Belum Diatur'
+                                };
+
+                                $waScheduleText = "Halo Admin {$admin->name}, perkenalkan saya *" . ($user->name ?? 'Karyawan') . "* (NIP: *" . ($user->nip ?? '-') . "*).\n\n"
+                                    . "Saya bermaksud mengajukan permohonan penyesuaian/koreksi Jadwal Kerja pada akun ERP Umbulan saya:\n"
+                                    . "• Jadwal Saat Ini: *" . $scheduleLabelForWa . "*\n"
+                                    . "• Keterangan: (Mohon bantuan penyesuaian jadwal kerja karena salah input / mutasi shift dinas)\n\n"
+                                    . "Mohon bantuan dan verifikasi penyesuaian jadwal akun saya. Terima kasih.";
+
+                                $waScheduleUrl = "https://wa.me/{$cleanPhone}?text=" . rawurlencode($waScheduleText);
+                                $adminRoleName = $admin->role?->role_name ?? ($admin->roles->first()?->role_name ?? 'Administrator');
+                            @endphp
+
+                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/90 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all shadow-2xs">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 dark:border-emerald-800 shadow-2xs">
+                                        {{ strtoupper(substr($admin->name, 0, 2)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                                                {{ $admin->name }}
+                                            </h4>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300">
+                                                {{ $adminRoleName }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <span class="font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
+                                                <i class="fa-brands fa-whatsapp text-xs mr-0.5"></i> {{ $admin->phone_number }}
+                                            </span>
+                                            @if($admin->station)
+                                                <span>•</span>
+                                                <span class="truncate">{{ $admin->station->name }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0 self-end sm:self-auto">
+                                    <a href="{{ $waScheduleUrl }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs transition-all hover:scale-[1.02] cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                        <span>Chat WhatsApp</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-80 ml-0.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center py-6">
+                        <i class="fa-solid fa-user-shield text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kontak WhatsApp Administrator Belum Tersedia</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Silakan hubungi tim IT atau HRD di kantor stasiun Anda untuk bantuan penyesuaian jadwal.</p>
+                    </div>
+                @endif
+            </div>
+
+        </div>
+
+        {{-- Footer Modal Hubungi Admin Jadwal --}}
+        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <button type="button" onclick="closeScheduleContactAdminModal()" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">
+                Tutup
+            </button>
+        </div>
+
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -905,16 +1121,39 @@
         }
     }
 
+    function openScheduleContactAdminModal() {
+        const modal = document.getElementById('modalScheduleContactAdmin');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeScheduleContactAdminModal() {
+        const modal = document.getElementById('modalScheduleContactAdmin');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+    }
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeChangePhoneModal();
+            closeScheduleContactAdminModal();
         }
     });
 
     document.addEventListener('click', function(e) {
-        const modal = document.getElementById('modalChangePhone');
-        if (modal && e.target === modal) {
+        const modalPhone = document.getElementById('modalChangePhone');
+        if (modalPhone && e.target === modalPhone) {
             closeChangePhoneModal();
+        }
+        const modalSchedule = document.getElementById('modalScheduleContactAdmin');
+        if (modalSchedule && e.target === modalSchedule) {
+            closeScheduleContactAdminModal();
         }
     });
 
@@ -926,6 +1165,13 @@
             editMode.classList.remove('hidden');
             toggleScheduleOptions();
         }
+    }
+
+    function cancelScheduleEditMode() {
+        const readMode = document.getElementById('schedule_read_mode');
+        const editMode = document.getElementById('schedule_edit_mode');
+        if (readMode) readMode.classList.remove('hidden');
+        if (editMode) editMode.classList.add('hidden');
     }
 
     function toggleScheduleOptions() {

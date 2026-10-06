@@ -57,13 +57,20 @@ class AccountController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        // Cek hak akses administrator
+        $isAdmin = $user->isLevel1()
+            || (int)$user->role_id === 1
+            || $user->hasRole('ADMIN')
+            || $user->roles->contains('id', 1);
+
         return view('pengaturan.index', compact(
             'user',
             'daftarStasiun',
             'daftarGender',
             'daftarRole',
             'daftarRumahMeter',
-            'adminUsers'
+            'adminUsers',
+            'isAdmin'
         ));
     }
 
@@ -210,36 +217,43 @@ class AccountController extends Controller
                     }
                 }
 
-                // [SEC-03 FIX] PROTEKSI JADWAL KERJA:
-                // Jadwal kerja (schedule_type, roster_start_date) HANYA dapat diubah oleh Administrator
-                if ($request->has('schedule_type') && ! empty($request->schedule_type)) {
-                    $scheduleType = $request->schedule_type;
-                    if ($scheduleType === 'normal') {
-                        $scheduleType = 'reguler_5_hari';
-                    }
-                    $updateData['schedule_type'] = $scheduleType;
+            }
 
-                    if ($scheduleType === 'reguler_5_hari') {
-                        $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                        $updateData['normal_check_in'] = '07:00:00';
-                        $updateData['normal_check_out'] = '16:00:00';
-                        $updateData['roster_start_date'] = null;
-                    } elseif ($scheduleType === 'reguler_6_hari') {
-                        $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                        $updateData['normal_check_in'] = '07:00:00';
-                        $updateData['normal_check_out'] = '16:00:00';
-                        $updateData['roster_start_date'] = null;
-                    } elseif ($scheduleType === 'roster') {
-                        if ($request->filled('roster_start_date')) {
-                            $updateData['roster_start_date'] = $request->roster_start_date;
-                        } else {
-                            $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
-                        }
-                        $updateData['normal_work_days'] = null;
-                        $updateData['normal_check_in'] = null;
-                        $updateData['normal_check_out'] = null;
-                    }
+            // [SEC-03 FIX & ANTI-CHEATING] PROTEKSI JADWAL KERJA:
+            // 1. Karyawan biasa HANYA dapat menyetel jadwal kerja saat pertama kali (ketika schedule_type masih kosong).
+            // 2. Jika sudah pernah di-set, jadwal kerja TERKUNCI PERMANEN untuk karyawan biasa guna mencegah kecurangan/cheating absensi.
+            // 3. Perubahan jadwal yang sudah terisi HANYA dapat dilakukan oleh Administrator (Level 1 / Role Admin).
+            $canSetSchedule = $isAdmin || empty($user->schedule_type);
+
+            if ($canSetSchedule && $request->has('schedule_type') && ! empty($request->schedule_type)) {
+                $scheduleType = $request->schedule_type;
+                if ($scheduleType === 'normal') {
+                    $scheduleType = 'reguler_5_hari';
                 }
+                $updateData['schedule_type'] = $scheduleType;
+
+                if ($scheduleType === 'reguler_5_hari') {
+                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                    $updateData['normal_check_in'] = '07:00:00';
+                    $updateData['normal_check_out'] = '16:00:00';
+                    $updateData['roster_start_date'] = null;
+                } elseif ($scheduleType === 'reguler_6_hari') {
+                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    $updateData['normal_check_in'] = '07:00:00';
+                    $updateData['normal_check_out'] = '16:00:00';
+                    $updateData['roster_start_date'] = null;
+                } elseif ($scheduleType === 'roster') {
+                    if ($request->filled('roster_start_date')) {
+                        $updateData['roster_start_date'] = $request->roster_start_date;
+                    } else {
+                        $updateData['roster_start_date'] = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+                    }
+                    $updateData['normal_work_days'] = null;
+                    $updateData['normal_check_in'] = null;
+                    $updateData['normal_check_out'] = null;
+                }
+            } elseif (! $canSetSchedule && $request->has('schedule_type') && $request->schedule_type !== $user->schedule_type) {
+                Log::warning("[SEC-03 AUDIT] Upaya manipulasi jadwal kerja terkunci oleh User ID {$user->id} ({$user->name}) berhasil dicegah.");
             }
 
             // SIMPAN PASSWORD BARU
