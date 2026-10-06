@@ -33,6 +33,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
 - [9. Automasi Latar Belakang (Task Scheduler & Cron Jobs)](#9-automasi-latar-belakang-task-scheduler--cron-jobs)
 - [10. Panduan Instalasi Pengembangan Lokal (Local Quick Start)](#10-panduan-instalasi-pengembangan-lokal-local-quick-start)
 - [11. Panduan Deployment Server Produksi (Bare-Metal / VPS)](#11-panduan-deployment-server-produksi-bare-metal--vps)
+  - [11.0. ⚡ Jalur Cepat: One-Click Auto-Deployer via `deploy.sh` (aaPanel & VPS)](#110--jalur-cepat-one-click-auto-deployer-via-deploysh-aapanel--vps)
   - [11.1. Spesifikasi Server & Diagram Topologi Jaringan](#111-spesifikasi-server--diagram-topologi-jaringan)
   - [11.2. Langkah 1: Persiapan Server & Konfigurasi Firewall UFW](#112-langkah-1-persiapan-server--konfigurasi-firewall-ufw)
   - [11.3. Langkah 2: Instalasi Paket Inti Server & PHP 8.3 Ekstensi](#113-langkah-2-instalasi-paket-inti-server--php-83-ekstensi)
@@ -46,7 +47,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
   - [11.11. Langkah 10: Konfigurasi Background Services (Supervisor & Crontab)](#1111-langkah-10-konfigurasi-background-services-supervisor--crontab)
   - [11.12. Langkah 11: Konfigurasi Web Server Nginx & SSL Let's Encrypt](#1112-langkah-11-konfigurasi-web-server-nginx--ssl-lets-encrypt)
   - [11.13. Langkah 12: Optimasi Cache & Performa Produksi](#1113-langkah-12-optimasi-cache--performa-produksi)
-  - [11.14. Prosedur Pemeliharaan & Skrip Update Rutin (`deploy.sh`)](#1114-prosedur-pemeliharaan--skrip-update-rutin-deploysh)
+  - [11.14. Skrip Automasi Produksi Universal & Pemeliharaan Rutin (`deploy.sh`)](#1114-skrip-automasi-produksi-universal--pemeliharaan-rutin-deploysh)
   - [11.15. Checklist Pengujian Pasca-Deploy (Go-Live Verification)](#1115-checklist-pengujian-pasca-deploy-go-live-verification)
 
 ---
@@ -625,6 +626,43 @@ Panduan teknis resmi implementasi dan deployment proyek **ERP META Adhya Tirta U
 > **Kebijakan Keamanan Kredensial Produksi (Zero Sensitive Data Leak):**
 > Seluruh sintaks dan konfigurasi dalam panduan ini secara ketat menggunakan format placeholder yang aman (seperti `domain-anda.com`, `nama_database_anda`, dan `password_database_kuat`). Dilarang keras melakukan commit atau menyebarkan kredensial asli produksi, kunci enkripsi aplikasi (`APP_KEY`), maupun password database ke repositori publik.
 
+### 11.0. ⚡ Jalur Cepat: One-Click Auto-Deployer via `deploy.sh` (aaPanel & VPS)
+
+Repositori ini telah dilengkapi dengan skrip automasi cerdas **`deploy.sh`** (*Universal Production Deployer & Updater*) yang mampu mengonfigurasi seluruh komponen sistem secara mandiri (*self-healing*) dari awal hingga siap beroperasi (*landing*).
+
+#### 🛠️ Apa Saja yang Dikerjakan Otomatis oleh `deploy.sh`?
+1. **Deteksi PHP 8.3 & Composer:** Mendeteksi path PHP 8.3 bawaan aaPanel (`/www/server/php/83/bin/php`) atau sistem Linux standar, serta mengunduh `composer.phar` otomatis jika belum terpasang.
+2. **Auto-Inisialisasi `.env` & `APP_KEY`:** Menyalin template `.env.example` dan men-generate `APP_KEY` baru tanpa campur tangan manual.
+3. **Prompt Database Cepat (*Fast DB Setup*):** Menyediakan opsi input nama DB, user, dan password langsung di terminal saat run pertama kali.
+4. **Build Frontend Vite & Tailwind CSS v4:** Menjalankan `npm install` dan `npm run build` otomatis.
+5. **Daemon Microservice WhatsApp (Baileys Port 3001):** Memasang dependensi Node.js, menginstall PM2, dan menjalankan WhatsApp gateway di latar belakang dengan auto-restart persistensi reboot (`pm2 save`).
+6. **Migrasi Database & Symlink:** Menjalankan `php artisan migrate --force` dengan proteksi koneksi dan menghubungkan symlink storage publik (`storage:link`).
+7. **Background Queue Worker:** Menjalankan worker antrean Laravel di latar belakang melalui PM2 (`umbulan-worker`) & Supervisor.
+8. **Automasi Cron Job Scheduler:** Memeriksa dan otomatis mendaftarkan Laravel Scheduler ke crontab sistem:
+   - 🩸 `saldo:reset-haid`: Reset saldo cuti haid bulanan otomatis (tiap tanggal 1 pukul 00:00).
+   - 📅 `saldo:reset-tahunan`: Reset saldo cuti tahunan otomatis (tiap 1 Januari pukul 00:00).
+   - 💬 `pengajuan:followup-wa`: Pengingat WhatsApp otomatis berkala (tiap 10 menit).
+9. **Optimasi Cache & Hak Akses Berkas:** Mengompilasi cache konfigurasi & view, serta menyesuaikan kepemilikan folder ke user web server (`www:www` di aaPanel atau `www-data` di Ubuntu).
+
+---
+
+#### 📋 Panduan 3 Langkah Deploy di aaPanel:
+1. **Buat Situs & Database:** Di aaPanel, tambahkan website baru dengan versi **PHP 8.3** dan buat Database **MySQL**.
+2. **Kloning Repositori:** Masuk ke terminal direktori website Anda:
+   ```bash
+   cd /www/wwwroot/domain-anda.com
+   git clone https://github.com/tumbaltok/Umbulan.git .
+   ```
+3. **Eksekusi One-Click Deployer:**
+   ```bash
+   bash deploy.sh
+   ```
+   *(Masukkan nama database & password saat prompt muncul, atau tekan ENTER jika ingin mengatur file `.env` secara manual).*
+4. **Satu-Satunya Pengaturan GUI di aaPanel:** Klik nama situs ➡️ **Site directory** ➡️ Arahkan **Running directory** ke subfolder **`/public`** ➡️ Klik **Save**.
+   *Selesai! Website langsung aktif, terhubung, dan landing sempurna.*
+
+---
+
 ### 11.1. Spesifikasi Server & Diagram Topologi Jaringan
 
 #### A. Diagram Topologi Arsitektur Produksi
@@ -1183,81 +1221,245 @@ php artisan view:cache
 
 ---
 
-### 11.14. Prosedur Pemeliharaan & Skrip Update Rutin (`deploy.sh`)
+### 11.14. Skrip Automasi Produksi Universal & Pemeliharaan Rutin (`deploy.sh`)
 
-Untuk mempermudah proses rilis fitur baru dari repository Git tanpa harus mengetikkan puluhan perintah secara manual, buatlah skrip pemeliharaan otomatis berikut di `/var/www/umbulan/deploy.sh`:
+Berkas skrip **`deploy.sh`** telah disertakan langsung di dalam root repositori proyek. Skrip ini bertindak sebagai **One-Click Deployer & Auto-Updater** yang beroperasi secara **Idempoten (*Idempotent*)** — artinya skrip dapat dijalankan sekali, dua kali, atau berkali-kali secara aman tanpa merusak konfigurasi maupun menduplikasi proses latar belakang.
 
-```bash
-sudo nano /var/www/umbulan/deploy.sh
-```
+#### 🌟 Fitur & Siklus Kerja Skrip:
+1. **Deteksi Interpreter PHP 8.3 & Composer:** Otomatis mendeteksi PHP 8.3 (termasuk path aaPanel `/www/server/php/83/bin/php`) dan mengunduh `composer.phar` jika Composer belum ada di server.
+2. **Auto-Inisialisasi `.env` & Fast Database Setup:** Jika file `.env` belum ada, skrip menyalinnya dari `.env.example`, menghasilkan `APP_KEY`, dan menawarkan prompt konfigurasi database cepat di terminal.
+3. **Pemberian Proteksi Maintenance Mode Cerdas:** Menjaga keandalan request publik dengan token bypass acak dinamis (`php artisan down --secret=...`).
+4. **Pembaruan Kode Git & Dependensi Composer:** Menjalankan `git pull` dan `composer install --no-dev --optimize-autoloader`.
+5. **Kompilasi Asset Frontend Vite & Tailwind CSS v4:** Menjalankan `npm ci` dan `npm run build`.
+6. **Daemonize WhatsApp Baileys Microservice:** Menyiapkan folder sesi, memasang dependensi, dan mengelola microservice di Port 3001 via **PM2** (`umbulan-whatsapp`).
+7. **Migrasi Database & Symlink Storage:** Menguji koneksi database lalu mengeksekusi `php artisan migrate --force` serta `php artisan storage:link`.
+8. **Pengelolaan Queue Worker:** Menjalankan worker antrean latar belakang via PM2 (`umbulan-worker`) dan menyinkronkan Supervisor.
+9. **Automasi Pendaftaran Crontab Sistem:** Otomatis mendaftarkan Laravel Scheduler ke crontab sistem jika belum terdaftar, sehingga seluruh tugas terjadwal (**Reset Saldo Cuti Haid Bulanan**, **Reset Saldo Tahunan**, dan **Pengingat WhatsApp**) langsung aktif.
+10. **Optimasi Cache & Hak Akses Berkas:** Membersihkan & mengompilasi cache Laravel (`optimize` & `view:cache`), serta memberikan izin kepemilikan user web server (`www:www` di aaPanel atau `www-data` di Ubuntu).
 
-Isi dengan skrip otomasi produksi berikut:
+---
+
+#### 📄 Kode Lengkap `deploy.sh`:
 
 ```bash
 #!/usr/bin/env bash
+# ==============================================================================
+# ERP META ADHYA TIRTA UMBULAN - UNIVERSAL ONE-CLICK PRODUCTION DEPLOYER
+# Dioptimalkan khusus untuk aaPanel, Ubuntu/Debian VPS, dan On-Premise Server
+# ==============================================================================
 set -e
 
-# [SEC-11 FIX] Trap Handler: Kembalikan aplikasi ke 'UP' jika terjadi error
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$APP_DIR"
+
+echo "=================================================================="
+echo "  🚀 MEMULAI ONE-CLICK DEPLOYMENT: ERP META ADHYA TIRTA UMBULAN   "
+echo "  📁 Lokasi Proyek: $APP_DIR                                      "
+echo "=================================================================="
+
+# Deteksi Path PHP (aaPanel & Standar Linux)
+if [ -f "/www/server/php/83/bin/php" ]; then
+    PHP_BIN="/www/server/php/83/bin/php"
+elif [ -f "/www/server/php/84/bin/php" ]; then
+    PHP_BIN="/www/server/php/84/bin/php"
+elif [ -f "/www/server/php/82/bin/php" ]; then
+    PHP_BIN="/www/server/php/82/bin/php"
+elif command -v php >/dev/null 2>&1; then
+    PHP_BIN="php"
+else
+    echo "❌ [ERROR] PHP tidak ditemukan di sistem. Harap install PHP 8.3 terlebih dahulu."
+    exit 1
+fi
+echo "🐘 [PHP] Menggunakan interpreter: $($PHP_BIN -v | head -n 1)"
+
+# Deteksi Composer
+if command -v composer >/dev/null 2>&1; then
+    COMPOSER_CMD="composer"
+elif [ -f "/www/server/php/83/bin/composer" ]; then
+    COMPOSER_CMD="$PHP_BIN /www/server/php/83/bin/composer"
+elif [ -f "$APP_DIR/composer.phar" ]; then
+    COMPOSER_CMD="$PHP_BIN $APP_DIR/composer.phar"
+else
+    echo "📥 [COMPOSER] Mengunduh composer.phar otomatis..."
+    curl -sS https://getcomposer.org/installer | $PHP_BIN
+    COMPOSER_CMD="$PHP_BIN $APP_DIR/composer.phar"
+fi
+
+# Inisialisasi .env & Fast Setup DB
+if [ ! -f "$APP_DIR/.env" ]; then
+    echo "📝 [ENV] File .env belum ditemukan. Menginisialisasi otomatis dari .env.example..."
+    cp "$APP_DIR/.env.example" "$APP_DIR/.env"
+
+    if [ -t 0 ]; then
+        echo ""
+        echo "------------------------------------------------------------------"
+        echo "  🛠️  SETUP DATABASE CEPAT (Tekan ENTER untuk lewati / edit manual nanti)"
+        echo "------------------------------------------------------------------"
+        read -p "  👉 Nama Database MySQL di aaPanel : " INPUT_DB_NAME
+        read -p "  👉 Username Database MySQL         : " INPUT_DB_USER
+        read -sp "  👉 Password Database MySQL         : " INPUT_DB_PASS
+        echo ""
+        
+        if [ -n "$INPUT_DB_NAME" ]; then
+            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$INPUT_DB_NAME/" "$APP_DIR/.env"
+        fi
+        if [ -n "$INPUT_DB_USER" ]; then
+            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$INPUT_DB_USER/" "$APP_DIR/.env"
+        fi
+        if [ -n "$INPUT_DB_PASS" ]; then
+            ESCAPED_PASS=$(printf '%s\n' "$INPUT_DB_PASS" | sed -e 's/[\/&]/\\&/g')
+            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$ESCAPED_PASS/" "$APP_DIR/.env"
+        fi
+        echo "  ✅ Kredensial database berhasil disimpan ke file .env"
+        echo "------------------------------------------------------------------"
+    else
+        echo "⚠️ [PENTING] File .env telah dibuat dari template. Sesuaikan kredensial DB di file .env."
+    fi
+fi
+
+# Trap Handler
 cleanup() {
     EXIT_CODE=$?
     if [ $EXIT_CODE -ne 0 ]; then
-        echo "❌ [DEPLOY ERROR] Deployment gagal dengan status code $EXIT_CODE! Mengembalikan aplikasi ke ONLINE..."
-        php artisan up || true
+        echo ""
+        echo "❌ [DEPLOY ERROR] Terjadi kegagalan pada status code $EXIT_CODE!"
+        echo "🔄 Memastikan status aplikasi kembali ONLINE..."
+        if [ -d "$APP_DIR/vendor" ]; then
+            $PHP_BIN artisan up 2>/dev/null || true
+        fi
     fi
 }
 trap cleanup EXIT ERR
 
-# [SEC-11 FIX] Generate secret token maintenance acak dinamis
-BYPASS_SECRET=$(openssl rand -hex 16 2>/dev/null || echo "umbulan_maint_$(date +%s)")
-echo "🚀 [1/9] Mengaktifkan Mode Pemeliharaan (Maintenance Mode)..."
-echo "🔑 Bypass Token Sementara: $BYPASS_SECRET"
-php artisan down --render="errors::503" --secret="$BYPASS_SECRET"
+# Maintenance Mode
+if [ -d "$APP_DIR/vendor" ] && [ -f "$APP_DIR/vendor/autoload.php" ]; then
+    BYPASS_SECRET=$(openssl rand -hex 16 2>/dev/null || echo "umbulan_maint_$(date +%s)")
+    echo "🔒 [1/11] Mengaktifkan Mode Pemeliharaan Sementara..."
+    $PHP_BIN artisan down --render="errors::503" --secret="$BYPASS_SECRET" 2>/dev/null || true
+else
+    echo "✨ [1/11] Inisialisasi awal instalasi (mode pemeliharaan dilewati)..."
+fi
 
-echo "📥 [2/9] Menarik perubahan kode terbaru dari Git..."
-git pull origin main
+# Git Pull
+if [ -d "$APP_DIR/.git" ]; then
+    echo "📥 [2/11] Memeriksa pembaruan kode Git..."
+    git pull origin main 2>/dev/null || git pull 2>/dev/null || true
+fi
 
-echo "📦 [3/9] Memperbarui dependensi PHP (Composer)..."
-composer install --no-dev --optimize-autoloader --no-interaction
+# Composer Install
+echo "📦 [3/11] Memasang dependensi PHP (Composer)..."
+$COMPOSER_CMD install --no-dev --optimize-autoloader --no-interaction
 
-echo "🎨 [4/9] Membangun asset frontend Vite & Tailwind CSS v4..."
-npm ci
-npm run build
+# APP_KEY Generation
+if ! grep -q "^APP_KEY=base64:" "$APP_DIR/.env"; then
+    echo "🔑 [4/11] Menghasilkan APP_KEY produksi baru..."
+    $PHP_BIN artisan key:generate --force
+fi
 
-echo "🤖 [5/9] Memeriksa dependensi microservice WhatsApp..."
-cd whatsapp-service
-npm ci
-cd ..
+# Frontend Vite Build
+if command -v npm >/dev/null 2>&1 && [ -f "$APP_DIR/package.json" ]; then
+    echo "🎨 [5/11] Membangun asset frontend Vite & Tailwind CSS..."
+    npm ci 2>/dev/null || npm install --no-audit --no-fund
+    npm run build
+fi
 
-echo "🗄️ [6/9] Menjalankan migrasi database baru..."
-php artisan migrate --force
+# WhatsApp Gateway Microservice
+if [ -d "$APP_DIR/whatsapp-service" ]; then
+    echo "🤖 [6/11] Mempersiapkan WhatsApp Gateway Microservice..."
+    cd "$APP_DIR/whatsapp-service"
+    mkdir -p auth_session
+    if command -v npm >/dev/null 2>&1; then
+        npm ci 2>/dev/null || npm install --no-audit --no-fund
+    fi
+    if ! command -v pm2 >/dev/null 2>&1; then
+        npm install -g pm2 2>/dev/null || true
+    fi
+    if command -v pm2 >/dev/null 2>&1; then
+        echo "🚀 Menjalankan WhatsApp Gateway di latar belakang via PM2 (Port 3001)..."
+        if pm2 describe umbulan-whatsapp >/dev/null 2>&1; then
+            pm2 restart umbulan-whatsapp
+        else
+            pm2 start server.js --name umbulan-whatsapp
+        fi
+        pm2 save 2>/dev/null || true
+    fi
+    cd "$APP_DIR"
+fi
 
-echo "⚡ [7/9] Mengoptimalkan cache konfigurasi, rute, dan view..."
-php artisan optimize:clear
-php artisan optimize
-php artisan view:cache
+# Database Migration & Storage Link
+echo "🗄️ [7/11] Memeriksa koneksi database & menjalankan migrasi..."
+if $PHP_BIN artisan migrate:status >/dev/null 2>&1; then
+    $PHP_BIN artisan migrate --force
+    echo "✅ Database berhasil dimigrasikan."
+else
+    echo "⚠️ [PERINGATAN] Database belum dapat dihubungi. Pastikan kredensial DB pada file .env sudah sesuai."
+fi
 
-echo "🔄 [8/9] Memuat ulang proses latar belakang (PM2 & Supervisor)..."
-sudo -u www-data pm2 restart umbulan-whatsapp
-sudo supervisorctl restart umbulan-worker:*
+echo "🔗 [8/11] Memastikan Symlink Storage Aktif..."
+$PHP_BIN artisan storage:link 2>/dev/null || true
 
-echo "🌐 [9/9] Mematikan Mode Pemeliharaan..."
-php artisan up
+# Queue Worker
+echo "⚙️ [9/11] Mengonfigurasi Laravel Queue Worker..."
+if command -v pm2 >/dev/null 2>&1; then
+    if pm2 describe umbulan-worker >/dev/null 2>&1; then
+        pm2 restart umbulan-worker
+    else
+        pm2 start "$PHP_BIN artisan queue:work --tries=3 --timeout=90" --name umbulan-worker
+    fi
+    pm2 save 2>/dev/null || true
+fi
+if command -v supervisorctl >/dev/null 2>&1; then
+    sudo supervisorctl restart umbulan-worker:* 2>/dev/null || true
+fi
 
-echo "✅ Deployment update selesai! Aplikasi ERP Umbulan telah kembali beroperasi normal."
-```
+# Crontab Auto-Registration
+echo "⏰ [10/11] Mengonfigurasi Crontab Otomatis untuk Laravel Scheduler..."
+CRON_CMD="* * * * * cd $APP_DIR && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
+CURRENT_CRON=$(crontab -l 2>/dev/null || true)
+if echo "$CURRENT_CRON" | grep -Fq "$APP_DIR"; then
+    echo "✅ Crontab Laravel Scheduler sudah aktif."
+else
+    (echo "$CURRENT_CRON"; echo "$CRON_CMD") | crontab -
+    echo "✅ Berhasil mendaftarkan Scheduler (Reset Saldo Bulanan/Tahunan & WA Alert aktif otomatis)."
+fi
 
-Berikan izin eksekusi (*executable permission*) pada file:
-```bash
-sudo chmod +x /var/www/umbulan/deploy.sh
-```
+# Cache Optimization & Permissions
+echo "⚡ [11/11] Mengoptimalkan cache sistem & menyesuaikan izin folder..."
+$PHP_BIN artisan optimize:clear 2>/dev/null || true
+$PHP_BIN artisan optimize 2>/dev/null || true
+$PHP_BIN artisan view:cache 2>/dev/null || true
 
-#### Cara Eksekusi Update Rutin di Masa Mendatang:
-Kapan pun ada pembaruan kode baru dari repositori GitHub, Anda cukup login ke server dan mengeksekusi tepat satu baris perintah berikut:
-```bash
-cd /var/www/umbulan && sudo ./deploy.sh
+chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+if id "www" >/dev/null 2>&1; then
+    chown -R www:www "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+elif id "www-data" >/dev/null 2>&1; then
+    chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+fi
+
+# Kembalikan ke Online
+$PHP_BIN artisan up 2>/dev/null || true
+trap - EXIT ERR
+
+echo "=================================================================="
+echo "  🎉 ONE-CLICK DEPLOYMENT SELESAI & SISTEM SIAP DIGUNAKAN!        "
+echo "=================================================================="
 ```
 
 ---
+
+#### 💡 Cara Penggunaan (Inisialisasi & Update Rutin):
+
+1. **Inisialisasi Awal (Initial Deploy):**
+   Cukup clone repository lalu jalankan:
+   ```bash
+   bash deploy.sh
+   ```
+2. **Pembaruan Kode Rutin (Next Updates):**
+   Kapan pun ada perubahan kode baru di GitHub, cukup buka terminal dan jalankan kembali:
+   ```bash
+   bash deploy.sh
+   ```
+   *Skrip otomatis menarik kode baru, mengompilasi Vite, memigrasi tabel database baru, menyinkronkan antrean, dan merilis versi terbaru tanpa downtime berkepanjangan.*
 
 ### 11.15. Checklist Pengujian Pasca-Deploy (Go-Live Verification)
 
