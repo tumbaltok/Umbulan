@@ -268,13 +268,28 @@
                                         $assignedRmIdsJson = json_encode($karyawan->assignedStations->pluck('id')->toArray());
                                     @endphp
                                     <div class="flex flex-col items-center gap-1.5">
-                                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-600 role-label-{{ $karyawan->id }}">
-                                            {{ $roleNames ?: 'Tidak Ada Role' }}
-                                        </span>
+                                        <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                                            <span class="px-2.5 py-1 rounded-lg text-xs font-semibold inline-block bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-600 role-label-{{ $karyawan->id }}">
+                                                {{ $roleNames ?: 'Tidak Ada Role' }}
+                                            </span>
+                                            @if(($karyawan->level ?? 3) == 1)
+                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800 inline-flex items-center gap-1 shadow-2xs" title="Level 1: Administrator (Full Akses)">
+                                                    <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin
+                                                </span>
+                                            @elseif(($karyawan->level ?? 3) == 2)
+                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1 shadow-2xs" title="Level 2: Monitor (Read-Only)">
+                                                    <i class="fa-solid fa-eye text-[9px]"></i> Monitor
+                                                </span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1" title="Level 3: Staff (User Biasa)">
+                                                    <i class="fa-solid fa-user text-[9px]"></i> Staff
+                                                </span>
+                                            @endif
+                                        </div>
                                         <button type="button"
-                                            onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }}, {{ $assignedRmIdsJson }})'
+                                            onclick='bukaModalKelolaRole({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $roleIdsJson }}, {{ $assignedRmIdsJson }}, {{ (int)($karyawan->level ?? 3) }})'
                                             class="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline inline-flex items-center gap-1 cursor-pointer">
-                                            <i class="fa-solid fa-user-tag text-[10px]"></i> Kelola Role
+                                            <i class="fa-solid fa-user-tag text-[10px]"></i> Kelola Role & Level
                                         </button>
                                     </div>
                                 </td>
@@ -528,6 +543,47 @@
             <input type="hidden" id="kelola_role_user_id" name="user_id">
 
             <div class="space-y-4">
+                {{-- Level Hak Akses Personal --}}
+                <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-sky-600 dark:text-sky-400"></i> Level Hak Akses Akun Personal
+                        </label>
+                        <span class="text-[10px] text-slate-400 font-medium">Menentukan izin level akun</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <label class="relative flex flex-col p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-purple-500 transition-all text-xs has-checked:border-purple-600 has-checked:bg-purple-50/40 dark:has-checked:bg-purple-950/30">
+                            <div class="flex items-center gap-2 mb-1">
+                                <input type="radio" name="user_level" value="1" class="text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer">
+                                <span class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 text-[11px]">
+                                    <i class="fa-solid fa-crown text-purple-600 dark:text-purple-400 text-[10px]"></i> Level 1 (Admin)
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Akses penuh sistem, edit, hapus, & konfigurasi</span>
+                        </label>
+
+                        <label class="relative flex flex-col p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-amber-500 transition-all text-xs has-checked:border-amber-600 has-checked:bg-amber-50/40 dark:has-checked:bg-amber-950/30">
+                            <div class="flex items-center gap-2 mb-1">
+                                <input type="radio" name="user_level" value="2" class="text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer">
+                                <span class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 text-[11px]">
+                                    <i class="fa-solid fa-eye text-amber-600 dark:text-amber-400 text-[10px]"></i> Level 2 (Monitor)
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Hanya melihat dashboard & data (Read-Only)</span>
+                        </label>
+
+                        <label class="relative flex flex-col p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-sky-500 transition-all text-xs has-checked:border-sky-600 has-checked:bg-sky-50/40 dark:has-checked:bg-sky-950/30">
+                            <div class="flex items-center gap-2 mb-1">
+                                <input type="radio" name="user_level" value="3" class="text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer">
+                                <span class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 text-[11px]">
+                                    <i class="fa-solid fa-user text-sky-600 dark:text-sky-400 text-[10px]"></i> Level 3 (Staff)
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Pengguna standar / staf operasional & pengajuan</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
@@ -1315,9 +1371,16 @@
     }
 
     // HANDLER MODAL KELOLA MULTI-ROLE KARYAWAN
-    function bukaModalKelolaRole(userId, userName, roleIds, assignedStationIds = []) {
+    function bukaModalKelolaRole(userId, userName, roleIds, assignedStationIds = [], userLevel = 3) {
         document.getElementById('kelola_role_user_id').value = userId;
         document.getElementById('labelKelolaRoleNama').innerText = 'Karyawan: ' + userName;
+
+        // Set status radio button level hak akses personal
+        const levelVal = parseInt(userLevel) || 3;
+        const levelRadios = document.querySelectorAll('input[name="user_level"]');
+        levelRadios.forEach(r => {
+            r.checked = (parseInt(r.value) === levelVal);
+        });
 
         const roleIdsArr = Array.isArray(roleIds) ? roleIds.map(Number) : [];
         const checkboxes = document.querySelectorAll('.kelola-role-checkbox');
@@ -1431,6 +1494,7 @@
         const userId = document.getElementById('kelola_role_user_id').value;
         const checked = Array.from(document.querySelectorAll('.kelola-role-checkbox:checked')).map(cb => cb.value);
         const checkedRm = Array.from(document.querySelectorAll('.kelola-rm-checkbox:checked')).map(cb => cb.value);
+        const selectedLevel = document.querySelector('input[name="user_level"]:checked')?.value || 3;
 
         const errorMsg = document.getElementById('kelola-role-error');
         if (checked.length === 0) {
@@ -1452,7 +1516,11 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({ roles: checked, assigned_stations: checkedRm })
+                body: JSON.stringify({ 
+                    roles: checked, 
+                    assigned_stations: checkedRm,
+                    level: parseInt(selectedLevel)
+                })
             });
 
             const res = await response.json();

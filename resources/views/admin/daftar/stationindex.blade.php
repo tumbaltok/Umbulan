@@ -1214,7 +1214,7 @@
                                     id="btn_gps_${curIdx}"
                                     onclick="ambilGpsSaya(${curIdx})" 
                                     class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0">
-                                <i class="fa-solid fa-location-crosshairs text-xs"></i> Gunakan GPS Saya
+                                <i class="fa-solid fa-location-crosshairs text-xs"></i> Gunakan Lokasi Saat Ini
                             </button>
                         </div>
                     </div>

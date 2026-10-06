@@ -128,7 +128,7 @@
     <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-xs transition-colors">
         <div class="flex space-x-2">
             <button type="button" onclick="switchRoleTab('tab-hierarchy')" id="btn-tab-hierarchy" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-sky-600 text-white shadow-xs cursor-pointer">
-                <i class="fa-solid fa-sitemap mr-1.5"></i> Skema Pohon & Matriks Atasan
+                <i class="fa-solid fa-sitemap mr-1.5"></i> Skema Pohon
             </button>
             <button type="button" onclick="switchRoleTab('tab-roles')" id="btn-tab-roles" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
                 <i class="fa-solid fa-user-shield mr-1.5"></i> Daftar Role
@@ -136,9 +136,8 @@
         </div>
     </div>
 
-    {{-- TAB 1: SKEMA POHON HIRARKI & MATRIKS RELASI ATASAN --}}
+    {{-- TAB 1: SKEMA POHON HIRARKI --}}
     <div id="tab-hierarchy" class="tab-content space-y-6">
-
         {{-- DIAGRAM VISUAL POHON ORGANISASI JABATAN --}}
         <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm p-6 space-y-4 transition-colors">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4">
@@ -146,7 +145,7 @@
                     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <i class="fa-solid fa-sitemap text-indigo-600 dark:text-indigo-400"></i> Visualisasi Skema Struktur Organisasi
                     </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Diagram hirarki struktur komando yang dirender otomatis dari database.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Diagram hirarki struktur komando yang dirender otomatis dari relasi atasan langsung di database.</p>
                 </div>
                 <button type="button" onclick="renderMermaidDiagram()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer">
                     <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Diagram
@@ -156,210 +155,6 @@
             <div class="mermaid-container flex justify-center py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
                 <div id="mermaidDiagram" class="w-full flex justify-center min-h-[180px]"></div>
             </div>
-        </div>
-
-        {{-- FORM MATRIKS CUSTOM RELASI ATASAN & DYNAMIC APPROVAL RULES --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm p-6 space-y-6 transition-colors">
-            <div class="border-b border-slate-100 dark:border-slate-700 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-sky-600 dark:text-sky-400"></i> Matriks Hierarki & Penyetuju Dinamis
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Atur struktur atasan langsung serta alur persetujuan (1 Step / 2 Step) untuk Modul CUTI, MPR, dan CAR.</p>
-                </div>
-
-                {{-- SUB-TAB SWITCHER MODUL --}}
-                <div class="flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-xl gap-1 self-start">
-                    <button type="button" onclick="switchMatrixTab('matrix-cuti')" id="btn-matrix-cuti" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-umbrella-beach text-[11px]"></i> Modul Cuti
-                    </button>
-                    <button type="button" onclick="switchMatrixTab('matrix-mpr')" id="btn-matrix-mpr" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-boxes-packing text-[11px]"></i> Modul MPR
-                    </button>
-                    <button type="button" onclick="switchMatrixTab('matrix-car')" id="btn-matrix-car" class="matrix-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i> Modul CAR
-                    </button>
-                </div>
-            </div>
-
-            <form action="{{ route('admin.role.hierarchy.update') }}" method="POST">
-                @csrf
-                <div class="overflow-x-auto border border-slate-100 dark:border-slate-700 rounded-xl">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold uppercase border-b border-slate-100 dark:border-slate-700">
-                                <th class="p-3.5">Role / Jabatan</th>
-                                <th class="p-3.5">Atasan Langsung (Struktur)</th>
-                                
-                                {{-- HEADER CUTI --}}
-                                <th class="p-3.5 text-center col-matrix-cuti">Alur Cuti</th>
-                                <th class="p-3.5 col-matrix-cuti">Approver Cuti (Step 1)</th>
-                                <th class="p-3.5 col-matrix-cuti">Approver Cuti (Step 2)</th>
-
-                                {{-- HEADER CAR --}}
-                                <th class="p-3.5 text-center col-matrix-car hidden">Alur CAR</th>
-                                <th class="p-3.5 col-matrix-car hidden">Approver CAR (Step 1)</th>
-                                <th class="p-3.5 col-matrix-car hidden">Approver CAR (Step 2)</th>
-
-                                {{-- HEADER MPR --}}
-                                <th class="p-3.5 text-center col-matrix-mpr hidden">Alur MPR</th>
-                                <th class="p-3.5 col-matrix-mpr hidden">Approver MPR (Step 1)</th>
-                                <th class="p-3.5 col-matrix-mpr hidden">Approver MPR (Step 2)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
-                            @foreach($daftarRole as $idx => $r)
-                                @php
-                                    $rules = $r->approval_rules ?? [];
-                                    
-                                    // Rule Cuti
-                                    $cutiRules = $rules['cuti'] ?? [];
-                                    $cutiLevels = $cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1);
-                                    $cutiLvl1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-                                    $cutiLvl2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-
-                                    // Rule CAR
-                                    $carRules = $rules['car'] ?? [];
-                                    $carLevels = $carRules['levels'] ?? ($rules['approval_levels'] ?? 1);
-                                    $carLvl1RoleId = $carRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-                                    $carLvl2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-
-                                    // Rule MPR
-                                    $mprRules = $rules['mpr'] ?? [];
-                                    $mprLevels = $mprRules['levels'] ?? ($rules['approval_levels'] ?? 1);
-                                    $mprLvl1RoleId = $mprRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-                                    $mprLvl2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-                                @endphp
-                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/40 transition-colors">
-                                    {{-- NAMA ROLE --}}
-                                    <td class="p-3 font-bold text-slate-800 dark:text-slate-100 align-middle">
-                                        <input type="hidden" name="hierarchy[{{ $idx }}][role_id]" value="{{ $r->id }}">
-                                        <div class="flex items-center gap-1.5">
-                                            <span>{{ $r->role_name }}</span>
-                                        </div>
-                                    </td>
-
-                                    {{-- PARENT ROLE --}}
-                                    <td class="p-3 align-middle">
-                                        <select name="hierarchy[{{ $idx }}][parent_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
-                                            <option value="">-- Top Level (Tidak Ada Atasan) --</option>
-                                            @foreach($daftarRole as $parentCandidate)
-                                                @if($parentCandidate->id != $r->id)
-                                                    <option value="{{ $parentCandidate->id }}" {{ $r->parent_role_id == $parentCandidate->id ? 'selected' : '' }}>
-                                                        {{ $parentCandidate->role_name }}
-                                                    </option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-                                    </td>
-
-                                    {{-- ==================== KOLOM MODUL CUTI ==================== --}}
-                                    <td class="p-3 text-center align-middle col-matrix-cuti">
-                                        <select name="hierarchy[{{ $idx }}][cuti_approval_levels]"
-                                                onchange="toggleCutiApproverInputs(this, {{ $idx }})"
-                                                class="px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:border-sky-500 cursor-pointer">
-                                            <option value="1" {{ $cutiLevels == 1 ? 'selected' : '' }}>1 Step</option>
-                                            <option value="2" {{ $cutiLevels == 2 ? 'selected' : '' }}>2 Step</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-cuti">
-                                        <select name="hierarchy[{{ $idx }}][cuti_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:border-sky-500 cursor-pointer">
-                                            <option value="">-- Pilih Role Penyetuju (Step 1) --</option>
-                                            @foreach($daftarRole as $approverCandidate)
-                                                <option value="{{ $approverCandidate->id }}" {{ $cutiLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                    {{ $approverCandidate->role_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-cuti">
-                                        <div id="box_cuti_approver_lvl2_{{ $idx }}" class="{{ $cutiLevels == 2 ? '' : 'hidden' }}">
-                                            <select name="hierarchy[{{ $idx }}][cuti_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs focus:border-indigo-500 cursor-pointer">
-                                                <option value="">-- Pilih Role Penyetuju (Step 2) --</option>
-                                                @foreach($daftarRole as $approverCandidate)
-                                                    <option value="{{ $approverCandidate->id }}" {{ $cutiLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                        {{ $approverCandidate->role_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-
-                                    {{-- ==================== KOLOM MODUL MPR ==================== --}}
-                                    <td class="p-3 text-center align-middle col-matrix-mpr hidden">
-                                        <select name="hierarchy[{{ $idx }}][mpr_approval_levels]"
-                                                onchange="toggleMprApproverInputs(this, {{ $idx }})"
-                                                class="px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:border-purple-500 cursor-pointer">
-                                            <option value="1" {{ $mprLevels == 1 ? 'selected' : '' }}>1 Step</option>
-                                            <option value="2" {{ $mprLevels == 2 ? 'selected' : '' }}>2 Step</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-mpr hidden">
-                                        <select name="hierarchy[{{ $idx }}][mpr_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:border-purple-500 cursor-pointer">
-                                            <option value="">-- Pilih Role Penyetuju MPR (Step 1) --</option>
-                                            @foreach($daftarRole as $approverCandidate)
-                                                <option value="{{ $approverCandidate->id }}" {{ $mprLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                    {{ $approverCandidate->role_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-mpr hidden">
-                                        <div id="box_mpr_approver_lvl2_{{ $idx }}" class="{{ $mprLevels == 2 ? '' : 'hidden' }}">
-                                            <select name="hierarchy[{{ $idx }}][mpr_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-purple-200 dark:border-purple-800 rounded-lg text-xs focus:border-purple-500 cursor-pointer">
-                                                <option value="">-- Pilih Role Penyetuju MPR (Step 2) --</option>
-                                                @foreach($daftarRole as $approverCandidate)
-                                                    <option value="{{ $approverCandidate->id }}" {{ $mprLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                        {{ $approverCandidate->role_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-
-                                    {{-- ==================== KOLOM MODUL CAR ==================== --}}
-                                    <td class="p-3 text-center align-middle col-matrix-car hidden">
-                                        <select name="hierarchy[{{ $idx }}][car_approval_levels]"
-                                                onchange="toggleCarApproverInputs(this, {{ $idx }})"
-                                                class="px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:border-emerald-500 cursor-pointer">
-                                            <option value="1" {{ $carLevels == 1 ? 'selected' : '' }}>1 Step</option>
-                                            <option value="2" {{ $carLevels == 2 ? 'selected' : '' }}>2 Step</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-car hidden">
-                                        <select name="hierarchy[{{ $idx }}][car_approver_1_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
-                                            <option value="">-- Pilih Role Penyetuju CAR (Step 1) --</option>
-                                            @foreach($daftarRole as $approverCandidate)
-                                                <option value="{{ $approverCandidate->id }}" {{ $carLvl1RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                    {{ $approverCandidate->role_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="p-3 align-middle col-matrix-car hidden">
-                                        <div id="box_car_approver_lvl2_{{ $idx }}" class="{{ $carLevels == 2 ? '' : 'hidden' }}">
-                                            <select name="hierarchy[{{ $idx }}][car_approver_2_role_id]" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs focus:border-emerald-500 cursor-pointer">
-                                                <option value="">-- Pilih Role Penyetuju CAR (Step 2) --</option>
-                                                @foreach($daftarRole as $approverCandidate)
-                                                    <option value="{{ $approverCandidate->id }}" {{ $carLvl2RoleId == $approverCandidate->id ? 'selected' : '' }}>
-                                                        {{ $approverCandidate->role_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Seluruh Matriks Hirarki
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -375,10 +170,10 @@
                             {{ isset($daftarRole) ? count($daftarRole) : 0 }} Role
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kelola tingkat hak akses dan hirarki wewenang jabatan.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kelola nama jabatan, hierarki struktur atasan langsung, dan alur approver modul.</p>
                 </div>
 
-                @if(Auth::user()->isLevel1())
+                @if(Auth::user()?->isLevel1())
                 <button type="button" onclick="bukaModalTambahRole()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> Tambah Role Baru
                 </button>
@@ -391,46 +186,110 @@
                         <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 select-none">
                             <th class="px-4 py-3.5">Role / Jabatan</th>
                             <th class="px-4 py-3.5">Atasan Langsung</th>
-                            <th class="px-4 py-3.5">Hak Akses</th>
+                            <th class="px-4 py-3.5">Alur & Approver Modul</th>
                             <th class="px-4 py-3.5">Deskripsi Wewenang</th>
                             <th class="px-4 py-3.5 text-center">Total Staf</th>
-                            @if(Auth::user()->isLevel1())
-                            <th class="px-4 py-3.5 text-center w-20">Aksi</th>
+                            @if(Auth::user()?->isLevel1())
+                            <th class="px-4 py-3.5 text-center w-24">Aksi</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300 text-xs">
                         @forelse($daftarRole as $role)
+                            @php
+                                $rules = $role->approval_rules ?? [];
+                                
+                                // Cuti
+                                $cutiRules = $rules['cuti'] ?? [];
+                                $cutiLevels = $cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1);
+                                $cutiLvl1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
+                                $cutiLvl2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
+                                $cutiLvl1Role = $daftarRole->firstWhere('id', $cutiLvl1RoleId);
+                                $cutiLvl2Role = $daftarRole->firstWhere('id', $cutiLvl2RoleId);
+
+                                // MPR
+                                $mprRules = $rules['mpr'] ?? [];
+                                $mprLevels = $mprRules['levels'] ?? 1;
+                                $mprLvl1RoleId = $mprRules['approver_1_role_id'] ?? null;
+                                $mprLvl2RoleId = $mprRules['approver_2_role_id'] ?? null;
+                                $mprLvl1Role = $daftarRole->firstWhere('id', $mprLvl1RoleId);
+                                $mprLvl2Role = $daftarRole->firstWhere('id', $mprLvl2RoleId);
+
+                                // CAR
+                                $carRules = $rules['car'] ?? [];
+                                $carLevels = $carRules['levels'] ?? 1;
+                                $carLvl1RoleId = $carRules['approver_1_role_id'] ?? null;
+                                $carLvl2RoleId = $carRules['approver_2_role_id'] ?? null;
+                                $carLvl1Role = $daftarRole->firstWhere('id', $carLvl1RoleId);
+                                $carLvl2Role = $daftarRole->firstWhere('id', $carLvl2RoleId);
+                            @endphp
                             <tr class="role-row hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
-                                <td class="px-4 py-3 font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">{{ $role->role_name }}</td>
+                                <td class="px-4 py-3 font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                                        <span>{{ $role->role_name }}</span>
+                                    </div>
+                                </td>
 
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     @if($role->parentRole)
-                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-100 dark:border-sky-800 inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-turn-up text-[9px]"></i> {{ $role->parentRole->role_name }}
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800 inline-flex items-center gap-1.5 shadow-2xs">
+                                            <i class="fa-solid fa-arrow-turn-up text-[9px] text-sky-500"></i> {{ $role->parentRole->role_name }}
                                         </span>
                                     @else
-                                        <span class="text-[11px] text-slate-400 italic">Top Level (Puncak)</span>
-                                    @endif
-                                </td>
-
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    @if(($role->level ?? 3) == 1)
-                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-800 inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-shield-halved text-[9px]"></i> Full Akses
-                                        </span>
-                                    @elseif(($role->level ?? 3) == 2)
-                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800 inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-eye text-[9px]"></i> Only Read
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-user text-[9px]"></i> User
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 uppercase tracking-wider">
+                                            Top Level (Puncak)
                                         </span>
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                                <td class="px-4 py-3">
+                                    <div class="flex flex-col gap-1.5 text-[11px] min-w-[220px]">
+                                        {{-- Cuti --}}
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800 shrink-0">
+                                                Cuti
+                                            </span>
+                                            @if($cutiLvl1Role)
+                                                <span class="text-slate-700 dark:text-slate-300 font-medium">
+                                                    {{ $cutiLevels }} Step: {{ $cutiLvl1Role->role_name }}{{ $cutiLevels == 2 && $cutiLvl2Role ? ' → ' . $cutiLvl2Role->role_name : '' }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400 italic text-[10px]">Belum diatur</span>
+                                            @endif
+                                        </div>
+
+                                        {{-- MPR --}}
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800 shrink-0">
+                                                MPR
+                                            </span>
+                                            @if($mprLvl1Role)
+                                                <span class="text-slate-700 dark:text-slate-300 font-medium">
+                                                    {{ $mprLevels }} Step: {{ $mprLvl1Role->role_name }}{{ $mprLevels == 2 && $mprLvl2Role ? ' → ' . $mprLvl2Role->role_name : '' }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400 italic text-[10px]">Belum diatur</span>
+                                            @endif
+                                        </div>
+
+                                        {{-- CAR --}}
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800 shrink-0">
+                                                CAR
+                                            </span>
+                                            @if($carLvl1Role)
+                                                <span class="text-slate-700 dark:text-slate-300 font-medium">
+                                                    {{ $carLevels }} Step: {{ $carLvl1Role->role_name }}{{ $carLevels == 2 && $carLvl2Role ? ' → ' . $carLvl2Role->role_name : '' }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400 italic text-[10px]">Belum diatur</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-4 py-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 max-w-xs truncate">
                                     {{ $role->description ?? '-' }}
                                 </td>
 
@@ -441,25 +300,24 @@
                                     </span>
                                 </td>
 
-                                @if(Auth::user()->isLevel1())
+                                @if(Auth::user()?->isLevel1())
                                 <td class="px-4 py-3.5 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center space-x-1.5">
                                         <button type="button"
-                                                data-role='@json($role)'
-                                                onclick="bukaModalEditRole(this)"
-                                                class="p-1 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-md text-xs transition-colors cursor-pointer"
-                                                title="Edit Role">
-                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                onclick='bukaModalEditRoleDetailed({{ $role->id }}, "{{ addslashes($role->role_name) }}", {{ $role->parent_role_id ?? "null" }}, "{{ addslashes($role->description ?? "") }}", {{ json_encode($role->approval_rules ?? []) }})'
+                                                class="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-xl text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                                                title="Edit Role & Hierarki / Approver">
+                                            <i class="fa-solid fa-pen-to-square text-[11px]"></i> Edit
                                         </button>
 
                                         <form id="form-delete-role-{{ $role->id }}" action="{{ route('admin.role.destroy', $role->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="button"
-                                                    onclick="konfirmasiHapus('form-delete-role-{{ $role->id }}', 'Role Jabatan: {{ $role->role_name }}')"
-                                                    class="p-1 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-md text-xs transition-colors cursor-pointer"
+                                                    onclick="konfirmasiHapus('form-delete-role-{{ $role->id }}', 'Role Jabatan: {{ addslashes($role->role_name) }}')"
+                                                    class="p-1.5 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-xl text-xs transition-colors cursor-pointer shadow-2xs"
                                                     title="Hapus Role">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                                <i class="fa-solid fa-trash-can text-[11px]"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -481,31 +339,215 @@
 @endsection
 
 @push('modals')
-{{-- MODAL FORM TAMBAH / EDIT ROLE --}}
-<div id="modalFormRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalFormRole()">
-    <div id="modalFormRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
+{{-- MODAL FORM TAMBAH ROLE --}}
+<div id="modalTambahRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalTambahRole()">
+    <div id="modalTambahRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4 shrink-0">
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base" id="judulModalFormRole">Tambah Role Baru</h3>
-            <button type="button" onclick="tutupModalFormRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
+            <div>
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-sky-600 dark:text-sky-400"></i> Tambah Role Baru
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tambah jabatan baru dan tentukan relasi atasan langsungnya.</p>
+            </div>
+            <button type="button" onclick="tutupModalTambahRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="formRoleAction" action="{{ route('admin.role.store') }}" method="POST" class="space-y-4 overflow-y-auto pr-1 flex-1 flex flex-col justify-between">
+        <form id="formTambahRoleAction" action="{{ route('admin.role.store') }}" method="POST" class="space-y-4 overflow-y-auto pr-1 flex-1 flex flex-col justify-between">
             @csrf
-            <input type="hidden" name="_method" id="methodFormRole" value="POST">
+            <div id="tambahRoleRowsContainer" class="space-y-4"></div>
 
-            <div id="roleRowsContainer" class="space-y-4"></div>
-
-            <div id="btnTambahRoleContainer" class="pt-2">
-                <button type="button" onclick="tambahBarisRole()" class="w-full py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-sky-600 dark:text-sky-400 border border-dashed border-sky-300 dark:border-sky-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer">
+            <div id="btnTambahRoleRowContainer" class="pt-2">
+                <button type="button" onclick="tambahBarisRoleBaru()" class="w-full py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-sky-600 dark:text-sky-400 border border-dashed border-sky-300 dark:border-sky-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer">
                     <i class="fa-solid fa-plus text-[10px]"></i> Tambah Baris Role Lain
                 </button>
             </div>
 
             <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0 mt-4">
-                <button type="button" onclick="tutupModalFormRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">Batal</button>
+                <button type="button" onclick="tutupModalTambahRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">Batal</button>
                 <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer">Simpan Data Role</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL EDIT ROLE, HIERARKI & PENYETUJU MODUL --}}
+<div id="modalEditRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalEditRole()">
+    <div id="modalEditRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[92vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4 shrink-0">
+            <div>
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-500"></i> Edit Role & Alur Persetujuan
+                </h3>
+                <p id="labelEditRoleNama" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold"></p>
+            </div>
+            <button type="button" onclick="tutupModalEditRole()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form id="formEditRoleAction" method="POST" class="space-y-4 overflow-y-auto pr-1 flex-1 flex flex-col justify-between">
+            @csrf
+            @method('PUT')
+
+            <div class="space-y-4">
+                {{-- SECTION 1: INFORMASI ROLE & HIERARKI --}}
+                <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-sitemap text-sky-600 dark:text-sky-400"></i> Identitas Jabatan & Atasan Langsung
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Nama Role / Jabatan <span class="text-rose-500">*</span></label>
+                            <input type="text" id="edit_role_name" name="role_name" required placeholder="Nama role / jabatan" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-sky-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Atasan Langsung (Struktur)</label>
+                            <select id="edit_parent_role_id" name="parent_role_id" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs focus:outline-none focus:border-sky-500 cursor-pointer">
+                                <option value="">-- Top Level (Puncak / Tanpa Atasan) --</option>
+                                @foreach($daftarRole as $p)
+                                    <option value="{{ $p->id }}" id="opt_parent_role_{{ $p->id }}">{{ $p->role_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Deskripsi Wewenang / Catatan</label>
+                        <textarea id="edit_description" name="description" rows="2" placeholder="Penjelasan wewenang atau cakupan tugas..." class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs focus:outline-none focus:border-sky-500"></textarea>
+                    </div>
+                </div>
+
+                {{-- SECTION 2: ALUR PERSETUJUAN MODUL (CUTI, MPR, CAR) --}}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-stamp text-sky-600 dark:text-sky-400"></i> Alur Persetujuan Modul
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">Atur tahapan & role penyetuju tiap modul</span>
+                    </div>
+
+                    {{-- 1. MODUL CUTI --}}
+                    <div class="p-3.5 bg-sky-50/40 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/50 rounded-2xl space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-umbrella-beach text-sky-600 dark:text-sky-400"></i> Modul Pengajuan Cuti
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Tingkatan:</span>
+                                <select id="edit_cuti_approval_levels" name="cuti_approval_levels" onchange="toggleModalCutiStep(this.value)" class="px-2.5 py-1 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-sky-200 dark:border-sky-800 rounded-lg text-xs font-bold focus:border-sky-500 cursor-pointer">
+                                    <option value="1">1 Step</option>
+                                    <option value="2">2 Step</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 1</label>
+                                <select id="edit_cuti_approver_1_role_id" name="cuti_approver_1_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:border-sky-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 1) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div id="modal_box_cuti_step2" class="hidden">
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 2</label>
+                                <select id="edit_cuti_approver_2_role_id" name="cuti_approver_2_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-sky-300 dark:border-sky-700 rounded-xl text-xs focus:border-sky-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 2) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. MODUL MPR --}}
+                    <div class="p-3.5 bg-purple-50/40 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/50 rounded-2xl space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-boxes-packing text-purple-600 dark:text-purple-400"></i> Modul Pengajuan MPR
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Tingkatan:</span>
+                                <select id="edit_mpr_approval_levels" name="mpr_approval_levels" onchange="toggleModalMprStep(this.value)" class="px-2.5 py-1 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-purple-200 dark:border-purple-800 rounded-lg text-xs font-bold focus:border-purple-500 cursor-pointer">
+                                    <option value="1">1 Step</option>
+                                    <option value="2">2 Step</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 1</label>
+                                <select id="edit_mpr_approver_1_role_id" name="mpr_approver_1_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:border-purple-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 1) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div id="modal_box_mpr_step2" class="hidden">
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 2</label>
+                                <select id="edit_mpr_approver_2_role_id" name="mpr_approver_2_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-purple-300 dark:border-purple-700 rounded-xl text-xs focus:border-purple-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 2) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. MODUL CAR --}}
+                    <div class="p-3.5 bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-invoice-dollar text-emerald-600 dark:text-emerald-400"></i> Modul Pengajuan CAR
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Tingkatan:</span>
+                                <select id="edit_car_approval_levels" name="car_approval_levels" onchange="toggleModalCarStep(this.value)" class="px-2.5 py-1 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-bold focus:border-emerald-500 cursor-pointer">
+                                    <option value="1">1 Step</option>
+                                    <option value="2">2 Step</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 1</label>
+                                <select id="edit_car_approver_1_role_id" name="car_approver_1_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:border-emerald-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 1) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div id="modal_box_car_step2" class="hidden">
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Approver Step 2</label>
+                                <select id="edit_car_approver_2_role_id" name="car_approver_2_role_id" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-emerald-300 dark:border-emerald-700 rounded-xl text-xs focus:border-emerald-500 cursor-pointer">
+                                    <option value="">-- Pilih Role Penyetuju (Step 2) --</option>
+                                    @foreach($daftarRole as $ar)
+                                        <option value="{{ $ar->id }}">{{ $ar->role_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0 mt-4">
+                <button type="button" onclick="tutupModalEditRole()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">Batal</button>
+                <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan Role
+                </button>
             </div>
         </form>
     </div>
@@ -517,90 +559,48 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    var roleIndex = 0;
-
+    var roleTambahIndex = 0;
     var sessionSuccess   = {!! json_encode(session('success')) !!};
     var sessionError     = {!! json_encode(session('error')) !!};
-    var validationErrors = {!! json_encode($errors->all()) !!};
+    var validationErrors = {!! json_encode((isset($errors) && method_exists($errors, 'all')) ? $errors->all() : []) !!};
     var rawRolesData     = {!! json_encode($daftarRole ?? []) !!};
 
-    // SWITCH SUB-TAB MODUL MATRIKS HIERARKI (CUTI / CAR / MPR)
-    function switchMatrixTab(tabName) {
-        // Sembunyikan semua kolom modul
-        document.querySelectorAll('.col-matrix-cuti, .col-matrix-car, .col-matrix-mpr').forEach(el => {
-            el.classList.add('hidden');
-        });
-
-        // Reset styling tombol sub-tab
-        document.querySelectorAll('.matrix-tab-btn').forEach(btn => {
-            btn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-sky-700', 'dark:text-sky-400', 'shadow-xs', 'text-emerald-700', 'dark:text-emerald-400', 'text-purple-700', 'dark:text-purple-400');
-            btn.classList.add('text-slate-500', 'dark:text-slate-400', 'hover:text-slate-800', 'dark:hover:text-slate-200');
-        });
-
-        // Tampilkan kolom modul yang aktif
-        if (tabName === 'matrix-cuti') {
-            document.querySelectorAll('.col-matrix-cuti').forEach(el => el.classList.remove('hidden'));
-            const btn = document.getElementById('btn-matrix-cuti');
-            if (btn) {
-                btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-sky-700', 'dark:text-sky-400', 'shadow-xs');
-                btn.classList.remove('text-slate-500', 'dark:text-slate-400');
-            }
-        } else if (tabName === 'matrix-car') {
-            document.querySelectorAll('.col-matrix-car').forEach(el => el.classList.remove('hidden'));
-            const btn = document.getElementById('btn-matrix-car');
-            if (btn) {
-                btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-emerald-700', 'dark:text-emerald-400', 'shadow-xs');
-                btn.classList.remove('text-slate-500', 'dark:text-slate-400');
-            }
-        } else if (tabName === 'matrix-mpr') {
-            document.querySelectorAll('.col-matrix-mpr').forEach(el => el.classList.remove('hidden'));
-            const btn = document.getElementById('btn-matrix-mpr');
-            if (btn) {
-                btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-purple-700', 'dark:text-purple-400', 'shadow-xs');
-                btn.classList.remove('text-slate-500', 'dark:text-slate-400');
+    function toggleModalCutiStep(levels) {
+        const box = document.getElementById('modal_box_cuti_step2');
+        if (box) {
+            if (parseInt(levels) === 2) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+                const sel = document.getElementById('edit_cuti_approver_2_role_id');
+                if (sel) sel.value = '';
             }
         }
     }
 
-    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER CUTI LEVEL 2
-    function toggleCutiApproverInputs(selectElement, index) {
-        const boxLvl2 = document.getElementById(`box_cuti_approver_lvl2_${index}`);
-        if (!boxLvl2) return;
-
-        if (parseInt(selectElement.value) === 2) {
-            boxLvl2.classList.remove('hidden');
-        } else {
-            boxLvl2.classList.add('hidden');
-            const selectLvl2 = boxLvl2.querySelector('select');
-            if (selectLvl2) selectLvl2.value = '';
+    function toggleModalMprStep(levels) {
+        const box = document.getElementById('modal_box_mpr_step2');
+        if (box) {
+            if (parseInt(levels) === 2) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+                const sel = document.getElementById('edit_mpr_approver_2_role_id');
+                if (sel) sel.value = '';
+            }
         }
     }
 
-    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER CAR LEVEL 2
-    function toggleCarApproverInputs(selectElement, index) {
-        const boxLvl2 = document.getElementById(`box_car_approver_lvl2_${index}`);
-        if (!boxLvl2) return;
-
-        if (parseInt(selectElement.value) === 2) {
-            boxLvl2.classList.remove('hidden');
-        } else {
-            boxLvl2.classList.add('hidden');
-            const selectLvl2 = boxLvl2.querySelector('select');
-            if (selectLvl2) selectLvl2.value = '';
-        }
-    }
-
-    // DYNAMIC TOGGLE VISIBILITAS SELECT APPROVER MPR LEVEL 2
-    function toggleMprApproverInputs(selectElement, index) {
-        const boxLvl2 = document.getElementById(`box_mpr_approver_lvl2_${index}`);
-        if (!boxLvl2) return;
-
-        if (parseInt(selectElement.value) === 2) {
-            boxLvl2.classList.remove('hidden');
-        } else {
-            boxLvl2.classList.add('hidden');
-            const selectLvl2 = boxLvl2.querySelector('select');
-            if (selectLvl2) selectLvl2.value = '';
+    function toggleModalCarStep(levels) {
+        const box = document.getElementById('modal_box_car_step2');
+        if (box) {
+            if (parseInt(levels) === 2) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+                const sel = document.getElementById('edit_car_approver_2_role_id');
+                if (sel) sel.value = '';
+            }
         }
     }
 
@@ -702,7 +702,6 @@
         let targetTab = document.getElementById(tabId);
         let activeBtn = document.getElementById('btn-' + tabId);
 
-        // Fallback otomatis jika tabId tidak valid agar halaman tidak pernah kosong
         if (!targetTab || !activeBtn) {
             tabId = 'tab-hierarchy';
             targetTab = document.getElementById('tab-hierarchy');
@@ -743,7 +742,6 @@
 
         window.switchTab = switchRoleTab;
 
-        // Otomatis langsung aktifkan tab Skema Pohon & Matriks Atasan (atau dari session / localStorage)
         const sessionTab = {!! json_encode(session('active_tab')) !!};
         let savedTab = null;
         try {
@@ -810,68 +808,63 @@
         });
     }
 
-    function tambahBarisRole(roleData = null) {
-        const container = document.getElementById('roleRowsContainer');
+    // HANDLER MODAL TAMBAH ROLE
+    function tambahBarisRoleBaru() {
+        const container = document.getElementById('tambahRoleRowsContainer');
         const showDelete = container.children.length > 0;
 
-        const roleNameVal = roleData ? (roleData.role_name || '') : '';
-        const levelVal = roleData ? (roleData.level || 2) : 2;
-        const descVal = roleData ? (roleData.description || '') : '';
+        let parentOptionsHtml = '<option value="">-- Top Level (Puncak / Tanpa Atasan) --</option>';
+        if (rawRolesData && rawRolesData.length > 0) {
+            rawRolesData.forEach(r => {
+                parentOptionsHtml += `<option value="${r.id}">${r.role_name}</option>`;
+            });
+        }
 
         const rowHtml = `
             <div class="role-item-row bg-slate-50/70 dark:bg-slate-700/40 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 relative space-y-3">
                 ${showDelete ? `
-                    <button type="button" onclick="hapusBaris(this)" class="absolute top-3 right-3 text-slate-400 hover:text-rose-500 p-1 rounded-lg transition-colors cursor-pointer" title="Hapus Baris Ini">
+                    <button type="button" onclick="hapusBarisTambah(this)" class="absolute top-3 right-3 text-slate-400 hover:text-rose-500 p-1 rounded-lg transition-colors cursor-pointer" title="Hapus Baris Ini">
                         <i class="fa-solid fa-trash-can text-sm"></i>
                     </button>
                 ` : ''}
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Nama Role / Jabatan</label>
-                    <input type="text" name="roles[${roleIndex}][role_name]" value="${roleNameVal}" required placeholder="Contoh: Supervisor Operasional" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Nama Role / Jabatan <span class="text-rose-500">*</span></label>
+                    <input type="text" name="roles[${roleTambahIndex}][role_name]" required placeholder="Contoh: Supervisor Operasional" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-sky-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Tipe Hak Akses</label>
-                    <select name="roles[${roleIndex}][level]" required class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 transition-colors cursor-pointer">
-                        <option value="1" ${levelVal == 1 ? 'selected' : ''}>Level 1: Full Akses (Dapat Mengelola & Mengedit Data Admin)</option>
-                        <option value="2" ${levelVal == 2 ? 'selected' : ''}>Level 2: Only Read (Monitoring Fitur Admin, Penggunaan App Normal)</option>
-                        <option value="3" ${levelVal == 3 ? 'selected' : ''}>Level 3: User (Staff Khusus Antarmuka Karyawan)</option>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Atasan Langsung (Struktur)</label>
+                    <select name="roles[${roleTambahIndex}][parent_role_id]" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 transition-colors cursor-pointer">
+                        ${parentOptionsHtml}
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Deskripsi Wewenang</label>
-                    <textarea name="roles[${roleIndex}][description]" rows="2" placeholder="Penjelasan wewenang role..." class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs focus:outline-none focus:border-sky-500">${descVal}</textarea>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Deskripsi Wewenang / Catatan</label>
+                    <textarea name="roles[${roleTambahIndex}][description]" rows="2" placeholder="Penjelasan wewenang role..." class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-xl text-xs focus:outline-none focus:border-sky-500"></textarea>
                 </div>
             </div>
         `;
 
         container.insertAdjacentHTML('beforeend', rowHtml);
-        roleIndex++;
+        roleTambahIndex++;
     }
 
-    function hapusBaris(btn) {
+    function hapusBarisTambah(btn) {
         const parentRow = btn.closest('.role-item-row');
         if (parentRow) parentRow.remove();
     }
 
     function bukaModalTambahRole() {
-        document.getElementById('judulModalFormRole').innerText = 'Tambah Role Baru';
-        document.getElementById('formRoleAction').action = "{{ route('admin.role.store') }}";
-        document.getElementById('methodFormRole').value = 'POST';
+        document.getElementById('tambahRoleRowsContainer').innerHTML = '';
+        roleTambahIndex = 0;
+        tambahBarisRoleBaru();
 
-        document.getElementById('roleRowsContainer').innerHTML = '';
-        document.getElementById('btnTambahRoleContainer').classList.remove('hidden');
-        roleIndex = 0;
-
-        tambahBarisRole();
-
-        const modal = document.getElementById('modalFormRole');
-        const modalCard = document.getElementById('modalFormRoleCard');
+        const modal = document.getElementById('modalTambahRole');
+        const modalCard = document.getElementById('modalTambahRoleCard');
 
         if (modal) {
-            // Pastikan modal menempel di document.body agar posisi fixed selalu floating di tengah viewport
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
@@ -888,43 +881,9 @@
         }
     }
 
-    function bukaModalEditRole(button) {
-        const role = JSON.parse(button.getAttribute('data-role'));
-
-        document.getElementById('judulModalFormRole').innerText = 'Edit Role Jabatan';
-        document.getElementById('formRoleAction').action = `/admin/role/${role.id}`;
-        document.getElementById('methodFormRole').value = 'PUT';
-
-        document.getElementById('roleRowsContainer').innerHTML = '';
-        document.getElementById('btnTambahRoleContainer').classList.add('hidden');
-        roleIndex = 0;
-
-        tambahBarisRole(role);
-
-        const modal = document.getElementById('modalFormRole');
-        const modalCard = document.getElementById('modalFormRoleCard');
-
-        if (modal) {
-            // Pastikan modal menempel di document.body agar posisi fixed selalu floating di tengah viewport
-            if (modal.parentElement !== document.body) {
-                document.body.appendChild(modal);
-            }
-            document.body.classList.add('overflow-hidden');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            if (modalCard) {
-                setTimeout(() => {
-                    modalCard.classList.remove('scale-95', 'opacity-0');
-                    modalCard.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            }
-        }
-    }
-
-    function tutupModalFormRole() {
-        const modal = document.getElementById('modalFormRole');
-        const modalCard = document.getElementById('modalFormRoleCard');
+    function tutupModalTambahRole() {
+        const modal = document.getElementById('modalTambahRole');
+        const modalCard = document.getElementById('modalTambahRoleCard');
 
         if (modalCard) {
             modalCard.classList.remove('scale-100', 'opacity-100');
@@ -940,12 +899,102 @@
         }, 150);
     }
 
-    // Listener tombol Escape untuk modal form role
+    // HANDLER MODAL EDIT ROLE & ALUR APPROVER
+    function bukaModalEditRoleDetailed(roleId, roleName, parentRoleId, description, approvalRules) {
+        document.getElementById('labelEditRoleNama').innerText = 'Role: ' + roleName;
+        document.getElementById('formEditRoleAction').action = `/admin/role/${roleId}`;
+
+        document.getElementById('edit_role_name').value = roleName || '';
+        document.getElementById('edit_description').value = description || '';
+
+        // Atur opsi parent role (sembunyikan opsi diri sendiri)
+        const parentSelect = document.getElementById('edit_parent_role_id');
+        Array.from(parentSelect.options).forEach(opt => {
+            opt.hidden = (parseInt(opt.value) === parseInt(roleId));
+        });
+        parentSelect.value = parentRoleId ? parentRoleId : '';
+
+        // Parse approvalRules
+        const rules = (approvalRules && typeof approvalRules === 'object') ? approvalRules : {};
+
+        // Cuti
+        const cutiRules = rules.cuti || {};
+        const cutiLvl = cutiRules.levels || rules.approval_levels || 1;
+        const cutiApp1 = cutiRules.approver_1_role_id || rules.approver_level_1_role_id || '';
+        const cutiApp2 = cutiRules.approver_2_role_id || rules.approver_level_2_role_id || '';
+        document.getElementById('edit_cuti_approval_levels').value = cutiLvl;
+        document.getElementById('edit_cuti_approver_1_role_id').value = cutiApp1;
+        document.getElementById('edit_cuti_approver_2_role_id').value = cutiApp2;
+        toggleModalCutiStep(cutiLvl);
+
+        // MPR
+        const mprRules = rules.mpr || {};
+        const mprLvl = mprRules.levels || 1;
+        const mprApp1 = mprRules.approver_1_role_id || '';
+        const mprApp2 = mprRules.approver_2_role_id || '';
+        document.getElementById('edit_mpr_approval_levels').value = mprLvl;
+        document.getElementById('edit_mpr_approver_1_role_id').value = mprApp1;
+        document.getElementById('edit_mpr_approver_2_role_id').value = mprApp2;
+        toggleModalMprStep(mprLvl);
+
+        // CAR
+        const carRules = rules.car || {};
+        const carLvl = carRules.levels || 1;
+        const carApp1 = carRules.approver_1_role_id || '';
+        const carApp2 = carRules.approver_2_role_id || '';
+        document.getElementById('edit_car_approval_levels').value = carLvl;
+        document.getElementById('edit_car_approver_1_role_id').value = carApp1;
+        document.getElementById('edit_car_approver_2_role_id').value = carApp2;
+        toggleModalCarStep(carLvl);
+
+        const modal = document.getElementById('modalEditRole');
+        const modalCard = document.getElementById('modalEditRoleCard');
+
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
+    }
+
+    function tutupModalEditRole() {
+        const modal = document.getElementById('modalEditRole');
+        const modalCard = document.getElementById('modalEditRoleCard');
+
+        if (modalCard) {
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+        }
+
+        setTimeout(() => {
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        }, 150);
+    }
+
+    // Listener tombol Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            const modal = document.getElementById('modalFormRole');
-            if (modal && !modal.classList.contains('hidden')) {
-                tutupModalFormRole();
+            const modalTambah = document.getElementById('modalTambahRole');
+            if (modalTambah && !modalTambah.classList.contains('hidden')) {
+                tutupModalTambahRole();
+            }
+            const modalEdit = document.getElementById('modalEditRole');
+            if (modalEdit && !modalEdit.classList.contains('hidden')) {
+                tutupModalEditRole();
             }
         }
     });

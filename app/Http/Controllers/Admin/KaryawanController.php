@@ -264,6 +264,7 @@ class KaryawanController extends Controller
         $request->validate([
             'roles' => 'required|array|min:1',
             'roles.*' => 'exists:roles,id',
+            'level' => 'nullable|integer|in:1,2,3',
             'assigned_stations' => 'nullable|array',
             'assigned_stations.*' => 'exists:stations,id',
         ]);
@@ -277,8 +278,16 @@ class KaryawanController extends Controller
         }
 
         $karyawan->roles()->sync($syncData);
+        
+        $updateData = [];
         if (!empty($roleIds)) {
-            $karyawan->update(['role_id' => $roleIds[0]]);
+            $updateData['role_id'] = $roleIds[0];
+        }
+        if ($request->filled('level')) {
+            $updateData['level'] = (int)$request->level;
+        }
+        if (!empty($updateData)) {
+            $karyawan->update($updateData);
         }
 
         // Sinkronisasi Rumah Meter jika karyawan memegang role AREA (PIPELINE)
@@ -294,8 +303,9 @@ class KaryawanController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Peran / Jabatan karyawan berhasil disinkronkan!',
+                'message' => 'Peran dan Level Akses karyawan berhasil disinkronkan!',
                 'roles' => $karyawan->fresh()->roles,
+                'level' => $karyawan->fresh()->level,
                 'assigned_stations' => $karyawan->fresh()->assignedStations,
             ]);
         }
