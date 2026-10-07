@@ -217,6 +217,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             Route::get('/admin/karyawan/{id}/detail', [KaryawanController::class, 'showDetail'])->name('admin.karyawan.detail');
             Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
             Route::put('/admin/karyawan/{id}/roles', [KaryawanController::class, 'updateRoles'])->name('admin.karyawan.roles.update');
+            Route::put('/admin/karyawan/{id}/station', [KaryawanController::class, 'updateStation'])->name('admin.karyawan.station.update');
             Route::post('/admin/karyawan/{id}/reset-biometric', [KaryawanController::class, 'resetBiometric'])->name('admin.karyawan.reset_biometric');
 
             // CRUD Stasiun Kerja

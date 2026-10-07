@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class KaryawanController extends Controller
 {
@@ -107,8 +108,8 @@ class KaryawanController extends Controller
             return $karyawan;
         });
 
-        // Ambil data pendukung filter pohon organisasi
-        $daftarStasiun = Station::orderBy('name', 'asc')->get();
+        // Ambil data pendukung stasiun kerja (hanya kantor & stasiun operasional, rumah meter dikecualikan)
+        $daftarStasiun = Station::where('type', '!=', 'rumah_meter')->orderBy('type', 'asc')->orderBy('name', 'asc')->get();
         $daftarRumahMeter = Station::where('type', 'rumah_meter')->orderBy('kode_stasiun', 'asc')->get();
         $daftarJobdesk = collect();
 
@@ -311,5 +312,45 @@ class KaryawanController extends Controller
         }
 
         return redirect()->back()->with('success', 'Peran / Jabatan karyawan berhasil disinkronkan!');
+    }
+
+    // Memperbarui lokasi penempatan stasiun kerja karyawan (Khusus Admin Level 1)
+    public function updateStation(Request $request, int $id): JsonResponse
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser->isLevel1() && !$currentUser->hasRole('ADMIN')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya Administrator Level 1 yang berwenang mengubah lokasi stasiun kerja karyawan.',
+            ], 403);
+        }
+
+        $request->validate([
+            'station_id' => 'required|integer|exists:stations,id',
+        ]);
+
+        $station = Station::where('type', '!=', 'rumah_meter')->find($request->station_id);
+        if (!$station) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stasiun yang dipilih tidak valid atau berupa Rumah Meter (hanya Kantor dan Stasiun Operasional yang dapat dipilih).',
+            ], 422);
+        }
+
+        $karyawan = User::findOrFail($id);
+        $karyawan->update([
+            'station_id' => $station->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Lokasi stasiun kerja karyawan {$karyawan->name} berhasil diubah ke {$station->name}!",
+            'station' => [
+                'id' => $station->id,
+                'name' => $station->name,
+                'kode_stasiun' => $station->kode_stasiun,
+                'type' => $station->type,
+            ],
+        ]);
     }
 }

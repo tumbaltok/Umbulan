@@ -295,24 +295,31 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <div class="flex flex-col items-center gap-1">
-                                        @if(($karyawan->station && !empty($karyawan->station->name)))
-                                            <span class="inline-flex items-center text-xs text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-slate-600">
-                                                <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
-                                                {{ $karyawan->station->name }}
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-rose-500 font-medium bg-rose-50 dark:bg-rose-950/40 px-2 py-1 rounded-xl italic border border-rose-100 dark:border-rose-800">
-                                                ⚠️ Stasiun Belum Diatur
-                                            </span>
-                                        @endif
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <div class="flex flex-col items-center gap-1">
+                                            @if(($karyawan->station && !empty($karyawan->station->name)))
+                                                <span class="inline-flex items-center text-xs text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-slate-600 stasiun-label-{{ $karyawan->id }}">
+                                                    <i class="fa-solid fa-location-dot mr-1.5 text-rose-500 text-xs"></i>
+                                                    {{ $karyawan->station->name }}
+                                                </span>
+                                            @else
+                                                <span class="text-xs text-rose-500 font-medium bg-rose-50 dark:bg-rose-950/40 px-2 py-1 rounded-xl italic border border-rose-100 dark:border-rose-800 stasiun-label-{{ $karyawan->id }}">
+                                                    ⚠️ Stasiun Belum Diatur
+                                                </span>
+                                            @endif
 
-                                        @if(($karyawan->hasRole('AREA (PIPELINE)') || $karyawan->hasRole(14)) && $karyawan->assignedStations->count() > 0)
-                                            <span class="inline-flex items-center text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 font-semibold cursor-default" title="{{ $karyawan->assignedStations->pluck('name')->implode(', ') }}">
-                                                <i class="fa-solid fa-gauge-high mr-1 text-[9px] text-amber-500"></i>
-                                                {{ $karyawan->assignedStations->count() }} Rumah Meter
-                                            </span>
-                                        @endif
+                                            @if(($karyawan->hasRole('AREA (PIPELINE)') || $karyawan->hasRole(14)) && $karyawan->assignedStations->count() > 0)
+                                                <span class="inline-flex items-center text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 font-semibold cursor-default" title="{{ $karyawan->assignedStations->pluck('name')->implode(', ') }}">
+                                                    <i class="fa-solid fa-gauge-high mr-1 text-[9px] text-amber-500"></i>
+                                                    {{ $karyawan->assignedStations->count() }} Rumah Meter
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <button type="button"
+                                            onclick='bukaModalKelolaStasiun({{ $karyawan->id }}, "{{ addslashes($karyawan->name) }}", {{ $karyawan->station_id ?? "null" }}, "{{ addslashes(optional($karyawan->station)->name ?? "Belum Diatur") }}")'
+                                            class="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                            <i class="fa-solid fa-location-dot text-[10px]"></i> Kelola Stasiun
+                                        </button>
                                     </div>
                                 </td>
 
@@ -638,6 +645,94 @@
                 </button>
                 <button type="submit" id="btnSimpanKelolaRole" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-floppy-disk"></i> Simpan Sinkronisasi Role
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL KELOLA / MUTASI STASIUN KERJA KARYAWAN --}}
+<div id="modalKelolaStasiun" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalKelolaStasiun()">
+    <div id="modalKelolaStasiunCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 flex flex-col">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3 shrink-0">
+            <div>
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-rose-500"></i> Kelola Stasiun Kerja
+                </h3>
+                <p id="labelKelolaStasiunNama" class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5"></p>
+            </div>
+            <button type="button" onclick="tutupModalKelolaStasiun()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form id="formKelolaStasiun" onsubmit="submitKelolaStasiun(event)" class="space-y-4">
+            @csrf
+            @method('PUT')
+            <input type="hidden" id="kelola_stasiun_user_id" name="user_id">
+
+            {{-- Informasi Stasiun Saat Ini --}}
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-2xl flex items-center justify-between">
+                <div>
+                    <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Stasiun Saat Ini</span>
+                    <span id="labelCurrentStationName" class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-0.5">
+                        <i class="fa-solid fa-location-dot text-rose-500 text-xs"></i> -
+                    </span>
+                </div>
+                <span class="px-2 py-1 rounded-md text-[10px] font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
+                    Penempatan Aktif
+                </span>
+            </div>
+
+            {{-- Pilihan Dropdown Stasiun Baru --}}
+            <div>
+                <label for="select_new_station_id" class="block text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1.5">
+                    Pilih Stasiun / Tempat Kerja Baru <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <select id="select_new_station_id" name="station_id" required
+                        class="w-full pl-3 pr-8 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all cursor-pointer">
+                        <option value="" disabled selected>-- Pilih Lokasi Kerja / Stasiun --</option>
+                        
+                        @php
+                            $stasiunKantor = $daftarStasiun->where('type', 'kantor');
+                            $stasiunOperasional = $daftarStasiun->where('type', 'stasiun');
+                        @endphp
+
+                        @if($stasiunKantor->count() > 0)
+                            <optgroup label="🏢 KANTOR PUSAT & ADMINISTRASI">
+                                @foreach($stasiunKantor as $st)
+                                    <option value="{{ $st->id }}" data-type="{{ $st->type }}" data-name="{{ $st->name }}" data-kode="{{ $st->kode_stasiun }}">
+                                        [{{ $st->kode_stasiun }}] {{ $st->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if($stasiunOperasional->count() > 0)
+                            <optgroup label="⚙️ STASIUN OPERASIONAL & DISTRIBUSI">
+                                @foreach($stasiunOperasional as $st)
+                                    <option value="{{ $st->id }}" data-type="{{ $st->type }}" data-name="{{ $st->name }}" data-kode="{{ $st->kode_stasiun }}">
+                                        [{{ $st->kode_stasiun }}] {{ $st->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                    </select>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
+                    Hanya Kantor dan Stasiun Operasional yang dapat dipilih (Rumah Meter hanya untuk check point).
+                </p>
+                <span id="kelola-stasiun-error" class="text-xs text-rose-500 mt-1 hidden font-medium">Silakan pilih stasiun kerja yang valid.</span>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0 mt-4">
+                <button type="button" onclick="tutupModalKelolaStasiun()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" id="btnSimpanKelolaStasiun" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Mutasi Stasiun
                 </button>
             </div>
         </form>
@@ -1458,6 +1553,10 @@
                 if (modalRole && !modalRole.classList.contains('hidden')) {
                     tutupModalKelolaRole();
                 }
+                const modalStasiun = document.getElementById('modalKelolaStasiun');
+                if (modalStasiun && !modalStasiun.classList.contains('hidden')) {
+                    tutupModalKelolaStasiun();
+                }
                 const modalEdit = document.getElementById('editSaldoModal');
                 if (modalEdit && !modalEdit.classList.contains('hidden')) {
                     tutupModalEditSaldo();
@@ -1551,6 +1650,122 @@
         } finally {
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Sinkronisasi Role`;
+        }
+    }
+
+    // HANDLER MODAL KELOLA / MUTASI STASIUN KERJA KARYAWAN
+    function bukaModalKelolaStasiun(userId, userName, currentStationId, currentStationName) {
+        document.getElementById('kelola_stasiun_user_id').value = userId;
+        document.getElementById('labelKelolaStasiunNama').innerText = 'Karyawan: ' + userName;
+        document.getElementById('labelCurrentStationName').innerHTML = `<i class="fa-solid fa-location-dot text-rose-500 text-xs"></i> ${currentStationName && currentStationName !== 'null' ? currentStationName : 'Belum Diatur'}`;
+
+        const selectStasiun = document.getElementById('select_new_station_id');
+        if (selectStasiun) {
+            selectStasiun.value = (currentStationId && currentStationId !== 'null') ? String(currentStationId) : '';
+        }
+
+        const errorMsg = document.getElementById('kelola-stasiun-error');
+        if (errorMsg) errorMsg.classList.add('hidden');
+
+        const modal = document.getElementById('modalKelolaStasiun');
+        const modalCard = document.getElementById('modalKelolaStasiunCard');
+
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (modalCard) {
+                setTimeout(() => {
+                    modalCard.classList.remove('scale-95', 'opacity-0');
+                    modalCard.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
+    }
+
+    function tutupModalKelolaStasiun() {
+        const modal = document.getElementById('modalKelolaStasiun');
+        const modalCard = document.getElementById('modalKelolaStasiunCard');
+
+        if (modalCard) {
+            modalCard.classList.remove('scale-100', 'opacity-100');
+            modalCard.classList.add('scale-95', 'opacity-0');
+        }
+
+        setTimeout(() => {
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        }, 150);
+    }
+
+    async function submitKelolaStasiun(e) {
+        e.preventDefault();
+        const userId = document.getElementById('kelola_stasiun_user_id').value;
+        const selectedStationId = document.getElementById('select_new_station_id').value;
+        const errorMsg = document.getElementById('kelola-stasiun-error');
+
+        if (!selectedStationId) {
+            if (errorMsg) {
+                errorMsg.textContent = 'Silakan pilih stasiun kerja tujuan.';
+                errorMsg.classList.remove('hidden');
+            }
+            return;
+        }
+        if (errorMsg) errorMsg.classList.add('hidden');
+
+        const btnSubmit = document.getElementById('btnSimpanKelolaStasiun');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            const response = await fetch(`/admin/karyawan/${userId}/station`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ 
+                    station_id: parseInt(selectedStationId)
+                })
+            });
+
+            const res = await response.json();
+            if (response.ok && res.success) {
+                tutupModalKelolaStasiun();
+
+                Swal.fire({
+                    title: 'BERHASIL!',
+                    text: res.message || 'Lokasi stasiun kerja karyawan berhasil diperbarui!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0284c7',
+                    customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error(res.message || 'Gagal memperbarui stasiun kerja karyawan.');
+            }
+        } catch (err) {
+            Swal.fire({
+                title: 'Gagal!',
+                text: err.message || 'Terjadi kesalahan sistem.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                customClass: { popup: 'rounded-2xl', confirmButton: 'px-5 py-2.5 rounded-xl font-bold' }
+            });
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Mutasi Stasiun`;
         }
     }
 </script>
