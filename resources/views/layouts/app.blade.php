@@ -1002,6 +1002,11 @@
                                 <span class="px-3 py-1 bg-slate-950/80 text-cyan-300 border border-cyan-500/30 rounded-xl text-[10px] font-mono font-bold tracking-wide shadow-xs flex items-center gap-1.5">
                                     <span>NIP: {{ Auth::user()->nip }}</span>
                                 </span>
+                            @else
+                                <span class="px-2.5 py-1 bg-slate-950/60 text-slate-400 border border-slate-700/60 rounded-xl text-[10px] font-mono tracking-wide shadow-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-[9px] text-amber-400"></i>
+                                    <span>NIP: Belum diatur</span>
+                                </span>
                             @endif
                         </div>
                     </div>
@@ -1019,7 +1024,13 @@
                         </div>
                         <div class="min-w-0 flex-1 space-y-0.5">
                             <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Nomor Induk Pegawai</span>
-                            <p class="font-bold text-slate-900 dark:text-slate-100 font-mono text-xs sm:text-sm truncate">{{ Auth::user()->nip ?? '-' }}</p>
+                            @if(!empty(Auth::user()->nip))
+                                <p class="font-bold text-slate-900 dark:text-slate-100 font-mono text-xs sm:text-sm truncate">{{ Auth::user()->nip }}</p>
+                            @else
+                                <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 italic flex items-center gap-1.5">
+                                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span> Belum diatur
+                                </p>
+                            @endif
                         </div>
                     </div>
 

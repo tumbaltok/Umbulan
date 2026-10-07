@@ -97,7 +97,7 @@
                         <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
                             <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Identitas</span>
                             <span class="text-xs sm:text-sm font-black text-cyan-200 font-mono">Tervalidasi</span>
-                            <span class="text-[9px] text-white/60 block">Email & NIK</span>
+                            <span class="text-[9px] text-white/60 block">Email & NIP</span>
                         </div>
                         <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
                             <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Penugasan</span>

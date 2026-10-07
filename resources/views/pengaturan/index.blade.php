@@ -42,20 +42,51 @@
                     </div>
 
                     {{-- Tanda Tangan Digital (TTD) --}}
+                    @php
+                        $hasValidSignature = !empty($user->signature) && (
+                            file_exists(public_path('storage/' . $user->signature)) || 
+                            \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature)
+                        );
+                    @endphp
                     <div id="signature" class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
-                        <div class="w-36 h-20 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-2">
-                            @if($user->signature)
+                        <div class="w-40 h-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-2 shadow-xs relative">
+                            @if($hasValidSignature)
                                 <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
                                     alt="Tanda Tangan"
+                                    onerror="this.style.display='none'; document.getElementById('signature_default_fallback').classList.remove('hidden');"
                                     class="max-w-full max-h-full object-contain bg-white dark:bg-slate-800">
+                                
+                                <div id="signature_default_fallback" class="hidden flex flex-col items-center justify-center text-center w-full h-full">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
+                                        <i class="fa-solid fa-signature text-sm"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Belum Ada TTD</span>
+                                </div>
                             @else
-                                <span class="text-xs text-slate-400 italic">Belum Ada TTD</span>
+                                <div class="w-full h-full bg-emerald-50/30 dark:bg-emerald-950/20 rounded-xl border border-dashed border-emerald-300/80 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center p-1.5 transition-all">
+                                    <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs border border-emerald-100 dark:border-emerald-800/50 mb-1">
+                                        <i class="fa-solid fa-signature text-sm"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Belum Ada TTD</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="mt-2">
+                            @if($hasValidSignature)
+                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <i class="fa-solid fa-circle-check text-emerald-600 mr-1.5 text-[9px]"></i> TTD Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
+                                </span>
                             @endif
                         </div>
 
                         <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center space-x-1 cursor-pointer">
                             <i class="fa-solid fa-file-signature"></i>
-                            <span>Unggah Tanda Tangan (TTD)</span>
+                            <span>{{ $hasValidSignature ? 'Ubah Tanda Tangan (TTD)' : 'Unggah Tanda Tangan (TTD)' }}</span>
                         </button>
                     </div>
 
@@ -94,8 +125,29 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- NIP --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">NIP</label>
-                        <input type="text" name="nip" value="{{ old('nip', $user->nip) }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="input_nip" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <span>NIP</span>
+                                <button type="button" 
+                                    onclick="bukaModalPanduanNip()" 
+                                    class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-sky-100 hover:bg-sky-200 dark:bg-sky-950/70 dark:hover:bg-sky-900/80 text-sky-600 dark:text-sky-400 text-[10px] font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 focus:outline-none cursor-pointer" 
+                                    title="Petunjuk cara mengetahui NIP">
+                                    <i class="fa-solid fa-info text-[9px]"></i>
+                                </button>
+                            </label>
+                            @if(empty($user->nip))
+                                <span class="text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/70 dark:border-amber-900/50 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-exclamation text-[9px]"></i> Belum diatur
+                                </span>
+                            @else
+                                <span class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200/70 dark:border-emerald-900/50 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check text-[9px]"></i> Terdaftar
+                                </span>
+                            @endif
+                        </div>
+                        <input type="text" id="input_nip" name="nip" value="{{ old('nip', $user->nip) }}" 
+                            placeholder="Belum diatur — klik tanda (i) untuk panduan"
+                            class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-mono text-sm focus:outline-none focus:border-sky-500 {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                         @error('nip') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
@@ -139,12 +191,20 @@
                     </div>
 
                     {{-- Dropdown Pilihan Stasiun Penempatan Kerja --}}
+                    @php
+                        $userStationValue = old('station_id', $user->station_id ?? '');
+                        $isStationLocked = !empty($user->station_id);
+                    @endphp
                     <div>
-                        <label for="station_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Penempatan Kerja</label>
-                        <select id="station_id" name="station_id" class="block w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
-                            @php
-                                $userStationValue = old('station_id', $user->station_id ?? '');
-                            @endphp
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="station_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Penempatan Kerja</label>
+                            @if($isStationLocked)
+                                <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                                </span>
+                            @endif
+                        </div>
+                        <select id="station_id" {{ $isStationLocked ? 'disabled' : 'name=station_id required' }} class="block w-full px-4 py-2 {{ $isStationLocked ? 'bg-gray-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-not-allowed pointer-events-none select-none' : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500' }} border rounded-xl text-sm transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                             <option value="" disabled {{ empty($userStationValue) ? 'selected' : '' }}>Pilih Tempat Kerja</option>
                             @if(isset($daftarStasiun) && count($daftarStasiun) > 0)
                                 @foreach($daftarStasiun as $stasiun)
@@ -157,14 +217,23 @@
                                 @endforeach
                             @endif
                         </select>
+                        @if($isStationLocked)
+                            <input type="hidden" name="station_id" value="{{ $user->station_id }}">
+                            <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
+                                Penempatan kerja terkunci otomatis demi akurasi absensi. Hubungi Administrator jika terjadi mutasi kerja.
+                            </p>
+                        @endif
                         @error('station_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Jabatan / Role (Pilihan Multi-Role Elegan Mirip Input Select) --}}
+                    {{-- Jabatan / Role (Terkunci Otomatis / Dikelola Admin) --}}
                     <div class="md:col-span-2 relative" id="roleSelectWrapper">
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Peran / Jabatan yang Diemban</label>
-                            <span class="text-[10px] text-slate-400 font-medium">* Dapat memilih lebih dari 1 peran</span>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Peran / Jabatan yang Diemban</label>
+                            <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                            </span>
                         </div>
 
                         @php
@@ -186,130 +255,91 @@
                             if (empty($currentRoleNames) && $user->role) {
                                 $currentRoleNames[] = $user->role->role_name;
                             }
-                            $initialRoleDisplay = !empty($currentRoleNames) ? implode(', ', $currentRoleNames) : 'Pilih Peran / Jabatan';
+                            $initialRoleDisplay = !empty($currentRoleNames) ? implode(', ', $currentRoleNames) : 'Tidak Ada Role';
                         @endphp
 
-                        {{-- Trigger Dropdown (Tampilan persis seperti input Select Penempatan Kerja) --}}
-                        <div id="roleSelectTrigger" onclick="toggleRoleDropdown()"
-                             class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 text-sm cursor-pointer transition-all flex items-center justify-between gap-2 select-none shadow-2xs hover:border-sky-400 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500 min-h-[42px] {{ $errors->has('roles') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
-                            <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                                <span id="roleSelectText" class="truncate text-sm {{ empty($initialRoleDisplay) || $initialRoleDisplay === 'Pilih Peran / Jabatan' ? 'text-slate-400' : 'text-slate-800 dark:text-slate-100 font-medium' }}">
-                                    {{ $initialRoleDisplay }}
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-2 text-slate-400 shrink-0">
-                                <span id="roleCountBadge" class="{{ count((array)$currentRoleIds) > 1 ? '' : 'hidden' }} px-1.5 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">
-                                    {{ count((array)$currentRoleIds) }}
-                                </span>
-                                <i id="roleChevronIcon" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
-                            </div>
-                        </div>
-
-                        {{-- Hidden input role_id pendamping --}}
-                        <input type="hidden" id="primary_role_id" name="role_id" value="{{ old('role_id', $user->role_id) }}">
-
-                        {{-- Panel Dropdown Melayang (Floating Panel) --}}
-                        <div id="roleDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-2.5 animate-in fade-in zoom-in-95 duration-150">
-                            {{-- Input Pencarian Cepat --}}
-                            <div class="relative mb-2">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                                </div>
-                                <input type="text" id="roleSearchInput" onkeyup="filterRoleList(this.value)" placeholder="Cari nama jabatan..."
-                                       class="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all">
-                                <button type="button" onclick="clearRoleSearch()" id="clearRoleSearchBtn" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                    <i class="fa-solid fa-circle-xmark text-xs"></i>
-                                </button>
-                            </div>
-
-                            {{-- Info Bar: Filter & Tutup --}}
-                            <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
-                                <span id="roleFilterSummary">Daftar Jabatan:</span>
-                                <div class="flex items-center space-x-2">
-                                    <button type="button" onclick="resetRoleSelection()" class="text-rose-500 hover:text-rose-600 dark:text-rose-400 font-semibold cursor-pointer text-[10px]">
-                                        Reset
-                                    </button>
-                                    <span class="text-slate-300 dark:text-slate-600">|</span>
-                                    <button type="button" onclick="toggleRoleDropdown(false)" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 font-bold cursor-pointer text-[10px]">
-                                        Tutup
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Daftar Pilihan Role --}}
-                            <div id="roleItemsContainer" class="max-h-52 overflow-y-auto space-y-1 pt-1.5 pr-0.5">
-                                @if(isset($daftarRole) && count($daftarRole) > 0)
-                                    @foreach($daftarRole as $role)
-                                        @php
-                                            $isChecked = in_array($role->id, (array)$currentRoleIds);
-                                        @endphp
-                                        <label class="role-list-item flex items-center justify-between p-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors text-xs select-none {{ $isChecked ? 'bg-sky-50/70 dark:bg-sky-950/30' : '' }}" data-name="{{ strtolower($role->role_name) }}">
-                                            <div class="flex items-center space-x-2.5 min-w-0">
-                                                <input type="checkbox" name="roles[]" value="{{ $role->id }}" data-name="{{ $role->role_name }}"
-                                                       {{ $isChecked ? 'checked' : '' }}
-                                                       onchange="onRoleSelectionChanged()"
-                                                       class="rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer role-checkbox-item">
-                                                <span class="font-medium text-slate-700 dark:text-slate-200 truncate">{{ $role->role_name }}</span>
-                                            </div>
-                                            <span class="text-[10px] text-slate-400 font-mono">#{{ $role->id }}</span>
-                                        </label>
+                        {{-- Tampilan Box Terkunci (Sama Persis seperti Jenis Kelamin & Penempatan Kerja) --}}
+                        <div class="w-full px-4 py-2 bg-gray-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-sm cursor-not-allowed pointer-events-none select-none transition-all flex items-center justify-between gap-2 min-h-[42px]">
+                            <div class="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
+                                @if(!empty($currentRoleNames))
+                                    @foreach($currentRoleNames as $rName)
+                                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs">
+                                            {{ $rName }}
+                                        </span>
                                     @endforeach
                                 @else
-                                    <p class="text-xs text-slate-400 p-3 text-center">Tidak ada data role tersedia</p>
+                                    <span class="text-slate-400 italic text-xs">Belum Ada Peran / Jabatan</span>
                                 @endif
-                                <div id="noRoleFoundMsg" class="hidden text-center py-4 text-xs text-slate-400">
-                                    <i class="fa-solid fa-magnifying-glass mb-1 block text-sm"></i>
-                                    Tidak ada jabatan yang cocok
-                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-400 shrink-0">
+                                @if(count((array)$currentRoleIds) > 1)
+                                    <span class="px-1.5 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">
+                                        {{ count((array)$currentRoleIds) }} Peran
+                                    </span>
+                                @endif
+                                <i class="fa-solid fa-lock text-xs text-slate-400"></i>
                             </div>
                         </div>
+
+                        {{-- Hidden inputs agar data peran tetap terkirim saat form disimpan --}}
+                        <input type="hidden" id="primary_role_id" name="role_id" value="{{ old('role_id', $user->role_id) }}">
+                        @foreach((array)$currentRoleIds as $rId)
+                            <input type="hidden" name="roles[]" value="{{ $rId }}">
+                        @endforeach
+
+                        <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
+                            Peran dan jabatan kerja terkunci otomatis demi hierarki organisasi. Hubungi Administrator jika terdapat penyesuaian peran.
+                        </p>
 
                         @error('roles') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         @error('role_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Cakupan Wilayah Rumah Meter (Khusus Role AREA (PIPELINE)) --}}
+                    {{-- Cakupan Wilayah Rumah Meter (Khusus Role AREA (PIPELINE) - Terkunci) --}}
                     @php
                         $userAssignedRmIds = old('assigned_stations', $user->assignedStations->pluck('id')->toArray());
                         $isUserPipeline = $user->hasRole('AREA (PIPELINE)') || $user->hasRole(14);
                     @endphp
-                    <div class="md:col-span-2 {{ $isUserPipeline ? '' : 'hidden' }} transition-all duration-300" id="pengaturanPipelineRumahMeterContainer">
-                        <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div>
-                                    <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                                        <i class="fa-solid fa-gauge-high text-amber-600"></i> Cakupan Wilayah Rumah Meter (Role Pipeline)
-                                    </label>
-                                    <p class="text-[11px] text-amber-700/80 dark:text-amber-400 font-medium mt-0.5">
-                                        Pilih satu atau beberapa Checkpoint Rumah Meter yang menjadi wilayah tugas Anda:
-                                    </p>
-                                </div>
-                                <div class="flex items-center gap-2 self-end sm:self-auto">
-                                    <button type="button" onclick="selectAllPengaturanRumahMeter(true)" class="text-[10px] font-bold text-amber-700 hover:text-amber-900 dark:text-amber-300 underline cursor-pointer">Pilih Semua</button>
-                                    <span class="text-amber-300 text-xs">|</span>
-                                    <button type="button" onclick="selectAllPengaturanRumahMeter(false)" class="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 underline cursor-pointer">Reset</button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
-                                @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
-                                    @foreach($daftarRumahMeter as $rm)
-                                        @php
-                                            $isRmChecked = in_array($rm->id, $userAssignedRmIds);
-                                        @endphp
-                                        <label class="flex items-center space-x-2 p-2 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-900/50 rounded-xl cursor-pointer hover:border-amber-400 transition-all text-xs select-none shadow-2xs">
-                                            <input type="checkbox" name="assigned_stations[]" value="{{ $rm->id }}"
-                                                {{ $isRmChecked ? 'checked' : '' }}
-                                                class="rounded border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer pengaturan-rm-checkbox">
-                                            <span class="font-medium text-slate-700 dark:text-slate-200 truncate">
-                                                <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
-                                            </span>
+                    @if($isUserPipeline)
+                        <div class="md:col-span-2 transition-all duration-300" id="pengaturanPipelineRumahMeterContainer">
+                            <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                    <div>
+                                        <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-gauge-high text-amber-600"></i> Cakupan Wilayah Rumah Meter (Role Pipeline)
                                         </label>
-                                    @endforeach
-                                @endif
+                                        <p class="text-[11px] text-amber-700/80 dark:text-amber-400 font-medium mt-0.5">
+                                            Daftar Checkpoint Rumah Meter penugasan resmi dari Administrator:
+                                        </p>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                        <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                                    @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
+                                        @foreach($daftarRumahMeter as $rm)
+                                            @php
+                                                $isRmChecked = in_array($rm->id, (array)$userAssignedRmIds);
+                                            @endphp
+                                            <div class="flex items-center space-x-2 p-2 {{ $isRmChecked ? 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700' : 'bg-gray-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-60' }} border rounded-xl text-xs select-none shadow-2xs pointer-events-none">
+                                                <input type="checkbox" disabled {{ $isRmChecked ? 'checked' : '' }}
+                                                    class="rounded border-slate-300 dark:border-slate-600 text-amber-600 w-3.5 h-3.5 cursor-not-allowed">
+                                                <span class="font-medium text-slate-700 dark:text-slate-200 truncate">
+                                                    <strong class="font-mono text-amber-700 dark:text-amber-400">{{ $rm->kode_stasiun }}</strong> {{ $rm->name }}
+                                                </span>
+                                            </div>
+                                            @if($isRmChecked)
+                                                <input type="hidden" name="assigned_stations[]" value="{{ $rm->id }}">
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
 
                     {{-- Alamat Email --}}
                     <div>
@@ -1099,6 +1129,155 @@
 
     </div>
 </div>
+
+{{-- MODAL PANDUAN CARA MENGETAHUI NIP DARI SLIP GAJI --}}
+<div id="modalPanduanNip" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
+        
+        {{-- Header Modal Panduan NIP --}}
+        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-r from-sky-50/90 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-800/90 dark:to-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs border border-sky-200/80 dark:border-sky-800">
+                    <i class="fa-solid fa-id-card-clip text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
+                            Cara Mengetahui NIP
+                        </h3>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                            Info HRD
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Panduan pengecekan Nomor Induk Pegawai resmi Anda
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="tutupModalPanduanNip()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        {{-- Body Modal Panduan NIP --}}
+        <div class="p-5 sm:p-6 space-y-4 max-h-[72vh] overflow-y-auto">
+            
+            {{-- Alert Informasi Ringkas --}}
+            <div class="p-3.5 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                <div class="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-sky-500"></i>
+                    <span>Tercantum pada Dokumen Slip Gaji</span>
+                </div>
+                <p class="text-[11.5px] leading-relaxed text-slate-600 dark:text-slate-300">
+                    Nomor Induk Pegawai (NIP) resmi Anda dapat dilihat langsung pada berkas <strong>Slip Gaji bulanan</strong> yang dikirimkan oleh <strong>HRD ke email resmi</strong> masing-masing karyawan.
+                </p>
+            </div>
+
+            {{-- 3 Tahapan Cepat --}}
+            <div class="space-y-2.5">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    3 Langkah Menemukan NIP Anda:
+                </span>
+
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 text-xs">
+                    <div class="w-6 h-6 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                        1
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-slate-200">Buka Email dari HRD</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5 leading-relaxed">
+                            Cek kotak masuk (<em>Inbox</em>) email Anda dan cari pesan email dari HRD dengan perihal pengiriman <em>Slip Gaji / Payslip</em>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 text-xs">
+                    <div class="w-6 h-6 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                        2
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-slate-200">Unduh & Buka Berkas Slip Gaji</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5 leading-relaxed">
+                            Buka lampiran dokumen slip gaji (PDF) yang dikirimkan oleh HRD.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-sky-500/10 dark:bg-sky-950/40 border-2 border-sky-400/80 dark:border-sky-600/80 text-xs shadow-2xs">
+                    <div class="w-6 h-6 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                        3
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-sky-900 dark:text-sky-200">Periksa di Bagian Sebelah Kiri Atas</span>
+                            <span class="px-1.5 py-0.2 rounded bg-sky-600 text-white text-[9px] font-bold uppercase tracking-wider">Lokasi NIP</span>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-300 text-[11px] mt-0.5 leading-relaxed">
+                            Pada formulir slip gaji, perhatikan kolom identitas pegawai di <strong>sebelah kiri atas</strong>. NIP Anda tertera di baris identitas tersebut.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Mockup Visual Letak NIP pada Slip Gaji --}}
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700/80 space-y-2">
+                <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                    <span class="font-bold uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-file-invoice-dollar text-sky-500"></i> Ilustrasi Tata Letak Slip Gaji
+                    </span>
+                    <span class="font-mono text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">Dokumen Resmi HRD</span>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
+                    {{-- Header Slip Mockup --}}
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/70 pb-2">
+                        <span class="text-[10px] font-black text-slate-800 dark:text-slate-100 tracking-tight">PT META ADHYA TIRTA UMBULAN</span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase font-mono">SLIP GAJI BULANAN</span>
+                    </div>
+
+                    {{-- Baris Identitas Mockup --}}
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        {{-- KIRI ATAS: NIP HIGHLIGHTED --}}
+                        <div class="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 border-2 border-sky-400 dark:border-sky-500 relative ring-2 ring-sky-200/50 dark:ring-sky-900/30">
+                            <span class="absolute -top-2 right-1.5 px-1.5 py-0.2 rounded-full bg-sky-600 text-white text-[8px] font-bold uppercase tracking-wider shadow-2xs flex items-center gap-0.5">
+                                <i class="fa-solid fa-arrow-down text-[7px]"></i> Kiri Atas
+                            </span>
+                            <div class="space-y-0.5">
+                                <div class="text-[9px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wide">Nomor Induk Pegawai:</div>
+                                <div class="font-mono font-black text-sky-800 dark:text-sky-200 text-xs">NIP: KRY-2024-XXX</div>
+                                <div class="text-[9px] text-slate-500 dark:text-slate-400">Nama: {{ $user->name }}</div>
+                            </div>
+                        </div>
+
+                        {{-- Kanan Atas: Data Lain --}}
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
+                            <div class="text-[9px] text-black dark:text-slate-300 uppercase font-semibold">Periode Gaji:</div>
+                            <div class="font-mono text-black dark:text-white text-[10px] font-bold">
+                                {{ (\Carbon\Carbon::now()->day < 25 ? \Carbon\Carbon::now()->subMonth() : \Carbon\Carbon::now())->translatedFormat('F Y') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Catatan Hubungi HRD --}}
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 text-[11px] text-amber-800 dark:text-amber-300">
+                <i class="fa-solid fa-lightbulb text-amber-500 shrink-0"></i>
+                <span>Belum menerima email slip gaji atau NIP belum tercantum? Silakan hubungi tim <strong>HRD / Kepegawaian</strong> untuk klarifikasi data Anda.</span>
+            </div>
+
+        </div>
+
+        {{-- Footer Modal Panduan NIP --}}
+        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <button type="button" onclick="tutupModalPanduanNip()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-check"></i>
+                <span>Mengerti, Tutup Panduan</span>
+            </button>
+        </div>
+
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1560,6 +1739,42 @@
             if (btnSubmitProfileIcon) btnSubmitProfileIcon.classList.remove('hidden');
             if (btnSubmitProfileSpinner) btnSubmitProfileSpinner.classList.add('hidden');
             if (btnSubmitProfileText) btnSubmitProfileText.innerText = 'Simpan Perubahan';
+        }
+    });
+
+    // === PANDUAN CARA MENGETAHUI NIP ===
+    function bukaModalPanduanNip() {
+        const modal = document.getElementById('modalPanduanNip');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function tutupModalPanduanNip() {
+        const modal = document.getElementById('modalPanduanNip');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Event listener backdrop modal panduan NIP
+    const modalPanduanNip = document.getElementById('modalPanduanNip');
+    if (modalPanduanNip) {
+        modalPanduanNip.addEventListener('click', function(e) {
+            if (e.target === this) {
+                tutupModalPanduanNip();
+            }
+        });
+    }
+
+    // Event listener Escape key untuk menutup modal panduan NIP
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            tutupModalPanduanNip();
         }
     });
 </script>
