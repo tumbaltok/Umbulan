@@ -28,6 +28,17 @@
                 document.documentElement.classList.remove('dark');
             @endauth
         })();
+
+        // Pre-init: deteksi status sematan sidebar desktop untuk hindari layout shift
+        (function() {
+            var savedPinnedStatus = localStorage.getItem('umbulan_sidebar_pinned');
+            var savedCollapsedStatus = localStorage.getItem('umbulan_sidebar_manual_collapsed');
+            if ((savedPinnedStatus === 'true' || (savedPinnedStatus === null && window.innerWidth >= 1024)) && window.innerWidth >= 768) {
+                if (savedCollapsedStatus !== 'true') {
+                    document.documentElement.classList.add('sidebar-pinned-init');
+                }
+            }
+        })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,7 +69,7 @@
         .dropdown-content, .sub-dropdown-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .dropdown-container.dropdown-open > .dropdown-content {
@@ -70,83 +81,369 @@
         }
 
         .chevron-icon, .sub-chevron-icon, .navbar-profile-chevron {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .dropdown-open > .dropdown-btn .chevron-icon,
         .sub-dropdown-open > .sub-dropdown-btn .sub-chevron-icon,
         .navbar-profile-open .navbar-profile-chevron {
-            transform: rotate(180deg);
+            transform: rotate(180deg) !important;
         }
 
-        /* Transisi sidebar mobile */
+        .sub-dropdown-btn {
+            width: calc(100% - 1.25rem) !important;
+        }
+
+        /* Custom scrollbar halus untuk navigasi sidebar */
+        .sidebar-nav-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb {
+            background: rgba(14, 165, 233, 0.25);
+            border-radius: 9999px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(14, 165, 233, 0.5);
+        }
+        html.dark .sidebar-nav-container::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.25);
+        }
+        html.dark .sidebar-nav-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.5);
+        }
+
+        /* Transisi sidebar mobile & desktop yang Halus, Terpadu & Modern */
+        :root {
+            --sidebar-easing: cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-duration: 0.32s;
+        }
+
         #sidebarApp {
             will-change: transform, width;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform var(--sidebar-duration) var(--sidebar-easing),
+                        width var(--sidebar-duration) var(--sidebar-easing),
+                        box-shadow var(--sidebar-duration) var(--sidebar-easing),
+                        background-color 0.25s ease,
+                        border-color 0.25s ease;
         }
 
         #sidebarBackdrop {
-            transition: opacity 0.45s ease, visibility 0.45s ease;
+            transition: opacity var(--sidebar-duration) var(--sidebar-easing),
+                        visibility var(--sidebar-duration) var(--sidebar-easing);
         }
 
+        /* Mobile sidebar */
         @media (max-width: 767px) {
             #sidebarApp {
-                width: 17.5rem !important; /* 280px */
+                width: 18rem !important; /* 288px */
+            }
+            #sidebarApp #pinSidebarBtn {
+                display: none !important;
             }
             #sidebarApp .hide-on-collapse {
                 opacity: 1 !important;
+                max-width: none !important;
                 transform: none !important;
                 pointer-events: auto !important;
                 white-space: normal !important;
+                display: block !important;
+            }
+            #sidebarApp .sidebar-header-bg .hide-on-collapse {
+                display: block !important;
+            }
+            #sidebarApp .sidebar-nav-container .hide-on-collapse {
+                display: inline-block !important;
+            }
+            #sidebarApp .dropdown-btn .hide-on-collapse,
+            #sidebarApp a .hide-on-collapse {
+                display: inline-block !important;
             }
         }
 
-        /* Efek hover sidebar desktop */
+        /* Desktop Sidebar (Hover-mode & Pinned Mode) */
         @media (min-width: 768px) {
-            .sidebar-hover-mode {
-                width: 5rem; /* ~80px saat kuncup */
-                transition: width 0.55s cubic-bezier(0.25, 1, 0.3, 1), box-shadow 0.55s ease;
+            #sidebarApp {
+                transition: width var(--sidebar-duration) var(--sidebar-easing),
+                            box-shadow var(--sidebar-duration) var(--sidebar-easing);
+            }
+
+            .sidebar-hover-mode,
+            .sidebar-pinned-mode {
+                width: 5.25rem; /* ~84px saat kuncup */
                 overflow: hidden !important;
                 will-change: width;
             }
 
-            .sidebar-hover-mode:hover {
-                width: 17.5rem;
-                box-shadow: 12px 0 35px -5px rgba(0, 0, 0, 0.35);
-                transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+            .sidebar-hover-mode:hover,
+            .sidebar-pinned-mode:not(.sidebar-pinned-collapsed),
+            html.sidebar-pinned-init .sidebar-hover-mode,
+            html.sidebar-pinned-init .sidebar-pinned-mode {
+                width: 18rem !important;
+                box-shadow: 10px 0 30px -5px rgba(0, 0, 0, 0.08);
             }
 
-            .sidebar-hover-mode .sidebar-nav-container {
+            html.dark .sidebar-hover-mode:hover,
+            html.dark .sidebar-pinned-mode:not(.sidebar-pinned-collapsed),
+            html.dark.sidebar-pinned-init .sidebar-hover-mode,
+            html.dark.sidebar-pinned-init .sidebar-pinned-mode {
+                box-shadow: 14px 0 35px -5px rgba(0, 0, 0, 0.5);
+            }
+
+            .sidebar-hover-mode .sidebar-nav-container,
+            .sidebar-pinned-mode .sidebar-nav-container {
                 overflow-y: hidden;
             }
-            .sidebar-hover-mode:hover .sidebar-nav-container {
+            .sidebar-hover-mode:hover .sidebar-nav-container,
+            .sidebar-pinned-mode:not(.sidebar-pinned-collapsed) .sidebar-nav-container,
+            html.sidebar-pinned-init .sidebar-hover-mode .sidebar-nav-container,
+            html.sidebar-pinned-init .sidebar-pinned-mode .sidebar-nav-container {
                 overflow-y: auto;
             }
 
+            /* --- Animasi Teks & Label Halus (Fade + Slide + Width Collapse) --- */
             .hide-on-collapse {
+                display: inline-block;
+                max-width: 0;
                 opacity: 0;
-                transform: translateX(-10px);
+                overflow: hidden;
                 white-space: nowrap;
                 pointer-events: none;
-                transition: opacity 0.2s ease-in, transform 0.2s ease-in;
+                transform: translateX(-8px);
+                transition: opacity 0.18s var(--sidebar-easing),
+                            transform 0.22s var(--sidebar-easing),
+                            max-width var(--sidebar-duration) var(--sidebar-easing),
+                            margin 0.25s var(--sidebar-easing),
+                            padding 0.25s var(--sidebar-easing);
+                vertical-align: middle;
             }
 
-            .sidebar-hover-mode:hover .hide-on-collapse {
-                opacity: 1;
-                transform: translateX(0);
-                pointer-events: auto;
-                transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-                transition-delay: 0.165s;
+            .sidebar-hover-mode:hover .hide-on-collapse,
+            .sidebar-pinned-mode:not(.sidebar-pinned-collapsed) .hide-on-collapse,
+            html.sidebar-pinned-init .sidebar-hover-mode .hide-on-collapse,
+            html.sidebar-pinned-init .sidebar-pinned-mode .hide-on-collapse {
+                max-width: 220px !important;
+                opacity: 1 !important;
+                transform: translateX(0) !important;
+                pointer-events: auto !important;
+                transition: opacity 0.24s var(--sidebar-easing) 0.07s,
+                            transform 0.24s var(--sidebar-easing) 0.07s,
+                            max-width var(--sidebar-duration) var(--sidebar-easing);
             }
 
-            .sidebar-hover-mode:not(:hover) .dropdown-content,
-            .sidebar-hover-mode:not(:hover) .sub-dropdown-content {
+            /* Judul Grup Navigasi (Menu Utama, Administrasi ERP, Sistem) */
+            div.hide-on-collapse {
+                display: block;
+                transition: max-height var(--sidebar-duration) var(--sidebar-easing),
+                            opacity 0.2s var(--sidebar-easing),
+                            padding var(--sidebar-duration) var(--sidebar-easing),
+                            margin var(--sidebar-duration) var(--sidebar-easing);
+            }
+
+            .sidebar-hover-mode:not(:hover) div.hide-on-collapse,
+            .sidebar-pinned-mode.sidebar-pinned-collapsed div.hide-on-collapse {
                 max-height: 0 !important;
-                transition: max-height 0.35s ease-in-out !important;
+                opacity: 0 !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .sidebar-hover-mode:hover div.hide-on-collapse,
+            .sidebar-pinned-mode:not(.sidebar-pinned-collapsed) div.hide-on-collapse,
+            html.sidebar-pinned-init .sidebar-hover-mode div.hide-on-collapse,
+            html.sidebar-pinned-init .sidebar-pinned-mode div.hide-on-collapse {
+                max-height: 3rem !important;
+                opacity: 1 !important;
+            }
+
+            /* Saat unpinned dan tidak dihover, tutup dropdown dengan transisi halus */
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .dropdown-content,
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sub-dropdown-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                overflow: hidden !important;
+                transition: max-height 0.25s var(--sidebar-easing), opacity 0.2s ease !important;
+            }
+
+            /* --- Refinement Header Sidebar Mode Mini (Collapsed ~84px) --- */
+            .sidebar-header-bg {
+                transition: padding var(--sidebar-duration) var(--sidebar-easing);
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-header-bg {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+                justify-content: center !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-header-bg > div:first-child {
+                width: 100% !important;
+                justify-content: center !important;
+                margin: 0 auto !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-header-bg .sidebar-logo-box {
+                margin: 0 auto !important;
+            }
+
+            .sidebar-header-bg #pinSidebarBtn {
+                transition: opacity 0.2s var(--sidebar-easing),
+                            transform 0.2s var(--sidebar-easing),
+                            max-width var(--sidebar-duration) var(--sidebar-easing);
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-header-bg #pinSidebarBtn {
+                opacity: 0 !important;
+                max-width: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                pointer-events: none !important;
+                transform: scale(0.8) !important;
+                overflow: hidden !important;
+            }
+
+            /* --- Kotak Ikon Seragam (38px x 38px) dengan Pergerakan Halus --- */
+            .sidebar-icon-box {
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+                max-width: 38px !important;
+                min-height: 38px !important;
+                max-height: 38px !important;
+                border-radius: 0.75rem !important; /* rounded-xl */
+                flex-shrink: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            /* Transisi Padding Menu Item yang Mulus */
+            .sidebar-nav-container a,
+            .sidebar-nav-container .dropdown-btn {
+                transition: padding var(--sidebar-duration) var(--sidebar-easing),
+                            background-color 0.2s ease,
+                            border-color 0.2s ease,
+                            box-shadow 0.2s ease;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-nav-container {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-nav-container a,
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-nav-container .dropdown-btn {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                justify-content: center !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                background: transparent !important;
+                border-color: transparent !important;
+                box-shadow: none !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-nav-container a > div:first-of-type,
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-nav-container .dropdown-btn > div:first-of-type {
+                width: auto !important;
+                justify-content: center !important;
+                margin: 0 auto !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-icon-box {
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+                max-width: 38px !important;
+                min-height: 38px !important;
+                max-height: 38px !important;
+                margin: 0 auto !important;
+            }
+
+            /* Hilangkan margin space-x saat mode kuncup agar ikon tidak terdorong */
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .hide-on-collapse {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* Indikator kiri saat mode mini */
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) .sidebar-indicator-active {
+                left: 0 !important;
+                width: 4px !important;
+                border-radius: 0 9999px 9999px 0 !important;
+            }
+
+            /* --- Refinement Footer Mode Mini yang Halus --- */
+            #sidebarApp > div:last-child {
+                transition: padding var(--sidebar-duration) var(--sidebar-easing);
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) #sidebarApp > div:last-child {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) #sidebarApp > div:last-child > div:first-child,
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) #sidebarApp > div:last-child button {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                justify-content: center !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+            }
+
+            :is(.sidebar-hover-mode:not(:hover), .sidebar-pinned-mode.sidebar-pinned-collapsed) #sidebarApp > div:last-child .sidebar-icon-box {
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+                max-width: 38px !important;
+                min-height: 38px !important;
+                max-height: 38px !important;
+                margin: 0 auto !important;
             }
         }
 
-        /* --- ANIMASI TRANSISI HALAMAN HALUS --- */
+        /* --- Solusi Anti-Miring (Anti Right-Shift Saat Terpilih) --- */
+        .sidebar-indicator-active {
+            pointer-events: none;
+        }
+
+        .sidebar-indicator-active + div,
+        .sidebar-indicator-active ~ div,
+        .sidebar-nav-container a > div:first-of-type,
+        .sidebar-nav-container .dropdown-btn > div:first-of-type,
+        .sidebar-nav-container .dropdown-btn > div:first-of-type > div:first-child {
+            margin-left: 0 !important;
+        }
+
+        /* --- Styling Ikon Aktif & Inaktif yang Bersih dan Elegan --- */
+        #sidebarApp .sidebar-icon-active {
+            background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+        }
+        #sidebarApp .sidebar-icon-active i {
+            color: #ffffff !important;
+        }
+
+        html.dark #sidebarApp .sidebar-icon-active {
+            background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+        }
+        html.dark #sidebarApp .sidebar-icon-active i {
+            color: #ffffff !important;
+        }
+
+        /* Animasi Transisi Halaman Halus */
         @keyframes pageFadeSlideIn {
             0% {
                 opacity: 0;
@@ -162,7 +459,7 @@
             animation: pageFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* --- ANIMASI OVERLAY BERBASIS LOGO --- */
+        /* Animasi Overlay Berbasis Logo */
         @keyframes logoBreathe {
             0%, 100% {
                 transform: scale(1);
@@ -211,7 +508,7 @@
             animation: spinReverseSlow 3s linear infinite;
         }
 
-        /* --- TURBO PROGRESS BAR NATIVE STYLING --- */
+        /* Turbo Progress Bar */
         .turbo-progress-bar {
             height: 3px !important;
             background: linear-gradient(90deg, #0284c7, #06b6d4, #38bdf8) !important;
@@ -270,71 +567,124 @@
     @endphp
 
     {{-- Sidebar Navigasi Utama --}}
-    <aside id="sidebarApp" class="sidebar-hover-mode bg-slate-900 text-slate-300 flex flex-col h-screen justify-between border-r border-slate-800 shrink-0 z-40 fixed md:relative -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
-        <div class="flex flex-col h-full overflow-hidden">
+    <aside id="sidebarApp" class="sidebar-hover-mode bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex flex-col h-screen justify-between border-r border-slate-200/90 dark:border-slate-800 shrink-0 z-40 fixed md:relative -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none select-none transition-colors duration-200">
+        
+        {{-- Ambient top glow background --}}
+        <div class="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-sky-400/5 via-cyan-400/5 to-transparent dark:from-sky-500/10 dark:via-sky-500/5 dark:to-transparent pointer-events-none"></div>
+
+        <div class="flex flex-col h-full overflow-hidden relative z-10">
             {{-- Header Sidebar & Logo Perusahaan --}}
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 h-20 shrink-0">
+            <div class="sidebar-header-bg px-4 py-3 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-white/95 dark:bg-slate-900/90 backdrop-blur-md h-20 shrink-0 transition-colors duration-200">
                 <div class="z-10 flex items-center space-x-3 overflow-hidden min-w-0">
-                    <div class="bg-white p-0.5 rounded-full shadow-md border border-white/20 w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
+                    <div class="sidebar-logo-box relative flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-white via-sky-50 to-cyan-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 p-1 shadow-sm dark:shadow-md dark:shadow-slate-950/40 border border-slate-200/90 dark:border-slate-700/80 dark:ring-1 dark:ring-slate-700 shrink-0 group transition-all overflow-hidden">
                         <img src="{{ asset('images/iconfav.png') }}"
                             alt="Logo META"
-                            class="w-full h-full object-contain rounded-full">
+                            class="w-full h-full object-contain rounded-full transition-transform duration-300 group-hover:scale-105">
                     </div>
 
-                    <div class="hide-on-collapse min-w-0 w-44">
-                        <h2 class="font-bold tracking-wide text-[11px] text-cyan-100 leading-snug whitespace-normal break-words">
-                            META ADHYA TIRTA UMBULAN
-                        </h2>
+                    <div class="hide-on-collapse min-w-0 flex-1">
+                        <div class="flex items-center space-x-1.5">
+                            <h2 class="font-extrabold tracking-wide text-xs text-slate-800 dark:text-white leading-tight truncate">
+                                META UMBULAN
+                            </h2>
+                        </div>
+                        <div class="flex items-center space-x-1 mt-0.5">
+                            <span class="text-[9px] font-bold tracking-widest text-sky-600 dark:text-sky-400 uppercase">TRANSMISI AIR</span>
+                        </div>
                     </div>
                 </div>
-                <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors shrink-0">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+
+                <div class="flex items-center space-x-1 shrink-0">
+                    {{-- Desktop Pin / Unpin Button (Hanya tampil di Desktop) --}}
+                    <button id="pinSidebarBtn"
+                        type="button"
+                        class="hidden md:flex text-slate-400 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all shrink-0 cursor-pointer"
+                        title="Sematkan Sidebar (Tetap Terbuka)">
+                        <i class="fa-solid fa-thumbtack text-xs"></i>
+                    </button>
+
+                    {{-- Mobile Close Button --}}
+                    <button id="closeSidebarBtn"
+                        type="button"
+                        class="md:hidden text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-transparent hover:border-rose-200 dark:hover:border-rose-500/20 transition-all shrink-0 cursor-pointer"
+                        title="Tutup Menu">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
             </div>
 
             {{-- Menu Navigasi Sidebar --}}
-            <nav class="sidebar-nav-container p-3 space-y-2 flex-1 overflow-y-auto">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 mb-2 hide-on-collapse">Menu Utama</span>
+            <nav class="sidebar-nav-container px-3 py-3 space-y-1.5 flex-1 overflow-y-auto">
+                {{-- Group Label: Menu Utama --}}
+                <div class="px-2 pt-1 pb-1 hide-on-collapse">
+                    <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-400 uppercase flex items-center gap-2">
+                        <span>Menu Utama</span>
+                        <span class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></span>
+                    </span>
+                </div>
 
                 {{-- Menu Dashboard --}}
-                <a href="/dashboard" title="Dashboard" class="flex items-center space-x-3 px-2.5 py-2 rounded-xl text-sm font-medium transition-all {{ request()->is('dashboard') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-chart-pie text-base text-center"></i>
+                @php $isDashboardActive = request()->is('dashboard'); @endphp
+                <a href="/dashboard"
+                    title="Dashboard Operasional"
+                    class="sidebar-nav-link relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group {{ $isDashboardActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="sidebar-icon-box w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isDashboardActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                            <i class="fa-solid fa-gauge-high text-sm text-center"></i>
+                        </div>
+                        <span class="hide-on-collapse">Dashboard</span>
                     </div>
-                    <span class="hide-on-collapse">Dashboard</span>
                 </a>
 
                 {{-- Menu Fasilitas Cuti --}}
                 @php $isCutiActive = request()->is('cuti/*') || request()->is('admin/persetujuan/cuti*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isCutiActive ? 'true' : 'false' }}">
-                    <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCutiActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas Cuti">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-calendar-check text-base text-center"></i>
+                    <button type="button"
+                        class="dropdown-btn w-full relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group cursor-pointer {{ $isCutiActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}"
+                        title="Fasilitas Cuti Karyawan">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div class="sidebar-icon-box relative w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isCutiActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                                <i class="fa-solid fa-calendar-check text-sm text-center"></i>
+                                @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                                    </span>
+                                @endif
                             </div>
                             <span class="hide-on-collapse">Fasilitas CUTI</span>
                         </div>
-                        <div class="flex items-center space-x-2 hide-on-collapse">
+                        <div class="flex items-center space-x-2 hide-on-collapse shrink-0">
                             @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
-                                <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xs animate-pulse">
+                                    {{ $jumlahSaranCuti }}
+                                </span>
                             @endif
-                            <i class="fa-solid fa-chevron-down text-xs chevron-icon"></i>
+                            <i class="fa-solid fa-chevron-down text-xs chevron-icon text-slate-400 group-hover:text-sky-600 dark:text-slate-500 dark:group-hover:text-sky-300 transition-transform"></i>
                         </div>
                     </button>
 
-                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/cuti/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('cuti/ajukan') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1 relative before:absolute before:left-7 before:top-1.5 before:bottom-1.5 before:w-[1.5px] before:bg-gradient-to-b before:from-sky-400/50 before:via-slate-200 before:to-transparent dark:before:from-sky-500/30 dark:before:via-slate-800 dark:before:to-transparent">
+                        <a href="/cuti/ajukan"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->routeIs('cuti.create') || request()->is('cuti/ajukan*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->routeIs('cuti.create') || request()->is('cuti/ajukan*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Ajukan CUTI</span>
                         </a>
-                        <a href="/cuti/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('cuti/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <a href="/cuti/riwayat"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('cuti/riwayat*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('cuti/riwayat*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Riwayat CUTI</span>
                         </a>
 
                         @if($hasAccess)
-                            <a href="{{ route('admin.persetujuan.cuti') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Persetujuan CUTI</span>
+                            <a href="{{ route('admin.persetujuan.cuti') }}"
+                                class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('admin/persetujuan/cuti*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
+                                    <span class="hide-on-collapse">Persetujuan CUTI</span>
+                                </div>
                                 @if(isset($jumlahSaranCuti) && $jumlahSaranCuti > 0)
-                                    <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
+                                    <span class="hide-on-collapse flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs animate-pulse">
                                         {{ $jumlahSaranCuti }}
                                     </span>
                                 @endif
@@ -346,34 +696,52 @@
                 {{-- Menu Fasilitas MPR --}}
                 @php $isMprActive = request()->is('mpr/*') || request()->is('admin/persetujuan/mpr*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isMprActive ? 'true' : 'false' }}">
-                    <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isMprActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas MPR">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-boxes-packing text-base text-center"></i>
+                    <button type="button"
+                        class="dropdown-btn w-full relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group cursor-pointer {{ $isMprActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}"
+                        title="Fasilitas Material Purchase Requisition">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div class="sidebar-icon-box relative w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isMprActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                                <i class="fa-solid fa-boxes-stacked text-sm text-center"></i>
+                                @if(isset($jumlahSaranMpr) && $jumlahSaranMpr > 0)
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                                    </span>
+                                @endif
                             </div>
                             <span class="hide-on-collapse">Fasilitas MPR</span>
                         </div>
-                        <div class="flex items-center space-x-2 hide-on-collapse">
+                        <div class="flex items-center space-x-2 hide-on-collapse shrink-0">
                             @if(isset($jumlahSaranMpr) && $jumlahSaranMpr > 0)
-                                <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xs animate-pulse">
+                                    {{ $jumlahSaranMpr }}
+                                </span>
                             @endif
-                            <i class="fa-solid fa-chevron-down text-xs chevron-icon"></i>
+                            <i class="fa-solid fa-chevron-down text-xs chevron-icon text-slate-400 group-hover:text-sky-600 dark:text-slate-500 dark:group-hover:text-sky-300 transition-transform"></i>
                         </div>
                     </button>
 
-                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/mpr/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('mpr/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1 relative before:absolute before:left-7 before:top-1.5 before:bottom-1.5 before:w-[1.5px] before:bg-gradient-to-b before:from-sky-400/50 before:via-slate-200 before:to-transparent dark:before:from-sky-500/30 dark:before:via-slate-800 dark:before:to-transparent">
+                        <a href="/mpr/ajukan"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->routeIs('mpr.create') || request()->is('mpr/ajukan*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->routeIs('mpr.create') || request()->is('mpr/ajukan*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Ajukan MPR</span>
                         </a>
-                        <a href="/mpr/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('mpr/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <a href="/mpr/riwayat"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('mpr/riwayat*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('mpr/riwayat*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Riwayat MPR</span>
                         </a>
 
                         @if($hasAccess)
-                            <a href="{{ route('admin.persetujuan.mpr') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/mpr*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Persetujuan MPR</span>
+                            <a href="{{ route('admin.persetujuan.mpr') }}"
+                                class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/persetujuan/mpr*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('admin/persetujuan/mpr*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
+                                    <span class="hide-on-collapse">Persetujuan MPR</span>
+                                </div>
                                 @if(isset($jumlahSaranMpr) && $jumlahSaranMpr > 0)
-                                    <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
+                                    <span class="hide-on-collapse flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs animate-pulse">
                                         {{ $jumlahSaranMpr }}
                                     </span>
                                 @endif
@@ -385,34 +753,52 @@
                 {{-- Menu Fasilitas CAR --}}
                 @php $isCarActive = request()->is('car/*') || request()->is('admin/persetujuan/car*'); @endphp
                 <div class="dropdown-container" data-active="{{ $isCarActive ? 'true' : 'false' }}">
-                    <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isCarActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Fasilitas CAR">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-file-invoice-dollar text-base text-center"></i>
+                    <button type="button"
+                        class="dropdown-btn w-full relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group cursor-pointer {{ $isCarActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}"
+                        title="Fasilitas Cash Advance Requisition">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div class="sidebar-icon-box relative w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isCarActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                                <i class="fa-solid fa-file-invoice-dollar text-sm text-center"></i>
+                                @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                                    </span>
+                                @endif
                             </div>
                             <span class="hide-on-collapse">Fasilitas CAR</span>
                         </div>
-                        <div class="flex items-center space-x-2 hide-on-collapse">
+                        <div class="flex items-center space-x-2 hide-on-collapse shrink-0">
                             @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
-                                <span class="h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900 block shrink-0"></span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xs animate-pulse">
+                                    {{ $jumlahSaranCar }}
+                                </span>
                             @endif
-                            <i class="fa-solid fa-chevron-down text-xs chevron-icon"></i>
+                            <i class="fa-solid fa-chevron-down text-xs chevron-icon text-slate-400 group-hover:text-sky-600 dark:text-slate-500 dark:group-hover:text-sky-300 transition-transform"></i>
                         </div>
                     </button>
 
-                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
-                        <a href="/car/ajukan" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/create') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1 relative before:absolute before:left-7 before:top-1.5 before:bottom-1.5 before:w-[1.5px] before:bg-gradient-to-b before:from-sky-400/50 before:via-slate-200 before:to-transparent dark:before:from-sky-500/30 dark:before:via-slate-800 dark:before:to-transparent">
+                        <a href="/car/ajukan"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->routeIs('car.create') || request()->is('car/ajukan*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->routeIs('car.create') || request()->is('car/ajukan*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Ajukan CAR</span>
                         </a>
-                        <a href="/car/riwayat" class="block px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('car/riwayat*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <a href="/car/riwayat"
+                            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('car/riwayat*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('car/riwayat*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
                             <span class="hide-on-collapse">Riwayat CAR</span>
                         </a>
 
                         @if($hasAccess)
-                            <a href="{{ route('admin.persetujuan.car') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-500/20 text-sky-300 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <span class="hide-on-collapse">Persetujuan CAR</span>
+                            <a href="{{ route('admin.persetujuan.car') }}"
+                                class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full transition-all shrink-0 {{ request()->is('admin/persetujuan/car*') ? 'bg-sky-600 shadow-[0_0_6px_#0284c7] dark:bg-sky-400 dark:shadow-[0_0_8px_#38bdf8]' : 'bg-slate-300 group-hover/sub:bg-sky-500 dark:bg-slate-600 dark:group-hover/sub:bg-sky-400' }}"></span>
+                                    <span class="hide-on-collapse">Persetujuan CAR</span>
+                                </div>
                                 @if(isset($jumlahSaranCar) && $jumlahSaranCar > 0)
-                                    <span class="hide-on-collapse flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white animate-pulse">
+                                    <span class="hide-on-collapse flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs animate-pulse">
                                         {{ $jumlahSaranCar }}
                                     </span>
                                 @endif
@@ -429,93 +815,141 @@
                     $isDaftarActive = request()->routeIs('admin.karyawan.*') || request()->routeIs('admin.stations.*') || request()->routeIs('admin.role.*');
                     $isRecordActive = request()->is('admin/record/*');
                 @endphp
+                    <div class="px-2 pt-3 pb-1 hide-on-collapse">
+                        <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-400 uppercase flex items-center gap-2">
+                            <span>Administrasi ERP</span>
+                            <span class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></span>
+                        </span>
+                    </div>
+
                     <div class="dropdown-container" data-active="{{ $isAdminActive ? 'true' : 'false' }}">
-                        <button class="dropdown-btn w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-all relative {{ $isAdminActive ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}" title="Administrator">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-folder-open text-base text-center"></i>
+                        <button type="button"
+                            class="dropdown-btn w-full relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group cursor-pointer {{ $isAdminActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}"
+                            title="Panel Administrator Sistem">
+                            <div class="flex items-center space-x-3 min-w-0">
+                                <div class="sidebar-icon-box w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isAdminActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                                    <i class="fa-solid fa-shield-halved text-sm text-center"></i>
                                 </div>
                                 <span class="hide-on-collapse">Administrator</span>
                             </div>
-                            <i class="fa-solid fa-chevron-down text-xs chevron-icon hide-on-collapse"></i>
+                            <div class="flex items-center space-x-2 hide-on-collapse shrink-0">
+                                <i class="fa-solid fa-chevron-down text-xs chevron-icon text-slate-400 group-hover:text-sky-600 dark:text-slate-500 dark:group-hover:text-sky-300 transition-transform"></i>
+                            </div>
                         </button>
 
-                        <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1">
+                        <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1 relative before:absolute before:left-7 before:top-1.5 before:bottom-1.5 before:w-[1.5px] before:bg-gradient-to-b before:from-sky-400/50 before:via-slate-200 before:to-transparent dark:before:from-sky-500/30 dark:before:via-slate-800 dark:before:to-transparent">
 
                             {{-- Rekap Absensi Harian --}}
-                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/absensi*') ? 'bg-sky-500/20 text-sky-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <i class="fa-solid fa-user-check text-xs"></i>
+                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}"
+                                class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/absensi*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
+                                <i class="fa-solid fa-clipboard-user text-xs {{ request()->is('admin/absensi*') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400 group-hover/sub:text-sky-600 dark:text-slate-500 dark:group-hover/sub:text-sky-300' }}"></i>
                                 <span class="hide-on-collapse">Rekap Absensi Harian</span>
                             </a>
 
                             {{-- Sub-Menu Daftar Data Master --}}
                             <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
-                                <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fa-solid fa-list-check text-xs"></i>
-                                        <span class="hide-on-collapse">Daftar</span>
+                                <button type="button"
+                                    class="sub-dropdown-btn w-[calc(100%-1.25rem)] flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 transition-all ml-5 relative cursor-pointer">
+                                    <div class="flex items-center space-x-2.5">
+                                        <i class="fa-solid fa-database text-xs text-slate-400 dark:text-slate-500"></i>
+                                        <span class="hide-on-collapse">Data Master</span>
                                     </div>
-                                    <i class="fa-solid fa-chevron-down text-[10px] sub-chevron-icon hide-on-collapse"></i>
+                                    <div class="hide-on-collapse flex items-center shrink-0">
+                                        <i class="fa-solid fa-chevron-down text-xs sub-chevron-icon text-slate-400 dark:text-slate-500 transition-transform"></i>
+                                    </div>
                                 </button>
-                                <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
-                                    <a href="{{ route('admin.role.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Role</span>
+                                <div class="sub-dropdown-content space-y-1 pl-3 mt-1 border-l border-sky-300/50 dark:border-slate-700/80 ml-8">
+                                    <a href="{{ route('admin.role.index') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.role.*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->routeIs('admin.role.*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Role Jabatan</span>
                                     </a>
-                                    <a href="{{ route('admin.karyawan.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.karyawan.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Karyawan</span>
+                                    <a href="{{ route('admin.karyawan.index') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.karyawan.*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->routeIs('admin.karyawan.*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Data Karyawan</span>
                                     </a>
-                                    <a href="{{ route('admin.stations.index') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.stations.*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Stations</span>
+                                    <a href="{{ route('admin.stations.index') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.stations.*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Stasiun Transmisi</span>
                                     </a>
                                 </div>
                             </div>
 
                             {{-- Sub-Menu Rekap Record --}}
                             <div class="sub-dropdown-container" data-active="{{ $isRecordActive ? 'true' : 'false' }}">
-                                <button class="sub-dropdown-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-                                        <span class="hide-on-collapse">Record</span>
+                                <button type="button"
+                                    class="sub-dropdown-btn w-[calc(100%-1.25rem)] flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 transition-all ml-5 relative cursor-pointer">
+                                    <div class="flex items-center space-x-2.5">
+                                        <i class="fa-solid fa-clock-rotate-left text-xs text-slate-400 dark:text-slate-500"></i>
+                                        <span class="hide-on-collapse">Arsip Record</span>
                                     </div>
-                                    <i class="fa-solid fa-chevron-down text-[10px] sub-chevron-icon hide-on-collapse"></i>
+                                    <div class="hide-on-collapse flex items-center shrink-0">
+                                        <i class="fa-solid fa-chevron-down text-xs sub-chevron-icon text-slate-400 dark:text-slate-500 transition-transform"></i>
+                                    </div>
                                 </button>
-                                <div class="sub-dropdown-content space-y-1 pl-4 mt-1 border-l border-slate-800 ml-2">
-                                    <a href="{{ route('admin.record.cuti') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/cuti*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Cuti</span>
+                                <div class="sub-dropdown-content space-y-1 pl-3 mt-1 border-l border-sky-300/50 dark:border-slate-700/80 ml-8">
+                                    <a href="{{ route('admin.record.cuti') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/cuti*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->is('admin/record/cuti*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Record Cuti</span>
                                     </a>
-                                    <a href="{{ route('admin.record.mpr') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/mpr*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Mpr</span>
+                                    <a href="{{ route('admin.record.mpr') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/mpr*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->is('admin/record/mpr*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Record MPR</span>
                                     </a>
-                                    <a href="{{ route('admin.record.car') }}" class="block px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-300 font-semibold bg-sky-500/10' : 'text-slate-400 hover:text-white' }}">
-                                        <span class="hide-on-collapse">Car</span>
+                                    <a href="{{ route('admin.record.car') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->is('admin/record/car*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->is('admin/record/car*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Record CAR</span>
                                     </a>
                                 </div>
                             </div>
 
                             {{-- Pengaturan WhatsApp Gateway --}}
-                            <a href="{{ route('admin.whatsapp.index') }}" class="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->is('admin/whatsapp*') ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                                <i class="fa-brands fa-whatsapp text-xs text-emerald-400"></i>
+                            <a href="{{ route('admin.whatsapp.index') }}"
+                                class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/whatsapp*') ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:font-semibold dark:border-emerald-500/30' : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/60 dark:text-slate-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/30' }}">
+                                <i class="fa-brands fa-whatsapp text-xs text-emerald-500 dark:text-emerald-400"></i>
                                 <span class="hide-on-collapse">WhatsApp Gateway</span>
                             </a>
                         </div>
                     </div>
                 @endif
 
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-3 pt-4 mb-2 hide-on-collapse">Pengaturan</span>
-                <a href="{{ route('account.index') }}" title="Pengaturan Akun" class="flex items-center space-x-3 px-2.5 py-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('account.*') ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                        <i class="fa fa-cog text-base text-center"></i>
+                {{-- Group Label: Konfigurasi --}}
+                <div class="px-2 pt-3 pb-1 hide-on-collapse">
+                    <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-400 uppercase flex items-center gap-2">
+                        <span>Sistem</span>
+                        <span class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></span>
+                    </span>
+                </div>
+
+                {{-- Menu Pengaturan Akun --}}
+                @php $isAccountActive = request()->routeIs('account.*'); @endphp
+                <a href="{{ route('account.index') }}"
+                    title="Pengaturan Profil & Akun"
+                    class="sidebar-nav-link relative flex items-center justify-between px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-200 group {{ $isAccountActive ? 'sidebar-nav-active bg-sky-500/10 dark:bg-gradient-to-r dark:from-sky-500/20 dark:via-sky-500/10 dark:to-transparent text-sky-700 dark:text-sky-200 font-bold dark:font-semibold border border-sky-300/80 dark:border-sky-500/30 shadow-xs dark:shadow-md dark:shadow-slate-950/40' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60' }}">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="sidebar-icon-box w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 {{ $isAccountActive ? 'sidebar-icon-active bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25 border-transparent' : 'sidebar-icon-inactive bg-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600 group-hover:border-sky-300 dark:bg-slate-800/80 dark:text-slate-400 dark:group-hover:bg-slate-800 dark:group-hover:text-sky-300 group-hover:scale-105 border border-slate-200/80 dark:border-slate-700/60 dark:group-hover:border-sky-500/30' }}">
+                            <i class="fa-solid fa-user-gear text-sm text-center"></i>
+                        </div>
+                        <span class="hide-on-collapse">Pengaturan Akun</span>
                     </div>
-                    <span class="hide-on-collapse">Pengaturan Akun</span>
                 </a>
             </nav>
         </div>
 
-        {{-- Tombol Pemicu Logout --}}
-        <div class="p-3 border-t border-slate-800/60 bg-slate-950/20 shrink-0">
-            <button type="button" onclick="openLogoutModal()" title="Keluar Aplikasi" class="w-full flex items-center space-x-3 hover:bg-rose-500/10 text-rose-400 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors group cursor-pointer">
-                <div class="w-9 h-9 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-arrow-right-from-bracket text-base text-center transition-transform group-hover:translate-x-0.5"></i>
+        {{-- Footer Sidebar: User / Station Status Widget & Tombol Keluar --}}
+        <div class="p-3 border-t border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shrink-0 space-y-2 relative z-10 transition-colors duration-200">
+            {{-- Tombol Pemicu Logout --}}
+            <button type="button"
+                onclick="openLogoutModal()"
+                title="Keluar dari Aplikasi"
+                class="w-full flex items-center space-x-3 px-2.5 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400/90 hover:text-rose-700 dark:hover:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-500/15 border border-transparent hover:border-rose-200/80 dark:hover:border-rose-500/25 transition-all duration-200 group cursor-pointer">
+                <div class="sidebar-icon-box w-[38px] h-[38px] rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-100 border border-rose-200/80 dark:bg-rose-500/10 dark:text-rose-400 dark:group-hover:bg-rose-500/20 dark:group-hover:text-rose-200 dark:border-rose-500/20 flex items-center justify-center shrink-0 transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm text-center transition-transform group-hover:translate-x-1"></i>
                 </div>
                 <span class="hide-on-collapse">Keluar Aplikasi</span>
             </button>
@@ -530,7 +964,7 @@
         {{-- Header Utama dengan Jam Digital & Switcher Tema --}}
         <header class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-xs transition-colors">
             <div class="flex items-center space-x-3">
-                <button id="toggleSidebarBtn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
+                <button id="toggleSidebarBtn" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 active:scale-95 transition-all shadow-xs cursor-pointer" title="Buka / Tutup Sidebar">
                     <i class="fa-solid fa-bars-staggered text-lg"></i>
                 </button>
                 <div>
@@ -684,7 +1118,8 @@
                                 </p>
                             </div>
                         </div>
-                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">                            <i class="fa-solid fa-qrcode"></i>
+                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">
+                            <i class="fa-solid fa-qrcode"></i>
                             <span>Sambungkan Perangkat</span>
                         </a>
                     </div>
@@ -780,6 +1215,29 @@
         {{-- DROPDOWN SIDEBAR (ACCORDION) --}}
         function toggleDropdown(container) {
             if (!container) return;
+            const sidebar = document.getElementById("sidebarApp");
+
+            // Jika sidebar dalam mode pin tapi sedang kuncup/tertutup manual:
+            if (sidebar && sidebar.classList.contains("sidebar-pinned-collapsed")) {
+                // 1. Otomatis buka lebar sidebar penuh
+                sidebar.classList.remove("sidebar-pinned-collapsed");
+                try {
+                    localStorage.setItem("umbulan_sidebar_manual_collapsed", "false");
+                } catch (err) {}
+
+                // 2. Tutup dropdown lain agar fokus pada menu yang baru diklik
+                document.querySelectorAll('.dropdown-container.dropdown-open').forEach(c => {
+                    if (c !== container) {
+                        c.classList.remove('dropdown-open');
+                    }
+                });
+
+                // 3. Pastikan dropdown yang diklik terbuka
+                container.classList.add('dropdown-open');
+                return;
+            }
+
+            // Normal toggle saat sidebar sudah dalam keadaan terbuka lebar
             const isOpen = container.classList.contains('dropdown-open');
             if (isOpen) {
                 container.classList.remove('dropdown-open');
@@ -798,7 +1256,7 @@
             }
         }
 
-        {{-- SIDEBAR MOBILE --}}
+        {{-- SIDEBAR MOBILE & PIN CONTROLS --}}
         function openSidebarMobile() {
             const sidebar = document.getElementById("sidebarApp");
             const backdrop = document.getElementById("sidebarBackdrop");
@@ -821,6 +1279,81 @@
             }
         }
 
+        function applySidebarMode(isPinned, isCollapsed) {
+            const sidebar = document.getElementById("sidebarApp");
+            if (!sidebar) return;
+
+            if (isPinned) {
+                // Mode Pin Aktif: Matikan mode hover total!
+                sidebar.classList.remove("sidebar-hover-mode");
+                sidebar.classList.add("sidebar-pinned-mode", "sidebar-pinned");
+
+                if (isCollapsed) {
+                    sidebar.classList.add("sidebar-pinned-collapsed");
+                } else {
+                    sidebar.classList.remove("sidebar-pinned-collapsed");
+                }
+                updatePinButtonState(true);
+            } else {
+                // Mode Pin Nonaktif: Aktifkan mode hover dinamis!
+                sidebar.classList.remove("sidebar-pinned-mode", "sidebar-pinned-collapsed", "sidebar-pinned");
+                sidebar.classList.add("sidebar-hover-mode");
+                updatePinButtonState(false);
+            }
+        }
+
+        function toggleSidebarPinned() {
+            const sidebar = document.getElementById("sidebarApp");
+            if (!sidebar) return;
+            const isCurrentlyPinned = sidebar.classList.contains("sidebar-pinned-mode");
+            const nextPinned = !isCurrentlyPinned;
+
+            try {
+                localStorage.setItem("umbulan_sidebar_pinned", nextPinned ? "true" : "false");
+                if (nextPinned) {
+                    localStorage.setItem("umbulan_sidebar_manual_collapsed", "false");
+                }
+            } catch (err) {}
+
+            applySidebarMode(nextPinned, false);
+        }
+
+        function toggleSidebarDesktop() {
+            const sidebar = document.getElementById("sidebarApp");
+            if (!sidebar) return;
+
+            const isPinned = sidebar.classList.contains("sidebar-pinned-mode");
+            if (isPinned) {
+                // Saat mode pin aktif: buka/tutup manual TANPA merubah status pin
+                const isCollapsed = sidebar.classList.toggle("sidebar-pinned-collapsed");
+                try {
+                    localStorage.setItem("umbulan_sidebar_manual_collapsed", isCollapsed ? "true" : "false");
+                } catch (err) {}
+            } else {
+                // Saat mode hover: klik tombol navbar akan membuka dan menyematkan sidebar
+                try {
+                    localStorage.setItem("umbulan_sidebar_pinned", "true");
+                    localStorage.setItem("umbulan_sidebar_manual_collapsed", "false");
+                } catch (err) {}
+                applySidebarMode(true, false);
+            }
+        }
+
+        function updatePinButtonState(isPinned) {
+            const pinBtn = document.getElementById("pinSidebarBtn");
+            if (!pinBtn) return;
+            const icon = pinBtn.querySelector("i");
+            if (icon) {
+                if (isPinned) {
+                    icon.className = "fa-solid fa-thumbtack text-sky-500 dark:text-cyan-400 rotate-45 transition-transform";
+                    pinBtn.setAttribute("title", "Lepas Sematan (Aktifkan Mode Hover Melayang)");
+                } else {
+                    icon.className = "fa-solid fa-thumbtack text-slate-400 transition-transform";
+                    pinBtn.setAttribute("title", "Sematkan Sidebar (Kunci Tetap Terbuka)");
+                }
+            }
+        }
+
         {{-- SINKRONISASI TAMPILAN SAAT NAVIGASI --}}
         function initLayoutHandlers() {
             updateHeaderClock();
@@ -828,6 +1361,21 @@
             closeNavbarProfileDropdown();
             closeSidebarMobile();
             closeLogoutModal();
+
+            // Sinkronisasi status sematan sidebar desktop
+            try {
+                const savedPinned = localStorage.getItem("umbulan_sidebar_pinned");
+                const savedCollapsed = localStorage.getItem("umbulan_sidebar_manual_collapsed");
+                const sidebar = document.getElementById("sidebarApp");
+                if (sidebar) {
+                    const isPinned = (savedPinned === "true" || (savedPinned === null && window.innerWidth >= 1024));
+                    const isCollapsed = (savedCollapsed === "true");
+                    applySidebarMode(isPinned, isCollapsed);
+                }
+            } catch (err) {}
+            if (document.documentElement.classList.contains("sidebar-pinned-init")) {
+                document.documentElement.classList.remove("sidebar-pinned-init");
+            }
 
             // Pemicu animasi transisi konten halaman
             if (typeof window.triggerPageTransition === 'function') {
@@ -847,6 +1395,10 @@
             document.querySelectorAll('.sub-dropdown-container[data-active="true"]').forEach(sub => {
                 sub.classList.add('sub-dropdown-open');
             });
+        }
+
+        if (!window.__umbulanClockInterval) {
+            window.__umbulanClockInterval = setInterval(updateHeaderClock, 1000);
         }
 
         if (!window.__umbulanLayoutEventsBound) {
@@ -887,7 +1439,16 @@
 
                 if (e.target.closest('#toggleSidebarBtn')) {
                     e.preventDefault();
-                    openSidebarMobile();
+                    if (window.innerWidth < 768) {
+                        openSidebarMobile();
+                    } else {
+                        toggleSidebarDesktop();
+                    }
+                    return;
+                }
+                if (e.target.closest('#pinSidebarBtn')) {
+                    e.preventDefault();
+                    toggleSidebarPinned();
                     return;
                 }
                 if (e.target.closest('#closeSidebarBtn') || (e.target.id === 'sidebarBackdrop')) {
@@ -905,23 +1466,22 @@
                     closeLogoutModal();
                 }
             });
-
-            setInterval(updateHeaderClock, 1000);
         }
 
         document.addEventListener("DOMContentLoaded", initLayoutHandlers);
         document.addEventListener("turbo:load", initLayoutHandlers);
+        document.addEventListener("turbo:render", initLayoutHandlers);
     </script>
 
     {{-- MODAL POPUP DETAIL AKUN USER --}}
     <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md transition-opacity duration-300">
         <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200/90 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
 
-            {{-- HEADER SANGAT ELEGAN DENGAN DESAIN DEEP NAVY SAPPHIRE METALLIC SMART CARD --}}
+            {{-- HEADER ELEGAN DENGAN DESAIN DEEP NAVY SAPPHIRE METALLIC SMART CARD --}}
             <div class="relative text-white p-6 sm:p-7 overflow-hidden border-b border-sky-400/20"
                  style="background: linear-gradient(135deg, #06152b 0%, #0c2748 45%, #0f365d 75%, #081d36 100%); box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);">
                 
-                <!-- Ambient Subtle Sapphire & Cyan Corner Glow (Tanpa memudarkan teks) -->
+                <!-- Ambient Subtle Sapphire & Cyan Corner Glow -->
                 <div class="absolute -top-12 -right-12 w-64 h-64 rounded-full pointer-events-none opacity-30 blur-2xl"
                      style="background: radial-gradient(circle, rgba(14, 165, 233, 0.4) 0%, rgba(14, 165, 233, 0) 70%);"></div>
                 <div class="absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none opacity-25 blur-2xl"
@@ -944,7 +1504,7 @@
                         </span>
                         <div>
                             <span class="text-[10px] font-mono tracking-widest text-sky-300 font-extrabold uppercase block leading-none">Kartu Digital Karyawan</span>
-                            <span class="text-xs text-slate-200 font-bold tracking-tight">PT Meta Adhya Tirta Umbulan</span>
+                            <span class="text-xs text-slate-200 font-bold tracking-tight">PT META Adhya Tirta Umbulan</span>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
