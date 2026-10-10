@@ -729,89 +729,110 @@
     </div>
 
     {{-- Tabel Riwayat Cuti Anda --}}
-    <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden transition-colors">
-        <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+    <div class="bg-white/95 dark:bg-slate-900/90 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 bg-sky-50/60 dark:bg-sky-950/20">
             <div class="flex items-center gap-3">
-                <div class="w-1.5 h-10 bg-sky-500 rounded-full"></div>
+                <div class="w-10 h-10 rounded-2xl bg-sky-600 dark:bg-sky-500 text-white flex items-center justify-center text-lg shadow-md shadow-sky-600/25 shrink-0">
+                    <i class="fa-regular fa-calendar-check text-white"></i>
+                </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4"></path>
-                        </svg>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat Cuti Anda</h3>
+                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base tracking-tight">Riwayat Cuti Anda</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-200/60 dark:border-sky-500/30">
+                            {{ count($riwayatCuti) }} Pengajuan
+                        </span>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar permohonan izin cuti Anda pada periode tahun berjalan.</p>
                 </div>
             </div>
-            <a href="{{ url('/cuti/ajukan') }}" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>Ajukan Cuti</span>
-            </a>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <a href="{{ url('/cuti/riwayat') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all border border-slate-200/60 dark:border-slate-700 inline-flex items-center gap-1.5">
+                    <span>Semua Riwayat</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+                <a href="{{ url('/cuti/ajukan') }}" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-sky-600/20 active:scale-95 inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-plus text-[10px] text-white"></i>
+                    <span class="text-white">Ajukan Cuti</span>
+                </a>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-900/70 text-slate-500 dark:text-slate-400 font-semibold text-xs border-b border-slate-100 dark:border-slate-700/60 uppercase tracking-wider">
+                    <tr class="bg-slate-50/80 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-extrabold text-[11px] border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider select-none">
                         <th class="px-6 py-3.5">Jenis Cuti</th>
                         <th class="px-6 py-3.5">Tanggal Pelaksanaan</th>
                         <th class="px-6 py-3.5">Durasi</th>
                         <th class="px-6 py-3.5">Keterangan / Alasan</th>
-                        <th class="px-6 py-3.5">Status Persetujuan</th>
+                        <th class="px-6 py-3.5">Status & Dokumen</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                     @forelse($riwayatCuti as $cuti)
-                        <tr class="btn-detail-cuti hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" data-id="{{ $cuti->id }}">
-                            <td class="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{{ $cuti->name_cuti }}</td>
-                            <td class="px-6 py-4 text-slate-500 dark:text-slate-400">
-                                {{ \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d M Y') }} -
-                                {{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d M Y') }}
+                        <tr class="btn-detail-cuti hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-all cursor-pointer group" data-id="{{ $cuti->id }}">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-2">
+                                    <span>{{ $cuti->name_cuti }}</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-0 group-hover:opacity-100 text-sky-500 transition-opacity"></i>
+                                </div>
+                                <span class="text-[11px] text-slate-400 dark:text-slate-500">Klik baris untuk rincian</span>
                             </td>
-                            <td class="px-6 py-4 font-medium">{{ $cuti->total_hari }} Hari</td>
-                            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs max-w-xs truncate"
+                            <td class="px-6 py-4 text-slate-600 dark:text-slate-300">
+                                <div class="inline-flex items-center gap-1.5 font-semibold text-xs bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                                    <i class="fa-regular fa-calendar text-sky-500 text-[11px]"></i>
+                                    <span>{{ \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d M Y') }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 font-extrabold text-xs border border-sky-200/60 dark:border-sky-500/30">
+                                    <i class="fa-solid fa-hourglass-half text-[10px]"></i>
+                                    <span>{{ $cuti->total_hari }} Hari</span>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-xs max-w-xs text-slate-600 dark:text-slate-400 truncate"
                                 title="{{ $cuti->alasan_cuti ?? ($cuti->nama_sub_cuti ?? 'Tanpa Keterangan') }}">
                                 @if(!empty($cuti->alasan_cuti))
-                                    {{ $cuti->alasan_cuti }}
+                                    <span class="font-medium text-slate-700 dark:text-slate-300">{{ $cuti->alasan_cuti }}</span>
                                 @else
-                                    <span class="text-slate-400 dark:text-slate-500 italic font-medium">
-                                        {{ isset($cuti->nama_sub_cuti) ? $cuti->nama_sub_cuti : 'Tanpa Keterangan' }}
+                                    <span class="text-slate-400 dark:text-slate-500 italic">
+                                        {{ $cuti->nama_sub_cuti ?? 'Tanpa Keterangan' }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4" onclick="event.stopPropagation();">
                                 @if(trim(strtolower($cuti->status_akhir ?? '')) === 'approved')
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-emerald-200/60 dark:border-emerald-800/40">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200/60 dark:border-emerald-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                             <span>Disetujui</span>
                                         </span>
 
                                         <button type="button"
                                                 data-url="{{ route('cuti.cetak', $cuti->id) }}"
                                                 onclick="bukaPratinjauCetak(this.dataset.url)"
-                                                class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-xs cursor-pointer">
-                                            <i class="fa-solid fa-print text-[10px]"></i>
-                                            <span>PDF</span>
+                                                title="Pratinjau Cetak PDF Dokumen Cuti"
+                                                class="px-2.5 py-1 bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white dark:bg-sky-500/15 dark:hover:bg-sky-600 dark:text-sky-300 dark:hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all border border-sky-200/80 dark:border-sky-500/30 shadow-2xs cursor-pointer active:scale-95">
+                                            <i class="fa-solid fa-file-pdf text-[11px]"></i>
+                                            <span>Cetak PDF</span>
                                         </button>
                                     </div>
                                 @elseif(trim(strtolower($cuti->status_akhir ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($cuti->status_tahap_2 ?? '')) === 'rejected')
                                     <div class="space-y-1.5">
-                                        <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-rose-200/60 dark:border-rose-800/40">
+                                        <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200/60 dark:border-rose-800/40">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>Ditolak</span>
                                         </span>
                                         @if($cuti->catatan_penolakan)
-                                            <div class="text-[11px] bg-rose-50/50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/50 p-2 rounded-lg max-w-[200px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan Penolakan:</span>
+                                            <div class="text-[11px] bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-800/50 p-2 rounded-xl max-w-[220px] text-slate-600 dark:text-slate-300 leading-relaxed shadow-2xs">
+                                                <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan:</span>
                                                 "{{ $cuti->catatan_penolakan }}"
                                             </div>
                                         @endif
                                     </div>
                                 @else
-                                    <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-amber-200/60 dark:border-amber-800/40">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200/60 dark:border-amber-800/40">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                         <span>Menunggu Review</span>
                                     </span>
                                 @endif
@@ -819,9 +840,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
-                                <i class="fa-solid fa-calendar-xmark text-3xl mb-2 block text-slate-200 dark:text-slate-700"></i>
-                                Anda belum pernah mengajukan permohonan cuti.
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center text-2xl mx-auto mb-3 border border-sky-100 dark:border-sky-500/20">
+                                    <i class="fa-regular fa-calendar-xmark"></i>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Belum Ada Pengajuan Cuti</h4>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 mb-3">Anda belum pernah mengajukan permohonan cuti pada periode ini.</p>
+                                <a href="{{ url('/cuti/ajukan') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                    <i class="fa-solid fa-plus text-[10px]"></i> Ajukan Sekarang
+                                </a>
                             </td>
                         </tr>
                     @endforelse
@@ -831,89 +858,104 @@
     </div>
 
     {{-- Tabel Riwayat MPR Anda --}}
-    <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden mt-6 transition-colors">
-        <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+    <div class="bg-white/95 dark:bg-slate-900/90 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all overflow-hidden mt-6">
+        <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 bg-indigo-50/60 dark:bg-indigo-950/20">
             <div class="flex items-center gap-3">
-                <div class="w-1.5 h-10 bg-indigo-600 rounded-full"></div>
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center text-lg shadow-md shadow-indigo-600/25 shrink-0">
+                    <i class="fa-solid fa-boxes-stacked text-white"></i>
+                </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat MPR Anda</h3>
+                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base tracking-tight">Riwayat MPR Anda</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/30">
+                            {{ count($riwayatMpr) }} Pengajuan
+                        </span>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar permohonan Material Purchase Request (MPR) Anda.</p>
                 </div>
             </div>
-            <a href="{{ url('/mpr/ajukan') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>Ajukan MPR</span>
-            </a>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <a href="{{ url('/mpr/riwayat') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all border border-slate-200/60 dark:border-slate-700 inline-flex items-center gap-1.5">
+                    <span>Semua Riwayat</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+                <a href="{{ url('/mpr/ajukan') }}" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-95 inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-plus text-[10px] text-white"></i>
+                    <span class="text-white">Ajukan MPR</span>
+                </a>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-900/70 text-slate-500 dark:text-slate-400 font-semibold text-xs border-b border-slate-100 dark:border-slate-700/60 uppercase tracking-wider">
+                    <tr class="bg-slate-50/80 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-extrabold text-[11px] border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider select-none">
                         <th class="px-6 py-3.5">Nomor & Tanggal</th>
                         <th class="px-6 py-3.5">Alasan Pengajuan</th>
                         <th class="px-6 py-3.5">Daftar Material</th>
-                        <th class="px-6 py-3.5">Status Persetujuan</th>
+                        <th class="px-6 py-3.5">Status & Dokumen</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                     @forelse($riwayatMpr as $mpr)
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                        <tr class="hover:bg-indigo-50/30 dark:hover:bg-slate-800/40 transition-all">
                             <td class="px-6 py-4">
-                                <span class="font-bold text-slate-800 dark:text-slate-100 block text-xs">{{ $mpr->nomor_mpr }}</span>
-                                <span class="text-[11px] text-slate-400 dark:text-slate-400">{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d M Y') }}</span>
+                                <span class="font-mono font-bold text-xs px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40 inline-block mb-1">
+                                    {{ $mpr->nomor_mpr }}
+                                </span>
+                                <div class="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                                    <i class="fa-regular fa-clock text-[10px]"></i>
+                                    <span>{{ \Carbon\Carbon::parse($mpr->tanggal_pengajuan)->format('d M Y') }}</span>
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-xs font-medium text-slate-700 dark:text-slate-300 max-w-xs truncate" title="{{ $mpr->keperluan_urgensi }}">
                                 {{ $mpr->keperluan_urgensi }}
                             </td>
                             <td class="px-6 py-4 text-xs">
-                                <ul class="list-disc pl-4 space-y-0.5">
+                                <div class="space-y-1">
                                     @foreach($mpr->items->take(2) as $item)
-                                        <li><span class="font-semibold text-slate-700 dark:text-slate-200">{{ $item->nama_barang }}</span> ({{ $item->jumlah }} {{ $item->satuan }})</li>
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs border border-slate-200/60 dark:border-slate-700 mr-1 mb-1">
+                                            <span class="font-bold text-slate-700 dark:text-slate-200">{{ $item->nama_barang }}</span>
+                                            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">({{ $item->jumlah }} {{ $item->satuan }})</span>
+                                        </div>
                                     @endforeach
                                     @if($mpr->items->count() > 2)
-                                        <li class="text-slate-400 dark:text-slate-400 italic">+{{ $mpr->items->count() - 2 }} item lainnya</li>
+                                        <span class="text-[11px] text-slate-400 dark:text-slate-500 font-semibold block">+{{ $mpr->items->count() - 2 }} item lainnya</span>
                                     @endif
-                                </ul>
+                                </div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex flex-col items-start gap-1.5">
+                                <div class="flex items-center gap-2 flex-wrap">
                                     @if(trim(strtolower($mpr->status_akhir ?? '')) === 'approved')
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-emerald-200/60 dark:border-emerald-800/40">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>Disetujui</span>
-                                            </span>
+                                        <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200/60 dark:border-emerald-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Disetujui</span>
+                                        </span>
 
-                                            <button type="button"
-                                                    data-url="{{ route('mpr.cetak', $mpr->id) }}"
-                                                    onclick="bukaPratinjauCetak(this.dataset.url)"
-                                                    class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors shadow-xs cursor-pointer">
-                                                <i class="fa-solid fa-print text-[10px]"></i>
-                                                <span>PDF</span>
-                                            </button>
-                                        </div>
+                                        <button type="button"
+                                                data-url="{{ route('mpr.cetak', $mpr->id) }}"
+                                                onclick="bukaPratinjauCetak(this.dataset.url)"
+                                                title="Pratinjau Cetak PDF Dokumen MPR"
+                                                class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white dark:bg-indigo-500/15 dark:hover:bg-indigo-600 dark:text-indigo-300 dark:hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs cursor-pointer active:scale-95">
+                                            <i class="fa-solid fa-file-pdf text-[11px]"></i>
+                                            <span>Cetak PDF</span>
+                                        </button>
                                     @elseif(trim(strtolower($mpr->status_akhir ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($mpr->status_tahap_2 ?? '')) === 'rejected')
                                         <div class="space-y-1.5">
-                                            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-rose-200/60 dark:border-rose-800/40">
+                                            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200/60 dark:border-rose-800/40">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                                 <span>Ditolak</span>
                                             </span>
                                             @if($mpr->catatan_penolakan)
-                                                <div class="text-[11px] bg-rose-50/50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/50 p-2 rounded-lg max-w-[200px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                    <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan Penolakan:</span>
+                                                <div class="text-[11px] bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-800/50 p-2 rounded-xl max-w-[220px] text-slate-600 dark:text-slate-300 leading-relaxed shadow-2xs">
+                                                    <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan:</span>
                                                     "{{ $mpr->catatan_penolakan }}"
                                                 </div>
                                             @endif
                                         </div>
                                     @else
-                                        <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-amber-200/60 dark:border-amber-800/40">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200/60 dark:border-amber-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                             <span>Menunggu Review</span>
                                         </span>
                                     @endif
@@ -922,9 +964,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
-                                <i class="fa-solid fa-boxes-packing text-3xl mb-2 block text-slate-200 dark:text-slate-700"></i>
-                                Anda belum pernah mengajukan permohonan MPR.
+                            <td colspan="4" class="px-6 py-12 text-center">
+                                <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-2xl mx-auto mb-3 border border-indigo-100 dark:border-indigo-500/20">
+                                    <i class="fa-solid fa-boxes-packing"></i>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Belum Ada Pengajuan MPR</h4>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 mb-3">Anda belum pernah mengajukan permohonan MPR pada periode ini.</p>
+                                <a href="{{ url('/mpr/ajukan') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                    <i class="fa-solid fa-plus text-[10px]"></i> Ajukan Sekarang
+                                </a>
                             </td>
                         </tr>
                     @endforelse
@@ -934,96 +982,108 @@
     </div>
 
     {{-- Tabel Riwayat CAR Anda --}}
-    <div class="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs overflow-hidden mt-6 transition-colors">
-        <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+    <div class="bg-white/95 dark:bg-slate-900/90 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all overflow-hidden mt-6">
+        <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 bg-purple-50/60 dark:bg-purple-950/20">
             <div class="flex items-center gap-3">
-                <div class="w-1.5 h-10 bg-purple-500 rounded-full"></div>
+                <div class="w-10 h-10 rounded-2xl bg-purple-600 dark:bg-purple-500 text-white flex items-center justify-center text-lg shadow-md shadow-purple-600/25 shrink-0">
+                    <i class="fa-solid fa-money-bill-transfer text-white"></i>
+                </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Riwayat CAR Anda</h3>
+                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base tracking-tight">Riwayat CAR Anda</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200/60 dark:border-purple-500/30">
+                            {{ count($riwayatCar) }} Pengajuan
+                        </span>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5 pl-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar permohonan Cash Advance Request (CAR) Anda.</p>
                 </div>
             </div>
-            <a href="{{ url('/car/ajukan') }}" class="bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold py-2 px-4 rounded-xl transition-colors flex items-center space-x-1 shadow-xs">
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>Ajukan CAR</span>
-            </a>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <a href="{{ url('/car/riwayat') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all border border-slate-200/60 dark:border-slate-700 inline-flex items-center gap-1.5">
+                    <span>Semua Riwayat</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+                <a href="{{ url('/car/ajukan') }}" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-purple-600/20 active:scale-95 inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-plus text-[10px] text-white"></i>
+                    <span class="text-white">Ajukan CAR</span>
+                </a>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-900/70 text-slate-500 dark:text-slate-400 font-semibold text-xs border-b border-slate-100 dark:border-slate-700/60 uppercase tracking-wider">
-                        <th class="px-6 py-3.5">Tanggal Pengajuan</th>
+                    <tr class="bg-slate-50/80 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-extrabold text-[11px] border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider select-none">
+                        <th class="px-6 py-3.5">Nomor & Tanggal</th>
                         <th class="px-6 py-3.5">Alasan Pengajuan</th>
                         <th class="px-6 py-3.5">Daftar Material</th>
-                        <th class="px-6 py-3.5">Status Persetujuan</th>
+                        <th class="px-6 py-3.5">Status & Dokumen</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                     @forelse($riwayatCar as $car)
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">
-                                {{ $car->created_at ? $car->created_at->format('d M Y') : '-' }}
+                        <tr class="hover:bg-purple-50/30 dark:hover:bg-slate-800/40 transition-all">
+                            <td class="px-6 py-4">
+                                <span class="font-mono font-bold text-xs px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/40 inline-block mb-1">
+                                    {{ $car->nomor_car ?? ('CAR #' . sprintf('%03d', $car->id)) }}
+                                </span>
+                                <div class="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                                    <i class="fa-regular fa-clock text-[10px] text-purple-500"></i>
+                                    <span>{{ $car->created_at ? $car->created_at->format('d M Y') : '-' }}</span>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 max-w-xs truncate text-slate-800 dark:text-slate-200" title="{{ $car->alasan_pembelian }}">
+                            <td class="px-6 py-4 max-w-xs truncate text-slate-800 dark:text-slate-200 font-medium text-xs" title="{{ $car->alasan_pembelian }}">
                                 {{ $car->alasan_pembelian }}
                             </td>
                             <td class="px-6 py-4 text-xs">
                                 @if($car->details && $car->details->count() > 0)
-                                    <ul class="list-disc pl-4 space-y-0.5">
+                                    <div class="space-y-1">
                                         @foreach($car->details->take(2) as $detail)
-                                            <li>
-                                                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $detail->nama_barang }}</span>
-                                                ({{ $detail->jumlah }} {{ $detail->satuan }})
-                                            </li>
+                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs border border-slate-200/60 dark:border-slate-700 mr-1 mb-1">
+                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $detail->nama_barang }}</span>
+                                                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-bold">({{ $detail->jumlah }} {{ $detail->satuan }})</span>
+                                            </div>
                                         @endforeach
-
                                         @if($car->details->count() > 2)
-                                            <li class="text-slate-400 dark:text-slate-400 italic">+{{ $car->details->count() - 2 }} item lainnya</li>
+                                            <span class="text-[11px] text-slate-400 dark:text-slate-500 font-semibold block">+{{ $car->details->count() - 2 }} item lainnya</span>
                                         @endif
-                                    </ul>
+                                    </div>
                                 @else
                                     <span class="text-slate-400 dark:text-slate-500 italic">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex flex-col items-start gap-1.5">
+                                <div class="flex items-center gap-2 flex-wrap">
                                     @if(trim(strtolower($car->status_akhir ?? '')) === 'approved')
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-emerald-200/60 dark:border-emerald-800/40">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>Disetujui</span>
-                                            </span>
+                                        <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200/60 dark:border-emerald-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Disetujui</span>
+                                        </span>
 
-                                            <button type="button"
-                                                    data-url="{{ route('car.print', $car->id) }}"
-                                                    onclick="bukaPratinjauCetak(this.dataset.url)"
-                                                    class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-md text-[11px] font-semibold inline-flex items-center space-x-1 transition-colors shadow-xs cursor-pointer">
-                                                <i class="fa-solid fa-print text-[10px]"></i>
-                                                <span>PDF</span>
-                                            </button>
-                                        </div>
+                                        <button type="button"
+                                                data-url="{{ route('car.print', $car->id) }}"
+                                                onclick="bukaPratinjauCetak(this.dataset.url)"
+                                                title="Pratinjau Cetak PDF Dokumen CAR"
+                                                class="px-2.5 py-1 bg-purple-50 hover:bg-purple-600 text-purple-700 hover:text-white dark:bg-purple-500/15 dark:hover:bg-purple-600 dark:text-purple-300 dark:hover:text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all border border-purple-200/80 dark:border-purple-500/30 shadow-2xs cursor-pointer active:scale-95">
+                                            <i class="fa-solid fa-file-pdf text-[11px]"></i>
+                                            <span>Cetak PDF</span>
+                                        </button>
                                     @elseif(trim(strtolower($car->status_akhir ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_1 ?? '')) === 'rejected' || trim(strtolower($car->status_tahap_2 ?? '')) === 'rejected')
                                         <div class="space-y-1.5">
-                                            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-rose-200/60 dark:border-rose-800/40">
+                                            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200/60 dark:border-rose-800/40">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                                 <span>Ditolak</span>
                                             </span>
                                             @if($car->catatan_penolakan)
-                                                <div class="text-[11px] bg-rose-50/50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/50 p-2 rounded-lg max-w-[200px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                    <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan Penolakan:</span>
+                                                <div class="text-[11px] bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-800/50 p-2 rounded-xl max-w-[220px] text-slate-600 dark:text-slate-300 leading-relaxed shadow-2xs">
+                                                    <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Alasan:</span>
                                                     "{{ $car->catatan_penolakan }}"
                                                 </div>
                                             @endif
                                         </div>
                                     @else
-                                        <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center space-x-1 border border-amber-200/60 dark:border-amber-800/40">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200/60 dark:border-amber-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                             <span>Menunggu Review</span>
                                         </span>
                                     @endif
@@ -1032,9 +1092,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
-                                <i class="fa-solid fa-folder-open text-3xl mb-2 block text-slate-200 dark:text-slate-700"></i>
-                                Anda belum pernah mengajukan permohonan CAR.
+                            <td colspan="4" class="px-6 py-12 text-center">
+                                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-500/10 text-purple-500 flex items-center justify-center text-2xl mx-auto mb-3 border border-purple-100 dark:border-purple-500/20">
+                                    <i class="fa-solid fa-money-bill-transfer"></i>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Belum Ada Pengajuan CAR</h4>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 mb-3">Anda belum pernah mengajukan permohonan CAR pada periode ini.</p>
+                                <a href="{{ url('/car/ajukan') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                    <i class="fa-solid fa-plus text-[10px]"></i> Ajukan Sekarang
+                                </a>
                             </td>
                         </tr>
                     @endforelse
@@ -1044,28 +1110,92 @@
     </div>
 </div>
 
-
 {{-- Modal Detail Cuti --}}
-<div id="detailCutiModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div id="cutiModalBackdrop" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
-    <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md w-full shadow-xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
-        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 dark:text-slate-100">Detail Pengajuan Cuti</h3>
-            <button id="closeCutiModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+<div id="detailCutiModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="cutiModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity"></div>
+    <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh] my-auto animate-in fade-in zoom-in-95 duration-200">
+        {{-- Modal Header --}}
+        <div class="px-5 py-4 sm:px-6 sm:py-4.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center gap-3 bg-sky-50/60 dark:bg-sky-950/20 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-2xl bg-sky-600 dark:bg-sky-500 text-white flex items-center justify-center text-lg shadow-md shadow-sky-600/25 shrink-0">
+                    <i class="fa-solid fa-file-invoice text-white"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base tracking-tight truncate">Detail Pengajuan Cuti</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 truncate">Rincian parameter permohonan & status persetujuan</p>
+                </div>
+            </div>
+            <button type="button" id="closeCutiModalBtn" class="p-2 sm:px-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400 transition-all border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
         </div>
-        <div class="p-5 space-y-4">
-            <div id="cutiModalLoading" class="hidden text-center py-6 text-xs font-semibold text-slate-400 animate-pulse">Memuat data...</div>
-            <div id="cutiModalContent" class="space-y-3">
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Jenis Cuti</span><p id="txt_jenis_cuti" class="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5"></p></div>
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Sub Kategori Cuti</span><p id="txt_sub_cuti" class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-0.5"></p></div>
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rentang Tanggal</span><p id="txt_rentang_tanggal" class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-0.5"></p></div>
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Durasi</span><p id="txt_total_hari" class="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5"></p></div>
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Alasan</span><p id="txt_alasan_cuti" class="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700"></p></div>
-                <div><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">Status</span><div id="wrapper_status"></div></div>
-                <div class="pt-2"><span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">Berkas Pendukung</span><div id="dokumen_render_area"></div></div>
+
+        {{-- Modal Body --}}
+        <div class="p-5 sm:p-6 overflow-y-auto space-y-4">
+            <div id="cutiModalLoading" class="hidden text-center py-10 space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl mx-auto animate-spin">
+                    <i class="fa-solid fa-spinner"></i>
+                </div>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Sedang menyinkronkan data cuti...</p>
+            </div>
+
+            <div id="cutiModalContent" class="space-y-4">
+                {{-- Kategori Ringkasan Top Banner --}}
+                <div class="bg-sky-50 dark:bg-sky-950/40 p-4 rounded-2xl border border-sky-200/80 dark:border-sky-500/30 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-black uppercase tracking-wider">Kategori Cuti</span>
+                        <span id="txt_jenis_cuti" class="font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 block">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-black uppercase tracking-wider">Sub Kategori</span>
+                        <span id="txt_sub_cuti" class="font-bold text-sky-600 dark:text-sky-400 mt-0.5 block truncate">-</span>
+                    </div>
+                </div>
+
+                {{-- Detail Parameter Table List --}}
+                <div class="border border-slate-200/80 dark:border-slate-800 rounded-2xl divide-y divide-slate-100 dark:divide-slate-800 text-xs overflow-hidden bg-white dark:bg-slate-900/60">
+                    <div class="grid grid-cols-3 p-3.5 items-center">
+                        <span class="text-slate-400 dark:text-slate-400 font-bold flex items-center gap-2">
+                            <i class="fa-regular fa-calendar text-sky-500 text-sm"></i> Rentang Waktu
+                        </span>
+                        <span id="txt_rentang_tanggal" class="col-span-2 text-slate-800 dark:text-slate-100 font-bold">-</span>
+                    </div>
+                    <div class="grid grid-cols-3 p-3.5 items-center">
+                        <span class="text-slate-400 dark:text-slate-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-hourglass-half text-sky-500 text-sm"></i> Total Durasi
+                        </span>
+                        <span id="txt_total_hari" class="col-span-2 text-slate-800 dark:text-slate-100 font-black text-sm">-</span>
+                    </div>
+                    <div class="grid grid-cols-3 p-3.5">
+                        <span class="text-slate-400 dark:text-slate-400 font-bold flex items-center gap-2">
+                            <i class="fa-regular fa-comment-dots text-sky-500 text-sm"></i> Alasan Izin
+                        </span>
+                        <div id="txt_alasan_cuti" class="col-span-2 text-slate-700 dark:text-slate-300 leading-relaxed font-medium bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60">-</div>
+                    </div>
+                    <div class="grid grid-cols-3 p-3.5 items-center">
+                        <span class="text-slate-400 dark:text-slate-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-sky-500 text-sm"></i> Status Akhir
+                        </span>
+                        <div id="wrapper_status" class="col-span-2"></div>
+                    </div>
+                </div>
+
+                {{-- Berkas Lampiran --}}
+                <div class="border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 space-y-2 bg-slate-50/60 dark:bg-slate-800/30">
+                    <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300 block uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-paperclip text-sky-500"></i> Berkas Lampiran Pendukung
+                    </span>
+                    <div id="dokumen_render_area"></div>
+                </div>
             </div>
         </div>
-        <div class="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex justify-end"><button id="closeCutiModalBtn2" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors">Tutup</button></div>
+
+        {{-- Modal Footer --}}
+        <div class="p-4 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+            <button type="button" id="closeCutiModalBtn2" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95">
+                Tutup
+            </button>
+        </div>
     </div>
 </div>
 @endsection
@@ -1102,6 +1232,9 @@
     // 3. DETAIL CUTI AJAX
     document.addEventListener("DOMContentLoaded", function () {
         const modal = document.getElementById("detailCutiModal");
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
         const backdrop = document.getElementById("cutiModalBackdrop");
         const closeBtn = document.getElementById("closeCutiModalBtn");
         const closeBtn2 = document.getElementById("closeCutiModalBtn2");
@@ -1110,6 +1243,9 @@
 
         function openModal() {
             if (modal) {
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
                 document.body.classList.add("overflow-hidden");
@@ -1127,6 +1263,12 @@
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         if (closeBtn2) closeBtn2.addEventListener("click", closeModal);
         if (backdrop) backdrop.addEventListener("click", closeModal);
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) {
+                closeModal();
+            }
+        });
 
         document.querySelectorAll(".btn-detail-cuti").forEach(btn => {
             btn.addEventListener("click", function () {
@@ -1154,12 +1296,28 @@
                         const wrapperStatus = document.getElementById("wrapper_status");
                         if (wrapperStatus) {
                             if (data.status_manager === 'approved') {
-                                wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold inline-flex items-center border border-emerald-100"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Disetujui</span>`;
+                                wrapperStatus.innerHTML = `
+                                    <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200/60 dark:border-emerald-800/40 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span>Disetujui</span>
+                                    </span>`;
                             } else if (data.status_supervisor === 'rejected' || data.status_manager === 'rejected' || data.status_akhir === 'rejected') {
-                                let note = data.catatan_penolakan ? `<p class="text-xs text-rose-600 mt-1 italic font-medium">"${data.catatan_penolakan}"</p>` : '';
-                                wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold inline-flex items-center border border-rose-100"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Ditolak</span> ${note}`;
+                                let note = data.catatan_penolakan ? `
+                                    <div class="mt-2 text-[11px] bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-800/60 p-2.5 rounded-xl text-slate-600 dark:text-slate-300 leading-relaxed shadow-2xs">
+                                        <span class="font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Catatan Penolakan:</span>
+                                        "${data.catatan_penolakan}"
+                                    </div>` : '';
+                                wrapperStatus.innerHTML = `
+                                    <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200/60 dark:border-rose-800/40 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span>Ditolak</span>
+                                    </span>${note}`;
                             } else {
-                                wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold inline-flex items-center border border-amber-100"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>Menunggu Review</span>`;
+                                wrapperStatus.innerHTML = `
+                                    <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200/60 dark:border-amber-800/40 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                                        <span>Menunggu Review</span>
+                                    </span>`;
                             }
                         }
 
@@ -1167,20 +1325,25 @@
                         if (docArea) {
                             if (data.dokumen_pendukung) {
                                 const fileUrl = `/storage/${data.dokumen_pendukung}`;
+                                const fileName = data.dokumen_pendukung.split('/').pop();
                                 docArea.innerHTML = `
-                                    <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-                                        <div class="flex items-center space-x-2.5 overflow-hidden">
-                                            <div class="p-2 bg-sky-50 text-sky-600 rounded-lg text-lg"><i class="fa-solid fa-file"></i></div>
-                                            <div class="flex flex-col truncate">
-                                                <span class="text-xs font-semibold text-slate-700 truncate">${data.dokumen_pendukung.split('/').pop()}</span>
+                                    <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm shrink-0 border border-sky-100 dark:border-sky-500/20">
+                                                <i class="fa-solid fa-file-lines"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate block">${fileName}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">Dokumen Lampiran Cuti</span>
                                             </div>
                                         </div>
-                                        <button type="button" onclick="bukaPratinjauLampiran('${fileUrl}')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors shrink-0 cursor-pointer">
-                                            Lihat Lampiran
+                                        <button type="button" onclick="bukaPratinjauLampiran('${fileUrl}', '${fileName}')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0 cursor-pointer inline-flex items-center gap-1.5">
+                                            <i class="fa-regular fa-eye text-[11px]"></i>
+                                            <span>Lihat Lampiran</span>
                                         </button>
                                     </div>`;
                             } else {
-                                docArea.innerHTML = `<span class="text-xs italic text-slate-400 bg-white border border-dashed rounded-xl p-3 block text-center">Tidak melampirkan berkas dokumen apapun.</span>`;
+                                docArea.innerHTML = `<span class="text-xs italic text-slate-400 dark:text-slate-500 bg-white/50 dark:bg-slate-900/40 border border-dashed border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 block text-center">Tidak ada berkas lampiran yang dilampirkan.</span>`;
                             }
                         }
                     })

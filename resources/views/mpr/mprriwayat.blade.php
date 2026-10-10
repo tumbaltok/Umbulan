@@ -13,8 +13,6 @@
                     <span>Dashboard</span>
                 </a>
                 <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 dark:text-slate-600"></i>
-                <span class="text-slate-600 dark:text-slate-400">Pengadaan & Logistik</span>
-                <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 dark:text-slate-600"></i>
                 <span class="text-sky-600 dark:text-sky-400 font-bold">Riwayat MPR</span>
             </nav>
             <div class="flex items-center gap-3">
