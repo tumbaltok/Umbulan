@@ -50,7 +50,34 @@ class PengajuanCarController extends Controller
 
         $daftarStasiun = Station::orderBy('name', 'asc')->get();
 
-        return view('car.carcreate', compact('nomorCar', 'daftarStasiun'));
+        // Statistik ringkas & Pengajuan CAR terakhir user
+        $recentCars = PengajuanCar::with('details')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $totalCarUser = PengajuanCar::where('user_id', $user->id)
+            ->whereYear('created_at', $tahunSekarang)
+            ->count();
+
+        $carApprovedCount = PengajuanCar::where('user_id', $user->id)
+            ->whereYear('created_at', $tahunSekarang)
+            ->where('status_akhir', 'approved')
+            ->count();
+
+        $carPendingCount = PengajuanCar::where('user_id', $user->id)
+            ->where('status_akhir', 'pending')
+            ->count();
+
+        return view('car.carcreate', compact(
+            'nomorCar',
+            'daftarStasiun',
+            'recentCars',
+            'totalCarUser',
+            'carApprovedCount',
+            'carPendingCount'
+        ));
     }
 
     // Menyimpan formulir pengajuan CAR beserta rincian item pengadaan
