@@ -1869,6 +1869,261 @@
         });
     </script>
 
+    {{-- ========================================================================= --}}
+    {{-- MASTER MODAL POPUP: PRATINJAU DOKUMEN CETAK & LAMPIRAN (PDF / GAMBAR)     --}}
+    {{-- Berada langsung di root <body> agar z-index & posisi fixed tidak tertahan --}}
+    {{-- oleh transform atau overflow pada <main>                                   --}}
+    {{-- ========================================================================= --}}
+    <div id="modalPreviewLampiran" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5 md:p-6 transition-all duration-200">
+        {{-- Tombol Tutup Melayang di Pojok Layar (Fail-safe) --}}
+        <button type="button" onclick="tutupPratinjauLampiran()" title="Tutup Pratinjau (Esc)"
+                class="fixed top-3 right-3 sm:top-5 sm:right-5 z-[10000] w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-900/90 hover:bg-rose-600 text-white flex items-center justify-center shadow-2xl border border-white/20 transition-all cursor-pointer active:scale-95">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        {{-- Kartu Utama Modal --}}
+        <div id="modalPreviewCard" class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl w-full max-w-5xl xl:max-w-6xl h-[90vh] max-h-[90vh] flex flex-col shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden relative z-10 transition-all duration-300">
+            {{-- HEADER MODAL --}}
+            <div class="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 shrink-0 select-none z-10">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-2xl bg-sky-600 bg-gradient-to-tr from-sky-600 to-cyan-600 flex items-center justify-center text-white shadow-md shadow-sky-600/25 shrink-0">
+                        <i id="ikonModalLampiran" class="fa-solid fa-file-pdf text-lg text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 id="judulModalLampiran" class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 tracking-tight truncate">
+                                Pratinjau Dokumen
+                            </h3>
+                            <span id="badgeTipeDokumen" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-200/60 dark:border-rose-500/30">
+                                PDF Resmi
+                            </span>
+                        </div>
+                        <p id="subjudulModalLampiran" class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                            PT META Adhya Tirta Umbulan • Dokumen siap cetak & unduh
+                        </p>
+                    </div>
+                </div>
+
+                {{-- TOOLBAR ACTIONS --}}
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    {{-- Buka Tab Baru --}}
+                    <a id="btnBukaTabBaru" href="#" target="_blank" title="Buka di Tab Baru (Cetak Browser)"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-sky-600 dark:text-sky-400"></i>
+                        <span class="hidden md:inline">Buka Tab Baru</span>
+                    </a>
+
+                    {{-- Unduh File --}}
+                    <a id="btnUnduhDokumen" href="#" download title="Unduh Berkas Dokumen"
+                       class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 bg-gradient-to-r from-sky-600 to-cyan-600 text-white text-xs font-bold transition-all shadow-sm shadow-sky-600/30 cursor-pointer">
+                        <i class="fa-solid fa-download text-[11px] text-white"></i>
+                        <span class="hidden sm:inline text-white">Unduh</span>
+                    </a>
+
+                    {{-- Toggle Fullscreen --}}
+                    <button type="button" id="btnToggleFullscreen" onclick="toggleUkuranModalLampiran()" title="Perbesar / Perkecil Tampilan"
+                            class="p-2 sm:px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
+                        <i id="ikonToggleFullscreen" class="fa-solid fa-expand text-xs"></i>
+                    </button>
+
+                    {{-- Tutup Modal --}}
+                    <button type="button" onclick="tutupPratinjauLampiran()" title="Tutup Pratinjau (Esc)"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white dark:bg-rose-950/40 dark:hover:bg-rose-600 dark:text-rose-300 dark:hover:text-white transition-all border border-rose-200/70 dark:border-rose-800/70 cursor-pointer font-bold text-xs shadow-sm active:scale-95">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                        <span class="hidden sm:inline">Tutup</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- CONTAINER KONTEN (EDGE-TO-EDGE PDF VIEWER) --}}
+            <div id="containerKontenLampiran" class="flex-1 min-h-0 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // GLOBAL HANDLER: PRATINJAU DOKUMEN CETAK & LAMPIRAN (PDF / GAMBAR)
+        // =========================================================================
+        let isModalLampiranFullscreen = false;
+
+        window.toggleUkuranModalLampiran = function() {
+            const modal = document.getElementById('modalPreviewLampiran');
+            const card = document.getElementById('modalPreviewCard');
+            const icon = document.getElementById('ikonToggleFullscreen');
+            if (!card) return;
+
+            isModalLampiranFullscreen = !isModalLampiranFullscreen;
+
+            if (isModalLampiranFullscreen) {
+                modal.classList.remove('p-3', 'sm:p-5', 'md:p-6');
+                modal.classList.add('p-0');
+                card.classList.remove('rounded-2xl', 'sm:rounded-3xl', 'max-w-5xl', 'xl:max-w-6xl', 'h-[90vh]', 'max-h-[90vh]');
+                card.classList.add('w-full', 'h-full', 'max-w-none', 'rounded-none');
+                if (icon) {
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                }
+            } else {
+                modal.classList.remove('p-0');
+                modal.classList.add('p-3', 'sm:p-5', 'md:p-6');
+                card.classList.remove('w-full', 'h-full', 'max-w-none', 'rounded-none');
+                card.classList.add('rounded-2xl', 'sm:rounded-3xl', 'max-w-5xl', 'xl:max-w-6xl', 'h-[90vh]', 'max-h-[90vh]');
+                if (icon) {
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+        };
+
+        window.bukaPratinjauCetak = function(urlFile, customTitle = null) {
+            let title = customTitle;
+            let sub = 'Dokumen Resmi Siap Cetak';
+            if (!title) {
+                if (urlFile.includes('car')) {
+                    title = 'Pratinjau Formulir Cetak CAR';
+                    sub = 'Surat Cash Advance Request Resmi';
+                } else if (urlFile.includes('cuti')) {
+                    title = 'Pratinjau Dokumen Cetak Cuti';
+                    sub = 'Surat Izin Cuti Karyawan Resmi';
+                } else if (urlFile.includes('mpr')) {
+                    title = 'Pratinjau Dokumen Cetak MPR';
+                    sub = 'Material Purchase Request Resmi';
+                } else {
+                    title = 'Pratinjau Dokumen Cetak';
+                }
+            }
+            window.tampilkanModalPratinjau(urlFile, true, title, sub);
+        };
+
+        window.bukaPratinjauLampiran = function(urlFile, customTitle = null) {
+            window.tampilkanModalPratinjau(urlFile, false, customTitle || 'Pratinjau Berkas Lampiran', 'Lampiran Dokumen Pengajuan');
+        };
+
+        window.bukaPratinjauDokumen = function(urlFile, customTitle = null) {
+            window.bukaPratinjauLampiran(urlFile, customTitle);
+        };
+
+        window.tampilkanModalPratinjau = function(urlFile, isPdfFormated = false, customTitle = null, customSubtitle = null) {
+            const modal = document.getElementById('modalPreviewLampiran');
+            const container = document.getElementById('containerKontenLampiran');
+            const judulEl = document.getElementById('judulModalLampiran');
+            const subjudulEl = document.getElementById('subjudulModalLampiran');
+            const badgeEl = document.getElementById('badgeTipeDokumen');
+            const ikonEl = document.getElementById('ikonModalLampiran');
+            const btnTab = document.getElementById('btnBukaTabBaru');
+            const btnUnduh = document.getElementById('btnUnduhDokumen');
+
+            if (!modal || !container) return;
+
+            // Reset fullscreen state jika terbuka kembali
+            if (isModalLampiranFullscreen) {
+                window.toggleUkuranModalLampiran();
+            }
+
+            if (btnTab) btnTab.href = urlFile;
+            if (btnUnduh) btnUnduh.href = urlFile;
+
+            const ekstensi = urlFile.split('?')[0].split('.').pop().toLowerCase();
+            const isPdf = isPdfFormated || ekstensi === 'pdf';
+            const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ekstensi);
+
+            if (judulEl) judulEl.innerText = customTitle || (isPdf ? 'Pratinjau Dokumen Cetak' : 'Pratinjau Dokumen');
+            if (subjudulEl) subjudulEl.innerText = customSubtitle || 'PT META Adhya Tirta Umbulan • Dokumen resmi';
+
+            if (badgeEl) {
+                if (isPdf) {
+                    badgeEl.innerText = 'PDF Resmi';
+                    badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-200/60 dark:border-rose-500/30';
+                } else if (isImage) {
+                    badgeEl.innerText = 'Foto / Gambar';
+                    badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-200/60 dark:border-sky-500/30';
+                } else {
+                    badgeEl.innerText = 'Berkas File';
+                    badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600';
+                }
+            }
+
+            if (ikonEl) {
+                ikonEl.className = isPdf ? 'fa-solid fa-file-pdf text-lg text-white' : (isImage ? 'fa-solid fa-image text-lg text-white' : 'fa-solid fa-file-lines text-lg text-white');
+            }
+
+            // Loading Indicator
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center gap-3 p-8 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl animate-spin">
+                        <i class="fa-solid fa-spinner"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Memuat Dokumen...</h4>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sedang menyiapkan tampilan pratinjau</p>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                if (isPdf) {
+                    container.innerHTML = `<iframe src="${urlFile}" class="w-full h-full border-0 bg-white dark:bg-slate-900" allow="autoplay"></iframe>`;
+                } else if (isImage) {
+                    container.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center p-4 overflow-auto">
+                            <img src="${urlFile}" class="max-w-full max-h-[80vh] rounded-2xl shadow-xl object-contain border border-slate-200/60 dark:border-slate-800" alt="Pratinjau Dokumen">
+                        </div>`;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 max-w-sm mx-4">
+                            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl mb-3 border border-amber-200/60 dark:border-amber-500/30">
+                                <i class="fa-solid fa-file-arrow-down"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">Format Tidak Mendukung Pratinjau</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Format berkas tidak dapat dipratinjau langsung di dalam browser. Silakan unduh dokumen untuk membukanya.</p>
+                            <a href="${urlFile}" download class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-sky-600/25 active:scale-95 cursor-pointer">
+                                <i class="fa-solid fa-download text-white"></i> <span class="text-white">Unduh Berkas Sekarang</span>
+                            </a>
+                        </div>
+                    `;
+                }
+            }, 120);
+        };
+
+        window.tutupPratinjauLampiran = function() {
+            const modal = document.getElementById('modalPreviewLampiran');
+            const container = document.getElementById('containerKontenLampiran');
+
+            if (isModalLampiranFullscreen) {
+                window.toggleUkuranModalLampiran();
+            }
+
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+            if (container) {
+                container.innerHTML = '';
+            }
+            document.body.style.overflow = 'auto';
+        };
+
+        document.getElementById('modalPreviewLampiran')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                window.tutupPratinjauLampiran();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modalPreviewLampiran');
+                if (modal && !modal.classList.contains('hidden')) {
+                    window.tutupPratinjauLampiran();
+                }
+            }
+        });
+    </script>
+
     @stack('modals')
     @stack('scripts')
 </body>

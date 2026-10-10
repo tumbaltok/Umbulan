@@ -1044,16 +1044,6 @@
     </div>
 </div>
 
-{{-- Modal Pratinjau Dokumen Lampiran --}}
-<div id="modalPreviewLampiran" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-2xl w-full h-[80vh] flex flex-col shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <h3 id="judulModalLampiran" class="font-bold text-slate-800 dark:text-slate-100 text-sm">Pratinjau Dokumen</h3>
-            <button onclick="tutupPratinjauLampiran()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-        <div id="containerKontenLampiran" class="flex-1 bg-slate-50 dark:bg-slate-950 p-4 flex items-center justify-center overflow-hidden"></div>
-    </div>
-</div>
 
 {{-- Modal Detail Cuti --}}
 <div id="detailCutiModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
@@ -1107,78 +1097,7 @@
         }
     }
 
-    // 2. PRATINJAU DOKUMEN
-    function bukaPratinjauLampiran(urlFile) {
-        document.getElementById('judulModalLampiran').innerText = 'Pratinjau Lampiran Dokumen';
-        tampilkanModalPratinjau(urlFile);
-    }
 
-    function bukaPratinjauCetak(urlFile) {
-        const judulModal = document.getElementById('judulModalLampiran');
-        if (urlFile.includes('car')) {
-            judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen CAR';
-        } else if (urlFile.includes('cuti')) {
-            judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen Cuti';
-        } else if (urlFile.includes('mpr')) {
-            judulModal.innerText = 'Pratinjau Dokumen Cetak Dokumen MPR';
-        } else {
-            judulModal.innerText = 'Pratinjau Dokumen Cetak';
-        }
-        tampilkanModalPratinjau(urlFile, true);
-    }
-
-    function tampilkanModalPratinjau(urlFile, isPdfFormated = false) {
-        const modal = document.getElementById('modalPreviewLampiran');
-        const container = document.getElementById('containerKontenLampiran');
-
-        if (!modal || !container) return;
-
-        container.innerHTML = '<div class="text-xs text-slate-400 font-medium animate-pulse text-center p-4">Memuat dokumen...</div>';
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-
-        const ekstensi = urlFile.split('.').pop().toLowerCase();
-
-        if (isPdfFormated || ekstensi === 'pdf') {
-            container.innerHTML = `<iframe src="${urlFile}" class="w-full h-full rounded-xl border-0 shadow-inner" allow="autoplay"></iframe>`;
-        } else if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ekstensi)) {
-            container.innerHTML = `<img src="${urlFile}" class="max-w-full max-h-full rounded-xl shadow-md object-contain mx-auto" alt="Pratinjau Lampiran">`;
-        } else {
-            container.innerHTML = `
-                <div class="text-center p-6 bg-white rounded-xl shadow-sm border border-slate-200 max-w-xs mx-auto">
-                    <i class="fa-solid fa-file-arrow-down text-amber-500 text-3xl mb-2"></i>
-                    <p class="text-xs font-semibold text-slate-700 mb-3">Format file tidak mendukung pratinjau langsung.</p>
-                    <a href="${urlFile}" download class="inline-flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
-                        <i class="fa-solid fa-download"></i> Unduh File
-                    </a>
-                </div>
-            `;
-        }
-    }
-
-    function tutupPratinjauLampiran() {
-        const modal = document.getElementById('modalPreviewLampiran');
-        const container = document.getElementById('containerKontenLampiran');
-        if (modal) {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-        if (container) {
-            container.innerHTML = '';
-        }
-        document.body.style.overflow = 'auto';
-    }
-
-    const modalPreviewElement = document.getElementById('modalPreviewLampiran');
-    if (modalPreviewElement) {
-        modalPreviewElement.addEventListener('click', function(e) {
-            if (e.target === this) {
-                tutupPratinjauLampiran();
-            }
-        });
-    }
 
     // 3. DETAIL CUTI AJAX
     document.addEventListener("DOMContentLoaded", function () {
