@@ -60,7 +60,35 @@ class PengajuanMprController extends Controller
                 : $stName;
         }
 
-        return view('mpr.mprcreate', compact('nomorMpr', 'defaultDepartment', 'defaultDeliveryPoint'));
+        // Statistik ringkas & Pengajuan MPR terakhir user
+        $recentMprs = PengajuanMpr::with('items')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $totalMprUser = PengajuanMpr::where('user_id', $user->id)
+            ->whereYear('tanggal_pengajuan', $now->year)
+            ->count();
+
+        $mprApprovedCount = PengajuanMpr::where('user_id', $user->id)
+            ->whereYear('tanggal_pengajuan', $now->year)
+            ->where('status_akhir', 'approved')
+            ->count();
+
+        $mprPendingCount = PengajuanMpr::where('user_id', $user->id)
+            ->where('status_akhir', 'pending')
+            ->count();
+
+        return view('mpr.mprcreate', compact(
+            'nomorMpr',
+            'defaultDepartment',
+            'defaultDeliveryPoint',
+            'recentMprs',
+            'totalMprUser',
+            'mprApprovedCount',
+            'mprPendingCount'
+        ));
     }
 
     // Menyimpan formulir pengajuan MPR beserta daftar item material yang diminta
