@@ -79,17 +79,71 @@ class PengajuanCutiController extends Controller
             ->orWhere('name_cuti', 'LIKE', '%Tahunan%')
             ->first();
 
+        $tahunSekarang = Carbon::now()->year;
         $saldoTahunan = null;
         if ($cutiTahunan) {
             $saldoTahunan = SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $cutiTahunan->id)
-                ->where('tahun', Carbon::now()->year)
+                ->where('tahun', $tahunSekarang)
                 ->first();
         }
 
         $sisaSaldo = $saldoTahunan ? $saldoTahunan->sisa_saldo : 0;
+        $kuotaAwal = $saldoTahunan ? $saldoTahunan->kuota_awal : ($cutiTahunan->kuota_default ?? 12);
+        $cutiTerpakai = max(0, $kuotaAwal - $sisaSaldo);
 
-        return view('cuti.cuticreate', compact('jenisCuti', 'sisaSaldo'));
+        // Pengajuan cuti tahunan yang masih berstatus pending
+        $pendingHari = (int) DB::table('pengajuan_cutis')
+            ->where('user_id', $user->id)
+            ->where('jenis_cuti_id', $cutiTahunan?->id ?? 4)
+            ->where('status_akhir', 'pending')
+            ->sum('total_hari');
+
+        // Kalender hari libur nasional tahun ini dan tahun depan
+        $holidays = $this->calendarScheduleService->getNationalHolidays($tahunSekarang);
+        try {
+            $nextYearHolidays = $this->calendarScheduleService->getNationalHolidays($tahunSekarang + 1);
+            if (is_array($nextYearHolidays)) {
+                $holidays = array_merge($holidays, $nextYearHolidays);
+            }
+        } catch (\Throwable $th) {
+            // Abaikan jika kalender tahun depan belum tersedia
+        }
+
+        // Tanggal libur roster jika user memiliki pola shift roster
+        $rosterOffDates = [];
+        if ($user->schedule_type === 'roster' && !empty($user->roster_start_date)) {
+            $startDate = Carbon::now()->startOfMonth();
+            $endDate = Carbon::now()->addMonths(2)->endOfMonth();
+            $curr = $startDate->copy();
+            while ($curr->lte($endDate)) {
+                $sched = $this->scheduleService->getTodaySchedule($user, $curr->format('Y-m-d'));
+                if ($sched['is_day_off'] || ($sched['shift_type'] ?? '') === 'libur') {
+                    $rosterOffDates[] = $curr->format('Y-m-d');
+                }
+                $curr->addDay();
+            }
+        }
+
+        // 3 riwayat pengajuan cuti terakhir untuk intisari di sidebar
+        $recentLeaves = PengajuanCuti::with(['jenisCuti', 'subCuti'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+
+        return view('cuti.cuticreate', compact(
+            'jenisCuti',
+            'sisaSaldo',
+            'cutiTahunan',
+            'saldoTahunan',
+            'kuotaAwal',
+            'cutiTerpakai',
+            'pendingHari',
+            'holidays',
+            'rosterOffDates',
+            'recentLeaves'
+        ));
     }
 
     // Menyimpan pengajuan cuti/izin baru dari antarmuka web
