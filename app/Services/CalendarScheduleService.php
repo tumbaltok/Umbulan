@@ -57,7 +57,7 @@ class CalendarScheduleService
             $dateString = $currentDate->format('Y-m-d');
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
 
-            // Cek apakah ada cuti aktif pada tanggal evaluasi
+            // 1. Cek apakah ada cuti aktif pada tanggal evaluasi
             $leaveInfo = null;
             foreach ($approvedLeaves as $leave) {
                 if ($currentDate->between(Carbon::parse($leave->tanggal_mulai), Carbon::parse($leave->tanggal_selesai))) {
@@ -66,43 +66,60 @@ class CalendarScheduleService
                 }
             }
 
-            // Tentukan status dan warna indikator kalender
-            $statusType = 'normal_work';
-            $colorClass = 'bg-emerald-500 hover:bg-emerald-600';
-            $titleText = 'Jadwal Masuk Kerja';
-            $descriptionText = '';
+            // 2. Evaluasi apakah tanggal ini merupakan Hari Libur (Weekend, Libur Nasional SKB 3 Menteri, atau Libur Roster)
+            $isNationalHoliday = isset($holidays[$dateString]);
+            $isHoliday = false;
+            $holidayTitle = '';
+            $holidayDesc = '';
 
-            if ($leaveInfo) {
-                // Status cuti disetujui (warna kuning)
+            if ($user->schedule_type !== 'roster') {
+                if ($daySchedule['is_day_off'] || $isNationalHoliday) {
+                    $isHoliday = true;
+                    $holidayTitle = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Hari Libur (Akhir Pekan)');
+                    $holidayDesc = $isNationalHoliday ? $holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Hari Libur (Akhir Pekan)');
+                }
+            } else {
+                if ($daySchedule['shift_type'] === 'libur') {
+                    $isHoliday = true;
+                    $holidayTitle = 'Roster Minggu Libur';
+                    $holidayDesc = 'Hari Libur Roster Shift';
+                }
+            }
+
+            // 3. Tentukan status, warna, dan deskripsi indikator kalender sesuai hierarki prioritas
+            if ($isHoliday) {
+                // PRIORITAS 1: Hari Libur SELALU berwarna MERAH (walaupun ada cuti, karena hari libur tidak memotong saldo cuti)
+                $statusType = 'libur';
+                $colorClass = 'bg-rose-500 hover:bg-rose-600';
+                $titleText = $holidayTitle;
+                $descriptionText = $holidayDesc . ($leaveInfo ? ' (Bertepatan masa cuti - tidak memotong kuota)' : '');
+            } elseif ($leaveInfo) {
+                // PRIORITAS 2: Cuti disetujui pada HARI KERJA AKTIF (warna KUNING, memotong saldo kuota cuti)
                 $statusType = 'cuti';
                 $colorClass = 'bg-amber-400 hover:bg-amber-500';
                 $titleText = 'Sedang Cuti';
                 $descriptionText = 'Pengajuan Cuti Disetujui: '.($leaveInfo->alasan_cuti ?? 'Izin Cuti');
             } elseif ($user->schedule_type !== 'roster') {
-                // Status jadwal kerja Reguler (5 Hari atau 6 Hari)
-                $isNationalHoliday = isset($holidays[$dateString]);
-                if ($daySchedule['is_day_off'] || $isNationalHoliday) {
-                    // Libur akhir pekan atau tanggal merah nasional (warna merah)
-                    $statusType = 'libur';
-                    $colorClass = 'bg-rose-500 hover:bg-rose-600';
-                    $titleText = $isNationalHoliday ? 'Libur Nasional: '.$holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Libur Kerja');
-                    $descriptionText = $isNationalHoliday ? $holidays[$dateString] : ($daySchedule['shift_name'] ?? 'Hari Libur');
-                } else {
-                    $descriptionText = "Masuk Kerja ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";
-                }
+                // PRIORITAS 3: Hari Kerja Reguler Masuk Biasa (warna HIJAU)
+                $statusType = 'normal_work';
+                $colorClass = 'bg-emerald-500 hover:bg-emerald-600';
+                $titleText = 'Jadwal Masuk Kerja';
+                $descriptionText = "Masuk Kerja ({$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB)";
             } else {
-                // Status jadwal roster (rotasi shift 12 jam)
+                // PRIORITAS 3: Hari Kerja Roster Masuk Biasa (Shift Pagi = HIJAU, Shift Malam = INDIGO)
                 if ($daySchedule['shift_type'] === 'pagi') {
-                    $colorClass = 'bg-emerald-500 hover:bg-emerald-600'; // Shift pagi (warna hijau)
+                    $statusType = 'pagi';
+                    $colorClass = 'bg-emerald-500 hover:bg-emerald-600';
                     $titleText = 'Roster Shift Pagi';
                     $descriptionText = "Jam Kerja: {$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB (12 Jam)";
                 } elseif ($daySchedule['shift_type'] === 'malam') {
-                    $colorClass = 'bg-indigo-600 hover:bg-indigo-700'; // Shift malam (warna indigo)
+                    $statusType = 'malam';
+                    $colorClass = 'bg-indigo-600 hover:bg-indigo-700';
                     $titleText = 'Roster Shift Malam';
                     $descriptionText = "Jam Kerja: {$daySchedule['scheduled_in']} - {$daySchedule['scheduled_out']} WIB (12 Jam)";
                 } else {
-                    $colorClass = 'bg-rose-500 hover:bg-rose-600'; // Libur roster (warna merah)
                     $statusType = 'libur';
+                    $colorClass = 'bg-rose-500 hover:bg-rose-600';
                     $titleText = 'Roster Minggu Libur';
                     $descriptionText = 'Hari Libur Roster Shift';
                 }

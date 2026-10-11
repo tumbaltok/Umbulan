@@ -1,43 +1,114 @@
 @extends('layouts.app')
 @section('title', 'Pengaturan Profil Karyawan')
 @section('content')
-<div class="max-w-4xl mx-auto mt-8 px-4">
+<div class="max-w-5xl mx-auto py-6 sm:py-8 px-4 sm:px-6 pb-28 sm:pb-32">
     @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-medium flex items-center">
-            <i class="fa-solid fa-circle-check mr-2 text-emerald-500"></i>
-            {{ session('success') }}
+        <div class="mb-6 p-4 bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-200 rounded-2xl text-sm font-semibold flex items-center gap-3 shadow-sm backdrop-blur-xs">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <i class="fa-solid fa-circle-check text-base"></i>
+            </div>
+            <div class="flex-1">{{ session('success') }}</div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-6 p-4 bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 text-rose-800 dark:text-rose-200 rounded-2xl text-sm font-semibold flex items-center gap-3 shadow-sm backdrop-blur-xs">
+            <div class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <i class="fa-solid fa-circle-exclamation text-base"></i>
+            </div>
+            <div class="flex-1">{{ session('error') }}</div>
         </div>
     @endif
 
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
-        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 rounded-t-2xl">
-            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Pengaturan Akun & Keamanan</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Perbarui informasi profil, tanda tangan digital, dan amankan akun dengan kombinasi password baru.</p>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 transition-colors overflow-hidden">
+        {{-- Header Card --}}
+        <div class="p-6 sm:p-7 border-b border-slate-100 dark:border-slate-700/80 bg-gradient-to-r from-slate-50 via-sky-50/20 to-slate-50 dark:from-slate-800/90 dark:via-slate-800/70 dark:to-slate-800/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center text-xl shadow-lg shadow-sky-500/25 shrink-0 border border-sky-400/30"
+                     style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">
+                    <i class="fa-solid fa-user-gear text-white" style="color: #ffffff !important;"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Pengaturan Akun & Keamanan</h2>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                            Profil Pegawai
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Perbarui data profil, berkas tanda tangan (TTD), status biometrik, jadwal kerja, dan kata sandi akun.</p>
+                </div>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+                <span class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700/60 border border-slate-200/80 dark:border-slate-600/80 text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center gap-2 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Akun Aktif</span>
+                </span>
+            </div>
         </div>
 
         {{-- Form data umum, jadwal kerja, & keamanan --}}
-        <form id="form-profile-account" action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
+        <form id="form-profile-account" action="{{ route('account.update') }}" method="POST" enctype="multipart/form-data" class="p-6 sm:p-7 space-y-7">
             @csrf
             @method('PUT')
 
             <div>
-                <h3 class="text-sm font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-4">Informasi Profil</h3>
+                <div class="flex items-center gap-2.5 mb-5 pb-2 border-b border-slate-100 dark:border-slate-700/80">
+                    <span class="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs shadow-2xs">
+                        <i class="fa-solid fa-id-badge"></i>
+                    </span>
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Identitas & Berkas Verifikasi</h3>
+                </div>
 
                 {{-- Container Foto Profil, TTD, & Biometrik Wajah --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 border-b border-slate-100 dark:border-slate-700 pb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7 pb-7 border-b border-slate-100 dark:border-slate-700/80">
                     {{-- Foto Profil --}}
-                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
-                        <div class="w-20 h-20 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-bold text-2xl shadow-md overflow-hidden border-2 border-white dark:border-slate-700 ring-2 ring-sky-100 dark:ring-sky-950">
+                    <div class="flex flex-col items-center justify-between text-center p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700/60 transition-all shadow-xs group">
+                        <div class="flex flex-col items-center w-full">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Foto Profil</span>
+                            
                             @if($user->profile_photo)
-                                <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
+                                {{-- Foto Tersedia --}}
+                                <div class="relative w-24 h-24 rounded-2xl bg-white dark:bg-slate-800 shadow-md overflow-hidden border-2 border-white dark:border-slate-700 ring-4 ring-sky-500/15 group-hover:scale-105 transition-all">
+                                    <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
+                                    <div onclick="document.getElementById('openModalPhotoBtn').click()" class="absolute inset-0 bg-slate-900/50 backdrop-blur-2xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer">
+                                        <i class="fa-solid fa-camera text-base"></i>
+                                        <span class="text-[9px] font-bold uppercase tracking-wider mt-0.5">Ubah</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2.5">
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                                        <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 mr-1.5 text-[9px]"></i> Foto Terpasang
+                                    </span>
+                                </div>
                             @else
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                                {{-- Foto Kosong / Null (Desain Lebih Bagus & Estetik) --}}
+                                <div class="w-full max-w-[200px] h-24 bg-sky-50/50 dark:bg-sky-950/30 rounded-2xl border-2 border-dashed border-sky-300/80 dark:border-sky-800/80 flex items-center justify-center p-2.5 transition-all group-hover:border-sky-400 dark:group-hover:border-sky-600 relative overflow-hidden">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md shadow-sky-600/25 border border-white/40 dark:border-sky-400/30 text-white shrink-0 group-hover:scale-105 transition-transform"
+                                             style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important;">
+                                            <div class="flex flex-col items-center leading-none">
+                                                <i class="fa-solid fa-user text-xs text-white drop-shadow-xs mb-0.5"></i>
+                                                <span class="text-[10px] font-black font-mono uppercase tracking-wider text-white">
+                                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="text-left">
+                                            <span class="block text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">Belum Ada Foto</span>
+                                            <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Maks. 2MB (JPG/PNG)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2.5">
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
+                                    </span>
+                                </div>
                             @endif
                         </div>
 
-                        <button type="button" id="openModalPhotoBtn" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors flex items-center space-x-1 cursor-pointer">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Ubah Foto Profil</span>
+                        <button type="button" id="openModalPhotoBtn" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/60 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
+                            <i class="fa-solid fa-camera text-xs"></i>
+                            <span>{{ $user->profile_photo ? 'Ubah Foto Profil' : 'Unggah Foto Profil' }}</span>
                         </button>
                     </div>
 
@@ -48,86 +119,99 @@
                             \Illuminate\Support\Facades\Storage::disk('public')->exists($user->signature)
                         );
                     @endphp
-                    <div id="signature" class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
-                        <div class="w-40 h-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-2 shadow-xs relative">
-                            @if($hasValidSignature)
-                                <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
-                                    alt="Tanda Tangan"
-                                    onerror="this.style.display='none'; document.getElementById('signature_default_fallback').classList.remove('hidden');"
-                                    class="max-w-full max-h-full object-contain bg-white dark:bg-slate-800">
-                                
-                                <div id="signature_default_fallback" class="hidden flex flex-col items-center justify-center text-center w-full h-full">
-                                    <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
-                                        <i class="fa-solid fa-signature text-sm"></i>
+                    <div id="signature" class="flex flex-col items-center justify-between text-center p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-all shadow-xs group">
+                        <div class="flex flex-col items-center w-full">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Tanda Tangan Digital</span>
+                            <div class="w-full max-w-[200px] h-22 bg-white dark:bg-slate-950/90 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-2 shadow-inner relative group-hover:border-emerald-300 dark:group-hover:border-emerald-600 transition-colors">
+                                @if($hasValidSignature)
+                                    <img src="{{ asset('storage/' . $user->signature) }}?v={{ time() }}"
+                                        alt="Tanda Tangan"
+                                        onerror="this.style.display='none'; document.getElementById('signature_default_fallback').classList.remove('hidden');"
+                                        class="max-w-full max-h-full object-contain filter dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.7)]">
+                                    
+                                    <div id="signature_default_fallback" class="hidden flex flex-col items-center justify-center text-center w-full h-full">
+                                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
+                                            <i class="fa-solid fa-signature text-xs"></i>
+                                        </div>
+                                        <span class="text-[10.5px] font-bold text-slate-500 dark:text-slate-400">Belum Ada TTD</span>
                                     </div>
-                                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Belum Ada TTD</span>
-                                </div>
-                            @else
-                                <div class="w-full h-full bg-emerald-50/30 dark:bg-emerald-950/20 rounded-xl border border-dashed border-emerald-300/80 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center p-1.5 transition-all">
-                                    <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs border border-emerald-100 dark:border-emerald-800/50 mb-1">
-                                        <i class="fa-solid fa-signature text-sm"></i>
+                                @else
+                                    <div class="w-full h-full bg-emerald-50/30 dark:bg-emerald-950/20 rounded-xl border border-dashed border-emerald-300/80 dark:border-emerald-800/60 flex flex-col items-center justify-center text-center p-1.5 transition-all">
+                                        <div class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs border border-emerald-100 dark:border-emerald-800/50 mb-1">
+                                            <i class="fa-solid fa-signature text-xs"></i>
+                                        </div>
+                                        <span class="text-[10.5px] font-bold text-slate-600 dark:text-slate-300">Belum Ada TTD</span>
                                     </div>
-                                    <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Belum Ada TTD</span>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
+
+                            <div class="mt-2.5">
+                                @if($hasValidSignature)
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                                        <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 mr-1.5 text-[9px]"></i> TTD Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
-                        <div class="mt-2">
-                            @if($hasValidSignature)
-                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                    <i class="fa-solid fa-circle-check text-emerald-600 mr-1.5 text-[9px]"></i> TTD Aktif
-                                </span>
-                            @else
-                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
-                                </span>
-                            @endif
-                        </div>
-
-                        <button type="button" id="openModalSignatureBtn" class="mt-3 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center space-x-1 cursor-pointer">
-                            <i class="fa-solid fa-file-signature"></i>
-                            <span>{{ $hasValidSignature ? 'Ubah Tanda Tangan (TTD)' : 'Unggah Tanda Tangan (TTD)' }}</span>
+                        <button type="button" id="openModalSignatureBtn" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 border border-slate-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
+                            <i class="fa-solid fa-file-signature text-xs"></i>
+                            <span>{{ $hasValidSignature ? 'Ubah TTD' : 'Unggah TTD' }}</span>
                         </button>
                     </div>
 
                     {{-- Biometrik Wajah --}}
-                    <div class="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700/60">
-                        <div class="w-20 h-20 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800' }} flex items-center justify-center text-2xl shadow-sm">
-                            <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-lock' : 'fa-camera-rotate' }}"></i>
-                        </div>
+                    <div class="flex flex-col items-center justify-between text-center p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700/60 transition-all shadow-xs group">
+                        <div class="flex flex-col items-center w-full">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Biometrik Wajah</span>
+                            <div class="w-22 h-22 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-gradient-to-tr from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80' : 'bg-gradient-to-tr from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80' }} flex items-center justify-center text-3xl shadow-sm ring-4 {{ !empty($user->face_descriptor) ? 'ring-emerald-500/10 dark:ring-emerald-500/20' : 'ring-amber-500/10 dark:ring-amber-500/20' }} group-hover:scale-105 transition-transform">
+                                <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-face-smile text-emerald-600 dark:text-emerald-400' : 'fa-camera-rotate' }}"></i>
+                            </div>
 
-                        <div class="mt-2">
-                            @if(!empty($user->face_descriptor))
-                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <i class="fa-solid fa-lock text-emerald-600 mr-1.5"></i> Biometrik Terkunci / Aktif
-                                </span>
-                            @else
-                                <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Belum Terdaftar
-                                </span>
-                            @endif
+                            <div class="mt-2.5">
+                                @if(!empty($user->face_descriptor))
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                                        <i class="fa-solid fa-lock text-emerald-600 dark:text-emerald-400 mr-1.5 text-[9px]"></i> Biometrik Terkunci
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
                         @if(!empty($user->face_descriptor))
-                            <div class="mt-2.5 p-2 bg-sky-50/70 border border-sky-100 rounded-xl text-[10.5px] text-slate-600 leading-snug text-center">
-                                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i> Data biometrik wajah Anda telah terverifikasi dan terkunci demi keamanan presensi. Hubungi Administrator jika memerlukan kalibrasi ulang.
+                            <div class="mt-3 p-2 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800/60 rounded-xl text-[10.5px] text-slate-600 dark:text-slate-300 leading-snug text-center">
+                                <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 mr-1"></i> Terverifikasi untuk presensi.
                             </div>
                         @else
-                            <a href="{{ route('dashboard') }}" class="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center space-x-1">
-                                <i class="fa-solid fa-camera"></i>
+                            <a href="{{ route('dashboard') }}" class="mt-3 px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-camera text-xs"></i>
                                 <span>Rekam di Dashboard</span>
                             </a>
                         @endif
                     </div>
                 </div>
 
+                <div class="flex items-center gap-2.5 mb-5 pb-2 border-b border-slate-100 dark:border-slate-700/80">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs shadow-2xs">
+                        <i class="fa-solid fa-address-card"></i>
+                    </span>
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Data Pegawai & Penugasan Kedinasan</h3>
+                </div>
+
                 {{-- Grid untuk Form Data Profil --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {{-- NIP --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label for="input_nip" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                                <span>NIP</span>
+                            <label for="input_nip" class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <span>Nomor Induk Pegawai (NIP)</span>
                                 <button type="button" 
                                     onclick="bukaModalPanduanNip()" 
                                     class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-sky-100 hover:bg-sky-200 dark:bg-sky-950/70 dark:hover:bg-sky-900/80 text-sky-600 dark:text-sky-400 text-[10px] font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 focus:outline-none cursor-pointer" 
@@ -136,37 +220,42 @@
                                 </button>
                             </label>
                             @if(empty($user->nip))
-                                <span class="text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/70 dark:border-amber-900/50 flex items-center gap-1">
+                                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-lg border border-amber-200/80 dark:border-amber-900/60 flex items-center gap-1 shadow-2xs">
                                     <i class="fa-solid fa-circle-exclamation text-[9px]"></i> Belum diatur
                                 </span>
                             @else
-                                <span class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200/70 dark:border-emerald-900/50 flex items-center gap-1">
+                                <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg border border-emerald-200/80 dark:border-emerald-900/60 flex items-center gap-1 shadow-2xs">
                                     <i class="fa-solid fa-circle-check text-[9px]"></i> Terdaftar
                                 </span>
                             @endif
                         </div>
-                        <input type="text" id="input_nip" name="nip" value="{{ old('nip', $user->nip) }}" 
-                            placeholder="Belum diatur — klik tanda (i) untuk panduan"
-                            class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-mono text-sm focus:outline-none focus:border-sky-500 {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
+                        <div class="relative">
+                            <input type="text" id="input_nip" name="nip" value="{{ old('nip', $user->nip) }}" 
+                                placeholder="Belum diatur — klik (i) untuk panduan NIP"
+                                class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all {{ $errors->has('nip') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
+                        </div>
                         @error('nip') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Nama Lengkap --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('name') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Nama Lengkap</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Sesuai KTP / SK</span>
+                        </div>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border rounded-xl text-slate-800 dark:text-slate-100 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all {{ $errors->has('name') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" required>
                         @error('name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Jenis Kelamin --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label for="gender_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Jenis Kelamin</label>
-                            <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                            <label for="gender_id" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Jenis Kelamin</label>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-lock text-[9px]"></i> Terkunci
                             </span>
                         </div>
-                        <select id="gender_id" disabled class="block w-full px-4 py-2 bg-gray-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-sm cursor-not-allowed pointer-events-none select-none transition-all">
+                        <select id="gender_id" disabled class="block w-full px-4 py-2.5 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-sm font-medium cursor-not-allowed pointer-events-none select-none transition-all">
                             @php
                                 $userGenderValue = old('gender_id', $user->gender_id ?? '');
                             @endphp
@@ -183,8 +272,8 @@
                             @endif
                         </select>
                         <input type="hidden" name="gender_id" value="{{ $user->gender_id }}">
-                        <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-sky-500 text-[10px]"></i>
                             Jenis kelamin terkunci otomatis demi mencegah manipulasi kuota cuti.
                         </p>
                         @error('gender_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
@@ -197,14 +286,14 @@
                     @endphp
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label for="station_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Penempatan Kerja</label>
+                            <label for="station_id" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Penempatan Kerja</label>
                             @if($isStationLocked)
-                                <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-lock text-[9px]"></i> Terkunci
                                 </span>
                             @endif
                         </div>
-                        <select id="station_id" {{ $isStationLocked ? 'disabled' : 'name=station_id required' }} class="block w-full px-4 py-2 {{ $isStationLocked ? 'bg-gray-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-not-allowed pointer-events-none select-none' : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500' }} border rounded-xl text-sm transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
+                        <select id="station_id" {{ $isStationLocked ? 'disabled' : 'name=station_id required' }} class="block w-full px-4 py-2.5 {{ $isStationLocked ? 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-not-allowed pointer-events-none select-none' : 'bg-slate-50/50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500' }} border rounded-xl text-sm font-medium transition-all {{ $errors->has('station_id') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}">
                             <option value="" disabled {{ empty($userStationValue) ? 'selected' : '' }}>Pilih Tempat Kerja</option>
                             @if(isset($daftarStasiun) && count($daftarStasiun) > 0)
                                 @foreach($daftarStasiun as $stasiun)
@@ -219,9 +308,9 @@
                         </select>
                         @if($isStationLocked)
                             <input type="hidden" name="station_id" value="{{ $user->station_id }}">
-                            <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1.5">
                                 <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
-                                Penempatan kerja terkunci otomatis demi akurasi absensi. Hubungi Administrator jika terjadi mutasi kerja.
+                                Penempatan kerja terkunci demi akurasi absensi. Hubungi Admin jika mutasi.
                             </p>
                         @endif
                         @error('station_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
@@ -230,9 +319,9 @@
                     {{-- Jabatan / Role (Terkunci Otomatis / Dikelola Admin) --}}
                     <div class="md:col-span-2 relative" id="roleSelectWrapper">
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Peran / Jabatan yang Diemban</label>
-                            <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Peran & Jabatan Organisasi</label>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-lock text-[9px]"></i> Terkunci
                             </span>
                         </div>
 
@@ -258,12 +347,12 @@
                             $initialRoleDisplay = !empty($currentRoleNames) ? implode(', ', $currentRoleNames) : 'Tidak Ada Role';
                         @endphp
 
-                        {{-- Tampilan Box Terkunci (Sama Persis seperti Jenis Kelamin & Penempatan Kerja) --}}
-                        <div class="w-full px-4 py-2 bg-gray-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-sm cursor-not-allowed pointer-events-none select-none transition-all flex items-center justify-between gap-2 min-h-[42px]">
+                        {{-- Tampilan Box Terkunci --}}
+                        <div class="w-full px-4 py-2.5 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-sm cursor-not-allowed pointer-events-none select-none transition-all flex items-center justify-between gap-2 min-h-[44px]">
                             <div class="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
                                 @if(!empty($currentRoleNames))
                                     @foreach($currentRoleNames as $rName)
-                                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs">
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600 shadow-2xs">
                                             {{ $rName }}
                                         </span>
                                     @endforeach
@@ -273,7 +362,7 @@
                             </div>
                             <div class="flex items-center gap-2 text-slate-400 shrink-0">
                                 @if(count((array)$currentRoleIds) > 1)
-                                    <span class="px-1.5 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">
+                                    <span class="px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800 shadow-2xs">
                                         {{ count((array)$currentRoleIds) }} Peran
                                     </span>
                                 @endif
@@ -287,9 +376,9 @@
                             <input type="hidden" name="roles[]" value="{{ $rId }}">
                         @endforeach
 
-                        <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1.5">
                             <i class="fa-solid fa-circle-info text-sky-500 text-[10px]"></i>
-                            Peran dan jabatan kerja terkunci otomatis demi hierarki organisasi. Hubungi Administrator jika terdapat penyesuaian peran.
+                            Peran kerja dikunci otomatis demi hierarki organisasi. Hubungi Administrator jika terdapat penyesuaian.
                         </p>
 
                         @error('roles') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
@@ -303,28 +392,28 @@
                     @endphp
                     @if($isUserPipeline)
                         <div class="md:col-span-2 transition-all duration-300" id="pengaturanPipelineRumahMeterContainer">
-                            <div class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-3">
+                            <div class="p-4.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl space-y-3">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                     <div>
-                                        <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                                            <i class="fa-solid fa-gauge-high text-amber-600"></i> Cakupan Wilayah Rumah Meter (Role Pipeline)
+                                        <label class="block text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-gauge-high text-amber-600 dark:text-amber-400"></i> Cakupan Wilayah Rumah Meter (Role Pipeline)
                                         </label>
-                                        <p class="text-[11px] text-amber-700/80 dark:text-amber-400 font-medium mt-0.5">
+                                        <p class="text-[11px] text-amber-700/90 dark:text-amber-400 font-medium mt-0.5">
                                             Daftar Checkpoint Rumah Meter penugasan resmi dari Administrator:
                                         </p>
                                     </div>
-                                    <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                        <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Terkunci
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-white/80 dark:bg-slate-800/80 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 flex items-center gap-1 shadow-2xs self-start sm:self-auto">
+                                        <i class="fa-solid fa-lock text-[9px]"></i> Terkunci
                                     </span>
                                 </div>
 
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
                                     @if(isset($daftarRumahMeter) && count($daftarRumahMeter) > 0)
                                         @foreach($daftarRumahMeter as $rm)
                                             @php
                                                 $isRmChecked = in_array($rm->id, (array)$userAssignedRmIds);
                                             @endphp
-                                            <div class="flex items-center space-x-2 p-2 {{ $isRmChecked ? 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700' : 'bg-gray-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-60' }} border rounded-xl text-xs select-none shadow-2xs pointer-events-none">
+                                            <div class="flex items-center space-x-2 p-2.5 {{ $isRmChecked ? 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700 shadow-2xs' : 'bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-60' }} border rounded-xl text-xs select-none pointer-events-none">
                                                 <input type="checkbox" disabled {{ $isRmChecked ? 'checked' : '' }}
                                                     class="rounded border-slate-300 dark:border-slate-600 text-amber-600 w-3.5 h-3.5 cursor-not-allowed">
                                                 <span class="font-medium text-slate-700 dark:text-slate-200 truncate">
@@ -344,14 +433,14 @@
                     {{-- Alamat Email --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Email</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Alamat Email</label>
                             <div>
                                 @if($user->email_verified_at)
-                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                        <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                                        <i class="fa-solid fa-circle-check mr-1 text-[9px]"></i> Terverifikasi
                                     </span>
                                 @else
-                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <span id="email-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
                                         Belum Verifikasi
                                     </span>
                                 @endif
@@ -360,33 +449,36 @@
                         <div class="relative">
                             <input type="email"
                                 value="{{ $user->email }}"
-                                class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded-xl cursor-not-allowed select-none font-medium"
+                                class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl cursor-not-allowed select-none font-medium text-sm"
                                 readonly
                                 disabled>
                             <input type="hidden" name="email" value="{{ $user->email }}">
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">* Email akun tidak dapat diubah.</p>
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-slate-400 text-[10px]"></i>
+                            Email akun kedinasan bersifat permanen dan tidak dapat diubah mandiri.
+                        </p>
                     </div>
 
                     {{-- No. WhatsApp / Telepon --}}
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">No. WhatsApp / Telepon</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">No. WhatsApp / Telepon</label>
                             <div class="flex items-center gap-2">
                                 @if($user->hasVerifiedPhone())
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                        <i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Terverifikasi
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                                        <i class="fa-solid fa-circle-check mr-1 text-[9px]"></i> Terverifikasi
                                     </span>
                                     <button type="button"
                                         id="btn-change-phone"
                                         onclick="openChangePhoneModal()"
-                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 border border-sky-200/80 dark:border-sky-800 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer"
+                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 border border-sky-200/80 dark:border-sky-800 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
                                         title="Ajukan permohonan ganti nomor ke Admin">
                                         <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                         <span>Ganti</span>
                                     </button>
                                 @else
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
                                         Belum Verifikasi
                                     </span>
                                 @endif
@@ -396,7 +488,7 @@
                             @if($user->hasVerifiedPhone())
                                 <input type="text"
                                     value="{{ $user->phone_number }}"
-                                    class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded-xl cursor-not-allowed select-none font-medium"
+                                    class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl cursor-not-allowed select-none font-medium text-sm font-mono"
                                     readonly
                                     disabled>
                                 <input type="hidden" name="phone_number" value="{{ $user->phone_number }}">
@@ -405,22 +497,22 @@
                                     name="phone_number"
                                     id="phone_number"
                                     value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-sky-500 font-medium text-slate-800 dark:text-slate-100"
+                                    class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium text-slate-800 dark:text-slate-100 text-sm font-mono transition-all"
                                     placeholder="Contoh: 08123456789">
                             @endif
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
                             @if($user->hasVerifiedPhone())
-                                * Nomor WhatsApp terverifikasi terkunci demi keamanan data dinas. Klik tombol <strong>Ganti</strong> jika ingin menghubungi Administrator.
+                                * Nomor terverifikasi terkunci demi keamanan dinas. Klik tombol <strong class="text-sky-600 dark:text-sky-400">Ganti</strong> untuk hubungi Admin.
                             @else
-                                * Pastikan nomor aktif terhubung dengan WhatsApp untuk verifikasi akun.
+                                * Pastikan nomor aktif terhubung WhatsApp untuk penerimaan OTP dan notifikasi dinas.
                             @endif
                         </p>
                     </div>
                 </div>
             </div>
 
-            <hr class="border-slate-100 dark:border-slate-700">
+            <hr class="border-slate-100 dark:border-slate-700/80">
 
             {{-- PENGATURAN JADWAL KERJA --}}
             @php
@@ -440,21 +532,26 @@
                 $selectedRosterShift = old('current_shift_choice', $currentDbShift);
             @endphp
 
-            <div id="schedule_setting" class="p-4 rounded-2xl transition-all duration-300">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Pengaturan Jadwal Kerja</h3>
+            <div id="schedule_setting" class="p-5 sm:p-6 bg-slate-50/60 dark:bg-slate-900/40 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition-all duration-300">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shadow-2xs">
+                            <i class="fa-solid fa-business-time"></i>
+                        </span>
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Pengaturan Jadwal Kerja</h3>
+                    </div>
                     @if($scheduleAlreadySet)
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
-                            <i class="fa-solid fa-lock text-[10px]"></i> Terkunci (Anti-Cheating)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                            <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 text-[10px]"></i> Terkunci (Anti-Cheating)
                         </span>
                     @else
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-2xs">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold bg-sky-50 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-2xs">
                             <i class="fa-solid fa-pen-clip text-[10px]"></i> Pengaturan Awal
                         </span>
                     @endif
                 </div>
 
-                <p class="text-xs text-slate-400 mb-4">
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
                     @if($scheduleAlreadySet)
                         Status jadwal kerja operasional akun Anda terkunci demi integritas absensi kedinasan.
                     @else
@@ -466,12 +563,13 @@
 
                     {{-- KARTU MODE BACA JADWAL TERKUNCI (JIKA SUDAH DI-SET) --}}
                     @if($scheduleAlreadySet)
-                        <div id="schedule_read_mode" class="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
-                                <div class="flex items-center gap-3">
+                        <div id="schedule_read_mode" class="p-4 sm:p-5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-4 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/80">
+                                <div class="flex items-center gap-3.5">
                                     @if($user->schedule_type === 'roster')
-                                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-base shrink-0 border border-amber-200 dark:border-amber-800 shadow-2xs">
-                                            <i class="fa-solid fa-rotate"></i>
+                                        <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shrink-0 shadow-md shadow-amber-500/20 border border-amber-400/30"
+                                             style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important; color: #ffffff !important;">
+                                            <i class="fa-solid fa-rotate text-white text-lg" style="color: #ffffff !important;"></i>
                                         </div>
                                         <div>
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
@@ -491,8 +589,9 @@
                                             </p>
                                         </div>
                                     @elseif($user->schedule_type === 'reguler_6_hari')
-                                        <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-base shrink-0 border border-teal-200 dark:border-teal-800 shadow-2xs">
-                                            <i class="fa-solid fa-business-time"></i>
+                                        <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-lg shrink-0 shadow-md shadow-teal-500/20 border border-teal-400/30"
+                                             style="background: linear-gradient(135deg, #0d9488 0%, #059669 100%) !important; color: #ffffff !important;">
+                                            <i class="fa-solid fa-business-time text-white text-lg" style="color: #ffffff !important;"></i>
                                         </div>
                                         <div>
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
@@ -505,8 +604,9 @@
                                             </p>
                                         </div>
                                     @else
-                                        <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center text-base shrink-0 border border-sky-200 dark:border-sky-800 shadow-2xs">
-                                            <i class="fa-solid fa-business-time"></i>
+                                        <div class="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center text-lg shrink-0 shadow-md shadow-sky-500/20 border border-sky-400/30"
+                                             style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">
+                                            <i class="fa-solid fa-business-time text-white text-lg" style="color: #ffffff !important;"></i>
                                         </div>
                                         <div>
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipe Jadwal Aktif</p>
@@ -524,20 +624,20 @@
                                 {{-- Aksi: Admin Ubah Jadwal & Karyawan Hubungi Admin --}}
                                 <div class="flex items-center gap-2 self-start sm:self-center">
                                     @if(!empty($isAdmin))
-                                        <button type="button" onclick="showScheduleEditMode()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Ubah jadwal sebagai Administrator">
+                                        <button type="button" onclick="showScheduleEditMode()" class="px-3.5 py-2 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95" title="Ubah jadwal sebagai Administrator">
                                             <i class="fa-solid fa-user-shield text-amber-600 dark:text-amber-400"></i>
                                             <span>Ubah (Admin)</span>
                                         </button>
                                     @endif
-                                    <button type="button" onclick="openScheduleContactAdminModal()" class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                        <i class="fa-brands fa-whatsapp text-sm text-emerald-600"></i>
+                                    <button type="button" onclick="openScheduleContactAdminModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
                                         <span>Hubungi Admin</span>
                                     </button>
                                 </div>
                             </div>
 
                             {{-- Alert Informasi Terkunci & Petunjuk Hubungi Admin --}}
-                            <div class="p-3 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                            <div class="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-xl flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
                                 <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 mt-0.5 text-sm shrink-0"></i>
                                 <div class="leading-relaxed">
                                     <p class="font-bold text-amber-950 dark:text-amber-100">
@@ -587,8 +687,8 @@
 
                             {{-- Pilihan Jenis Jadwal --}}
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
-                                <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-2/3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-sky-500 transition-all font-medium">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Tipe Jadwal Kerja</label>
+                                <select id="schedule_type" name="schedule_type" onchange="toggleScheduleOptions()" class="w-full md:w-2/3 px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium">
                                     <option value="" disabled {{ empty($activeScheduleType) ? 'selected' : '' }}>-- Pilih Jenis Jadwal --</option>
                                     <option value="reguler_5_hari" {{ in_array($activeScheduleType, ['reguler_5_hari', 'normal']) ? 'selected' : '' }}>
                                         Reguler (5 Hari: Senin – Jumat)
@@ -597,27 +697,27 @@
                                         Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
                                     </option>
                                     <option value="roster" {{ $activeScheduleType === 'roster' ? 'selected' : '' }}>
-                                        Roster / Shift
+                                        Roster / Shift (12 Jam)
                                     </option>
                                 </select>
                             </div>
 
                             {{-- Card Info Jadwal Reguler 5 Hari --}}
-                            <div id="section_reguler_5_info" class="hidden p-4 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-2xl space-y-3">
+                            <div id="section_reguler_5_info" class="hidden p-4 sm:p-5 bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-800/60 rounded-2xl space-y-3">
                                 <div class="flex items-center gap-2 text-sky-800 dark:text-sky-300 font-bold text-xs uppercase tracking-wider">
                                     <i class="fa-solid fa-calendar-check text-sky-600 dark:text-sky-400"></i>
                                     Ketentuan Baku Jadwal Reguler 5 Hari
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-sky-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
                                         <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Jumat</span>
                                     </div>
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-sky-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Masuk & Pulang</span>
                                         <span class="text-xs font-bold text-sky-600 dark:text-sky-400">07:00 – 16:00 WIB</span>
                                     </div>
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-sky-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-sky-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
                                         <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Sabtu & Minggu (OFF)</span>
                                     </div>
@@ -629,21 +729,21 @@
                             </div>
 
                             {{-- Card Info Jadwal Reguler 6 Hari --}}
-                            <div id="section_reguler_6_info" class="hidden p-4 bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/60 rounded-2xl space-y-3">
+                            <div id="section_reguler_6_info" class="hidden p-4 sm:p-5 bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 rounded-2xl space-y-3">
                                 <div class="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
                                     <i class="fa-solid fa-calendar-check text-teal-600 dark:text-teal-400"></i>
                                     Ketentuan Baku Jadwal Reguler 6 Hari
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-teal-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
                                         <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Senin s/d Sabtu</span>
                                     </div>
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-teal-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja Baku</span>
                                         <span class="text-xs font-bold text-teal-600 dark:text-teal-400">Sen–Jum: 07:00–16:00<br>Sabtu: 07:00–12:00 WIB</span>
                                     </div>
-                                    <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-teal-100 dark:border-slate-700">
+                                    <div class="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-teal-100 dark:border-slate-700 shadow-2xs">
                                         <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
                                         <span class="text-xs font-bold text-rose-600 dark:text-rose-400">Minggu (OFF)</span>
                                     </div>
@@ -655,29 +755,29 @@
                             </div>
 
                             {{-- Form Opsi Jadwal Roster --}}
-                            <div id="section_roster_schedule" class="hidden p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl space-y-4">
+                            <div id="section_roster_schedule" class="hidden p-4 sm:p-5 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider mb-1">Shift Anda Saat Ini</label>
-                                    <p class="text-[11px] text-amber-700 dark:text-amber-400 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
+                                    <p class="text-[11px] text-amber-700/90 dark:text-amber-400 mb-3">Sistem akan secara otomatis menghitung dan memutar jadwal rotasi shift Anda setiap hari Selasa pukul 07:00 WIB.</p>
 
                                     <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date', $user->roster_start_date ? \Carbon\Carbon::parse($user->roster_start_date)->format('Y-m-d') : '') }}">
 
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500 transition-all">
+                                        <label class="flex items-center space-x-3 p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-sky-500 hover:shadow-2xs transition-all">
                                             <input type="radio" name="current_shift_choice" value="pagi" {{ $selectedRosterShift === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
                                             <div>
                                                 <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Pagi</span>
                                                 <span class="text-[10px] text-slate-500 dark:text-slate-400">07:00 - 19:00 WIB</span>
                                             </div>
                                         </label>
-                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 transition-all">
+                                        <label class="flex items-center space-x-3 p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 hover:shadow-2xs transition-all">
                                             <input type="radio" name="current_shift_choice" value="malam" {{ $selectedRosterShift === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
                                             <div>
                                                 <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">Shift Malam</span>
                                                 <span class="text-[10px] text-slate-500 dark:text-slate-400">19:00 - 07:00 WIB</span>
                                             </div>
                                         </label>
-                                        <label class="flex items-center space-x-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-red-500 transition-all">
+                                        <label class="flex items-center space-x-3 p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500 hover:shadow-2xs transition-all">
                                             <input type="radio" name="current_shift_choice" value="libur" {{ $selectedRosterShift === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
                                             <div>
                                                 <span class="block text-xs font-bold text-slate-800 dark:text-slate-100">OFF</span>
@@ -688,20 +788,20 @@
                                 </div>
 
                                 {{-- BOX PRATINJAU HASIL ROTASI --}}
-                                <div id="roster_preview_box" class="p-3 bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/60 rounded-xl shadow-sm text-xs space-y-2">
-                                    <div class="font-bold text-amber-900 dark:text-amber-300 border-b border-slate-100 dark:border-slate-700 pb-1.5 flex items-center">
-                                        <i class="fa-solid fa-eye text-amber-600 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
+                                <div id="roster_preview_box" class="p-3.5 bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-700/60 rounded-xl shadow-xs text-xs space-y-2.5">
+                                    <div class="font-bold text-amber-900 dark:text-amber-300 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center">
+                                        <i class="fa-solid fa-eye text-amber-600 dark:text-amber-400 mr-2"></i> Pratinjau Jadwal Rotasi Roster Anda:
                                     </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700 dark:text-slate-300">
-                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-slate-700 dark:text-slate-300">
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                                             <span class="block text-[10px] text-slate-400 font-semibold">MINGGU INI:</span>
                                             <span id="preview_week_1" class="font-bold text-sky-600 dark:text-sky-400">Shift Pagi</span>
                                         </div>
-                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                                             <span class="block text-[10px] text-slate-400 font-semibold">SELASA DEPAN (07:00 WIB):</span>
                                             <span id="preview_week_2" class="font-bold text-indigo-600 dark:text-indigo-400">Shift Malam</span>
                                         </div>
-                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg">
+                                        <div class="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                                             <span class="block text-[10px] text-slate-400 font-semibold">2 MINGGU LAGI:</span>
                                             <span id="preview_week_3" class="font-bold text-emerald-600 dark:text-emerald-400">Minggu Libur</span>
                                         </div>
@@ -713,70 +813,86 @@
                 </div>
             </div>
 
-            <hr class="border-slate-100 dark:border-slate-700">
+            <hr class="border-slate-100 dark:border-slate-700/80">
 
             <div>
-                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">Keamanan Akun</h3>
-                <p class="text-xs text-slate-400 mb-4">Kosongkan kolom di bawah ini jika Anda tidak ingin mengubah password akun.</p>
+                <div class="flex items-center gap-2.5 mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/80">
+                    <span class="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs shadow-2xs">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </span>
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Keamanan Akun & Kata Sandi</h3>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Kosongkan kolom di bawah ini jika Anda tidak ingin mengubah password akun.</p>
 
                 <div class="space-y-4">
                     {{-- Password Lama --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Saat Ini (Password Lama)</label>
-                        <input type="password" name="current_password" class="w-full md:w-1/2 px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('current_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="••••••••">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Password Saat Ini (Password Lama)</label>
+                        <input type="password" name="current_password" class="w-full md:w-1/2 px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-mono text-sm {{ $errors->has('current_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="••••••••">
                         @error('current_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{-- Password Baru --}}
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Baru</label>
-                            <input type="password" name="new_password" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 {{ $errors->has('new_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="Minimal 8 karakter">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Password Baru</label>
+                            <input type="password" name="new_password" class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-mono text-sm {{ $errors->has('new_password') ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700' }}" placeholder="Minimal 8 karakter">
                             @error('new_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         {{-- Konfirmasi Password --}}
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Konfirmasi Password Baru</label>
-                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500" placeholder="Ulangi password baru">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Konfirmasi Password Baru</label>
+                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-mono text-sm" placeholder="Ulangi password baru">
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Floating / Sticky Action Bar --}}
-            <div class="sticky bottom-4 z-30 pt-3">
-                <div class="p-3.5 sm:px-5 sm:py-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-700/90 shadow-xl shadow-slate-900/10 dark:shadow-black/30 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all">
-                    <div class="hidden sm:flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse shrink-0"></span>
-                        <span>Perubahan data profil & keamanan akun dapat langsung disimpan.</span>
-                    </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                        <button type="submit"
-                            id="btnSubmitProfile"
-                            form="form-profile-account"
-                            class="w-full sm:w-auto px-6 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-sm font-bold shadow-md shadow-sky-600/25 hover:shadow-lg hover:shadow-sky-600/35 transition-all cursor-pointer flex items-center justify-center gap-2 group disabled:opacity-75 disabled:cursor-not-allowed">
-                            <i id="btnSubmitProfileIcon" class="fa-solid fa-floppy-disk text-xs transition-transform group-hover:scale-110"></i>
-                            <i id="btnSubmitProfileSpinner" class="fa-solid fa-circle-notch fa-spin text-xs hidden"></i>
-                            <span id="btnSubmitProfileText">Simpan Perubahan</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
         </form>
+    </div>
+</div>
+@endsection
+
+@push('modals')
+{{-- FLOATING ACTION DOCK (MELAYANG DI BAWAH VIEWPORT) --}}
+<div class="fixed bottom-0 inset-x-0 z-40 p-4 sm:p-5 pointer-events-none">
+    <div class="max-w-5xl mx-auto pointer-events-auto">
+        <div class="p-3.5 sm:px-6 sm:py-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/90 shadow-2xl shadow-slate-900/20 dark:shadow-black/70 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all ring-1 ring-black/5 dark:ring-white/5">
+            <div class="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse shrink-0"></span>
+                <span class="font-medium text-xs sm:text-sm">Perubahan data profil & keamanan akun dapat langsung disimpan.</span>
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button type="submit"
+                    id="btnSubmitProfile"
+                    form="form-profile-account"
+                    class="w-full sm:w-auto px-7 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 transition-all cursor-pointer flex items-center justify-center gap-2 group disabled:opacity-75 disabled:cursor-not-allowed"
+                    style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">
+                    <i id="btnSubmitProfileIcon" class="fa-solid fa-floppy-disk text-xs text-white transition-transform group-hover:scale-110" style="color: #ffffff !important;"></i>
+                    <i id="btnSubmitProfileSpinner" class="fa-solid fa-circle-notch fa-spin text-xs text-white hidden" style="color: #ffffff !important;"></i>
+                    <span id="btnSubmitProfileText" class="text-white font-bold" style="color: #ffffff !important;">Simpan Perubahan</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 {{-- MODAL FOTO PROFIL --}}
 <div id="photoModal"
      data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}"
-     class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4 border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Perbarui Foto Profil</h3>
-            <button type="button" id="closeModalPhotoBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
-                <i class="fa-solid fa-xmark text-lg"></i>
+     class="fixed inset-0 z-50 items-center justify-center hidden p-4 sm:p-6 overflow-y-auto">
+    <div id="modalBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all m-auto my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/80 pb-3.5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm shadow-2xs">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base">Perbarui Foto Profil</h3>
+            </div>
+            <button type="button" id="closeModalPhotoBtn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
 
@@ -787,30 +903,31 @@
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
 
-                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center hover:border-sky-400 transition-colors bg-slate-50/50 dark:bg-slate-900/40">
-                    <input type="file" name="profile_photo" id="profile_photo_input" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100" required/>
+                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-5 text-center hover:border-sky-400 dark:hover:border-sky-500 transition-colors bg-slate-50/70 dark:bg-slate-900/50">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-sky-500/70 dark:text-sky-400/70 mb-2 block"></i>
+                    <input type="file" name="profile_photo" id="profile_photo_input" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-sky-50 file:text-sky-700 dark:file:bg-sky-950/70 dark:file:text-sky-300 hover:file:bg-sky-100 dark:hover:file:bg-sky-900/60 cursor-pointer" required/>
                 </div>
                 @error('profile_photo') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
-                <p class="text-xs text-slate-400 text-center mt-2">Format file: JPG, JPEG, PNG. Maksimal 2MB.</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-2">Format file: JPG, JPEG, PNG. Maksimal ukuran 2MB.</p>
             </form>
 
             @if($user->profile_photo)
-                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700">
+                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700/80">
                     <form action="{{ route('account.update') }}" method="POST">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="delete_photo" value="1">
-                        <button type="submit" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors bg-rose-50 hover:bg-rose-100/70 px-3 py-1.5 rounded-lg border border-rose-200/40">
-                            <i class="fa-solid fa-trash-can"></i> <span>Hapus Foto Saat Ini</span>
+                        <button type="submit" class="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 transition-colors bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 px-3.5 py-1.5 rounded-xl border border-rose-200/80 dark:border-rose-900/60 shadow-2xs active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-trash-can text-xs"></i> <span>Hapus Foto Saat Ini</span>
                         </button>
                     </form>
                 </div>
             @endif
         </div>
 
-        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
-            <button type="button" id="cancelModalPhotoBtn" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Batal</button>
-            <button type="submit" form="uploadPhotoForm" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-sm font-medium hover:bg-sky-700 transition-colors shadow-sm">Simpan Foto</button>
+        <div class="flex items-center space-x-2.5 mt-6 justify-end border-t border-slate-100 dark:border-slate-700/80 pt-4">
+            <button type="button" id="cancelModalPhotoBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
+            <button type="submit" form="uploadPhotoForm" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/25 transition-all cursor-pointer" style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">Simpan Foto</button>
         </div>
     </div>
 </div>
@@ -818,13 +935,18 @@
 {{-- MODAL UPLOAD TANDA TANGAN DIGITAL (TTD) --}}
 <div id="signatureModal"
      data-has-error="{{ $errors->has('signature') ? 'true' : 'false' }}"
-     class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 transform transition-all m-4 border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Unggah Berkas TTD</h3>
-            <button type="button" id="closeModalSignatureBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
-                <i class="fa-solid fa-xmark text-lg"></i>
+     class="fixed inset-0 z-50 items-center justify-center hidden p-4 sm:p-6 overflow-y-auto">
+    <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all m-auto my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/80 pb-3.5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shadow-2xs">
+                    <i class="fa-solid fa-signature"></i>
+                </div>
+                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base">Unggah Berkas TTD</h3>
+            </div>
+            <button type="button" id="closeModalSignatureBtn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
 
@@ -835,42 +957,43 @@
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
 
-                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors bg-slate-50/50 dark:bg-slate-900/40">
-                    <input type="file" name="signature" id="signature_input" accept="image/png,image/jpeg,image/jpg" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" required/>
+                <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-5 text-center hover:border-emerald-400 dark:hover:border-emerald-500 transition-colors bg-slate-50/70 dark:bg-slate-900/50">
+                    <i class="fa-solid fa-file-signature text-3xl text-emerald-500/70 dark:text-emerald-400/70 mb-2 block"></i>
+                    <input type="file" name="signature" id="signature_input" accept="image/png,image/jpeg,image/jpg" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-950/70 dark:file:text-emerald-300 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/60 cursor-pointer" required/>
                 </div>
                 @error('signature') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
-                <p class="text-xs text-slate-400 text-center mt-2">Disarankan menggunakan format PNG transparan. Maksimal 2MB.</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-2">Disarankan format PNG transparan. Maksimal ukuran 2MB.</p>
             </form>
 
             @if($user->signature)
-                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700">
+                <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-700/80">
                     <form action="{{ route('account.update') }}" method="POST">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="delete_signature" value="1">
-                        <button type="submit" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors bg-rose-50 hover:bg-rose-100/70 px-3 py-1.5 rounded-lg border border-rose-200/40">
-                            <i class="fa-solid fa-trash-can"></i> <span>Hapus TTD Saat Ini</span>
+                        <button type="submit" class="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 transition-colors bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 px-3.5 py-1.5 rounded-xl border border-rose-200/80 dark:border-rose-900/60 shadow-2xs active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-trash-can text-xs"></i> <span>Hapus TTD Saat Ini</span>
                         </button>
                     </form>
                 </div>
             @endif
         </div>
 
-        <div class="flex items-center space-x-3 mt-6 justify-end border-t border-slate-100 dark:border-slate-700 pt-4">
-            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Batal</button>
-            <button type="submit" form="uploadSignatureForm" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 shadow-sm">Simpan TTD</button>
+        <div class="flex items-center space-x-2.5 mt-6 justify-end border-t border-slate-100 dark:border-slate-700/80 pt-4">
+            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
+            <button type="submit" form="uploadSignatureForm" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/25 transition-all cursor-pointer" style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%) !important; color: #ffffff !important;">Simpan TTD</button>
         </div>
     </div>
 </div>
 
 {{-- MODAL HUBUNGI ADMIN UNTUK GANTI NOMOR WHATSAPP --}}
-<div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
-    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
+<div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto transition-opacity duration-200">
+    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto transform transition-all animate-fadeIn">
         
-        {{-- Header Modal Hubungi Admin --}}
-        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
+        {{-- Header Modal Hubungi Admin (shrink-0) --}}
+        <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80 dark:border-emerald-800">
                     <i class="fa-brands fa-whatsapp text-2xl"></i>
                 </div>
                 <div>
@@ -887,14 +1010,14 @@
             </button>
         </div>
 
-        {{-- Body Modal Hubungi Admin --}}
-        <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        {{-- Body Modal Hubungi Admin (flex-1 overflow-y-auto) --}}
+        <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
             
             {{-- Alert Informasi Keamanan Nomor WhatsApp --}}
-            <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
-                <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5 text-base shrink-0"></i>
+            <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
+                <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 mt-0.5 text-base shrink-0"></i>
                 <div class="leading-relaxed">
-                    <p class="font-bold text-amber-950 mb-1">Nomor WhatsApp Terverifikasi Terkunci</p>
+                    <p class="font-bold text-amber-950 dark:text-amber-100 mb-1">Nomor WhatsApp Terverifikasi Terkunci</p>
                     <p>
                         Nomor <span class="font-mono font-bold">{{ $user->phone_number }}</span> telah terdaftar dan terverifikasi untuk presensi absensi, notifikasi cuti, dan keamanan sistem ERP. Penggantian nomor harus disetujui dan diperbarui langsung oleh <strong>Administrator Sistem</strong>.
                     </p>
@@ -903,7 +1026,7 @@
 
             {{-- Daftar Kontak Administrator Sistem --}}
             <div class="space-y-3 pt-1">
-                <div class="flex items-center justify-between text-xs font-bold text-slate-700 px-1">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 px-1">
                     <span>Pilih Administrator Tujuan:</span>
                     <span class="text-[11px] text-slate-400 font-medium">{{ isset($adminUsers) ? $adminUsers->count() : 0 }} Admin Tersedia</span>
                 </div>
@@ -929,22 +1052,22 @@
                                 $adminRoleName = $admin->role?->role_name ?? ($admin->roles->first()?->role_name ?? 'Administrator');
                             @endphp
 
-                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all shadow-2xs">
+                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/90 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/20 dark:hover:bg-emerald-950/20 transition-all shadow-2xs">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 shadow-2xs">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 dark:border-emerald-800 shadow-2xs">
                                         {{ strtoupper(substr($admin->name, 0, 2)) }}
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2">
-                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                                                 {{ $admin->name }}
                                             </h4>
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 text-sky-800">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300">
                                                 {{ $adminRoleName }}
                                             </span>
                                         </div>
-                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                                            <span class="font-mono text-emerald-700 font-semibold">
+                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <span class="font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
                                                 <i class="fa-brands fa-whatsapp text-xs mr-0.5"></i> {{ $admin->phone_number }}
                                             </span>
                                             @if($admin->station)
@@ -969,9 +1092,9 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-center py-6">
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center py-6">
                         <i class="fa-solid fa-user-shield text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-xs font-bold text-slate-700">Kontak WhatsApp Administrator Belum Tersedia</p>
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kontak WhatsApp Administrator Belum Tersedia</p>
                         <p class="text-[11px] text-slate-400 mt-1">Silakan hubungi tim IT atau HRD di kantor stasiun Anda untuk bantuan penggantian nomor.</p>
                     </div>
                 @endif
@@ -979,9 +1102,9 @@
 
         </div>
 
-        {{-- Footer Modal Hubungi Admin --}}
-        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-            <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+        {{-- Footer Modal Hubungi Admin (shrink-0) --}}
+        <div class="shrink-0 p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">
                 Tutup
             </button>
         </div>
@@ -990,13 +1113,13 @@
 </div>
 
 {{-- MODAL HUBUNGI ADMIN UNTUK PERUBAHAN JADWAL KERJA --}}
-<div id="modalScheduleContactAdmin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
-    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
+<div id="modalScheduleContactAdmin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto transition-opacity duration-200">
+    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto transform transition-all animate-fadeIn">
         
-        {{-- Header Modal Hubungi Admin Jadwal --}}
-        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
+        {{-- Header Modal Hubungi Admin Jadwal (shrink-0) --}}
+        <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200 dark:border-emerald-800">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200 dark:border-emerald-800">
                     <i class="fa-brands fa-whatsapp text-2xl"></i>
                 </div>
                 <div>
@@ -1013,8 +1136,8 @@
             </button>
         </div>
 
-        {{-- Body Modal Hubungi Admin Jadwal --}}
-        <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        {{-- Body Modal Hubungi Admin Jadwal (flex-1 overflow-y-auto) --}}
+        <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
             
             {{-- Alert Informasi Keamanan Jadwal --}}
             <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
@@ -1120,8 +1243,8 @@
 
         </div>
 
-        {{-- Footer Modal Hubungi Admin Jadwal --}}
-        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+        {{-- Footer Modal Hubungi Admin Jadwal (shrink-0) --}}
+        <div class="shrink-0 p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
             <button type="button" onclick="closeScheduleContactAdminModal()" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">
                 Tutup
             </button>
@@ -1131,11 +1254,13 @@
 </div>
 
 {{-- MODAL PANDUAN CARA MENGETAHUI NIP DARI SLIP GAJI --}}
-<div id="modalPanduanNip" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
-    <div class="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
+<div id="modalPanduanNip"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm transition-opacity duration-200"
+     style="position: fixed; inset: 0; z-index: 9999; margin: 0;">
+    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all m-auto">
         
-        {{-- Header Modal Panduan NIP --}}
-        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-r from-sky-50/90 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-800/90 dark:to-slate-800">
+        {{-- Header Modal Panduan NIP (shrink-0) --}}
+        <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-r from-sky-50/90 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-800/90 dark:to-slate-800">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs border border-sky-200/80 dark:border-sky-800">
                     <i class="fa-solid fa-id-card-clip text-xl"></i>
@@ -1159,8 +1284,8 @@
             </button>
         </div>
 
-        {{-- Body Modal Panduan NIP --}}
-        <div class="p-5 sm:p-6 space-y-4 max-h-[72vh] overflow-y-auto">
+        {{-- Body Modal Panduan NIP (flex-1 overflow-y-auto) --}}
+        <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
             
             {{-- Alert Informasi Ringkas --}}
             <div class="p-3.5 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800 text-xs text-slate-700 dark:text-slate-300 space-y-1">
@@ -1251,8 +1376,8 @@
 
                         {{-- Kanan Atas: Data Lain --}}
                         <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
-                            <div class="text-[9px] text-black dark:text-slate-300 uppercase font-semibold">Periode Gaji:</div>
-                            <div class="font-mono text-black dark:text-white text-[10px] font-bold">
+                            <div class="text-[9px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Periode Gaji:</div>
+                            <div class="font-mono text-slate-900 dark:text-white text-[10px] font-bold">
                                 {{ (\Carbon\Carbon::now()->day < 25 ? \Carbon\Carbon::now()->subMonth() : \Carbon\Carbon::now())->translatedFormat('F Y') }}
                             </div>
                         </div>
@@ -1268,23 +1393,28 @@
 
         </div>
 
-        {{-- Footer Modal Panduan NIP --}}
-        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-            <button type="button" onclick="tutupModalPanduanNip()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-check"></i>
-                <span>Mengerti, Tutup Panduan</span>
+        {{-- Footer Modal Panduan NIP (shrink-0) --}}
+        <div class="shrink-0 p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <button type="button" onclick="tutupModalPanduanNip()"
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer"
+                    style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">
+                <i class="fa-solid fa-check text-white" style="color: #ffffff !important;"></i>
+                <span class="text-white" style="color: #ffffff !important;">Mengerti, Tutup Panduan</span>
             </button>
         </div>
 
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script>
     function openChangePhoneModal() {
         const modal = document.getElementById('modalChangePhone');
         if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
@@ -1303,6 +1433,9 @@
     function openScheduleContactAdminModal() {
         const modal = document.getElementById('modalScheduleContactAdmin');
         if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
@@ -1502,6 +1635,9 @@
 
         function showPhotoModal() {
             if (modalPhoto) {
+                if (modalPhoto.parentElement !== document.body) {
+                    document.body.appendChild(modalPhoto);
+                }
                 modalPhoto.classList.remove("hidden");
                 modalPhoto.classList.add("flex");
                 document.body.classList.add("overflow-hidden");
@@ -1532,6 +1668,9 @@
 
         function showSigModal() {
             if (modalSig) {
+                if (modalSig.parentElement !== document.body) {
+                    document.body.appendChild(modalSig);
+                }
                 modalSig.classList.remove("hidden");
                 modalSig.classList.add("flex");
                 document.body.classList.add("overflow-hidden");
@@ -1746,6 +1885,9 @@
     function bukaModalPanduanNip() {
         const modal = document.getElementById('modalPanduanNip');
         if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
