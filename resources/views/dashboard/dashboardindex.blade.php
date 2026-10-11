@@ -397,178 +397,450 @@
     </div>
 
     {{-- Widget Kalender Aktivitas Jadwal --}}
-    <div class="bg-white dark:bg-slate-800/90 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-xs mb-6 transition-colors">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-4 mb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-1.5 h-10 bg-blue-600 rounded-full"></div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Kalender Jadwal Kerja & Aktivitas</h3>
+    <div class="relative bg-white dark:bg-slate-800/95 rounded-3xl border border-slate-200/80 dark:border-slate-700/60 shadow-xs hover:shadow-sm mb-6 transition-all overflow-hidden">
+        {{-- Subtle decorative ambient background glow --}}
+        <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-blue-500/5 dark:bg-blue-400/10 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-indigo-500/5 dark:bg-indigo-400/10 blur-3xl pointer-events-none"></div>
+
+        <div class="relative p-5 sm:p-6 lg:p-7 space-y-5">
+            {{-- Header Kalender & Navigasi Bulan --}}
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/70 pb-5">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-md shadow-blue-500/10 dark:shadow-blue-500/20 shrink-0 ring-4 ring-blue-500/10 dark:ring-blue-400/20 border border-blue-200/60 dark:border-blue-800/60">
+                        <i class="fa-solid fa-calendar-days text-lg sm:text-xl text-blue-600 dark:text-blue-400"></i>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-0.5">Visualisasi jadwal shift, libur nasional, dan histori cuti Anda.</p>
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg tracking-tight">Kalender Jadwal Kerja & Aktivitas</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                {{ $user->schedule_type === 'roster' ? 'Sistem Roster 12 Jam' : 'Sistem Reguler' }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                            <span>Visualisasi jadwal shift, libur nasional, dan histori cuti Anda.</span>
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Kontrol Navigasi Bulan --}}
+                <div class="flex items-center gap-1.5 sm:gap-2 self-start lg:self-auto bg-slate-50 dark:bg-slate-900/80 p-1 sm:p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-2xs">
+                    @php
+                        $prevMonth = $currentCarbonDate->copy()->subMonth();
+                        $nextMonth = $currentCarbonDate->copy()->addMonth();
+                        $isCurrentMonth = ($currentCarbonDate->format('Y-m') === now()->format('Y-m'));
+                    @endphp
+                    <a href="{{ route('dashboard', ['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}" 
+                       title="Bulan Sebelumnya"
+                       class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl shadow-2xs transition-all active:scale-95 border border-slate-200/60 dark:border-slate-700/60">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </a>
+
+                    <div class="px-3 sm:px-4 py-1.5 flex items-center gap-2">
+                        <i class="fa-regular fa-calendar text-xs text-blue-600 dark:text-blue-400"></i>
+                        <span class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 min-w-[110px] sm:min-w-[130px] text-center tracking-tight">
+                            {{ $currentCarbonDate->isoFormat('MMMM YYYY') }}
+                        </span>
+                    </div>
+
+                    <a href="{{ route('dashboard', ['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}" 
+                       title="Bulan Berikutnya"
+                       class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl shadow-2xs transition-all active:scale-95 border border-slate-200/60 dark:border-slate-700/60">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </a>
+
+                    @if(!$isCurrentMonth)
+                        <a href="{{ route('dashboard', ['month' => now()->month, 'year' => now()->year]) }}"
+                           title="Kembali ke Bulan Ini"
+                           class="px-2.5 py-1 text-[11px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-2xs transition-all active:scale-95 flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                            <span class="hidden sm:inline">Bulan Ini</span>
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
-                @php
-                    $prevMonth = $currentCarbonDate->copy()->subMonth();
-                    $nextMonth = $currentCarbonDate->copy()->addMonth();
-                @endphp
-                <a href="{{ route('dashboard', ['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-xl transition-colors">
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
-                </a>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 min-w-[120px] text-center">
-                    {{ $currentCarbonDate->isoFormat('MMMM YYYY') }}
+            {{-- Keterangan Indikator (Legend Bar) --}}
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/80 p-3 sm:p-3.5 rounded-2xl">
+                <span class="text-slate-400 dark:text-slate-400 font-extrabold text-[11px] uppercase tracking-wider flex items-center gap-1.5 mr-1">
+                    <i class="fa-solid fa-circle-info text-xs"></i>
+                    <span>Keterangan:</span>
                 </span>
-                <a href="{{ route('dashboard', ['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-xl transition-colors">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                </a>
+
+                @if($user->schedule_type === 'roster')
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Shift Pagi</span>
+                        <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">(07:00 - 19:00)</span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.5)]"></span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Shift Malam</span>
+                        <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">(19:00 - 07:00)</span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Libur Roster (Off)</span>
+                    </div>
+                @else
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Hari Kerja Aktif</span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Libur / Tanggal Merah</span>
+                    </div>
+                @endif
+
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 text-xs">Histori Cuti</span>
+                </div>
             </div>
-        </div>
 
-        <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300 mb-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/50 p-3 rounded-xl">
-            <span class="text-slate-400 dark:text-slate-400 font-bold">Keterangan:</span>
+            {{-- Grid Kalender Matriks Harian --}}
+            <div class="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-11 lg:grid-cols-16 gap-2 sm:gap-2.5 pt-1">
+                @foreach($calendarDays as $day)
+                    @php
+                        $isToday = ($day['date'] === now()->format('Y-m-d'));
+                    @endphp
+                    <button type="button"
+                            data-date="{{ $day['full_date'] }}"
+                            data-day-name="{{ $day['day_name'] }}"
+                            data-title="{{ $day['title'] }}"
+                            data-desc="{{ $day['description'] }}"
+                            data-status="{{ $day['status_type'] }}"
+                            data-color="{{ $day['color_class'] }}"
+                            onclick="bukaDetailJadwal(this.dataset.date, this.dataset.title, this.dataset.desc, this.dataset.dayName, this.dataset.status, this.dataset.color)"
+                            title="{{ $day['full_date'] }} - {{ $day['title'] }}"
+                            class="{{ $day['color_class'] }} h-14 sm:h-16 rounded-2xl flex flex-col items-center justify-center text-white transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 active:scale-95 shadow-2xs hover:shadow-md cursor-pointer relative group select-none {{ $isToday ? 'ring-3 ring-sky-400 ring-offset-2 dark:ring-offset-slate-900 shadow-md shadow-sky-500/25 font-black' : '' }}">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider opacity-85 leading-none">{{ substr($day['day_name'], 0, 3) }}</span>
+                        <span class="text-xs sm:text-sm md:text-base font-black tracking-tight leading-none mt-1">{{ $day['day_number'] }}</span>
 
-            @if($user->schedule_type === 'roster')
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
-                    <span>Shift Pagi (07:00 - 19:00)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-3 h-3 rounded-md bg-indigo-600"></span>
-                    <span>Shift Malam (19:00 - 07:00)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-3 h-3 rounded-md bg-rose-500"></span>
-                    <span>Libur Roster (Off Day)</span>
-                </div>
-            @else
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
-                    <span>Hari Kerja Aktif</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-3 h-3 rounded-md bg-rose-500"></span>
-                    <span>Libur / Tanggal Merah</span>
-                </div>
-            @endif
-
-            <div class="flex items-center space-x-1.5">
-                <span class="w-3 h-3 rounded-md bg-amber-400"></span>
-                <span>Histori Cuti</span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-15 gap-2 pt-2">
-            @foreach($calendarDays as $day)
-                <button type="button"
-                        data-date="{{ $day['full_date'] }}"
-                        data-title="{{ $day['title'] }}"
-                        data-desc="{{ $day['description'] }}"
-                        onclick="bukaDetailJadwal(this.dataset.date, this.dataset.title, this.dataset.desc)"
-                        class="{{ $day['color_class'] }} h-10 rounded-xl flex flex-col items-center justify-center text-white transition-all transform hover:scale-105 shadow-sm cursor-pointer relative group">
-                    <span class="text-[11px] font-bold">{{ $day['day_number'] }}</span>
-                </button>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- Modal Popup Detail Keterangan Jadwal --}}
-    <div id="modalDetailJadwal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 animate-in fade-in zoom-in-95 duration-200">
-            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                <h4 id="detailTanggal" class="font-bold text-slate-800 dark:text-slate-100 text-sm">--</h4>
-                <button type="button" onclick="tutupDetailJadwal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div>
-                <span id="detailTitle" class="font-bold text-sky-600 dark:text-sky-400 text-xs block">--</span>
-                <p id="detailDesc" class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed bg-slate-50 dark:bg-slate-800/80 p-3 rounded-xl border border-slate-100 dark:border-slate-700">--</p>
-            </div>
-            <div class="text-right pt-2">
-                <button type="button" onclick="tutupDetailJadwal()" class="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl">Tutup</button>
+                        @if($isToday)
+                            <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5" title="Hari Ini">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-300 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400 ring-2 ring-white dark:ring-slate-900"></span>
+                            </span>
+                        @endif
+                    </button>
+                @endforeach
             </div>
         </div>
     </div>
 
-    {{-- MODAL KHUSUS: PEREKAMAN / UPDATE BIOMETRIK WAJAH --}}
-    <div id="modalRekamWajah" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 shrink-0">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-face-viewfinder text-sky-600 dark:text-sky-400"></i>
-                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Perekaman Biometrik Wajah</h3>
+    {{-- Modal Popup Detail Keterangan Jadwal (Pusat Viewport Sempurna & Elegan) --}}
+    <div id="modalDetailJadwal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/70 backdrop-blur-md transition-all duration-200">
+        {{-- Area klik latar belakang untuk menutup modal --}}
+        <div class="fixed inset-0 -z-10 cursor-pointer" onclick="tutupDetailJadwal()" aria-hidden="true"></div>
+
+        {{-- Kartu Dialog Modal (Tepat di Pusat Viewport Layar) --}}
+        <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
+            {{-- Header Modal --}}
+            <div class="bg-gradient-to-r from-slate-50 via-sky-50/40 to-indigo-50/30 dark:from-slate-800/90 dark:via-slate-800/70 dark:to-slate-800/90 p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3.5 min-w-0">
+                    <div id="detailIconBox" class="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 flex items-center justify-center text-lg shrink-0 border border-sky-300 dark:border-sky-700">
+                        <i id="detailIcon" class="fa-solid fa-calendar-day"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 id="detailTanggal" class="font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">--</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 truncate">
+                            <span id="detailHariName" class="font-semibold text-sky-600 dark:text-sky-400">--</span>
+                            <span>• Detail Jadwal Kerja</span>
+                        </p>
+                    </div>
                 </div>
-                <button type="button" onclick="tutupModalRekamWajah()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button type="button" onclick="tutupDetailJadwal()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <div class="p-5 space-y-3 flex-1 overflow-y-auto">
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Posisikan wajah Anda tepat di dalam frame kamera. Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa masker atau kacamata gelap.
-                </p>
+            {{-- Badan Isi Modal --}}
+            <div class="p-5 sm:p-6 space-y-4">
+                {{-- Status Badge --}}
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div id="detailBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border-sky-200 dark:border-sky-800">
+                        <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                        <span>Informasi Jadwal</span>
+                    </div>
+                </div>
 
-                {{-- Container Video Kamera Perekaman --}}
-                <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-inner">
+                {{-- Judul Jadwal --}}
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agenda / Status Shift:</span>
+                    <h5 id="detailTitle" class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 leading-snug">--</h5>
+                </div>
+
+                {{-- Kotak Keterangan & Jam Operasional --}}
+                <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                    <div class="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-clock-rotate-left text-sky-500"></i>
+                        <span>Keterangan Waktu & Aktivitas:</span>
+                    </div>
+                    <p id="detailDesc" class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                        --
+                    </p>
+                </div>
+
+                {{-- Info Penempatan & Tipe Jadwal --}}
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold block">Penempatan</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate block mt-0.5">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold block">Tipe Jadwal</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate block mt-0.5">{{ Auth::user()->schedule_type === 'roster' ? 'Shift Roster (12 Jam)' : 'Hari Kerja Reguler' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Modal --}}
+            <div class="p-4 sm:p-5 bg-slate-100/80 dark:bg-slate-950/70 border-t border-slate-200/90 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
+                <button type="button" onclick="tutupDetailJadwal()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300/80 dark:border-slate-700 shadow-2xs hover:shadow-xs text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                    <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+                    <span>Tutup</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Biometrik AI & Liveness Scanner Style (Standar Fintech / KYC Perbankan) */
+        @keyframes biometricScanSweep {
+            0% {
+                top: 10%;
+                opacity: 0.15;
+            }
+            15% {
+                opacity: 0.95;
+            }
+            85% {
+                opacity: 0.95;
+            }
+            100% {
+                top: 86%;
+                opacity: 0.15;
+            }
+        }
+
+        @keyframes biometricPulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 15px 2px rgba(56, 189, 248, 0.4), inset 0 0 15px 2px rgba(56, 189, 248, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 30px 6px rgba(56, 189, 248, 0.75), inset 0 0 25px 4px rgba(56, 189, 248, 0.35);
+            }
+        }
+
+        @keyframes biometricSuccessGlow {
+            0%, 100% {
+                box-shadow: 0 0 25px 4px rgba(16, 185, 129, 0.6), inset 0 0 20px 3px rgba(16, 185, 129, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 45px 8px rgba(16, 185, 129, 0.95), inset 0 0 30px 6px rgba(16, 185, 129, 0.5);
+            }
+        }
+
+        .laser-scanner-beam {
+            position: absolute;
+            left: 4%;
+            right: 4%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.8) 20%, #38bdf8 50%, rgba(56, 189, 248, 0.8) 80%, transparent);
+            box-shadow: 0 0 16px 3px rgba(56, 189, 248, 0.9), 0 0 30px 6px rgba(96, 165, 250, 0.5);
+            border-radius: 9999px;
+            animation: biometricScanSweep 2.2s ease-in-out infinite alternate;
+        }
+
+        .laser-scanner-beam-success {
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.8) 20%, #10b981 50%, rgba(16, 185, 129, 0.8) 80%, transparent) !important;
+            box-shadow: 0 0 18px 4px rgba(16, 185, 129, 0.95), 0 0 35px 8px rgba(52, 211, 153, 0.6) !important;
+        }
+
+        .oval-reticle-default {
+            border: 2.5px solid rgba(56, 189, 248, 0.85);
+            animation: biometricPulseGlow 2.5s ease-in-out infinite;
+        }
+
+        .oval-reticle-active {
+            border: 2.5px solid rgba(245, 158, 11, 0.95) !important;
+            box-shadow: 0 0 30px 6px rgba(245, 158, 11, 0.75), inset 0 0 20px 4px rgba(245, 158, 11, 0.35) !important;
+        }
+
+        .oval-reticle-success {
+            border: 2.5px solid rgba(16, 185, 129, 0.95) !important;
+            animation: biometricSuccessGlow 2s ease-in-out infinite;
+        }
+
+        .oval-reticle-error {
+            border: 2.5px solid rgba(244, 63, 94, 0.95) !important;
+            box-shadow: 0 0 30px 6px rgba(244, 63, 94, 0.75), inset 0 0 20px 4px rgba(244, 63, 94, 0.35) !important;
+        }
+    </style>
+
+    {{-- MODAL KHUSUS: PEREKAMAN / UPDATE BIOMETRIK WAJAH (PUSAT VIEWPORT) --}}
+    <div id="modalRekamWajah" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/70 backdrop-blur-md transition-all duration-200">
+        {{-- Area klik luar untuk menutup modal --}}
+        <div class="fixed inset-0 -z-10 cursor-pointer" onclick="tutupModalRekamWajah()" aria-hidden="true"></div>
+
+        <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
+            {{-- Header Modal --}}
+            <div class="bg-gradient-to-r from-sky-50 via-slate-50 to-blue-50/40 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-800/90 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3.5 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-face-viewfinder"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Perekaman Biometrik Wajah</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Pendaftaran data AI Face-Recognition karyawan</p>
+                    </div>
+                </div>
+                <button type="button" onclick="tutupModalRekamWajah()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-5 sm:p-6 space-y-3.5 flex-1 overflow-y-auto">
+                <div class="p-3 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 rounded-2xl text-xs text-sky-800 dark:text-sky-300 flex items-start gap-2.5 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-sky-500 mt-0.5 shrink-0 text-sm"></i>
+                    <span>Posisikan wajah Anda tegak lurus di dalam bingkai scanner. Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa masker atau kacamata gelap.</span>
+                </div>
+
+                {{-- Container Video Kamera Perekaman Potret Canggih Standar Fintech KYC --}}
+                <div class="relative bg-slate-950 rounded-3xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center border-2 border-slate-700/80 shadow-2xl shrink-0 group select-none">
+                    
+                    {{-- 1. Video Stream --}}
                     <video id="videoRekamWajah"
                            autoplay
                            playsinline
                            muted
                            style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;"
                            class="w-full h-full object-cover"></video>
-                    <canvas id="canvasRekamWajah" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
 
-                    <div id="statusRekamWajahBox" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium">
+                    {{-- 2. Canvas Landmark AI Processing --}}
+                    <canvas id="canvasRekamWajah" class="absolute inset-0 w-full h-full pointer-events-none object-cover" style="transform: scaleX(-1) !important;"></canvas>
+
+                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar lingkaran oval wajah --}}
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" width="100%" height="100%">
+                        <defs>
+                            <mask id="faceMaskRekam" maskContentUnits="objectBoundingBox">
+                                <rect width="1" height="1" fill="white" />
+                                <ellipse cx="0.5" cy="0.46" rx="0.33" ry="0.36" fill="black" />
+                            </mask>
+                        </defs>
+                        <rect width="100%" height="100%" fill="rgba(2, 6, 23, 0.45)" mask="url(#faceMaskRekam)" />
+                    </svg>
+
+                    {{-- 4. Cybernetic HUD Corner Brackets --}}
+                    <div class="absolute top-3.5 left-3.5 w-5 h-5 border-t-2 border-l-2 border-sky-400/80 rounded-tl-lg pointer-events-none z-20"></div>
+                    <div class="absolute top-3.5 right-3.5 w-5 h-5 border-t-2 border-r-2 border-sky-400/80 rounded-tr-lg pointer-events-none z-20"></div>
+                    <div class="absolute bottom-16 left-3.5 w-5 h-5 border-b-2 border-l-2 border-sky-400/80 rounded-bl-lg pointer-events-none z-20"></div>
+                    <div class="absolute bottom-16 right-3.5 w-5 h-5 border-b-2 border-r-2 border-sky-400/80 rounded-br-lg pointer-events-none z-20"></div>
+
+                    {{-- 5. Top Bar HUD: Security Badge & AI Status --}}
+                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-none">
+                        <div class="bg-slate-900/85 backdrop-blur-md text-sky-400 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-sky-500/40 flex items-center gap-1.5 shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+                            <span>AI ENROLLMENT • 3D</span>
+                        </div>
+
+                        <div class="bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span>ISO/IEC 30107</span>
+                        </div>
+                    </div>
+
+                    {{-- 6. The Biometric Face Oval Guide (Reticle) --}}
+                    <div id="ovalReticleRekam" class="absolute top-[10%] left-[17%] right-[17%] bottom-[18%] rounded-[50%] oval-reticle-default pointer-events-none z-10 transition-all duration-300 flex items-center justify-center">
+                        {{-- Reticle Tick Crosshairs --}}
+                        <span class="absolute -top-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -bottom-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -left-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -right-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+
+                        {{-- Head Silhouette Wireframe Guide when idle --}}
+                        <div id="faceSilhouetteRekam" class="opacity-25 transition-opacity duration-300 text-sky-400 flex flex-col items-center select-none">
+                            <i class="fa-solid fa-user text-6xl sm:text-7xl"></i>
+                        </div>
+
+                        {{-- Sweeping Laser Scan Line --}}
+                        <div id="laserBeamRekam" class="laser-scanner-beam pointer-events-none"></div>
+                    </div>
+
+                    {{-- 7. Kotak Status Scanning HUD --}}
+                    <div id="statusRekamWajahBox" class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5 transition-all">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...
                     </div>
                 </div>
+
+                {{-- Footnote Standar Keamanan Finansial --}}
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">
+                    <i class="fa-solid fa-shield-halved text-sky-500 text-xs"></i>
+                    <span>Enkripsi Biometrik 128-Point Facial Vector • Aman & Rahasia</span>
+                </div>
             </div>
 
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2 shrink-0">
-                <button type="button" onclick="tutupModalRekamWajah()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="button" onclick="simpanBiometrikWajah()" id="btnSimpanWajah" disabled class="px-5 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm">
-                    <i class="fa-solid fa-floppy-disk"></i>
+            <div class="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
+                <button type="button" onclick="tutupModalRekamWajah()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+                    <span>Batal</span>
+                </button>
+                <button type="button" onclick="simpanBiometrikWajah()" id="btnSimpanWajah" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
+                    <i class="fa-solid fa-floppy-disk text-slate-400 dark:text-slate-500"></i>
                     <span>Simpan Data Wajah</span>
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- MODAL STEP 1: VERIFIKASI BIOMETRIK WAJAH & GPS (PRESENSI HARIAN) --}}
-    <div id="modalAbsensi" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    {{-- MODAL STEP 1: VERIFIKASI BIOMETRIK WAJAH & GPS PRESENSI (PUSAT VIEWPORT) --}}
+    <div id="modalAbsensi" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/70 backdrop-blur-md transition-all duration-200">
+        {{-- Area klik luar untuk menutup modal --}}
+        <div class="fixed inset-0 -z-10 cursor-pointer" onclick="tutupModalAbsen()" aria-hidden="true"></div>
+
+        <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
             {{-- Header Modal --}}
-            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 shrink-0">
-                <h3 id="judulModalAbsen" class="font-bold text-slate-800 dark:text-slate-100 text-sm">Verifikasi Absensi</h3>
-                <button type="button" onclick="tutupModalAbsen()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+            <div class="bg-gradient-to-r from-slate-50 via-sky-50/40 to-indigo-50/30 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-800/90 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3.5 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-camera-rotate"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="judulModalAbsen" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Verifikasi Absensi</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Pemindaian biometrik wajah & deteksi radius GPS</p>
+                    </div>
+                </div>
+                <button type="button" onclick="tutupModalAbsen()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             {{-- Isian Content --}}
-            <div class="p-5 space-y-3 flex-1 overflow-y-auto">
+            <div class="p-5 sm:p-6 space-y-3.5 flex-1 overflow-y-auto">
 
                 {{-- Status GPS --}}
-                <div id="statusLokasiBox" class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between transition-all shrink-0">
-                    <div class="flex items-center space-x-2.5">
-                        <i id="iconLokasi" class="fa-solid fa-location-dot text-slate-400 text-sm"></i>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini:</span>
-                            <span id="textNamaLokasi" class="text-xs font-bold text-slate-600 dark:text-slate-300">Mendeteksi lokasi GPS...</span>
+                <div id="statusLokasiBox" class="p-3 sm:p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl flex items-center justify-between transition-all shrink-0">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-8 h-8 rounded-xl bg-slate-200/60 dark:bg-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0">
+                            <i id="iconLokasi" class="fa-solid fa-location-dot text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini GPS:</span>
+                            <span id="textNamaLokasi" class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate block">Mendeteksi lokasi GPS...</span>
                         </div>
                     </div>
-                    <div id="reloadContainer" class="hidden text-right pl-2 border-l border-rose-200/60">
-                        <span class="text-[10px] text-rose-600 block font-semibold leading-tight">Memuat Ulang</span>
-                        <span id="reloadCountdown" class="text-xs font-mono font-bold text-rose-700 animate-pulse">5s</span>
+                    <div id="reloadContainer" class="hidden text-right pl-2 border-l border-rose-200/60 dark:border-rose-800/60 shrink-0">
+                        <span class="text-[10px] text-rose-600 dark:text-rose-400 block font-semibold leading-tight">Memuat Ulang</span>
+                        <span id="reloadCountdown" class="text-xs font-mono font-bold text-rose-700 dark:text-rose-300 animate-pulse">5s</span>
                     </div>
                 </div>
 
-                {{-- Container Video Kamera Verifikasi Wajah --}}
-                <div class="relative bg-black rounded-xl overflow-hidden w-full aspect-[3/4] sm:aspect-video flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-inner shrink-0">
+                {{-- Container Video Kamera Verifikasi Wajah Potret Canggih Standar Fintech KYC --}}
+                <div class="relative bg-slate-950 rounded-3xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center border-2 border-slate-700/80 shadow-2xl shrink-0 group select-none">
+                    
+                    {{-- 1. Video Stream --}}
                     <video id="webcamVideo"
                         autoplay
                         playsinline
@@ -576,35 +848,87 @@
                         style="transform: scaleX(-1) !important; -webkit-transform: scaleX(-1) !important;"
                         class="w-full h-full object-cover"></video>
 
-                    <canvas id="webcamCanvas" class="absolute inset-0 w-full h-full pointer-events-none" style="transform: scaleX(-1) !important;"></canvas>
+                    {{-- 2. Canvas Landmark AI Processing --}}
+                    <canvas id="webcamCanvas" class="absolute inset-0 w-full h-full pointer-events-none object-cover" style="transform: scaleX(-1) !important;"></canvas>
                     
-                    {{-- Badge Status Liveness Anti-Spoofing --}}
-                    <div id="livenessBadge" class="absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 z-10 shadow-sm transition-all">
-                        <span id="livenessBadgeDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-                        <span id="livenessBadgeText">Liveness: Menunggu Wajah</span>
+                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar lingkaran oval wajah --}}
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" width="100%" height="100%">
+                        <defs>
+                            <mask id="faceMaskAbsen" maskContentUnits="objectBoundingBox">
+                                <rect width="1" height="1" fill="white" />
+                                <ellipse cx="0.5" cy="0.46" rx="0.33" ry="0.36" fill="black" />
+                            </mask>
+                        </defs>
+                        <rect width="100%" height="100%" fill="rgba(2, 6, 23, 0.45)" mask="url(#faceMaskAbsen)" />
+                    </svg>
+
+                    {{-- 4. Cybernetic HUD Corner Brackets --}}
+                    <div class="absolute top-3.5 left-3.5 w-5 h-5 border-t-2 border-l-2 border-sky-400/80 rounded-tl-lg pointer-events-none z-20"></div>
+                    <div class="absolute top-3.5 right-3.5 w-5 h-5 border-t-2 border-r-2 border-sky-400/80 rounded-tr-lg pointer-events-none z-20"></div>
+                    <div class="absolute bottom-16 left-3.5 w-5 h-5 border-b-2 border-l-2 border-sky-400/80 rounded-bl-lg pointer-events-none z-20"></div>
+                    <div class="absolute bottom-16 right-3.5 w-5 h-5 border-b-2 border-r-2 border-sky-400/80 rounded-br-lg pointer-events-none z-20"></div>
+
+                    {{-- 5. Top Bar HUD: Security Badge & Liveness Indicator --}}
+                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-none">
+                        <div class="bg-slate-900/85 backdrop-blur-md text-sky-400 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-sky-500/40 flex items-center gap-1.5 shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+                            <span>KYC • BIOMETRIK AI</span>
+                        </div>
+
+                        <div id="livenessBadge" class="bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm transition-all pointer-events-none">
+                            <span id="livenessBadgeDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            <span id="livenessBadgeText">Liveness: Menunggu Wajah</span>
+                        </div>
                     </div>
 
-                    <div id="cameraStatus" class="absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold">
+                    {{-- 6. The Biometric Face Oval Guide (Reticle) --}}
+                    <div id="ovalReticleAbsen" class="absolute top-[10%] left-[17%] right-[17%] bottom-[18%] rounded-[50%] oval-reticle-default pointer-events-none z-10 transition-all duration-300 flex items-center justify-center">
+                        {{-- Reticle Tick Crosshairs --}}
+                        <span class="absolute -top-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -bottom-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -left-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+                        <span class="absolute -right-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
+
+                        {{-- Head Silhouette Wireframe Guide when idle --}}
+                        <div id="faceSilhouetteAbsen" class="opacity-25 transition-opacity duration-300 text-sky-400 flex flex-col items-center select-none">
+                            <i class="fa-solid fa-user text-6xl sm:text-7xl"></i>
+                        </div>
+
+                        {{-- Sweeping Laser Scan Line --}}
+                        <div id="laserBeamAbsen" class="laser-scanner-beam pointer-events-none"></div>
+                    </div>
+
+                    {{-- 7. Floating Instruction HUD Pill --}}
+                    <div id="cameraStatus" class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5 transition-all">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan verifikasi biometrik...
                     </div>
                 </div>
 
-                <div id="facePromptNotice" class="hidden p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
+                {{-- Footnote Standar Keamanan Finansial --}}
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">
+                    <i class="fa-solid fa-shield-halved text-sky-500 text-xs"></i>
+                    <span>Sistem Verifikasi Biometrik Standar ISO/IEC 30107-3 Anti-Spoofing</span>
+                </div>
+
+                <div id="facePromptNotice" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-xs">
                     <div class="flex items-center space-x-2">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-base shrink-0"></i>
                         <span class="font-medium">Anda belum merekam biometrik wajah. Silakan lakukan pendaftaran wajah terlebih dahulu sebelum presensi!</span>
                     </div>
-                    <button type="button" onclick="tutupModalAbsen(); bukaModalRekamWajah();" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs shrink-0 cursor-pointer shadow-xs">
+                    <button type="button" onclick="tutupModalAbsen(); bukaModalRekamWajah();" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shrink-0 cursor-pointer shadow-xs transition-all active:scale-95">
                         <i class="fa-solid fa-camera mr-1"></i> Rekam Sekarang
                     </button>
                 </div>
             </div>
 
             {{-- Footer Tombol --}}
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2 shrink-0">
-                <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl">Batal</button>
-                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" disabled class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-sm opacity-50 cursor-not-allowed">
-                    <i class="fa-solid fa-check-circle"></i>
+            <div class="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
+                <button type="button" onclick="tutupModalAbsen()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+                    <span>Batal</span>
+                </button>
+                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
+                    <i class="fa-solid fa-circle-check text-slate-400 dark:text-slate-500"></i>
                     <span>Lanjutkan Presensi</span>
                 </button>
             </div>
@@ -612,15 +936,26 @@
         </div>
     </div>
 
-    {{-- MODAL STEP 2: KONFIRMASI DETAIL ABSENSI, ALASAN WAJIB & BUKTI WATERMARK --}}
-    <div id="modalKonfirmasiAbsen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    {{-- MODAL STEP 2: KONFIRMASI DETAIL ABSENSI, ALASAN WAJIB & BUKTI WATERMARK (PUSAT VIEWPORT) --}}
+    <div id="modalKonfirmasiAbsen" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/70 backdrop-blur-md transition-all duration-200">
+        {{-- Area klik luar untuk menutup modal --}}
+        <div class="fixed inset-0 -z-10 cursor-pointer" onclick="tutupModalAbsen()" aria-hidden="true"></div>
+
+        <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
             {{-- Header Modal --}}
-            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 shrink-0">
-                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Konfirmasi Detail Absensi</h3>
-                <button type="button" onclick="kembaliKeKamera()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+            <div class="bg-gradient-to-r from-slate-50 via-sky-50/40 to-indigo-50/30 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-800/90 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3.5 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Konfirmasi Detail Presensi</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Tinjau ringkasan waktu, lokasi, dan alasan</p>
+                    </div>
+                </div>
+                <button type="button" onclick="kembaliKeKamera()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -632,25 +967,25 @@
                 <input type="hidden" id="absen_long" name="longitude">
                 <input type="hidden" id="absen_is_face_verified" name="is_face_verified" value="0">
 
-                <div class="p-5 space-y-3.5 flex-1 overflow-y-auto">
+                <div class="p-5 sm:p-6 space-y-3.5 flex-1 overflow-y-auto">
 
                     {{-- Informasi Detail Rincian Absen --}}
-                    <div class="space-y-2 bg-slate-50 dark:bg-slate-800/80 p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 text-xs">
-                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
+                    <div class="space-y-2.5 bg-slate-50/90 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
                             <span class="text-slate-500 dark:text-slate-400 font-medium">Status Lokasi:</span>
                             <span id="txtStatusRadius" class="font-bold text-emerald-600 dark:text-emerald-400">Di Dalam Area kerja</span>
                         </div>
-                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
                             <span class="text-slate-500 dark:text-slate-400 font-medium">Lokasi GPS:</span>
                             <span id="txtNamaLokasiConfirm" class="font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[180px]">--</span>
                         </div>
-                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
                             <span class="text-slate-500 dark:text-slate-400 font-medium">Verifikasi Wajah:</span>
                             <span id="txtStatusBiometrik" class="font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-check text-sky-500"></i> Terverifikasi
                             </span>
                         </div>
-                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
                             <span class="text-slate-500 dark:text-slate-400 font-medium">Waktu Absen:</span>
                             <span id="txtWaktuSekarang" class="font-bold text-slate-800 dark:text-slate-100">--:-- WIB</span>
                         </div>
@@ -663,7 +998,7 @@
                     </div>
 
                     {{-- Status Peringatan Terlambat / Di Luar Radius --}}
-                    <div id="boxWarningStatus" class="hidden p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex items-start space-x-2.5">
+                    <div id="boxWarningStatus" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-300 text-xs flex items-start space-x-2.5">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
                         <span id="txtWarningMessage" class="leading-relaxed">Harap lengkapi alasan di bawah ini sebelum mengirim absensi.</span>
                     </div>
@@ -671,12 +1006,12 @@
                     {{-- Input Alasan Khusus --}}
                     <div id="wrapperAlasan" class="space-y-1.5">
                         <label id="labelAlasan" class="text-xs font-bold text-rose-700 dark:text-rose-400 block">Alasan Khusus / Keterangan:</label>
-                        <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-2.5 text-xs border border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20 text-slate-800 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-rose-400 outline-none resize-none" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
+                        <textarea id="inputAlasan" name="reason" rows="2" class="w-full p-3 text-xs border border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20 text-slate-800 dark:text-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-400 outline-none resize-none transition-all" placeholder="Tuliskan alasan lengkap Anda di sini..."></textarea>
                         <span id="errorAlasanMsg" class="text-[11px] text-rose-600 dark:text-rose-400 hidden font-semibold">* Alasan wajib diisi!</span>
                     </div>
 
                     {{-- Input Bukti Pendukung (Opsional dengan Watermark) --}}
-                    <div id="wrapperBukti" class="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-700">
+                    <div id="wrapperBukti" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                         <label class="text-xs font-bold text-slate-700 dark:text-slate-200 block flex items-center justify-between">
                             <span>Lampiran Bukti Pendukung <span class="text-slate-400 font-normal">(Opsional):</span></span>
                             <span id="txtNamaFileTerpilih" class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold truncate max-w-[150px]"></span>
@@ -685,21 +1020,21 @@
                         <input type="file" id="inputEvidenceFile" name="evidence" accept="image/*,.pdf" class="hidden" onchange="handleEvidenceFileChange(this)">
 
                         <div class="flex items-center gap-2">
-                            <button type="button" onclick="ambilFotoBuktiKamera()" class="flex-1 py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700">
+                            <button type="button" onclick="ambilFotoBuktiKamera()" class="flex-1 py-2.5 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs">
                                 <i class="fa-solid fa-camera text-sky-600 dark:text-sky-400"></i>
                                 <span>Kamera Langsung</span>
                             </button>
-                            <button type="button" onclick="pilihDokumenBukti()" class="flex-1 py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700">
+                            <button type="button" onclick="pilihDokumenBukti()" class="flex-1 py-2.5 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs">
                                 <i class="fa-solid fa-folder-open text-amber-600 dark:text-amber-400"></i>
                                 <span>Galeri / File</span>
                             </button>
                         </div>
 
                         {{-- Preview Thumbnail Bukti Jika Ada --}}
-                        <div id="previewBuktiContainer" class="hidden relative p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between">
+                        <div id="previewBuktiContainer" class="hidden relative p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-between">
                             <div class="flex items-center space-x-2.5 overflow-hidden">
-                                <img id="imgPreviewBukti" src="" class="w-10 h-10 object-cover rounded-lg border border-slate-200 dark:border-slate-700 hidden" alt="Preview Bukti">
-                                <div id="iconPdfBukti" class="w-10 h-10 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg flex items-center justify-center text-lg hidden">
+                                <img id="imgPreviewBukti" src="" class="w-10 h-10 object-cover rounded-xl border border-slate-200 dark:border-slate-700 hidden" alt="Preview Bukti">
+                                <div id="iconPdfBukti" class="w-10 h-10 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center text-lg hidden">
                                     <i class="fa-solid fa-file-pdf"></i>
                                 </div>
                                 <span id="labelFileNameBukti" class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[200px]">file.jpg</span>
@@ -718,10 +1053,14 @@
                 </div>
 
                 {{-- Footer Tombol Aksi --}}
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2 shrink-0">
-                    <button type="button" onclick="kembaliKeKamera()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl">Batal</button>
-                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm cursor-pointer">
-                        Kirim Absensi Sekarang
+                <div class="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
+                    <button type="button" onclick="kembaliKeKamera()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-arrow-left text-slate-400 dark:text-slate-400"></i>
+                        <span>Kembali</span>
+                    </button>
+                    <button type="submit" id="btnSubmitAbsen" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/30 dark:shadow-emerald-500/25 active:scale-95 cursor-pointer flex items-center gap-2 border border-emerald-500 dark:border-emerald-400/40">
+                        <i class="fa-solid fa-paper-plane text-white"></i>
+                        <span>Kirim Absensi Sekarang</span>
                     </button>
                 </div>
             </form>
@@ -1191,9 +1530,10 @@
         </div>
 
         {{-- Modal Footer --}}
-        <div class="p-4 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
-            <button type="button" id="closeCutiModalBtn2" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95">
-                Tutup
+        <div class="p-4 sm:p-5 bg-slate-100/80 dark:bg-slate-950/70 border-t border-slate-200/90 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
+            <button type="button" id="closeCutiModalBtn2" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300/80 dark:border-slate-700 shadow-2xs hover:shadow-xs text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+                <span>Tutup</span>
             </button>
         </div>
     </div>
@@ -1207,16 +1547,73 @@
 
 <script>
     // 1. DETAIL KALENDER JADWAL
-    function bukaDetailJadwal(tanggal, judul, deskripsi) {
-        document.getElementById('detailTanggal').innerText = tanggal;
-        document.getElementById('detailTitle').innerText = judul;
-        document.getElementById('detailDesc').innerText = deskripsi;
-
+    function bukaDetailJadwal(tanggal, judul, deskripsi, hari = '', status = '', colorClass = '') {
         const modal = document.getElementById('modalDetailJadwal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        if (!modal) return;
+
+        // Pindahkan ke document.body jika belum berada di root body untuk jaminan 100% tepat di tengah viewport
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
         }
+
+        const detailTanggal = document.getElementById('detailTanggal');
+        const detailHariName = document.getElementById('detailHariName');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailDesc = document.getElementById('detailDesc');
+        const detailBadge = document.getElementById('detailBadge');
+        const detailIcon = document.getElementById('detailIcon');
+        const detailIconBox = document.getElementById('detailIconBox');
+
+        if (detailTanggal) detailTanggal.innerText = tanggal || '--';
+        if (detailHariName) detailHariName.innerText = hari || 'Jadwal Harian';
+        if (detailTitle) detailTitle.innerText = judul || '--';
+        if (detailDesc) detailDesc.innerText = deskripsi || 'Tidak ada catatan tambahan untuk tanggal ini.';
+
+        // Pengaturan Ikon & Badge Status Dinamis
+        const judulLower = (judul || '').toLowerCase();
+
+        let iconClass = 'fa-solid fa-calendar-day';
+        let iconBoxClasses = 'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border-sky-300 dark:border-sky-700';
+        let badgeText = 'Hari Kerja Aktif';
+        let badgeClasses = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+        let badgeDot = 'bg-emerald-500';
+
+        if (judulLower.includes('malam') || status === 'malam') {
+            iconClass = 'fa-solid fa-moon';
+            iconBoxClasses = 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border-indigo-300 dark:border-indigo-700';
+            badgeText = 'Shift Malam (19:00 - 07:00)';
+            badgeClasses = 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+            badgeDot = 'bg-indigo-600';
+        } else if (judulLower.includes('pagi') || status === 'pagi') {
+            iconClass = 'fa-solid fa-sun';
+            iconBoxClasses = 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700';
+            badgeText = 'Shift Pagi (07:00 - 19:00)';
+            badgeClasses = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+            badgeDot = 'bg-emerald-500';
+        } else if (judulLower.includes('libur') || status === 'libur') {
+            iconClass = 'fa-solid fa-mug-hot';
+            iconBoxClasses = 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border-rose-300 dark:border-rose-700';
+            badgeText = judulLower.includes('nasional') ? 'Libur Nasional' : 'Libur / Off Day';
+            badgeClasses = 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+            badgeDot = 'bg-rose-500';
+        } else if (judulLower.includes('cuti') || status === 'cuti') {
+            iconClass = 'fa-solid fa-calendar-check';
+            iconBoxClasses = 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border-amber-300 dark:border-amber-700';
+            badgeText = 'Sedang Cuti';
+            badgeClasses = 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+            badgeDot = 'bg-amber-500';
+        }
+
+        if (detailIcon) detailIcon.className = iconClass;
+        if (detailIconBox) detailIconBox.className = `w-11 h-11 rounded-2xl flex items-center justify-center text-lg shrink-0 border ${iconBoxClasses}`;
+        if (detailBadge) {
+            detailBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${badgeDot}"></span><span>${badgeText}</span>`;
+            detailBadge.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${badgeClasses}`;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
     }
 
     function tutupDetailJadwal() {
@@ -1224,8 +1621,46 @@
         if (modal) {
             modal.classList.remove('flex');
             modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
         }
     }
+
+    function pastikanSemuaModalDiBody() {
+        const modalIds = [
+            'modalDetailJadwal',
+            'detailCutiModal',
+            'modalRekamWajah',
+            'modalAbsensi',
+            'modalKonfirmasiAbsen'
+        ];
+        modalIds.forEach(function (id) {
+            const modal = document.getElementById(id);
+            if (modal && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", pastikanSemuaModalDiBody);
+    document.addEventListener("turbo:load", pastikanSemuaModalDiBody);
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            const modalJadwal = document.getElementById("modalDetailJadwal");
+            if (modalJadwal && !modalJadwal.classList.contains("hidden")) {
+                tutupDetailJadwal();
+            }
+            const modalRekam = document.getElementById("modalRekamWajah");
+            if (modalRekam && !modalRekam.classList.contains("hidden")) {
+                tutupModalRekamWajah();
+            }
+            const modalAbsen = document.getElementById("modalAbsensi");
+            const modalKonf = document.getElementById("modalKonfirmasiAbsen");
+            if ((modalAbsen && !modalAbsen.classList.contains("hidden")) || (modalKonf && !modalKonf.classList.contains("hidden"))) {
+                tutupModalAbsen();
+            }
+        }
+    });
 
 
 
@@ -1408,18 +1843,20 @@
 
         badgeText.innerText = text;
         if (status === 'passed') {
-            badge.className = "absolute top-2.5 right-2.5 bg-emerald-950/85 backdrop-blur-md text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/50 flex items-center gap-1.5 z-10 shadow-sm animate-pulse";
-            badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+            badge.className = "bg-emerald-950/85 backdrop-blur-md text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/50 flex items-center gap-1.5 shadow-sm animate-pulse pointer-events-none";
+            badgeDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
         } else if (status === 'active') {
-            badge.className = "absolute top-2.5 right-2.5 bg-amber-950/85 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-500/50 flex items-center gap-1.5 z-10 shadow-sm";
-            badgeDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+            badge.className = "bg-amber-950/85 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-500/50 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badgeDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping";
         } else if (status === 'failed') {
-            badge.className = "absolute top-2.5 right-2.5 bg-rose-950/85 backdrop-blur-md text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-rose-500/50 flex items-center gap-1.5 z-10 shadow-sm";
-            badgeDot.className = "w-2 h-2 rounded-full bg-rose-500";
+            badge.className = "bg-rose-950/85 backdrop-blur-md text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-rose-500/50 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badgeDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
         } else {
-            badge.className = "absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 z-10 shadow-sm";
-            badgeDot.className = "w-2 h-2 rounded-full bg-slate-400";
+            badge.className = "bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badgeDot.className = "w-1.5 h-1.5 rounded-full bg-slate-400";
         }
+
+        updateOvalReticle(status);
     }
 
     function resetLivenessState() {
@@ -1506,6 +1943,100 @@
     }
 
     // ==========================================
+    // HELPER TAMPILAN TOMBOL AKSI PRESENSI & BIOMETRIK
+    // ==========================================
+    function setBtnLanjutState(isEnabled) {
+        const btn = document.getElementById('btnVerifikasiLanjut');
+        if (!btn) return;
+        btn.disabled = !isEnabled;
+        if (isEnabled) {
+            btn.className = "px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-500 active:from-blue-700 active:to-indigo-700 text-white border border-blue-500/40 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-blue-600/30 dark:shadow-blue-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
+            btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Lanjutkan Presensi</span>`;
+        } else {
+            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
+            btn.innerHTML = `<i class="fa-solid fa-circle-check text-slate-400 dark:text-slate-500"></i> <span>Lanjutkan Presensi</span>`;
+        }
+    }
+
+    function setBtnSimpanWajahState(isEnabled) {
+        const btn = document.getElementById('btnSimpanWajah');
+        if (!btn) return;
+        btn.disabled = !isEnabled;
+        if (isEnabled) {
+            btn.className = "px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-500 active:from-blue-700 active:to-indigo-700 text-white border border-blue-500/40 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-blue-600/30 dark:shadow-blue-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk text-white"></i> <span>Simpan Data Wajah</span>`;
+        } else {
+            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk text-slate-400 dark:text-slate-500"></i> <span>Simpan Data Wajah</span>`;
+        }
+    }
+
+    function updateOvalReticle(status) {
+        const oval = document.getElementById('ovalReticleAbsen');
+        const laser = document.getElementById('laserBeamAbsen');
+        const silhouette = document.getElementById('faceSilhouetteAbsen');
+        if (!oval) return;
+
+        oval.classList.remove('oval-reticle-default', 'oval-reticle-active', 'oval-reticle-success', 'oval-reticle-error');
+
+        if (status === 'passed') {
+            oval.classList.add('oval-reticle-success');
+            if (laser) {
+                laser.classList.add('laser-scanner-beam-success');
+                laser.style.display = 'block';
+            }
+            if (silhouette) silhouette.classList.add('opacity-0');
+        } else if (status === 'active') {
+            oval.classList.add('oval-reticle-active');
+            if (laser) {
+                laser.classList.remove('laser-scanner-beam-success');
+                laser.style.display = 'block';
+            }
+            if (silhouette) silhouette.classList.add('opacity-0');
+        } else if (status === 'failed') {
+            oval.classList.add('oval-reticle-error');
+            if (laser) laser.style.display = 'none';
+            if (silhouette) silhouette.classList.add('opacity-0');
+        } else {
+            oval.classList.add('oval-reticle-default');
+            if (laser) {
+                laser.classList.remove('laser-scanner-beam-success');
+                laser.style.display = 'block';
+            }
+            if (silhouette) silhouette.classList.remove('opacity-0');
+        }
+    }
+
+    function updateOvalReticleRekam(status) {
+        const oval = document.getElementById('ovalReticleRekam');
+        const laser = document.getElementById('laserBeamRekam');
+        const silhouette = document.getElementById('faceSilhouetteRekam');
+        if (!oval) return;
+
+        oval.classList.remove('oval-reticle-default', 'oval-reticle-active', 'oval-reticle-success', 'oval-reticle-error');
+
+        if (status === 'passed') {
+            oval.classList.add('oval-reticle-success');
+            if (laser) {
+                laser.classList.add('laser-scanner-beam-success');
+                laser.style.display = 'block';
+            }
+            if (silhouette) silhouette.classList.add('opacity-0');
+        } else if (status === 'failed') {
+            oval.classList.add('oval-reticle-error');
+            if (laser) laser.style.display = 'none';
+            if (silhouette) silhouette.classList.add('opacity-0');
+        } else {
+            oval.classList.add('oval-reticle-default');
+            if (laser) {
+                laser.classList.remove('laser-scanner-beam-success');
+                laser.style.display = 'block';
+            }
+            if (silhouette) silhouette.classList.remove('opacity-0');
+        }
+    }
+
+    // ==========================================
     // ALUR PEREKAMAN BIOMETRIK WAJAH (REGISTRATION)
     // ==========================================
     async function bukaModalRekamWajah() {
@@ -1522,19 +2053,22 @@
 
         const modal = document.getElementById('modalRekamWajah');
         if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
         }
 
         const statusBox = document.getElementById('statusRekamWajahBox');
-        const btnSimpan = document.getElementById('btnSimpanWajah');
-        if (btnSimpan) btnSimpan.disabled = true;
+        setBtnSimpanWajahState(false);
         latestRecordedDescriptor = null;
         isSubmittingFaceRegister = false;
         stableDetectionCount = 0;
 
         if (statusBox) {
-            statusBox.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium";
+            statusBox.className = "absolute bottom-2.5 left-2.5 right-2.5 bg-slate-900/85 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-xl z-10 text-center font-medium border border-slate-700/60 shadow-lg flex items-center justify-center gap-1.5";
             statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan model biometrik wajah...`;
         }
 
@@ -1566,7 +2100,7 @@
         } catch (err) {
             console.error("Gagal akses kamera untuk perekaman:", err);
             if (statusBox) {
-                statusBox.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                statusBox.className = "absolute bottom-2.5 left-2.5 right-2.5 bg-rose-600/95 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-xl z-10 text-center font-bold border border-rose-500/60 shadow-lg flex items-center justify-center gap-1.5";
                 statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Izin kamera ditolak atau tidak tersedia.`;
             }
         }
@@ -1576,7 +2110,6 @@
         const video = document.getElementById('videoRekamWajah');
         const canvas = document.getElementById('canvasRekamWajah');
         const statusBox = document.getElementById('statusRekamWajahBox');
-        const btnSimpan = document.getElementById('btnSimpanWajah');
 
         if (!video || !canvas) return;
 
@@ -1599,12 +2132,13 @@
 
             if (detection && detection.descriptor && detection.descriptor.length === 128) {
                 latestRecordedDescriptor = Array.from(detection.descriptor);
-                if (btnSimpan) btnSimpan.disabled = false;
+                setBtnSimpanWajahState(true);
 
                 const resizedDetections = faceapi.resizeResults(detection, displaySize);
                 faceapi.draw.drawDetections(canvas, resizedDetections);
 
                 stableDetectionCount++;
+                updateOvalReticleRekam('passed');
                 if (!isSubmittingFaceRegister && stableDetectionCount >= 2) {
                     isSubmittingFaceRegister = true;
                     if (rekamFaceDetectionInterval) {
@@ -1613,7 +2147,7 @@
                     }
 
                     if (statusBox) {
-                        statusBox.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
+                        statusBox.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
                         statusBox.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> <span>Wajah Terdeteksi Jelas! Menyimpan biometrik otomatis...</span>`;
                     }
 
@@ -1622,18 +2156,19 @@
                     }, 500);
                 } else if (!isSubmittingFaceRegister) {
                     if (statusBox) {
-                        statusBox.className = "absolute bottom-2 left-2 right-2 bg-sky-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                        statusBox.className = "absolute bottom-3 left-3 right-3 bg-sky-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-sky-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                         statusBox.innerHTML = `<i class="fa-solid fa-camera mr-1"></i> Wajah Terdeteksi! Tahan posisi...`;
                     }
                 }
             } else {
                 stableDetectionCount = 0;
                 latestRecordedDescriptor = null;
-                if (btnSimpan) btnSimpan.disabled = true;
+                setBtnSimpanWajahState(false);
+                updateOvalReticleRekam('idle');
 
                 if (statusBox && !isSubmittingFaceRegister) {
-                    statusBox.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-medium";
-                    statusBox.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Arahkan wajah ke kamera...`;
+                    statusBox.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
+                    statusBox.innerHTML = `<i class="fa-solid fa-arrows-to-eye text-sky-400 mr-1"></i> Posisikan wajah Anda di dalam lingkaran oval...`;
                 }
             }
         }, 300);
@@ -1653,10 +2188,14 @@
         const video = document.getElementById('videoRekamWajah');
         if (video) video.srcObject = null;
 
+        setBtnSimpanWajahState(false);
+        updateOvalReticleRekam('idle');
+
         const modal = document.getElementById('modalRekamWajah');
         if (modal) {
             modal.classList.remove('flex');
             modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
         }
     }
 
@@ -1714,8 +2253,7 @@
                 icon: 'error',
                 confirmButtonColor: '#ef4444'
             });
-            btnSimpan.disabled = false;
-            btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>Simpan Data Wajah</span>`;
+            setBtnSimpanWajahState(true);
         }
     }
 
@@ -1788,7 +2326,7 @@
                     if (statusBox && textLokasi && iconLokasi) {
                         if (matchedStation) {
                             isUserInRadius = true;
-                            statusBox.className = "p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl flex items-center justify-between transition-all";
+                            statusBox.className = "p-3 sm:p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl flex items-center justify-between transition-all shrink-0";
                             iconLokasi.className = "fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm";
                             textLokasi.className = "text-xs font-bold text-emerald-700 dark:text-emerald-300";
                             const stLabel = (matchedStation.type === 'rumah_meter' && matchedStation.kode_stasiun)
@@ -1801,7 +2339,7 @@
                             stopGpsTimer();
                         } else {
                             isUserInRadius = false;
-                            statusBox.className = "p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl flex items-center justify-between transition-all";
+                            statusBox.className = "p-3 sm:p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-2xl flex items-center justify-between transition-all shrink-0";
                             iconLokasi.className = "fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-sm";
                             textLokasi.className = "text-xs font-bold text-rose-700 dark:text-rose-300";
                             const nearestMsg = nearestStation ? " (Terdekat: " + nearestStation.name + ", " + Math.round(nearestDistance) + "m)" : "";
@@ -1816,9 +2354,9 @@
                 (err) => {
                     isUserInRadius = false;
                     if (statusBox && textLokasi && iconLokasi) {
-                        statusBox.className = "p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between transition-all";
-                        iconLokasi.className = "fa-solid fa-circle-exclamation text-amber-600 text-sm";
-                        textLokasi.className = "text-xs font-bold text-amber-700";
+                        statusBox.className = "p-3 sm:p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl flex items-center justify-between transition-all shrink-0";
+                        iconLokasi.className = "fa-solid fa-circle-exclamation text-amber-600 dark:text-amber-400 text-sm";
+                        textLokasi.className = "text-xs font-bold text-amber-700 dark:text-amber-300";
                         textLokasi.innerText = "Gagal mengakses GPS. Pastikan izin lokasi aktif!";
                         document.getElementById('txtNamaLokasiConfirm').innerText = "GPS Tidak Aktif";
                         if (reloadContainer) reloadContainer.classList.add('hidden');
@@ -1893,12 +2431,7 @@
                 }
             })
             .catch(err => console.error("Gagal inisialisasi nonce biometrik:", err));
-        const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-        if (btnLanjut) {
-            btnLanjut.disabled = true; // Kunci tombol sampai wajah terverifikasi cocok
-            btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-            btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-        }
+        setBtnLanjutState(false);
 
         const statusBox = document.getElementById('statusLokasiBox');
         const textLokasi = document.getElementById('textNamaLokasi');
@@ -1907,7 +2440,7 @@
         const faceNotice = document.getElementById('facePromptNotice');
 
         if (statusBox && textLokasi && iconLokasi) {
-            statusBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between transition-all";
+            statusBox.className = "p-3 sm:p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl flex items-center justify-between transition-all shrink-0";
             iconLokasi.className = "fa-solid fa-spinner fa-spin text-slate-400 text-sm";
             textLokasi.innerText = "Mendeteksi posisi GPS Anda...";
             if (reloadContainer) reloadContainer.classList.add('hidden');
@@ -1922,9 +2455,18 @@
         }
 
         const modal = document.getElementById('modalAbsensi');
+        const modalKonf = document.getElementById('modalKonfirmasiAbsen');
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        if (modalKonf && modalKonf.parentElement !== document.body) {
+            document.body.appendChild(modalKonf);
+        }
+
         if (modal) {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
         }
 
         checkUserLocation();
@@ -1951,7 +2493,7 @@
             }
 
             if (camStatus) {
-                camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
+                camStatus.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
                 camStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...`;
             }
 
@@ -1960,7 +2502,7 @@
         } catch (err) {
             console.error("Gagal Akses Kamera:", err);
             if (camStatus) {
-                camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Kamera tidak dapat diakses`;
             }
         }
@@ -2015,15 +2557,10 @@
                     stableAttendanceFaceCount = 0;
                     resetLivenessState();
                     if (camStatus) {
-                        camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold";
+                        camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                         camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Biometrik wajah belum terdaftar. Presensi dinonaktifkan!`;
                     }
-                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                    if (btnLanjut) {
-                        btnLanjut.disabled = true;
-                        btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-                        btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-                    }
+                    setBtnLanjutState(false);
                     return;
                 }
 
@@ -2071,15 +2608,10 @@
                             stableAttendanceFaceCount = 0;
                             updateLivenessBadge('failed', 'Liveness: Gagal (Spoofing)');
 
-                            const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                            if (btnLanjut) {
-                                btnLanjut.disabled = true;
-                                btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-                                btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-                            }
+                            setBtnLanjutState(false);
 
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg";
+                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Verifikasi gagal. Harap gunakan wajah asli dan pastikan Anda berkedip/bergerak.`;
                             }
 
@@ -2100,15 +2632,10 @@
 
                         // Jika belum lulus liveness, tahan auto-submit dan pandu karyawan untuk berkedip
                         if (!isLivenessPassed) {
-                            const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                            if (btnLanjut) {
-                                btnLanjut.disabled = true;
-                                btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-                                btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-                            }
+                            setBtnLanjutState(false);
 
                             if (camStatus && !isAutoSubmittingAttendance) {
-                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm flex items-center justify-center gap-1.5";
+                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                                 camStatus.innerHTML = `<i class="fa-solid fa-eye animate-pulse text-amber-200"></i> Wajah Cocok (${confidence}%)! Silakan BERKEDIP untuk verifikasi wajah asli (${blinkCount}/${REQUIRED_BLINKS})...`;
                             }
                             return;
@@ -2121,12 +2648,7 @@
                     updateLivenessBadge('passed', 'Liveness: Wajah Asli ✓');
 
                     // Buka kunci tombol lanjut presensi saat verifikasi wajah berhasil cocok & live
-                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                    if (btnLanjut) {
-                        btnLanjut.disabled = false;
-                        btnLanjut.classList.remove('opacity-50', 'cursor-not-allowed');
-                        btnLanjut.classList.add('cursor-pointer', 'hover:bg-sky-700');
-                    }
+                    setBtnLanjutState(true);
 
                     if (!isAutoSubmittingAttendance && stableAttendanceFaceCount >= 2) {
                         isAutoSubmittingAttendance = true;
@@ -2142,7 +2664,7 @@
                         if (isLate || !isUserInRadius) {
                             // Jeda auto-submit untuk memunculkan form alasan wajib & bukti
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-amber-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
+                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
                                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Hidup Terverifikasi! Anda ${isLate ? 'Terlambat / Pulang Cepat' : 'Di Luar Radius'}. Membuka form konfirmasi alasan...`;
                             }
                             setTimeout(() => {
@@ -2151,7 +2673,7 @@
                         } else {
                             // Auto-Submit Presensi Langsung (Tanpa harus klik submit manual)
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/95 text-white text-[11px] px-3 py-2 rounded-xl backdrop-blur-sm z-10 text-center font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse";
+                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
                                 camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Hidup Terverifikasi (${confidence}%)! Memproses presensi otomatis...`;
                             }
                             setTimeout(() => {
@@ -2164,7 +2686,7 @@
                         }
                     } else if (!isAutoSubmittingAttendance) {
                         if (camStatus) {
-                            camStatus.className = "absolute bottom-2 left-2 right-2 bg-emerald-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
+                            camStatus.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-1.5";
                             camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Hidup Terverifikasi (${confidence}%)! Tahan posisi...`;
                         }
                     }
@@ -2172,30 +2694,22 @@
                     resetLivenessState();
                     stableAttendanceFaceCount = 0;
                     isFaceVerified = false;
-                    const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                    if (btnLanjut) {
-                        btnLanjut.disabled = true;
-                        btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-                        btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-                    }
+                    setBtnLanjutState(false);
+                    updateOvalReticle('failed');
                     if (camStatus && !isAutoSubmittingAttendance) {
-                        camStatus.className = "absolute bottom-2 left-2 right-2 bg-rose-600/90 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-bold shadow-sm";
-                        camStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Wajah Tidak Cocok (${confidence}%). Harap hadap kamera langsung.`;
+                        camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                        camStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Wajah Tidak Cocok (${confidence}%). Harap hadap lurus ke kamera.`;
                     }
                 }
             } else {
                 resetLivenessState();
                 stableAttendanceFaceCount = 0;
                 isFaceVerified = false;
-                const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-                if (btnLanjut) {
-                    btnLanjut.disabled = true;
-                    btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-                    btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-                }
+                setBtnLanjutState(false);
+                updateOvalReticle('idle');
                 if (camStatus && !isAutoSubmittingAttendance) {
-                    camStatus.className = "absolute bottom-2 left-2 right-2 bg-slate-900/75 text-white text-[11px] px-3 py-1.5 rounded-lg backdrop-blur-sm z-10 text-center font-semibold";
-                    camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye mr-1"></i> Posisikan wajah Anda di depan kamera...`;
+                    camStatus.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
+                    camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye text-sky-400 mr-1"></i> Posisikan wajah Anda di dalam lingkaran oval...`;
                 }
             }
         }, 150);
@@ -2237,9 +2751,22 @@
             mediaStream = null;
         }
 
-        document.getElementById('modalAbsensi').classList.add('hidden');
-        document.getElementById('modalKonfirmasiAbsen').classList.remove('hidden');
-        document.getElementById('modalKonfirmasiAbsen').classList.add('flex');
+        const modalAbsen = document.getElementById('modalAbsensi');
+        const modalKonf = document.getElementById('modalKonfirmasiAbsen');
+
+        if (modalKonf && modalKonf.parentElement !== document.body) {
+            document.body.appendChild(modalKonf);
+        }
+
+        if (modalAbsen) {
+            modalAbsen.classList.remove('flex');
+            modalAbsen.classList.add('hidden');
+        }
+        if (modalKonf) {
+            modalKonf.classList.remove('hidden');
+            modalKonf.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
 
         prosesEvaluasiKonfirmasi();
     }
@@ -2252,19 +2779,19 @@
 
         const txtStatusRadius = document.getElementById('txtStatusRadius');
         if (isUserInRadius) {
-            txtStatusRadius.className = "font-bold text-emerald-600";
+            txtStatusRadius.className = "font-bold text-emerald-600 dark:text-emerald-400";
             txtStatusRadius.innerText = "Di Dalam Area Kerja";
         } else {
-            txtStatusRadius.className = "font-bold text-rose-600";
+            txtStatusRadius.className = "font-bold text-rose-600 dark:text-rose-400";
             txtStatusRadius.innerText = "Di Luar Area Kerja";
         }
 
         const txtStatusBiometrik = document.getElementById('txtStatusBiometrik');
         if (isFaceVerified && isLivenessPassed) {
-            txtStatusBiometrik.className = "font-bold text-emerald-600 flex items-center gap-1";
+            txtStatusBiometrik.className = "font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1";
             txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Terverifikasi & Live (Wajah Asli)`;
         } else {
-            txtStatusBiometrik.className = "font-bold text-amber-600 flex items-center gap-1";
+            txtStatusBiometrik.className = "font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1";
             txtStatusBiometrik.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-500"></i> Belum Terverifikasi`;
         }
 
@@ -2324,7 +2851,11 @@
     }
 
     function kembaliKeKamera() {
-        document.getElementById('modalKonfirmasiAbsen').classList.add('hidden');
+        const modalKonf = document.getElementById('modalKonfirmasiAbsen');
+        if (modalKonf) {
+            modalKonf.classList.remove('flex');
+            modalKonf.classList.add('hidden');
+        }
         bukaModalAbsen(document.getElementById('absen_type').value);
     }
 
@@ -2349,19 +2880,21 @@
         const inputAlasan = document.getElementById('inputAlasan');
         if (inputAlasan) inputAlasan.value = '';
 
-        const btnLanjut = document.getElementById('btnVerifikasiLanjut');
-        if (btnLanjut) {
-            btnLanjut.disabled = true;
-            btnLanjut.classList.add('opacity-50', 'cursor-not-allowed');
-            btnLanjut.classList.remove('cursor-pointer', 'hover:bg-sky-700');
-        }
+        setBtnLanjutState(false);
 
         hapusBuktiTerpilih();
 
-        document.getElementById('modalAbsensi').classList.remove('flex');
-        document.getElementById('modalAbsensi').classList.add('hidden');
-        document.getElementById('modalKonfirmasiAbsen').classList.remove('flex');
-        document.getElementById('modalKonfirmasiAbsen').classList.add('hidden');
+        const modalAbsen = document.getElementById('modalAbsensi');
+        if (modalAbsen) {
+            modalAbsen.classList.remove('flex');
+            modalAbsen.classList.add('hidden');
+        }
+        const modalKonf = document.getElementById('modalKonfirmasiAbsen');
+        if (modalKonf) {
+            modalKonf.classList.remove('flex');
+            modalKonf.classList.add('hidden');
+        }
+        document.body.classList.remove('overflow-hidden');
     }
 
     // ==========================================
@@ -2538,7 +3071,7 @@
                 });
 
                 btnSubmit.disabled = false;
-                btnSubmit.innerText = 'Kirim Absensi Sekarang';
+                btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-white"></i> <span>Kirim Absensi Sekarang</span>`;
             }
         })
         .catch(err => {
@@ -2553,7 +3086,7 @@
             });
 
             btnSubmit.disabled = false;
-            btnSubmit.innerText = 'Kirim Absensi Sekarang';
+            btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-white"></i> <span>Kirim Absensi Sekarang</span>`;
         });
     }
 </script>
