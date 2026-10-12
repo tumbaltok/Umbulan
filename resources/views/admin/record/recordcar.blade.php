@@ -3,7 +3,9 @@
 @section('title', 'Record Cash Advance Request (CAR)')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6 relative transition-opacity duration-200" id="recordContainer">
+    {{-- LOADING BAR PROGRESS TRANSTION --}}
+    <div id="recordLoadingBar" class="absolute -top-3 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-500 rounded-full z-20 hidden animate-pulse"></div>
 
     {{-- HEADER PAGE --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm transition-colors">
@@ -72,6 +74,10 @@
                             class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer {{ $filters['periode'] === 'month' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
                         Bulan Ini
                     </button>
+                    <button type="button" onclick="setPeriodePreset('year')"
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer {{ $filters['periode'] === 'year' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
+                        Tahun Ini
+                    </button>
                     <button type="button" onclick="setPeriodePreset('all')"
                             class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer {{ $filters['periode'] === 'all' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
                         Semua Waktu
@@ -91,6 +97,7 @@
 
                 <div class="flex items-center gap-2">
                     <a href="{{ route('admin.record.car') }}" 
+                       onclick="event.preventDefault(); loadRecordData(this.href)"
                        class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700/70 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5">
                         <i class="fa-solid fa-arrows-rotate text-[11px]"></i> Reset Filter
                     </a>
@@ -445,11 +452,12 @@
 
                                     {{-- Tombol Cetak Dokumen PDF CAR --}}
                                     @if($statusAkhir === 'approved')
-                                        <a href="{{ route('car.print', $car->id) }}" target="_blank"
+                                        <button type="button"
+                                           onclick="bukaPratinjauCetak('{{ route('car.print', $car->id) }}', 'Pratinjau Formulir CAR - {{ $car->nomor_car ?? 'CAR' }}')"
                                            class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
-                                           title="Cetak Formulir CAR Resmi (PDF)">
+                                           title="Pratinjau & Cetak Formulir CAR Resmi (PDF)">
                                             <i class="fa-solid fa-print text-xs"></i>
-                                        </a>
+                                        </button>
                                     @else
                                         <button type="button" disabled
                                                 class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 flex items-center justify-center cursor-not-allowed opacity-50"
@@ -486,14 +494,16 @@
     </div>
 
 </div>
+@endsection
 
+@push('modals')
 {{-- ========================================================================= --}}
 {{--                  MODAL DETAIL MULTI-ITEM CAR LENGKAP                     --}}
 {{-- ========================================================================= --}}
-<div id="modalDetailCar" class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDetailCarModal()"></div>
+<div id="modalDetailCar" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDetailCarModal()"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative z-10 transform transition-all m-4 max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative z-10 transform transition-all m-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
         {{-- Modal Header --}}
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-2.5">
@@ -591,10 +601,10 @@
         {{-- Modal Footer --}}
         <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
             <div id="modalCarCetakContainer">
-                <a id="modalCarCetakBtn" href="#" target="_blank"
+                <button type="button" id="modalCarCetakBtn"
                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer">
                     <i class="fa-solid fa-print"></i> Cetak Formulir CAR (PDF)
-                </a>
+                </button>
             </div>
             <button type="button" onclick="closeDetailCarModal()"
                     class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer ml-auto">
@@ -605,9 +615,9 @@
 </div>
 
 {{-- MODAL CUSTOM DATE RANGE --}}
-<div id="customDateModal" class="fixed inset-0 z-50 items-center justify-center hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomDateModal()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 m-4 border border-slate-100 dark:border-slate-700">
+<div id="customDateModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomDateModal()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 m-auto border border-slate-100 dark:border-slate-700">
         <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">Pilih Rentang Tanggal</h3>
         <p class="text-xs text-slate-400 mb-4">Tentukan periode tanggal pengajuan CAR yang ingin ditinjau.</p>
         <div class="space-y-3">
@@ -628,21 +638,112 @@
         </div>
     </div>
 </div>
+@endpush
 
 @push('scripts')
 <script>
+    // AJAX RECORD LOADER (SMOOTH TRANSITION TANPA RELOAD)
+    let activeRecordAbortController = null;
+
+    async function loadRecordData(url, pushState = true) {
+        if (activeRecordAbortController) {
+            activeRecordAbortController.abort();
+        }
+        activeRecordAbortController = new AbortController();
+
+        const container = document.getElementById('recordContainer');
+        const loadingBar = document.getElementById('recordLoadingBar');
+
+        if (container) {
+            container.classList.add('opacity-50', 'pointer-events-none');
+        }
+        if (loadingBar) {
+            loadingBar.classList.remove('hidden');
+        }
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                signal: activeRecordAbortController.signal
+            });
+
+            if (!response.ok) {
+                window.location.href = url;
+                return;
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newContainer = doc.getElementById('recordContainer');
+            if (newContainer && container) {
+                container.innerHTML = newContainer.innerHTML;
+            } else {
+                window.location.href = url;
+                return;
+            }
+
+            // Sinkronkan modal custom date input jika ada
+            const newStart = doc.getElementById('modalStartDate');
+            const newEnd = doc.getElementById('modalEndDate');
+            if (newStart && document.getElementById('modalStartDate')) {
+                document.getElementById('modalStartDate').value = newStart.value;
+            }
+            if (newEnd && document.getElementById('modalEndDate')) {
+                document.getElementById('modalEndDate').value = newEnd.value;
+            }
+
+            if (pushState) {
+                history.pushState(null, '', url);
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Fetch error:', err);
+                window.location.href = url;
+            }
+        } finally {
+            if (container) {
+                container.classList.remove('opacity-50', 'pointer-events-none');
+            }
+            const activeLoadingBar = document.getElementById('recordLoadingBar');
+            if (activeLoadingBar) {
+                activeLoadingBar.classList.add('hidden');
+            }
+        }
+    }
+
     // PRESET PERIODE CEPAT
     function setPeriodePreset(val) {
-        document.getElementById('periodeInput').value = val;
+        const periodeInput = document.getElementById('periodeInput');
+        const startDateInput = document.getElementById('startDateInput');
+        const endDateInput = document.getElementById('endDateInput');
+        if (periodeInput) periodeInput.value = val;
         if (val !== 'custom') {
-            document.getElementById('startDateInput').value = '';
-            document.getElementById('endDateInput').value = '';
+            if (startDateInput) startDateInput.value = '';
+            if (endDateInput) endDateInput.value = '';
         }
-        document.getElementById('filterFormCar').submit();
+        const form = document.getElementById('filterFormCar');
+        if (form) {
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            const url = `${form.action}?${params.toString()}`;
+            loadRecordData(url);
+        }
     }
 
     // MODAL CUSTOM DATE
     function openCustomDateModal() {
+        const startVal = document.getElementById('startDateInput')?.value || '';
+        const endVal = document.getElementById('endDateInput')?.value || '';
+        if (startVal && document.getElementById('modalStartDate')) {
+            document.getElementById('modalStartDate').value = startVal;
+        }
+        if (endVal && document.getElementById('modalEndDate')) {
+            document.getElementById('modalEndDate').value = endVal;
+        }
         const modal = document.getElementById('customDateModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -661,11 +762,46 @@
             alert('Silakan tentukan kedua tanggal mulai dan selesai!');
             return;
         }
-        document.getElementById('periodeInput').value = 'custom';
-        document.getElementById('startDateInput').value = start;
-        document.getElementById('endDateInput').value = end;
-        document.getElementById('filterFormCar').submit();
+        closeCustomDateModal();
+        const periodeInput = document.getElementById('periodeInput');
+        const startDateInput = document.getElementById('startDateInput');
+        const endDateInput = document.getElementById('endDateInput');
+        if (periodeInput) periodeInput.value = 'custom';
+        if (startDateInput) startDateInput.value = start;
+        if (endDateInput) endDateInput.value = end;
+        const form = document.getElementById('filterFormCar');
+        if (form) {
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            const url = `${form.action}?${params.toString()}`;
+            loadRecordData(url);
+        }
     }
+
+    // INTERCEPT SUBMIT FILTER FORM CAR
+    document.addEventListener('submit', function(e) {
+        if (e.target && e.target.id === 'filterFormCar') {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const params = new URLSearchParams(formData);
+            const url = `${e.target.action}?${params.toString()}`;
+            loadRecordData(url);
+        }
+    });
+
+    // INTERCEPT PAGINATION CLICK
+    document.addEventListener('click', function(e) {
+        const paginationLink = e.target.closest('#recordContainer .pagination a, #recordContainer nav[role="navigation"] a');
+        if (paginationLink && paginationLink.href) {
+            e.preventDefault();
+            loadRecordData(paginationLink.href);
+        }
+    });
+
+    // POPSTATE LISTENER (BROWSER BACK / FORWARD)
+    window.addEventListener('popstate', function() {
+        loadRecordData(window.location.href, false);
+    });
 
     // EXPORT CSV CAR BERSTANDAR INDUSTRI
     function exportCsvCar() {
@@ -675,14 +811,16 @@
         window.location.href = `{{ route('admin.record.car.export') }}?${params.toString()}`;
     }
 
-    // LIVE TABLE SEARCH
-    document.getElementById('table-search')?.addEventListener('input', function(e) {
-        const term = e.target.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('#tableBodyCar tr.row-item');
-        rows.forEach(row => {
-            const text = row.getAttribute('data-search') || '';
-            row.style.display = text.includes(term) ? '' : 'none';
-        });
+    // LIVE TABLE SEARCH (EVENT DELEGATION)
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.id === 'table-search') {
+            const term = e.target.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#tableBodyCar tr.row-item');
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search') || '';
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
     });
 
     // MODAL DETAIL CAR
@@ -756,11 +894,18 @@
 
         // Cetak
         const cetakContainer = document.getElementById('modalCarCetakContainer');
+        const cetakBtn = document.getElementById('modalCarCetakBtn');
         if (data.status_akhir === 'approved') {
             cetakContainer.classList.remove('hidden');
-            document.getElementById('modalCarCetakBtn').href = data.cetak_url;
+            if (cetakBtn) {
+                cetakBtn.onclick = function(e) {
+                    e.preventDefault();
+                    bukaPratinjauCetak(data.cetak_url, 'Pratinjau Formulir CAR - ' + (data.nomor || ''));
+                };
+            }
         } else {
             cetakContainer.classList.add('hidden');
+            if (cetakBtn) cetakBtn.onclick = null;
         }
 
         const modal = document.getElementById('modalDetailCar');
@@ -782,4 +927,3 @@
     });
 </script>
 @endpush
-@endsection

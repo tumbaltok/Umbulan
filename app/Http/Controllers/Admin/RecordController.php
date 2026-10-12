@@ -46,6 +46,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;
@@ -76,14 +80,8 @@ class RecordController extends Controller
         ]);
 
         if ($startDate && $endDate) {
-            $query->where(function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('tanggal_mulai', [$startDate, $endDate])
-                  ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])
-                  ->orWhere(function ($sub) use ($startDate, $endDate) {
-                      $sub->where('tanggal_mulai', '<=', $startDate)
-                          ->where('tanggal_selesai', '>=', $endDate);
-                  });
-            });
+            $query->whereDate('created_at', '>=', $startDate)
+                  ->whereDate('created_at', '<=', $endDate);
         }
 
         if (!empty($userId)) {
@@ -114,7 +112,7 @@ class RecordController extends Controller
             'rejected' => $allRecords->where('status_akhir', 'rejected')->count(),
         ];
 
-        $daftarCuti = $query->orderBy('tanggal_mulai', 'desc')->paginate(25)->withQueryString();
+        $daftarCuti = $query->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
 
         $stations = Station::orderBy('name', 'asc')->get();
         $karyawanList = User::orderBy('name', 'asc')->select('id', 'name', 'nip')->get();
@@ -165,6 +163,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;
@@ -194,14 +196,8 @@ class RecordController extends Controller
         ]);
 
         if ($startDate && $endDate) {
-            $query->where(function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('tanggal_mulai', [$startDate, $endDate])
-                  ->orWhereBetween('tanggal_selesai', [$startDate, $endDate])
-                  ->orWhere(function ($sub) use ($startDate, $endDate) {
-                      $sub->where('tanggal_mulai', '<=', $startDate)
-                          ->where('tanggal_selesai', '>=', $endDate);
-                  });
-            });
+            $query->whereDate('created_at', '>=', $startDate)
+                  ->whereDate('created_at', '<=', $endDate);
         }
 
         if (!empty($userId)) {
@@ -221,7 +217,7 @@ class RecordController extends Controller
             $query->where('status_akhir', 'rejected');
         }
 
-        $records = $query->orderBy('tanggal_mulai', 'desc')->get();
+        $records = $query->orderBy('created_at', 'desc')->get();
 
         $dateSuffix = ($startDate && $endDate) ? (($startDate === $endDate) ? $startDate : "{$startDate}_sd_{$endDate}") : date('Ymd');
         $fileName = "Record_Cuti_Karyawan-{$dateSuffix}.csv";
@@ -327,6 +323,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;
@@ -435,6 +435,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;
@@ -584,6 +588,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;
@@ -700,6 +708,10 @@ class RecordController extends Controller
             $now = Carbon::today('Asia/Jakarta');
             $startDate = $now->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $now->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($periode === 'year') {
+            $now = Carbon::today('Asia/Jakarta');
+            $startDate = $now->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $now->copy()->endOfYear()->format('Y-m-d');
         } elseif ($periode === 'all') {
             $startDate = null;
             $endDate = null;

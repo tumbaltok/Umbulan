@@ -851,14 +851,10 @@
 
         </form>
     </div>
-</div>
-@endsection
 
-@push('modals')
-{{-- FLOATING ACTION DOCK (MELAYANG DI BAWAH VIEWPORT) --}}
-<div class="fixed bottom-0 inset-x-0 z-40 p-4 sm:p-5 pointer-events-none">
-    <div class="max-w-5xl mx-auto pointer-events-auto">
-        <div class="p-3.5 sm:px-6 sm:py-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/90 shadow-2xl shadow-slate-900/20 dark:shadow-black/70 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all ring-1 ring-black/5 dark:ring-white/5">
+    {{-- FLOATING ACTION DOCK (STICKY MELAYANG & SIMETRIS TERHADAP ELEMEN KONTEN MAX-W-5XL) --}}
+    <div class="sticky bottom-4 sm:bottom-6 z-30 mt-6 pointer-events-none">
+        <div class="pointer-events-auto p-3.5 sm:px-6 sm:py-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/90 shadow-2xl shadow-slate-900/20 dark:shadow-black/70 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all ring-1 ring-black/5 dark:ring-white/5">
             <div class="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300">
                 <span class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse shrink-0"></span>
                 <span class="font-medium text-xs sm:text-sm">Perubahan data profil & keamanan akun dapat langsung disimpan.</span>
@@ -877,6 +873,9 @@
         </div>
     </div>
 </div>
+@endsection
+
+@push('modals')
 
 {{-- MODAL FOTO PROFIL --}}
 <div id="photoModal"
