@@ -59,7 +59,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │              SISTEM PENYEDIAAN AIR MINUM (SPAM) REGIONAL UMBULAN                │
-│             Transmisi Air Bersih Sepanjang 93 Km (Pasuruan - Gresik)            │
+│             Transmisi Air Bersih Sepanjang 97 Km (Pasuruan - Gresik)            │
 └──────────────────────────────────────┬──────────────────────────────────────────┘
                                        │
             ┌──────────────────────────┼──────────────────────────┐
@@ -86,7 +86,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
      * **Khusus Hari Sabtu (Setengah Hari):** Pukul **07:00 – 12:00 WIB**.
    - Hak libur pada hari Minggu (OFF) serta mengikuti seluruh Tanggal Merah Hari Libur Nasional resmi pemerintah Indonesia (SKB 3 Menteri).
 3. **Tipe 3: Roster / Shift Operasional 24/7 (`roster`):**
-   - Mengelola operasional transmisi air bersih sepanjang 93 kilometer dari mata air Umbulan (Kabupaten Pasuruan) melintasi Kota Pasuruan, Kabupaten Sidoarjo, Kota Surabaya, hingga Kabupaten Gresik.
+   - Mengelola operasional transmisi air bersih sepanjang 97 kilometer dari mata air Umbulan (Kabupaten Pasuruan) melintasi Kota Pasuruan, Kabupaten Sidoarjo, Kota Surabaya, hingga Kabupaten Gresik.
    - Mengoperasikan 4 Stasiun Utama/Booster (Stasiun Mata Air Umbulan, Stasiun Pompa Bangil, Stasiun Pasuruan, Stasiun Surabaya) dan 18 Stasiun Rumah Meter (*Offtake*).
    - Beroperasi tanpa henti (*24/7 continuous operations*) dengan **Sistem Kerja Roster 3 Shift** (Minggu I Pagi, Minggu II Malam, Minggu III Libur Roster).
    - Staf operasional transmisi tidak mengenal tanggal merah libur nasional biasa demi menjamin pasokan air minum masyarakat tetap mengalir tanpa interupsi.

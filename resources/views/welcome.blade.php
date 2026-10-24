@@ -18,7 +18,7 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="background-color" content="#ffffff">
 
-    <title>META Adhya Tirta Umbulan - Penyaluran Air Bersih 93 KM</title>
+    <title>META Adhya Tirta Umbulan - Penyaluran Air Bersih 97 KM</title>
     <link rel="icon" type="image/png" href="{{ asset('images/iconfav.png') }}?v=2">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -154,7 +154,7 @@
         <div class="hidden md:flex items-center space-x-8">
             <nav class="flex items-center space-x-6 text-sm font-semibold text-slate-600 mr-2">
                 <a href="#jalur-pipa" class="hover:text-blue-600 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-route text-blue-500 text-xs"></i> Jalur Pipa 93 KM
+                    <i class="fa-solid fa-route text-blue-500 text-xs"></i> Jalur Pipa 97 KM
                 </a>
                 <a href="#about-kami" class="hover:text-blue-600 transition">Tentang Proyek</a>
                 <a href="#titik-distribusi" class="hover:text-blue-600 transition">Wilayah Layanan</a>
@@ -182,7 +182,7 @@
                 </div>
                 <nav class="flex flex-col space-y-3 mt-6">
                     <a href="#jalur-pipa" class="mobile-link text-sm font-semibold text-slate-700 hover:text-blue-600 transition py-2.5 border-b border-blue-50 flex items-center gap-2">
-                        <i class="fa-solid fa-route text-blue-500"></i> Jalur Pipa 93 KM (18 Rumah Meter)
+                        <i class="fa-solid fa-route text-blue-500"></i> Jalur Pipa 97 KM (18 Rumah Meter)
                     </a>
                     <a href="#about-kami" class="mobile-link text-sm font-semibold text-slate-700 hover:text-blue-600 transition py-2.5 border-b border-blue-50">
                         Tentang Proyek KPBU
@@ -224,14 +224,14 @@
                 </h1>
 
                 <p class="text-slate-600 text-sm sm:text-base md:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
-                    PT. Meta Adhya Tirta Umbulan mengalirkan air minum curah berkualitas tinggi melalui pipa transmisi baja sepanjang 93 KM, melintasi 18 titik Rumah Meter dari mata air Umbulan (Pasuruan) hingga Kabupaten Gresik.
+                    PT. Meta Adhya Tirta Umbulan mengalirkan air minum curah berkualitas tinggi melalui pipa transmisi baja sepanjang 97 KM, melintasi 18 titik Rumah Meter dari mata air Umbulan (Pasuruan) hingga Kabupaten Gresik.
                 </p>
 
                 {{-- 3 Tag Layanan Unggulan --}}
                 <div class="flex flex-wrap justify-center lg:justify-start gap-3 pt-2">
                     <div class="flex items-center space-x-2 px-3.5 py-2 bg-white border border-blue-100 rounded-xl shadow-xs text-xs font-semibold text-slate-700">
                         <i class="fa-solid fa-route text-blue-600"></i>
-                        <span>Pipa Transmisi ±93 KM</span>
+                        <span>Pipa Transmisi ±97 KM</span>
                     </div>
                     <div class="flex items-center space-x-2 px-3.5 py-2 bg-white border border-blue-100 rounded-xl shadow-xs text-xs font-semibold text-slate-700">
                         <i class="fa-solid fa-gauge-high text-sky-600"></i>
@@ -246,7 +246,7 @@
                 {{-- Tombol Aksi CTA --}}
                 <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                     <a href="#jalur-pipa" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 text-white font-bold rounded-2xl text-center shadow-lg shadow-blue-600/25 transition-all duration-150 flex items-center justify-center gap-2">
-                        <span>Lihat Aliran Pipa 93 KM</span>
+                        <span>Lihat Aliran Pipa 97 KM</span>
                         <i class="fa-solid fa-arrow-down text-xs"></i>
                     </a>
                     <a href="#titik-distribusi" class="w-full sm:w-auto px-8 py-4 bg-white hover:bg-blue-50/50 border border-blue-200 active:scale-95 text-blue-700 font-bold rounded-2xl text-center shadow-xs transition-all duration-150">
@@ -271,7 +271,7 @@
                                 <span class="text-xs font-bold text-slate-800 uppercase tracking-wider font-heading">Transmisi Air Aktif</span>
                             </div>
                             <span class="inline-flex items-center text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/80">
-                                93 KM BEROPERASI
+                                97 KM BEROPERASI
                             </span>
                         </div>
 
@@ -298,7 +298,7 @@
                                         18 RUMAH METER
                                     </span>
                                     <span class="text-[10px] font-bold text-white uppercase tracking-wider z-10">
-                                        93 KM
+                                        97 KM
                                     </span>
                                 </div>
                             </div>
@@ -351,7 +351,7 @@
 
                         {{-- Tautan Langsung ke Jalur Pipa Scroll --}}
                         <a href="#jalur-pipa" class="w-full py-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold rounded-xl flex items-center justify-center gap-2 text-xs transition duration-200 group">
-                            <span>Telusuri Aliran 93 KM & 18 Titik Rumah Meter</span>
+                            <span>Telusuri Aliran 97 KM & 18 Titik Rumah Meter</span>
                             <i class="fa-solid fa-arrow-down text-blue-600 group-hover:translate-y-0.5 transition-transform text-xs"></i>
                         </a>
                     </div>
@@ -371,7 +371,7 @@
                 <p class="text-xs font-semibold text-slate-700 mt-2">Kapasitas Desain Transmisi</p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-blue-100 shadow-xs hover:border-blue-300 hover:shadow-md transition">
-                <span class="text-3xl md:text-4xl font-black font-heading text-blue-600 block">±93 KM</span>
+                <span class="text-3xl md:text-4xl font-black font-heading text-blue-600 block">±97 KM</span>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Pipa Baja Terpasang</span>
                 <p class="text-xs font-semibold text-slate-700 mt-2">Jalur Transmisi Hulu ke Hilir</p>
             </div>
@@ -389,7 +389,7 @@
     </section>
 
     {{-- ======================================================== --}}
-    {{-- BAGIAN UTAMA: ANIMASI SCROLL PIPA 93 KM & 18 RUMAH METER --}}
+    {{-- BAGIAN UTAMA: ANIMASI SCROLL PIPA 97 KM & 18 RUMAH METER --}}
     {{-- ======================================================== --}}
     <section id="jalur-pipa" class="py-20 md:py-28 px-4 sm:px-6 md:px-12 bg-white relative scroll-mt-16">
         <div class="max-w-7xl mx-auto space-y-12">
@@ -402,14 +402,14 @@
                 </div>
 
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-slate-900 leading-tight">
-                    Jalur Pipa Transmisi 93 KM <br>
+                    Jalur Pipa Transmisi 97 KM <br>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500">
                         18 Titik Rumah Meter (Hulu ke Hilir)
                     </span>
                 </h2>
 
                 <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
-                    Air bersih mengalir dari mata air Umbulan (Pasuruan) menuju titik hilir terjauh di Giri (Gresik). Gulir layar (scroll) untuk menelusuri aliran air yang melintasi setiap stasiun Rumah Meter sepanjang 93 kilometer.
+                    Air bersih mengalir dari mata air Umbulan (Pasuruan) menuju titik hilir terjauh di Giri (Gresik). Gulir layar (scroll) untuk menelusuri aliran air yang melintasi setiap stasiun Rumah Meter sepanjang 97 kilometer.
                 </p>
             </div>
 
@@ -424,7 +424,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Posisi Aliran Air:</span>
                                 <span id="hud-km" class="text-base sm:text-lg font-black text-blue-600 font-mono">0.0 KM</span>
-                                <span class="text-xs text-slate-400 font-semibold">/ 93.0 KM</span>
+                                <span class="text-xs text-slate-400 font-semibold">/ 97.0 KM</span>
                             </div>
                             <p id="hud-station" class="text-xs font-semibold text-slate-700">Mata Air Umbulan (Hulu Transmisi)</p>
                         </div>
@@ -472,7 +472,7 @@
             {{-- ======================================================== --}}
             <div class="relative py-6 max-w-4xl mx-auto" id="pipeline-container">
 
-                {{-- Batang Pipa Pusat (Transmisi Utama 93 KM) --}}
+                {{-- Batang Pipa Pusat (Transmisi Utama 97 KM) --}}
                 <div class="absolute left-6 md:left-1/2 top-12 bottom-12 -translate-x-1/2 w-6 sm:w-8 bg-blue-100/60 rounded-full border-2 border-blue-200 shadow-inner overflow-hidden z-10">
                     {{-- Air yang Mengalir Mengisi Pipa Sesuai Scroll --}}
                     <div id="pipe-water-fill" class="w-full bg-gradient-to-b from-blue-600 via-sky-400 to-blue-500 rounded-full transition-all duration-75 relative overflow-hidden" style="height: 5%;">
@@ -519,7 +519,7 @@
                         ['no' => 15, 'kode' => 'RM_15', 'name' => 'Wonocolo', 'km' => 77.2, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Selatan', 'diam' => '1.200 mm', 'desc' => 'Pintu masuk suplai air curah Umbulan untuk PDAM Surya Sembada Surabaya.'],
                         ['no' => 16, 'kode' => 'RM_16', 'name' => 'Putat Gedhe', 'km' => 82.6, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Barat', 'diam' => '1.200 mm', 'desc' => 'Distribusi air minum untuk pengembangan wilayah perumahan Surabaya barat.'],
                         ['no' => 17, 'kode' => 'RM_17', 'name' => 'Alas Malang', 'km' => 87.3, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Barat', 'diam' => '1.200 mm', 'desc' => 'Koridor transmisi akhir Surabaya sebelum menyeberang ke perbatasan Gresik.'],
-                        ['no' => 18, 'kode' => 'RM_18', 'name' => 'Giri', 'km' => 93.0, 'region' => 'gresik', 'region_name' => 'Kabupaten Gresik', 'diam' => '1.000 mm', 'desc' => 'Titik hilir terjauh pipa transmisi 93 KM melayani kebutuhan PDAM Gresik.'],
+                        ['no' => 18, 'kode' => 'RM_18', 'name' => 'Giri', 'km' => 97.0, 'region' => 'gresik', 'region_name' => 'Kabupaten Gresik', 'diam' => '1.000 mm', 'desc' => 'Titik hilir terjauh pipa transmisi 97 KM melayani kebutuhan PDAM Gresik.'],
                     ];
                 @endphp
 
@@ -590,7 +590,7 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] font-extrabold uppercase tracking-widest text-blue-100 bg-white/15 px-2 py-0.5 rounded">HILIR TRANSMISI</span>
-                                <span class="text-xs font-mono font-bold text-sky-200">93.0 KM</span>
+                                <span class="text-xs font-mono font-bold text-sky-200">97.0 KM</span>
                             </div>
                             <h3 class="text-lg font-black font-heading text-white">Reservoir Giri Gresik</h3>
                             <p class="text-xs text-blue-100">Titik Akhir Penyaluran Air Bersih • Kabupaten Gresik</p>
@@ -663,7 +663,7 @@
                     <span class="text-blue-600 font-bold text-xs uppercase tracking-wider">Cakupan Distribusi SPAM</span>
                     <h2 class="text-3xl md:text-4xl font-extrabold font-heading text-slate-900 mt-2">Wilayah Layanan SPAM Umbulan</h2>
                 </div>
-                <p class="text-slate-500 text-sm max-w-md">Air minum disalurkan melalui jalur transmisi sepanjang 93 km ke PDAM di 5 wilayah Jawa Timur.</p>
+                <p class="text-slate-500 text-sm max-w-md">Air minum disalurkan melalui jalur transmisi sepanjang 97 km ke PDAM di 5 wilayah Jawa Timur.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -701,7 +701,7 @@
                     </div>
                     <div class="p-6 space-y-3">
                         <h4 class="font-bold text-slate-800 text-base">Kabupaten Gresik</h4>
-                        <p class="text-xs text-slate-500 leading-relaxed">Titik distribusi hulu terjauh melalui jaringan pipa transmisi 93 km untuk pemenuhan air bersih daerah pesisir.</p>
+                        <p class="text-xs text-slate-500 leading-relaxed">Titik distribusi hulu terjauh melalui jaringan pipa transmisi 97 km untuk pemenuhan air bersih daerah pesisir.</p>
                         <div class="pt-4 border-t border-blue-50 flex justify-between items-center text-[11px] text-slate-400">
                             <span>Status: Distribusi Berjalan</span>
                             <span class="text-blue-600 font-bold"><i class="fa-solid fa-circle-check"></i> Suplai Aktif</span>
@@ -745,7 +745,7 @@
                 <h4 class="text-slate-900 text-xs font-bold uppercase tracking-wider">Informasi Proyek</h4>
                 <ul class="space-y-2 text-xs">
                     <li><a href="#about-kami" class="hover:text-blue-600 transition">Skema KPBU BOT 25 Tahun 9 Bulan</a></li>
-                    <li><a href="#jalur-pipa" class="hover:text-blue-600 transition">Jalur Pipa Transmisi ±93 KM</a></li>
+                    <li><a href="#jalur-pipa" class="hover:text-blue-600 transition">Jalur Pipa Transmisi ±97 KM</a></li>
                     <li><a href="https://kpbu.pu.go.id" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition">SIMPUL KPBU Kementerian PUPR</a></li>
                 </ul>
             </div>
@@ -836,7 +836,7 @@
         });
         mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
 
-        // 3. LOGIKA ANIMASI SCROLL PIPA 93 KM & 18 RUMAH METER
+        // 3. LOGIKA ANIMASI SCROLL PIPA 97 KM & 18 RUMAH METER
         const pipelineContainer = document.getElementById('pipeline-container');
         const pipeWaterFill = document.getElementById('pipe-water-fill');
         const miniProgressFill = document.getElementById('mini-progress-fill');
@@ -871,8 +871,8 @@
                 miniProgressFill.style.width = `${Math.max(2, percentHeight)}%`;
             }
 
-            // Hitung KM saat ini (0.0 KM sampai 93.0 KM)
-            const currentKm = (progress * 93.0).toFixed(1);
+            // Hitung KM saat ini (0.0 KM sampai 97.0 KM)
+            const currentKm = (progress * 97.0).toFixed(1);
             if (hudKm) {
                 hudKm.textContent = `${currentKm} KM`;
             }
@@ -891,7 +891,7 @@
             });
 
             if (progress >= 0.98) {
-                lastActiveStation = 'Reservoir Giri Gresik (Hilir Transmisi 93 KM)';
+                lastActiveStation = 'Reservoir Giri Gresik (Hilir Transmisi 97 KM)';
             }
 
             if (hudStation) {
@@ -909,7 +909,7 @@
 
         function toggleAutoScroll() {
             if (!isAutoScrolling) {
-                // Jika sudah berada di titik akhir (93 KM), reset ke hulu dahulu lalu mulai
+                // Jika sudah berada di titik akhir (97 KM), reset ke hulu dahulu lalu mulai
                 if (currentPipelineProgress >= 0.98) {
                     resetToHulu();
                     setTimeout(() => startAutoScroll(), 600);
@@ -936,7 +936,7 @@
                     return;
                 }
 
-                // Berhenti hanya jika air telah mengalir sampai titik hilir akhir (93 KM)
+                // Berhenti hanya jika air telah mengalir sampai titik hilir akhir (97 KM)
                 if (currentPipelineProgress >= 0.99) {
                     stopAutoScroll();
                     return;
