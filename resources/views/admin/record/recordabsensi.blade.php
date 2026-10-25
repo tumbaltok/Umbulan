@@ -752,8 +752,8 @@
 </div>
 
 {{-- Modal Review Detail Record Presensi dan Audit Geofencing Peta --}}
-<div id="detailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-    <div id="detailModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0 flex flex-col max-h-[90vh]">
+<div id="detailModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md transition-opacity duration-300 overflow-y-auto">
+    <div id="detailModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0 flex flex-col my-auto max-h-[90vh]">
         
         {{-- Header Modal Review Detail --}}
         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
@@ -924,8 +924,8 @@
 </div>
 
 {{-- Modal Popup Lightbox Foto Watermark --}}
-<div id="lightboxModal" class="fixed inset-0 z-60 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300">
-    <div id="lightboxModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
+<div id="lightboxModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300 overflow-y-auto">
+    <div id="lightboxModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0 my-auto max-h-[90vh]">
         {{-- Header Lightbox --}}
         <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
             <h3 id="lightboxTitle" class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
@@ -952,8 +952,8 @@
 </div>
 
 {{-- Modal Popup Pilihan Rentang Tanggal Kustom --}}
-<div id="customDateModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-    <div id="customDateModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0">
+<div id="customDateModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md transition-opacity duration-300 overflow-y-auto">
+    <div id="customDateModalCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-700 transform transition-all duration-300 scale-95 opacity-0 my-auto">
         
         {{-- Header Modal Tanggal Kustom --}}
         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
@@ -1063,8 +1063,13 @@
         const err = document.getElementById('customDateError');
         if (!modal || !card) return;
 
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+
         if (err) err.classList.add('hidden');
 
+        document.body.classList.add('overflow-hidden');
         modal.classList.remove('hidden');
         setTimeout(() => {
             card.classList.remove('scale-95', 'opacity-0');
@@ -1079,6 +1084,7 @@
 
         card.classList.remove('scale-100', 'opacity-100');
         card.classList.add('scale-95', 'opacity-0');
+        document.body.classList.remove('overflow-hidden');
 
         setTimeout(() => {
             modal.classList.add('hidden');
@@ -1162,6 +1168,11 @@
         const modal = document.getElementById('detailModal');
         const card = document.getElementById('detailModalCard');
         if (!modal || !card) return;
+
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        document.body.classList.add('overflow-hidden');
 
         // 1. Set Profil User
         document.getElementById('modalUserName').innerText = data.user_name;
@@ -1366,6 +1377,7 @@
 
         card.classList.remove('scale-100', 'opacity-100');
         card.classList.add('scale-95', 'opacity-0');
+        document.body.classList.remove('overflow-hidden');
 
         setTimeout(() => {
             modal.classList.add('hidden');
@@ -1383,9 +1395,14 @@
 
         if (!modal || !card || !img || !title) return;
 
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+
         img.src = imageUrl;
         title.querySelector('span').innerText = titleText;
 
+        document.body.classList.add('overflow-hidden');
         modal.classList.remove('hidden');
         setTimeout(() => {
             card.classList.remove('scale-95', 'opacity-0');
@@ -1400,12 +1417,22 @@
 
         card.classList.remove('scale-100', 'opacity-100');
         card.classList.add('scale-95', 'opacity-0');
+        document.body.classList.remove('overflow-hidden');
 
         setTimeout(() => {
             modal.classList.add('hidden');
             document.getElementById('lightboxImage').src = '';
         }, 200);
     }
+
+    window.openDetailModal = openDetailModal;
+    window.closeDetailModal = closeDetailModal;
+    window.openLightboxModal = openLightboxModal;
+    window.closeLightboxModal = closeLightboxModal;
+    window.openCustomDateModal = openCustomDateModal;
+    window.closeCustomDateModal = closeCustomDateModal;
+    window.applyCustomDatePreset = applyCustomDatePreset;
+    window.setPeriodePreset = setPeriodePreset;
 
     // Event Listener Tutup Modal Luar & Tombol ESC
     document.getElementById('customDateModal')?.addEventListener('click', function(e) {

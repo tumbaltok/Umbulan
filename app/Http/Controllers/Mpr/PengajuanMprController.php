@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\Mpr\PengajuanMprDetail;
 use App\Models\User\User;
+use App\Jobs\SendWhatsAppNotification;
+use App\Services\ApprovalRoutingService;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -80,6 +82,8 @@ class PengajuanMprController extends Controller
             ->where('status_akhir', 'pending')
             ->count();
 
+        $approvalRoute = app(ApprovalRoutingService::class)->resolveApprovalRoute($user, 'mpr');
+
         return view('mpr.mprcreate', compact(
             'nomorMpr',
             'defaultDepartment',
@@ -87,7 +91,8 @@ class PengajuanMprController extends Controller
             'recentMprs',
             'totalMprUser',
             'mprApprovedCount',
-            'mprPendingCount'
+            'mprPendingCount',
+            'approvalRoute'
         ));
     }
 
@@ -120,48 +125,21 @@ class PengajuanMprController extends Controller
             $namaDokumen = $request->file('dokumen_pendukung')->store('dokumen_mpr', 'public');
         }
 
-        $isTopLevel = $user->isTopLevel();
+        $approvalService = app(ApprovalRoutingService::class);
+        $route = $approvalService->resolveApprovalRoute($user, 'mpr');
 
-        // Cari rule MPR dari seluruh roles yang dimiliki user
-        $mprRules = [];
-        $rules = [];
-        foreach ($user->roles as $r) {
-            if (!empty($r->approval_rules['mpr'])) {
-                $mprRules = $r->approval_rules['mpr'];
-                $rules = $r->approval_rules;
-                break;
-            }
-        }
-        if (empty($mprRules) && $user->role) {
-            $rules = $user->role->approval_rules ?? [];
-            $mprRules = $rules['mpr'] ?? [];
-        }
-
-        $levels = (int) ($mprRules['levels'] ?? ($rules['approval_levels'] ?? 1));
-        $approver1RoleId = $mprRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-        $approver2RoleId = $mprRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-
-        if (empty($approver1RoleId) && $isTopLevel) {
-            // Top Level tanpa approver otomatis approved
-            $statusTahap1 = 'approved';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'approved';
-        } elseif (empty($approver1RoleId)) {
-            // [SEC-04 FIX] Fail-Closed: Tolak jika alur approval belum dikonfigurasi
+        if (!$route['success']) {
             return back()->withErrors([
-                'error' => 'Alur persetujuan (Approver 1) untuk jabatan Anda belum dikonfigurasi oleh Administrator. Pengajuan MPR tidak dapat diproses demi keamanan operasional.'
+                'error' => $route['error'] ?? 'Alur persetujuan (Approver 1) untuk jabatan Anda belum dikonfigurasi oleh Administrator. Pengajuan MPR tidak dapat diproses demi keamanan operasional.'
             ])->withInput();
-        } elseif ($levels === 2 && !empty($approver2RoleId)) {
-            // Alur 2 Step Berjenjang
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'pending';
-            $statusAkhir  = 'pending';
-        } else {
-            // Alur 1 Step
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'pending';
         }
+
+        $levels          = $route['levels'];
+        $approver1RoleId = $route['approver_1_role_id'];
+        $approver2RoleId = $route['approver_2_role_id'];
+        $statusTahap1    = $route['status_tahap_1'];
+        $statusTahap2    = $route['status_tahap_2'];
+        $statusAkhir     = $route['status_akhir'];
 
         DB::beginTransaction();
         try {
@@ -211,14 +189,10 @@ class PengajuanMprController extends Controller
             // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
-                    $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
-                        ->where('id', '!=', $user->id)
-                        ->whereNotNull('phone_verified_at')
-                        ->get();
+                    $approvers = $approvalService->getApproversForStage($user, 'mpr', 1);
 
-                    $waService = app(WhatsAppService::class);
                     foreach ($approvers as $approver) {
-                        $waService->sendNewSubmissionNotification('mpr', $mpr, $approver, 1);
+                        SendWhatsAppNotification::sendNewSubmission('mpr', $mpr, $approver, 1);
                     }
                 } catch (\Exception $waEx) {
                     Log::error('Gagal mengirim notifikasi WA MPR baru: ' . $waEx->getMessage());

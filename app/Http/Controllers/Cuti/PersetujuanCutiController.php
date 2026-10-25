@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\User\User;
+use App\Services\ApprovalRoutingService;
 use App\Services\WhatsAppService;
 use App\Traits\CutiHelperTrait;
 use Illuminate\Http\Request;
@@ -20,55 +21,13 @@ class PersetujuanCutiController extends Controller
     // Menampilkan daftar antrean pengajuan cuti yang memerlukan persetujuan atasan
     public function listAtasanView()
     {
-        /** @var \App\Models\User\User $atasan */
         $atasan = Auth::user();
-        $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
-        if (empty($atasanRoleIds) && !empty($atasan->role_id)) {
-            $atasanRoleIds = [$atasan->role_id];
-        }
+        $approvalService = app(ApprovalRoutingService::class);
 
-        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
-
-        $query = PengajuanCuti::with(['user.roles', 'jenisCuti', 'subCuti'])
+        $query = PengajuanCuti::with(['user.roles', 'user.role', 'jenisCuti', 'subCuti'])
             ->orderBy('created_at', 'desc');
 
-        if ($isAdmin) {
-            // Administrator: Memantau seluruh antrean pengajuan yang masih pending
-            $query->where('status_akhir', 'pending');
-        } else {
-            $query->where(function ($q) use ($atasanRoleIds, $atasan) {
-                // Tahap 1 Pending: Atasan bertindak sebagai Approver Tahap 1
-                $q->where(function ($sub) use ($atasanRoleIds) {
-                    $sub->where('status_tahap_1', 'pending')
-                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
-                                foreach ($atasanRoleIds as $roleId) {
-                                    $jsonQ->orWhere('approval_rules->cuti->approver_1_role_id', $roleId)
-                                          ->orWhere('approval_rules->approver_level_1_role_id', $roleId);
-                                }
-                            });
-                        });
-                })
-                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2 (Anti-Collusion: bukan approver tahap 1)
-                ->orWhere(function ($sub) use ($atasanRoleIds, $atasan) {
-                    $sub->where('status_tahap_1', 'approved')
-                        ->where('status_tahap_2', 'pending')
-                        ->where('status_tahap_2', '!=', 'not_required')
-                        ->where('approver_tahap_1_id', '!=', $atasan->id)
-                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
-                                foreach ($atasanRoleIds as $roleId) {
-                                    $jsonQ->orWhere('approval_rules->cuti->approver_2_role_id', $roleId)
-                                          ->orWhere('approval_rules->approver_level_2_role_id', $roleId);
-                                }
-                            });
-                        });
-                });
-            });
-        }
-
-        // Proteksi pemohon menyetujui pengajuan sendiri
-        $query->where('user_id', '!=', $atasan->id);
+        $query = $approvalService->applyPendingApprovalScope($query, $atasan, 'cuti');
 
         $daftarPengajuan = $query->get();
 
@@ -102,66 +61,13 @@ class PersetujuanCutiController extends Controller
         DB::beginTransaction();
         try {
             // [C-02 FIX] Kunci baris pengajuan cuti (lockForUpdate) untuk mencegah double-approval
-            $pengajuan = PengajuanCuti::with(['user.roles'])->lockForUpdate()->findOrFail($id);
+            $pengajuan = PengajuanCuti::lockForUpdate()->findOrFail($id);
+            $approvalService = app(ApprovalRoutingService::class);
+            $authCheck = $approvalService->isUserAuthorizedToApprove($atasan, $pengajuan, 'cuti');
 
-            // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
-            if ((int)$pengajuan->user_id === (int)$atasan->id) {
+            if (!$authCheck['authorized']) {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
-            }
-
-            // [RE-03 FIX] Proteksi Anti-Collusion: Cegah Approver Tahap 1 memproses persetujuan/penolakan Tahap 2
-            if ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending') {
-                if ((int)$pengajuan->approver_tahap_1_id === (int)$atasan->id) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Anda telah memproses Tahap 1 dan tidak dapat memproses Tahap 2 pada pengajuan yang sama (Anti-Collusion Protection)!');
-                }
-            }
-
-            // Cek apakah status sudah bukan pending
-            if ($pengajuan->status_akhir !== 'pending') {
-                DB::rollBack();
-                return redirect()->back()->with('error', 'Pengajuan ini sudah pernah diproses sebelumnya.');
-            }
-
-            // [M-04 FIX] Validasi Wewenang Approver: Pastikan approver memiliki role yang sesuai aturan dinamis
-            if (!$isAdmin) {
-                $isTahap1 = ($pengajuan->status_tahap_1 === 'pending');
-                $isTahap2 = ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending');
-
-                $submitter = $pengajuan->user;
-                $requiredRoleId = null;
-
-                $cutiRules = [];
-                $rules = [];
-                foreach ($submitter->roles as $r) {
-                    if (!empty($r->approval_rules['cuti'])) {
-                        $cutiRules = $r->approval_rules['cuti'];
-                        $rules = $r->approval_rules;
-                        break;
-                    }
-                }
-                if (empty($cutiRules) && $submitter->role) {
-                    $rules = $submitter->role->approval_rules ?? [];
-                    $cutiRules = $rules['cuti'] ?? [];
-                }
-
-                if ($isTahap1) {
-                    $requiredRoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-                } elseif ($isTahap2) {
-                    $requiredRoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-                }
-
-                // [SEC-05 FIX] Fail-Closed Authorization: Wajib terdefinisi dan cocok dengan role atasan
-                if (empty($requiredRoleId)) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Aturan wewenang persetujuan untuk pengajuan ini belum dikonfigurasi dalam sistem.');
-                }
-
-                if (!in_array((int)$requiredRoleId, $atasanRoleIds)) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak memiliki wewenang jabatan untuk memproses persetujuan tahap ini.');
-                }
+                return redirect()->back()->with('error', $authCheck['reason']);
             }
             // 1. PENOLAKAN PENGAJUAN (REJECT - FIRST TO ACT)
             if ($tindakan === 'rejected') {
@@ -177,6 +83,13 @@ class PersetujuanCutiController extends Controller
                 ]);
 
                 DB::commit();
+
+                // Notifikasi WhatsApp status ditolak ke pemohon
+                try {
+                    SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'rejected', $request->catatan_penolakan);
+                } catch (\Throwable $e) {
+                    Log::error('Gagal kirim notifikasi penolakan cuti ke pemohon: ' . $e->getMessage());
+                }
 
                 return redirect()->back()->with('success', 'Pengajuan cuti telah ditolak.');
             }
@@ -205,32 +118,19 @@ class PersetujuanCutiController extends Controller
                 // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
                 if (!$isSingleLevel) {
                     try {
-                        $submitter = $pengajuan->user;
-                        $cutiRules = [];
-                        $rules = [];
-                        foreach ($submitter->roles as $r) {
-                            if (!empty($r->approval_rules['cuti'])) {
-                                $cutiRules = $r->approval_rules['cuti'];
-                                $rules = $r->approval_rules;
-                                break;
-                            }
-                        }
-                        if (empty($cutiRules) && $submitter->role) {
-                            $rules = $submitter->role->approval_rules ?? [];
-                            $cutiRules = $rules['cuti'] ?? [];
-                        }
-                        $approver2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-                        if ($approver2RoleId) {
-                            $step2Approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver2RoleId))
-                                ->where('id', '!=', $submitter->id)
-                                ->whereNotNull('phone_verified_at')
-                                ->get();
-                            foreach ($step2Approvers as $app2) {
-                                SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $app2, 2);
-                            }
+                        $step2Approvers = $approvalService->getApproversForStage($pengajuan->user, 'cuti', 2);
+                        foreach ($step2Approvers as $app2) {
+                            SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $app2, 2);
                         }
                     } catch (\Exception $e) {
                         Log::error('Gagal kirim WA persetujuan tahap 2 cuti: ' . $e->getMessage());
+                    }
+                } else {
+                    // Alur 1-Step langsung Final: Kirim notifikasi disetujui ke pemohon
+                    try {
+                        SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
+                    } catch (\Throwable $e) {
+                        Log::error('Gagal kirim notifikasi cuti disetujui ke pemohon: ' . $e->getMessage());
                     }
                 }
 
@@ -250,6 +150,13 @@ class PersetujuanCutiController extends Controller
                 $this->sinkronisasiCutiDanAbsen($pengajuan);
 
                 DB::commit();
+
+                // Notifikasi WhatsApp disetujui (Final) ke pemohon
+                try {
+                    SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
+                } catch (\Throwable $e) {
+                    Log::error('Gagal kirim notifikasi cuti disetujui tahap 2 ke pemohon: ' . $e->getMessage());
+                }
 
                 return redirect()->back()->with('success', 'Persetujuan Cuti Tahap 2 (Final) berhasil diproses.');
             }

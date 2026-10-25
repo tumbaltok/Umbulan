@@ -318,5 +318,63 @@ class WhatsAppService
 
         return $this->sendMessage($user->phone_number, $message);
     }
+
+    // Mengirim notifikasi status hasil persetujuan (Approved / Rejected) ke nomor WhatsApp pemohon
+    public function sendApprovalStatusNotification(string $type, $pengajuan, string $status, ?string $catatan = null): array
+    {
+        $pemohon = $pengajuan->user;
+        if (!$pemohon || empty($pemohon->phone_number)) {
+            return [
+                'success' => false,
+                'message' => "Pemohon belum memiliki nomor WhatsApp terdaftar.",
+            ];
+        }
+
+        $typeUpper = strtoupper($type);
+        $isApproved = ($status === 'approved');
+        $statusEmoji = $isApproved ? '✅' : '❌';
+        $statusLabel = $isApproved ? 'DISETUJUI (APPROVED)' : 'DITOLAK (REJECTED)';
+        $tanggalKeputusan = Carbon::now()->translatedFormat('d F Y H:i');
+
+        $detailText = '';
+        $riwayatUrl = url('/dashboard');
+
+        if ($type === 'cuti') {
+            $perihal = $pengajuan->sub_cuti_id && $pengajuan->subCuti 
+                ? $pengajuan->subCuti->nama_sub_cuti 
+                : ($pengajuan->jenisCuti->name_cuti ?? 'Cuti/Izin');
+            $detailText = "▪ *Jenis:* {$perihal}\n"
+                . "▪ *Rentang:* {$pengajuan->tanggal_mulai} s/d {$pengajuan->tanggal_selesai} ({$pengajuan->total_hari} Hari)\n";
+            $riwayatUrl = route('cuti.riwayat');
+        } elseif ($type === 'car') {
+            $nomorCar = $pengajuan->nomor_car ?? '-';
+            $totalEst = 'Rp ' . number_format($pengajuan->details?->sum('total_harga') ?? 0, 0, ',', '.');
+            $detailText = "▪ *Nomor CAR:* {$nomorCar}\n"
+                . "▪ *Total Nominal:* {$totalEst}\n";
+            $riwayatUrl = route('car.riwayat');
+        } elseif ($type === 'mpr') {
+            $detailText = "▪ *Nomor MPR:* {$pengajuan->nomor_mpr}\n"
+                . "▪ *Keperluan:* " . ($pengajuan->keperluan_urgensi ?: '-') . "\n";
+            $riwayatUrl = route('mpr.riwayat');
+        }
+
+        $catatanText = '';
+        if (!$isApproved && !empty($catatan)) {
+            $catatanText = "▪ *Alasan Penolakan:* _{$catatan}_\n";
+        }
+
+        $message = "{$statusEmoji} *UPDATE STATUS PENGAJUAN {$typeUpper} - {$statusLabel}*\n\n"
+            . "Halo *{$pemohon->name}*,\n"
+            . "Pengajuan {$typeUpper} Anda telah selesai diproses dengan status: *{$statusLabel}*.\n\n"
+            . "{$detailText}"
+            . "▪ *Waktu Pembaruan:* {$tanggalKeputusan} WIB\n"
+            . "{$catatanText}\n"
+            . "Silakan periksa detail status pada riwayat pengajuan Anda:\n"
+            . "🔗 {$riwayatUrl}\n\n"
+            . "_Pesan notifikasi otomatis Sistem ERP META Adhya Tirta Umbulan._";
+
+        return $this->sendMessage($pemohon->phone_number, $message);
+    }
 }
+
 

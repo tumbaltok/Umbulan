@@ -500,10 +500,10 @@
 {{-- ========================================================================= --}}
 {{--                  MODAL DETAIL MULTI-ITEM CAR LENGKAP                     --}}
 {{-- ========================================================================= --}}
-<div id="modalDetailCar" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDetailCarModal()"></div>
+<div id="modalDetailCar" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeDetailCarModal()"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative z-10 transform transition-all m-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
         {{-- Modal Header --}}
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-2.5">
@@ -615,9 +615,9 @@
 </div>
 
 {{-- MODAL CUSTOM DATE RANGE --}}
-<div id="customDateModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomDateModal()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 m-auto border border-slate-100 dark:border-slate-700">
+<div id="customDateModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeCustomDateModal()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 my-auto border border-slate-100 dark:border-slate-700">
         <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">Pilih Rentang Tanggal</h3>
         <p class="text-xs text-slate-400 mb-4">Tentukan periode tanggal pengajuan CAR yang ingin ditinjau.</p>
         <div class="space-y-3">
@@ -736,6 +736,11 @@
 
     // MODAL CUSTOM DATE
     function openCustomDateModal() {
+        const modal = document.getElementById('customDateModal');
+        if (!modal) return;
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
         const startVal = document.getElementById('startDateInput')?.value || '';
         const endVal = document.getElementById('endDateInput')?.value || '';
         if (startVal && document.getElementById('modalStartDate')) {
@@ -744,15 +749,17 @@
         if (endVal && document.getElementById('modalEndDate')) {
             document.getElementById('modalEndDate').value = endVal;
         }
-        const modal = document.getElementById('customDateModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
     }
 
     function closeCustomDateModal() {
         const modal = document.getElementById('customDateModal');
+        if (!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
     }
 
     function applyCustomDate() {
@@ -909,15 +916,29 @@
         }
 
         const modal = document.getElementById('modalDetailCar');
+        if (!modal) return;
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
     }
 
     function closeDetailCarModal() {
         const modal = document.getElementById('modalDetailCar');
+        if (!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
     }
+
+    window.openDetailCarModal = openDetailCarModal;
+    window.closeDetailCarModal = closeDetailCarModal;
+    window.openCustomDateModal = openCustomDateModal;
+    window.closeCustomDateModal = closeCustomDateModal;
+    window.applyCustomDate = applyCustomDate;
+    window.exportCsvCar = exportCsvCar;
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {

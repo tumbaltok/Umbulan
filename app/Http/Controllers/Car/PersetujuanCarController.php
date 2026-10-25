@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendWhatsAppNotification;
 use App\Models\Car\PengajuanCar;
 use App\Models\User\User;
+use App\Services\ApprovalRoutingService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,53 +19,12 @@ class PersetujuanCarController extends Controller
     public function listPengajuan()
     {
         $atasan = Auth::user();
-        $atasanRoleIds = $atasan->roles->pluck('id')->toArray();
-        if (empty($atasanRoleIds) && !empty($atasan->role_id)) {
-            $atasanRoleIds = [$atasan->role_id];
-        }
+        $approvalService = app(ApprovalRoutingService::class);
 
-        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('ADMIN');
-
-        $query = PengajuanCar::with(['user.roles', 'details'])
+        $query = PengajuanCar::with(['user.roles', 'user.role', 'details'])
             ->orderBy('created_at', 'desc');
 
-        if ($isAdmin) {
-            // Admin Sistem: Akses memantau seluruh antrean CAR yang pending
-            $query->where('status_akhir', 'pending');
-        } else {
-            $query->where(function ($q) use ($atasanRoleIds, $atasan) {
-                // Tahap 1 Pending: Atasan bertindak sebagai Approver Tahap 1
-                $q->where(function ($sub) use ($atasanRoleIds) {
-                    $sub->where('status_tahap_1', 'pending')
-                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
-                                foreach ($atasanRoleIds as $roleId) {
-                                    $jsonQ->orWhere('approval_rules->car->approver_1_role_id', $roleId)
-                                          ->orWhere('approval_rules->approver_level_1_role_id', $roleId);
-                                }
-                            });
-                        });
-                })
-                // Tahap 2 Pending: Tahap 1 telah disetujui dan Atasan bertindak sebagai Approver Tahap 2 (Anti-Collusion: bukan approver tahap 1)
-                ->orWhere(function ($sub) use ($atasanRoleIds, $atasan) {
-                    $sub->where('status_tahap_1', 'approved')
-                        ->where('status_tahap_2', 'pending')
-                        ->where('status_tahap_2', '!=', 'not_required')
-                        ->where('approver_tahap_1_id', '!=', $atasan->id)
-                        ->whereHas('user.roles', function ($rq) use ($atasanRoleIds) {
-                            $rq->where(function ($jsonQ) use ($atasanRoleIds) {
-                                foreach ($atasanRoleIds as $roleId) {
-                                    $jsonQ->orWhere('approval_rules->car->approver_2_role_id', $roleId)
-                                          ->orWhere('approval_rules->approver_level_2_role_id', $roleId);
-                                }
-                            });
-                        });
-                });
-            });
-        }
-
-        // Proteksi pemohon menyetujui pengajuan sendiri
-        $query->where('user_id', '!=', $atasan->id);
+        $query = $approvalService->applyPendingApprovalScope($query, $atasan, 'car');
 
         $daftarPengajuan = $query->get();
 
@@ -93,66 +53,13 @@ class PersetujuanCarController extends Controller
 
         DB::beginTransaction();
         try {
-            $pengajuan = PengajuanCar::with(['user.roles'])->lockForUpdate()->findOrFail($id);
+            $pengajuan = PengajuanCar::lockForUpdate()->findOrFail($id);
+            $approvalService = app(ApprovalRoutingService::class);
+            $authCheck = $approvalService->isUserAuthorizedToApprove($atasan, $pengajuan, 'car');
 
-            // Proteksi Self-Approval: Cegah pemohon menyetujui pengajuannya sendiri
-            if ((int)$pengajuan->user_id === (int)$atasan->id) {
+            if (!$authCheck['authorized']) {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak dapat memproses persetujuan pengajuan Anda sendiri (Self-Approval Protection)!');
-            }
-
-            // [RE-03 FIX] Proteksi Anti-Collusion: Cegah Approver Tahap 1 memproses persetujuan/penolakan Tahap 2
-            if ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending') {
-                if ((int)$pengajuan->approver_tahap_1_id === (int)$atasan->id) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Anda telah memproses Tahap 1 dan tidak dapat memproses Tahap 2 pada pengajuan yang sama (Anti-Collusion Protection)!');
-                }
-            }
-
-            // Cek apakah status sudah bukan pending
-            if ($pengajuan->status_akhir !== 'pending') {
-                DB::rollBack();
-                return redirect()->back()->with('error', 'Pengajuan CAR ini sudah pernah diproses sebelumnya.');
-            }
-
-            // [M-04 FIX] Validasi Wewenang Approver: Pastikan approver memiliki role yang sesuai aturan dinamis CAR
-            if (!$isAdmin) {
-                $isTahap1 = ($pengajuan->status_tahap_1 === 'pending');
-                $isTahap2 = ($pengajuan->status_tahap_1 === 'approved' && $pengajuan->status_tahap_2 === 'pending');
-
-                $submitter = $pengajuan->user;
-                $requiredRoleId = null;
-
-                $carRules = [];
-                $rules = [];
-                foreach ($submitter->roles as $r) {
-                    if (!empty($r->approval_rules['car'])) {
-                        $carRules = $r->approval_rules['car'];
-                        $rules = $r->approval_rules;
-                        break;
-                    }
-                }
-                if (empty($carRules) && $submitter->role) {
-                    $rules = $submitter->role->approval_rules ?? [];
-                    $carRules = $rules['car'] ?? [];
-                }
-
-                if ($isTahap1) {
-                    $requiredRoleId = $carRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-                } elseif ($isTahap2) {
-                    $requiredRoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-                }
-
-                // [SEC-05 FIX] Fail-Closed Authorization: Wajib terdefinisi dan cocok dengan role atasan
-                if (empty($requiredRoleId)) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Aturan wewenang persetujuan CAR untuk pengajuan ini belum dikonfigurasi dalam sistem.');
-                }
-
-                if (!in_array((int)$requiredRoleId, $atasanRoleIds)) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Aksi ditolak: Anda tidak memiliki wewenang jabatan untuk memproses persetujuan CAR tahap ini.');
-                }
+                return redirect()->back()->with('error', $authCheck['reason']);
             }
             // 1. PENOLAKAN PENGAJUAN (REJECT - FIRST TO ACT)
             if ($tindakan === 'rejected') {
@@ -168,6 +75,13 @@ class PersetujuanCarController extends Controller
                 ]);
 
                 DB::commit();
+
+                // Notifikasi WhatsApp status ditolak ke pemohon
+                try {
+                    SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'rejected', $request->catatan_penolakan);
+                } catch (\Throwable $e) {
+                    Log::error('Gagal kirim notifikasi penolakan CAR ke pemohon: ' . $e->getMessage());
+                }
 
                 return redirect()->back()->with('success', 'Pengajuan CAR berhasil ditolak.');
             }
@@ -192,32 +106,19 @@ class PersetujuanCarController extends Controller
                 // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
                 if (!$isSingleLevel) {
                     try {
-                        $submitter = $pengajuan->user;
-                        $carRules = [];
-                        $rules = [];
-                        foreach ($submitter->roles as $r) {
-                            if (!empty($r->approval_rules['car'])) {
-                                $carRules = $r->approval_rules['car'];
-                                $rules = $r->approval_rules;
-                                break;
-                            }
-                        }
-                        if (empty($carRules) && $submitter->role) {
-                            $rules = $submitter->role->approval_rules ?? [];
-                            $carRules = $rules['car'] ?? [];
-                        }
-                        $approver2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-                        if ($approver2RoleId) {
-                            $step2Approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver2RoleId))
-                                ->where('id', '!=', $submitter->id)
-                                ->whereNotNull('phone_verified_at')
-                                ->get();
-                            foreach ($step2Approvers as $app2) {
-                                SendWhatsAppNotification::sendNewSubmission('car', $pengajuan, $app2, 2);
-                            }
+                        $step2Approvers = $approvalService->getApproversForStage($pengajuan->user, 'car', 2);
+                        foreach ($step2Approvers as $app2) {
+                            SendWhatsAppNotification::sendNewSubmission('car', $pengajuan, $app2, 2);
                         }
                     } catch (\Exception $e) {
                         Log::error('Gagal kirim WA persetujuan tahap 2 CAR: ' . $e->getMessage());
+                    }
+                } else {
+                    // Alur 1-Step langsung Final: Kirim notifikasi disetujui ke pemohon
+                    try {
+                        SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'approved');
+                    } catch (\Throwable $e) {
+                        Log::error('Gagal kirim notifikasi CAR disetujui ke pemohon: ' . $e->getMessage());
                     }
                 }
 
@@ -235,6 +136,13 @@ class PersetujuanCarController extends Controller
                 ]);
 
                 DB::commit();
+
+                // Notifikasi WhatsApp disetujui (Final) ke pemohon
+                try {
+                    SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'approved');
+                } catch (\Throwable $e) {
+                    Log::error('Gagal kirim notifikasi CAR disetujui tahap 2 ke pemohon: ' . $e->getMessage());
+                }
 
                 return redirect()->back()->with('success', 'Persetujuan CAR Tahap 2 (Final) berhasil diproses.');
             }

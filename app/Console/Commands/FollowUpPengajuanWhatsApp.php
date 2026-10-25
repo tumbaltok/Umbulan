@@ -6,6 +6,7 @@ use App\Models\Car\PengajuanCar;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\User;
+use App\Services\ApprovalRoutingService;
 use App\Services\ScheduleService;
 use App\Services\WhatsAppService;
 use Carbon\Carbon;
@@ -22,12 +23,14 @@ class FollowUpPengajuanWhatsApp extends Command
 
     protected ScheduleService $scheduleService;
     protected WhatsAppService $whatsAppService;
+    protected ApprovalRoutingService $routingService;
 
-    public function __construct(ScheduleService $scheduleService, WhatsAppService $whatsAppService)
+    public function __construct(ScheduleService $scheduleService, WhatsAppService $whatsAppService, ApprovalRoutingService $routingService)
     {
         parent::__construct();
         $this->scheduleService = $scheduleService;
         $this->whatsAppService = $whatsAppService;
+        $this->routingService = $routingService;
     }
 
     // Eksekusi pemindaian antrean dan pengiriman pengingat WhatsApp
@@ -124,37 +127,9 @@ class FollowUpPengajuanWhatsApp extends Command
             return ['sent' => 0, 'postponed' => 0];
         }
 
-        // Ambil aturan persetujuan dari role pemohon
-        $typeRules = [];
-        $generalRules = [];
-        foreach ($submitter->roles as $r) {
-            if (!empty($r->approval_rules[$type])) {
-                $typeRules = $r->approval_rules[$type];
-                $generalRules = $r->approval_rules;
-                break;
-            }
-        }
-        if (empty($typeRules) && $submitter->role) {
-            $generalRules = $submitter->role->approval_rules ?? [];
-            $typeRules = $generalRules[$type] ?? [];
-        }
-
-        $targetRoleId = null;
-        if ($targetStage === 1) {
-            $targetRoleId = $typeRules['approver_1_role_id'] ?? ($generalRules['approver_level_1_role_id'] ?? null);
-        } elseif ($targetStage === 2) {
-            $targetRoleId = $typeRules['approver_2_role_id'] ?? ($generalRules['approver_level_2_role_id'] ?? null);
-        }
-
-        if (!$targetRoleId) {
-            return ['sent' => 0, 'postponed' => 0];
-        }
-
-        // Cari atasan yang memegang role tersebut dan memiliki nomor telepon terverifikasi
-        $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $targetRoleId))
-            ->where('id', '!=', $submitter->id)
-            ->whereNotNull('phone_verified_at')
-            ->get();
+        // Dapatkan daftar approver sah menggunakan ApprovalRoutingService (mendukung aturan modul & fallback atasan langsung)
+        $approvers = $this->routingService->getApproversForStage($submitter, $type, $targetStage)
+            ->filter(fn ($u) => !empty($u->phone_verified_at) && !empty($u->phone_number));
 
         if ($approvers->isEmpty()) {
             return ['sent' => 0, 'postponed' => 0];

@@ -10,17 +10,59 @@ use App\Models\Cuti\PengajuanCuti;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\User;
 use App\Traits\CutiHelperTrait;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Models\User\Station;
+use App\Models\User\Gender;
+use App\Models\User\Role;
+use App\Models\Cuti\JenisCuti;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class AntiFraudSecurityTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseMigrations;
+
+    protected User $user1;
+    protected User $user2;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $station = Station::firstOrCreate(['name' => 'Kantor Surabaya'], ['kode_stasiun' => 'SBY', 'type' => 'kantor']);
+        $gender = Gender::firstOrCreate(['name' => 'Laki-laki']);
+        $role = Role::firstOrCreate(['role_name' => 'OPERASIONAL']);
+
+        $this->user1 = User::firstOrCreate(
+            ['email' => 'user1@test.com'],
+            [
+                'name' => 'User One',
+                'password' => bcrypt('password'),
+                'level' => 2,
+                'role_id' => $role->id,
+                'station_id' => $station->id,
+                'gender_id' => $gender->id,
+            ]
+        );
+
+        $this->user2 = User::firstOrCreate(
+            ['email' => 'user2@test.com'],
+            [
+                'name' => 'User Two',
+                'password' => bcrypt('password'),
+                'level' => 2,
+                'role_id' => $role->id,
+                'station_id' => $station->id,
+                'gender_id' => $gender->id,
+            ]
+        );
+
+        JenisCuti::firstOrCreate(['id' => 1], ['nama' => 'Cuti Tahunan', 'potong_saldo' => 1]);
+    }
 
     public function test_mpr_rejection_requires_notes()
     {
-        $approver = User::where('level', 2)->first();
+        $approver = $this->user1;
         $this->actingAs($approver);
 
         $controller = app(PersetujuanMprController::class);
@@ -38,8 +80,8 @@ class AntiFraudSecurityTest extends TestCase
 
     public function test_anti_collusion_blocks_approver_tahap_1_from_approving_tahap_2_cuti()
     {
-        $pemohon = User::where('level', 2)->first();
-        $approver = User::where('level', 2)->where('id', '!=', $pemohon->id)->first();
+        $pemohon = $this->user1;
+        $approver = $this->user2;
 
         $pengajuan = PengajuanCuti::create([
             'user_id' => $pemohon->id,
@@ -69,8 +111,8 @@ class AntiFraudSecurityTest extends TestCase
 
     public function test_anti_collusion_blocks_approver_tahap_1_from_approving_tahap_2_car()
     {
-        $pemohon = User::where('level', 2)->first();
-        $approver = User::where('level', 2)->where('id', '!=', $pemohon->id)->first();
+        $pemohon = $this->user1;
+        $approver = $this->user2;
 
         $pengajuan = PengajuanCar::create([
             'user_id' => $pemohon->id,
@@ -99,8 +141,8 @@ class AntiFraudSecurityTest extends TestCase
 
     public function test_anti_collusion_blocks_approver_tahap_1_from_approving_tahap_2_mpr()
     {
-        $pemohon = User::where('level', 2)->first();
-        $approver = User::where('level', 2)->where('id', '!=', $pemohon->id)->first();
+        $pemohon = $this->user1;
+        $approver = $this->user2;
 
         $pengajuan = PengajuanMpr::create([
             'user_id' => $pemohon->id,
@@ -131,7 +173,7 @@ class AntiFraudSecurityTest extends TestCase
         $consumer = new DummyCutiConsumerHelper();
 
         $pengajuan = new PengajuanCuti();
-        $pengajuan->user_id = 1;
+        $pengajuan->user_id = $this->user1->id;
         $pengajuan->jenis_cuti_id = 1;
         $pengajuan->tanggal_mulai = now()->format('Y-m-d');
         $pengajuan->tanggal_selesai = now()->format('Y-m-d');

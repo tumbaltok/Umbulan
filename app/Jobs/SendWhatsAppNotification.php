@@ -18,8 +18,8 @@ class SendWhatsAppNotification implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 10;
 
-    protected string $type;
-    protected array $payload;
+    public string $type;
+    public array $payload;
 
     /**
      * Create a new job instance.
@@ -68,6 +68,19 @@ class SendWhatsAppNotification implements ShouldQueue
     }
 
     /**
+     * Helper untuk antrean notifikasi status hasil persetujuan (Approved / Rejected) ke pemohon
+     */
+    public static function sendStatusUpdate(string $module, $pengajuan, string $status, ?string $catatan = null): void
+    {
+        self::dispatch('status_update', [
+            'module'    => $module,
+            'pengajuan' => $pengajuan,
+            'status'    => $status,
+            'catatan'   => $catatan,
+        ]);
+    }
+
+    /**
      * Eksekusi job asynchronous pengiriman WhatsApp
      */
     public function handle(WhatsAppService $waService): void
@@ -88,6 +101,13 @@ class SendWhatsAppNotification implements ShouldQueue
                     $this->payload['pengajuan'],
                     $this->payload['approver'],
                     $this->payload['tahap'] ?? 1
+                );
+            } elseif ($this->type === 'status_update') {
+                $waService->sendApprovalStatusNotification(
+                    $this->payload['module'],
+                    $this->payload['pengajuan'],
+                    $this->payload['status'],
+                    $this->payload['catatan'] ?? null
                 );
             }
         } catch (\Throwable $e) {

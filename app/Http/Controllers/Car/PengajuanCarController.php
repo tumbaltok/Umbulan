@@ -7,6 +7,8 @@ use App\Models\Car\PengajuanCar;
 use App\Models\Car\PengajuanCarDetail;
 use App\Models\User\Station;
 use App\Models\User\User;
+use App\Jobs\SendWhatsAppNotification;
+use App\Services\ApprovalRoutingService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,13 +72,16 @@ class PengajuanCarController extends Controller
             ->where('status_akhir', 'pending')
             ->count();
 
+        $approvalRoute = app(ApprovalRoutingService::class)->resolveApprovalRoute($user, 'car');
+
         return view('car.carcreate', compact(
             'nomorCar',
             'daftarStasiun',
             'recentCars',
             'totalCarUser',
             'carApprovedCount',
-            'carPendingCount'
+            'carPendingCount',
+            'approvalRoute'
         ));
     }
 
@@ -103,45 +108,21 @@ class PengajuanCarController extends Controller
             'items.*.dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $isTopLevel = $user->isTopLevel();
+        $approvalService = app(ApprovalRoutingService::class);
+        $route = $approvalService->resolveApprovalRoute($user, 'car');
 
-        // Cari rule CAR dari seluruh roles yang dimiliki user
-        $carRules = [];
-        $rules = [];
-        foreach ($user->roles as $r) {
-            if (!empty($r->approval_rules['car'])) {
-                $carRules = $r->approval_rules['car'];
-                $rules = $r->approval_rules;
-                break;
-            }
-        }
-        if (empty($carRules) && $user->role) {
-            $rules = $user->role->approval_rules ?? [];
-            $carRules = $rules['car'] ?? [];
-        }
-
-        $levels = (int) ($carRules['levels'] ?? ($rules['approval_levels'] ?? 1));
-        $approver1RoleId = $carRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-        $approver2RoleId = $carRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-
-        if (empty($approver1RoleId) && $isTopLevel) {
-            $statusTahap1 = 'approved';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'approved';
-        } elseif (empty($approver1RoleId)) {
-            // [SEC-04 FIX] Fail-Closed: Tolak jika alur approval belum dikonfigurasi
+        if (!$route['success']) {
             return back()->withErrors([
-                'error' => 'Alur persetujuan (Approver 1) untuk jabatan Anda belum dikonfigurasi oleh Administrator. Pengajuan CAR tidak dapat diproses demi keamanan finansial.'
+                'error' => $route['error'] ?? 'Alur persetujuan (Approver 1) untuk jabatan Anda belum dikonfigurasi oleh Administrator. Pengajuan CAR tidak dapat diproses demi keamanan finansial.'
             ])->withInput();
-        } elseif ($levels === 2 && !empty($approver2RoleId)) {
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'pending';
-            $statusAkhir  = 'pending';
-        } else {
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'pending';
         }
+
+        $levels          = $route['levels'];
+        $approver1RoleId = $route['approver_1_role_id'];
+        $approver2RoleId = $route['approver_2_role_id'];
+        $statusTahap1    = $route['status_tahap_1'];
+        $statusTahap2    = $route['status_tahap_2'];
+        $statusAkhir     = $route['status_akhir'];
 
         DB::beginTransaction();
         try {
@@ -199,14 +180,10 @@ class PengajuanCarController extends Controller
             // Kirim notifikasi WhatsApp ke Atasan
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
-                    $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
-                        ->where('id', '!=', $user->id)
-                        ->whereNotNull('phone_verified_at')
-                        ->get();
+                    $approvers = $approvalService->getApproversForStage($user, 'car', 1);
 
-                    $waService = app(WhatsAppService::class);
                     foreach ($approvers as $approver) {
-                        $waService->sendNewSubmissionNotification('car', $carHeader, $approver, 1);
+                        SendWhatsAppNotification::sendNewSubmission('car', $carHeader, $approver, 1);
                     }
                 } catch (\Exception $waEx) {
                     Log::error('Gagal mengirim notifikasi WA CAR baru: ' . $waEx->getMessage());

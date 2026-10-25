@@ -293,26 +293,28 @@
         </div>
     </div>
 </div>
+@endsection
 
-{{-- MODAL 1: DETAILED INFORMATION POPUP --}}
-<div id="detailCutiModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
-    <div id="cutiModalBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+@push('modals')
+{{-- MODAL 1: DETAILED INFORMATION POPUP (PUSAT VIEWPORT SEMPURNA & AMAN DARI SCROLLBAR) --}}
+<div id="detailCutiModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="cutiModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeDetailCutiModal()" aria-hidden="true"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 relative z-10 transform transition-all max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
+    <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg p-6 z-10 transform transition-all max-h-[90vh] overflow-y-auto border border-slate-200/90 dark:border-slate-800 my-auto animate-in fade-in zoom-in-95 duration-200">
         {{-- Modal Header --}}
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700/80">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-500/30 flex items-center justify-center">
-                    <i class="fa-solid fa-file-invoice text-base text-sky-600 dark:text-sky-400"></i>
+                <div class="w-10 h-10 rounded-2xl bg-sky-600 dark:bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-600/25 shrink-0">
+                    <i class="fa-solid fa-file-invoice text-base text-white"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">
+                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base">
                         Detail Pengajuan Cuti
                     </h3>
                     <p class="text-xs text-slate-400 dark:text-slate-500">Rincian parameter permohonan & status persetujuan</p>
                 </div>
             </div>
-            <button type="button" id="closeCutiModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors cursor-pointer">
+            <button type="button" onclick="closeDetailCutiModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -325,7 +327,7 @@
 
         {{-- Modal Content Area --}}
         <div id="cutiModalContent" class="hidden space-y-4 pt-4">
-            <div class="bg-gradient-to-r from-sky-50/70 to-slate-50/70 dark:from-slate-900/60 dark:to-slate-900/40 p-4 rounded-2xl border border-sky-100/80 dark:border-slate-700 grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-gradient-to-r from-sky-50/70 to-slate-50/70 dark:from-slate-800/60 dark:to-slate-800/40 p-4 rounded-2xl border border-sky-100/80 dark:border-slate-700 grid grid-cols-2 gap-3 text-sm">
                 <div>
                     <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-bold uppercase tracking-wider">Kategori Utama</span>
                     <span id="txt_jenis_cuti" class="font-black text-slate-800 dark:text-slate-100 mt-1 block">-</span>
@@ -372,14 +374,14 @@
         </div>
 
         {{-- Modal Footer --}}
-        <div class="flex items-center mt-6 justify-end border-t border-slate-100 dark:border-slate-700/80 pt-4">
-            <button type="button" id="closeCutiModalBtn2" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+        <div class="flex items-center mt-6 justify-end border-t border-slate-100 dark:border-slate-800 pt-4">
+            <button type="button" onclick="closeDetailCutiModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer">
                 Tutup
             </button>
         </div>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script>
@@ -395,13 +397,9 @@
         applyCutiFilters();
     }
 
-    const searchInputCuti = document.getElementById('liveSearchCuti');
-    if (searchInputCuti) {
-        searchInputCuti.addEventListener('input', applyCutiFilters);
-    }
-
     function applyCutiFilters() {
-        const query = (document.getElementById('liveSearchCuti')?.value || '').toLowerCase().trim();
+        const searchInput = document.getElementById('liveSearchCuti');
+        const query = (searchInput?.value || '').toLowerCase().trim();
         const activeChip = document.querySelector('.chip-filter.active');
         const selectedStatus = activeChip ? activeChip.getAttribute('data-status') : 'all';
 
@@ -434,92 +432,137 @@
         }
     }
 
-
-    // Modal Detail Cuti
-    document.addEventListener("DOMContentLoaded", function () {
+    // Modal Detail Cuti Handlers (Center Viewport & Turbo Resilient)
+    window.openDetailCutiModal = function(cutiId) {
         const modal = document.getElementById("detailCutiModal");
-        const backdrop = document.getElementById("cutiModalBackdrop");
-        const closeBtn = document.getElementById("closeCutiModalBtn");
-        const closeBtn2 = document.getElementById("closeCutiModalBtn2");
-
         const loadingSection = document.getElementById("cutiModalLoading");
         const contentSection = document.getElementById("cutiModalContent");
+        if (!modal) return;
 
-        function openModal() {
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-            document.body.classList.add("overflow-hidden");
+        // Jamin berada di root document.body agar posisi fixed 100% tepat di tengah viewport
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
         }
 
-        function closeModal() {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+
+        if (loadingSection) loadingSection.classList.remove("hidden");
+        if (contentSection) contentSection.classList.add("hidden");
+
+        fetch(`/cuti/riwayat/${cutiId}/detail`)
+            .then(response => {
+                if (!response.ok) throw new Error("Jaringan bermasalah");
+                return response.json();
+            })
+            .then(data => {
+                if (loadingSection) loadingSection.classList.add("hidden");
+                if (contentSection) contentSection.classList.remove("hidden");
+
+                const txtJenis = document.getElementById("txt_jenis_cuti");
+                const txtSub = document.getElementById("txt_sub_cuti");
+                const txtRentang = document.getElementById("txt_rentang_tanggal");
+                const txtHari = document.getElementById("txt_total_hari");
+                const txtAlasan = document.getElementById("txt_alasan_cuti");
+
+                if (txtJenis) txtJenis.innerText = data.name_cuti || '-';
+                if (txtSub) txtSub.innerText = data.nama_sub_cuti || '-';
+                if (txtRentang) txtRentang.innerText = `${data.tanggal_mulai_formatted} s/d ${data.tanggal_selesai_formatted}`;
+                if (txtHari) txtHari.innerText = `${data.total_hari} Hari`;
+                if (txtAlasan) txtAlasan.innerText = data.alasan_cuti || '-';
+
+                const wrapperStatus = document.getElementById("wrapper_status");
+                if (wrapperStatus) {
+                    if (data.status_akhir === 'approved') {
+                        wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Disetujui</span>`;
+                    } else if (data.status_akhir === 'rejected' || data.status_tahap_1 === 'rejected' || data.status_tahap_2 === 'rejected') {
+                        let note = data.catatan_penolakan ? `<p class="text-xs text-rose-600 dark:text-rose-400 mt-1 italic font-medium">"${data.catatan_penolakan}"</p>` : '';
+                        wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200 dark:border-rose-800"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Ditolak</span> ${note}`;
+                    } else {
+                        wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200 dark:border-amber-800"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>Menunggu Review</span>`;
+                    }
+                }
+
+                const docArea = document.getElementById("dokumen_render_area");
+                if (docArea) {
+                    if (data.dokumen_pendukung) {
+                        const fileUrl = `/storage/${data.dokumen_pendukung}`;
+                        docArea.innerHTML = `
+                            <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xs">
+                                <div class="flex items-center gap-2.5 overflow-hidden">
+                                    <div class="p-2 bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 rounded-lg text-base"><i class="fa-solid fa-file text-sky-600 dark:text-sky-400"></i></div>
+                                    <div class="flex flex-col truncate">
+                                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${data.dokumen_pendukung.split('/').pop()}</span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="bukaPratinjauLampiran('${fileUrl}')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors shrink-0 cursor-pointer">
+                                    <span class="text-white">Lihat Lampiran</span>
+                                </button>
+                            </div>`;
+                    } else {
+                        docArea.innerHTML = `<span class="text-xs italic text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800/80 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-3 block text-center">Tidak melampirkan berkas dokumen apapun.</span>`;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal memuat data detail pengajuan cuti.");
+                window.closeDetailCutiModal();
+            });
+    };
+
+    window.closeDetailCutiModal = function() {
+        const modal = document.getElementById("detailCutiModal");
+        if (modal) {
             modal.classList.remove("flex");
             modal.classList.add("hidden");
-            document.body.classList.remove("overflow-hidden");
+        }
+        document.body.classList.remove("overflow-hidden");
+    };
+
+    // Event Delegation untuk tombol Lihat / Detail Cuti (Resisten terhadap Turbo Navigation)
+    if (!window.cutiDetailListenerAttached) {
+        window.cutiDetailListenerAttached = true;
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-detail-cuti');
+            if (btn) {
+                e.preventDefault();
+                const cutiId = btn.getAttribute('data-id');
+                if (cutiId && typeof window.openDetailCutiModal === 'function') {
+                    window.openDetailCutiModal(cutiId);
+                }
+            }
+        });
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") {
+                const modal = document.getElementById("detailCutiModal");
+                if (modal && !modal.classList.contains("hidden")) {
+                    window.closeDetailCutiModal();
+                }
+            }
+        });
+    }
+
+    function initCutiRiwayatPage() {
+        const searchInputCuti = document.getElementById('liveSearchCuti');
+        if (searchInputCuti && !searchInputCuti.dataset.bound) {
+            searchInputCuti.dataset.bound = "true";
+            searchInputCuti.addEventListener('input', applyCutiFilters);
         }
 
-        if (closeBtn) closeBtn.addEventListener("click", closeModal);
-        if (closeBtn2) closeBtn2.addEventListener("click", closeModal);
-        if (backdrop) backdrop.addEventListener("click", closeModal);
+        const modal = document.getElementById("detailCutiModal");
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+    }
 
-        document.querySelectorAll(".btn-detail-cuti").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const cutiId = this.getAttribute("data-id");
-
-                openModal();
-                loadingSection.classList.remove("hidden");
-                contentSection.classList.add("hidden");
-
-                fetch(`/cuti/riwayat/${cutiId}/detail`)
-                    .then(response => {
-                        if (!response.ok) throw new Error("Jaringan bermasalah");
-                        return response.json();
-                    })
-                    .then(data => {
-                        loadingSection.classList.add("hidden");
-                        contentSection.classList.remove("hidden");
-
-                        document.getElementById("txt_jenis_cuti").innerText = data.name_cuti;
-                        document.getElementById("txt_sub_cuti").innerText = data.nama_sub_cuti ? data.nama_sub_cuti : '-';
-                        document.getElementById("txt_rentang_tanggal").innerText = `${data.tanggal_mulai_formatted} s/d ${data.tanggal_selesai_formatted}`;
-                        document.getElementById("txt_total_hari").innerText = `${data.total_hari} Hari`;
-                        document.getElementById("txt_alasan_cuti").innerText = data.alasan_cuti ? data.alasan_cuti : '-';
-
-                        const wrapperStatus = document.getElementById("wrapper_status");
-                        if (data.status_akhir === 'approved') {
-                            wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Disetujui</span>`;
-                        } else if (data.status_akhir === 'rejected' || data.status_tahap_1 === 'rejected' || data.status_tahap_2 === 'rejected') {
-                            let note = data.catatan_penolakan ? `<p class="text-xs text-rose-600 dark:text-rose-400 mt-1 italic font-medium">"${data.catatan_penolakan}"</p>` : '';
-                            wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-rose-200 dark:border-rose-800"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Ditolak</span> ${note}`;
-                        } else {
-                            wrapperStatus.innerHTML = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200 dark:border-amber-800"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>Menunggu Review</span>`;
-                        }
-
-                        const docArea = document.getElementById("dokumen_render_area");
-                        if (data.dokumen_pendukung) {
-                            const fileUrl = `/storage/${data.dokumen_pendukung}`;
-                            docArea.innerHTML = `
-                                <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xs">
-                                    <div class="flex items-center gap-2.5 overflow-hidden">
-                                        <div class="p-2 bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 rounded-lg text-base"><i class="fa-solid fa-file text-sky-600 dark:text-sky-400"></i></div>
-                                        <div class="flex flex-col truncate">
-                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${data.dokumen_pendukung.split('/').pop()}</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" onclick="bukaPratinjauLampiran('${fileUrl}')" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors shrink-0 cursor-pointer">
-                                        <span class="text-white">Lihat Lampiran</span>
-                                    </button>
-                                </div>`;
-                        } else {
-                            docArea.innerHTML = `<span class="text-xs italic text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800/80 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-3 block text-center">Tidak melampirkan berkas dokumen apapun.</span>`;
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("Gagal memuat data detail pengajuan cuti.");
-                        closeModal();
-                    });
-            });
-        });
-    });
+    document.addEventListener("DOMContentLoaded", initCutiRiwayatPage);
+    document.addEventListener("turbo:load", initCutiRiwayatPage);
+    document.addEventListener("turbo:render", initCutiRiwayatPage);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initCutiRiwayatPage();
+    }
 </script>
 @endpush

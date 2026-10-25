@@ -12,6 +12,7 @@ use App\Services\CalendarScheduleService;
 use App\Services\ScheduleService;
 use App\Traits\CutiHelperTrait;
 use App\Jobs\SendWhatsAppNotification;
+use App\Services\ApprovalRoutingService;
 use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -132,6 +133,8 @@ class PengajuanCutiController extends Controller
             ->limit(3)
             ->get();
 
+        $approvalRoute = app(ApprovalRoutingService::class)->resolveApprovalRoute($user, 'cuti');
+
         return view('cuti.cuticreate', compact(
             'jenisCuti',
             'sisaSaldo',
@@ -142,7 +145,8 @@ class PengajuanCutiController extends Controller
             'pendingHari',
             'holidays',
             'rosterOffDates',
-            'recentLeaves'
+            'recentLeaves',
+            'approvalRoute'
         ));
     }
 
@@ -228,48 +232,21 @@ class PengajuanCutiController extends Controller
         }
 
         // PENENTUAN STATUS AWAL BERDASARKAN DYNAMIC APPROVAL RULES DI ROLE PEMOHON
-        $isTopLevel = $user->isTopLevel();
+        $approvalService = app(ApprovalRoutingService::class);
+        $route = $approvalService->resolveApprovalRoute($user, 'cuti');
 
-        // Cari rule cuti dari seluruh roles yang dimiliki user
-        $cutiRules = [];
-        $rules = [];
-        foreach ($user->roles as $r) {
-            if (!empty($r->approval_rules['cuti'])) {
-                $cutiRules = $r->approval_rules['cuti'];
-                $rules = $r->approval_rules;
-                break;
-            }
-        }
-        if (empty($cutiRules) && $user->role) {
-            $rules = $user->role->approval_rules ?? [];
-            $cutiRules = $rules['cuti'] ?? [];
-        }
-
-        $levels = (int) ($cutiRules['levels'] ?? ($rules['approval_levels'] ?? 1));
-        $approver1RoleId = $cutiRules['approver_1_role_id'] ?? ($rules['approver_level_1_role_id'] ?? null);
-        $approver2RoleId = $cutiRules['approver_2_role_id'] ?? ($rules['approver_level_2_role_id'] ?? null);
-
-        if (empty($approver1RoleId) && $isTopLevel) {
-            // Top Level (misal GM/Direksi tanpa approver) otomatis disetujui
-            $statusTahap1 = 'approved';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'approved';
-        } elseif (empty($approver1RoleId)) {
-            // [SEC-04 FIX] Fail-Closed: Tolak jika alur approval belum dikonfigurasi
+        if (!$route['success']) {
             return back()->withErrors([
-                'error' => 'Alur persetujuan cuti untuk jabatan Anda belum dikonfigurasi oleh Administrator. Silakan hubungi admin HRD.'
+                'error' => $route['error'] ?? 'Alur persetujuan cuti untuk jabatan Anda belum dikonfigurasi oleh Administrator. Silakan hubungi admin HRD.'
             ])->withInput();
-        } elseif ($levels === 2 && !empty($approver2RoleId)) {
-            // Alur 2 Step Berjenjang
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'pending';
-            $statusAkhir  = 'pending';
-        } else {
-            // Alur 1 Step
-            $statusTahap1 = 'pending';
-            $statusTahap2 = 'not_required';
-            $statusAkhir  = 'pending';
         }
+
+        $levels          = $route['levels'];
+        $approver1RoleId = $route['approver_1_role_id'];
+        $approver2RoleId = $route['approver_2_role_id'];
+        $statusTahap1    = $route['status_tahap_1'];
+        $statusTahap2    = $route['status_tahap_2'];
+        $statusAkhir     = $route['status_akhir'];
 
         DB::beginTransaction();
         try {
@@ -354,10 +331,7 @@ class PengajuanCutiController extends Controller
             // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
-                    $approvers = User::whereHas('roles', fn($q) => $q->where('roles.id', $approver1RoleId))
-                        ->where('id', '!=', $user->id)
-                        ->whereNotNull('phone_verified_at')
-                        ->get();
+                    $approvers = $approvalService->getApproversForStage($user, 'cuti', 1);
 
                     foreach ($approvers as $approver) {
                         SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $approver, 1);

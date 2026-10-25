@@ -452,6 +452,66 @@
         {{-- RIGHT COLUMN: SIDEBAR WIDGETS (4 COLS) --}}
         <div class="lg:col-span-4 space-y-6">
 
+            {{-- WIDGET ALUR PERSETUJUAN (DYNAMIC APPROVAL ROUTE) --}}
+            <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/90 dark:border-slate-700/70 p-6 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/40 relative overflow-hidden transition-all">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/15 px-2.5 py-1 rounded-full border border-indigo-200/70 dark:border-indigo-500/30 flex items-center gap-1.5">
+                        <i class="fa-solid fa-sitemap text-[10px]"></i>
+                        <span>ALUR PERSETUJUAN</span>
+                    </span>
+                    <span class="text-xs font-bold {{ ($approvalRoute['levels'] ?? 1) == 2 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                        {{ ($approvalRoute['is_top_level'] ?? false) ? 'Auto-Approval' : (($approvalRoute['levels'] ?? 1) == 2 ? '2 Tahap Verifikasi' : '1 Tahap Verifikasi') }}
+                    </span>
+                </div>
+
+                @if($approvalRoute['is_top_level'] ?? false)
+                    <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm shrink-0"></i>
+                        <span>Jabatan Anda adalah pimpinan tertinggi sistem. Pengajuan akan langsung disetujui otomatis.</span>
+                    </div>
+                @else
+                    <div class="space-y-2.5">
+                        {{-- Penyetuju Tahap 1 --}}
+                        <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/60">
+                            <div class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center font-black text-xs shrink-0">
+                                1
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Penyetuju Tahap 1</p>
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                                    {{ $approvalRoute['approver_1_role']->role_name ?? 'Atasan Langsung' }}
+                                </p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 shrink-0">
+                                Review
+                            </span>
+                        </div>
+
+                        @if(($approvalRoute['levels'] ?? 1) == 2)
+                        {{-- Penyetuju Tahap 2 --}}
+                        <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/60">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs shrink-0">
+                                2
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Penyetuju Tahap 2 (Final)</p>
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                                    {{ $approvalRoute['approver_2_role']->role_name ?? '-' }}
+                                </p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 shrink-0">
+                                Final
+                            </span>
+                        </div>
+                        @endif
+                    </div>
+                @endif
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-[9px] shrink-0"></i>
+                    <span>Sesuai konfigurasi Alur Persetujuan Role di sistem.</span>
+                </p>
+            </div>
+
             {{-- WIDGET 1: KARTU SALDO CUTI TAHUNAN --}}
             <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/90 dark:border-slate-700/70 p-6 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/40 relative overflow-hidden transition-all">
                 {{-- Ambient Top Glow --}}

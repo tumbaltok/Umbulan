@@ -310,10 +310,13 @@
         </div>
     </div>
 </div>
+@endsection
 
-{{-- MODAL POPUP INPUT ALASAN PENOLAKAN CAR --}}
-<div id="modalTolak" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200/80 dark:border-slate-700/80">
+@push('modals')
+{{-- MODAL POPUP INPUT ALASAN PENOLAKAN CAR (CENTER VIEWPORT GUARANTEED) --}}
+<div id="modalTolak" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalTolak()" aria-hidden="true"></div>
+    <div class="relative bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200/80 dark:border-slate-700/80 my-auto max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/80 mb-4">
             <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/30 flex items-center justify-center">
@@ -353,7 +356,7 @@
         </form>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -429,8 +432,13 @@
 
     function bukaModalTolak(id, namaKaryawan = '', nomorCar = '') {
         const modal = document.getElementById('modalTolak');
+        if (!modal) return;
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+
         const form = document.getElementById('formTolak');
-        form.action = `/admin/persetujuan/car/proses/${id}`;
+        if (form) form.action = `/admin/persetujuan/car/proses/${id}`;
 
         const subtitleLabel = document.getElementById('carRejectSubtitle');
         if (subtitleLabel) {
@@ -439,13 +447,25 @@
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
     }
 
     function tutupModalTolak() {
         const modal = document.getElementById('modalTolak');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        document.body.classList.remove('overflow-hidden');
     }
 
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            const modal = document.getElementById('modalTolak');
+            if (modal && !modal.classList.contains('hidden')) {
+                tutupModalTolak();
+            }
+        }
+    });
 </script>
 @endpush

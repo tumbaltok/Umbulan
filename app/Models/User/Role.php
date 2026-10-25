@@ -76,4 +76,10 @@ class Role extends Model
     {
         return $this->belongsTo(Role::class, 'approval_rules->approver_level_2_role_id');
     }
+
+    // Cek apakah role merupakan Top Level (tanpa atasan langsung)
+    public function isTopLevel(): bool
+    {
+        return empty($this->parent_role_id);
+    }
 }

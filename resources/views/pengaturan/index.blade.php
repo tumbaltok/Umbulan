@@ -106,7 +106,7 @@
                             @endif
                         </div>
 
-                        <button type="button" id="openModalPhotoBtn" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/60 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
+                        <button type="button" id="openModalPhotoBtn" onclick="showPhotoModal()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/60 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
                             <i class="fa-solid fa-camera text-xs"></i>
                             <span>{{ $user->profile_photo ? 'Ubah Foto Profil' : 'Unggah Foto Profil' }}</span>
                         </button>
@@ -158,7 +158,7 @@
                             </div>
                         </div>
 
-                        <button type="button" id="openModalSignatureBtn" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 border border-slate-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
+                        <button type="button" id="openModalSignatureBtn" onclick="showSigModal()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 border border-slate-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5 cursor-pointer">
                             <i class="fa-solid fa-file-signature text-xs"></i>
                             <span>{{ $hasValidSignature ? 'Ubah TTD' : 'Unggah TTD' }}</span>
                         </button>
@@ -880,9 +880,9 @@
 {{-- MODAL FOTO PROFIL --}}
 <div id="photoModal"
      data-has-error="{{ $errors->has('profile_photo') ? 'true' : 'false' }}"
-     class="fixed inset-0 z-50 items-center justify-center hidden p-4 sm:p-6 overflow-y-auto">
-    <div id="modalBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all m-auto my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
+     class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="hidePhotoModal()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/80 pb-3.5">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm shadow-2xs">
@@ -890,7 +890,7 @@
                 </div>
                 <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base">Perbarui Foto Profil</h3>
             </div>
-            <button type="button" id="closeModalPhotoBtn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+            <button type="button" id="closeModalPhotoBtn" onclick="hidePhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
@@ -925,7 +925,7 @@
         </div>
 
         <div class="flex items-center space-x-2.5 mt-6 justify-end border-t border-slate-100 dark:border-slate-700/80 pt-4">
-            <button type="button" id="cancelModalPhotoBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
+            <button type="button" id="cancelModalPhotoBtn" onclick="hidePhotoModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
             <button type="submit" form="uploadPhotoForm" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/25 transition-all cursor-pointer" style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important; color: #ffffff !important;">Simpan Foto</button>
         </div>
     </div>
@@ -934,9 +934,9 @@
 {{-- MODAL UPLOAD TANDA TANGAN DIGITAL (TTD) --}}
 <div id="signatureModal"
      data-has-error="{{ $errors->has('signature') ? 'true' : 'false' }}"
-     class="fixed inset-0 z-50 items-center justify-center hidden p-4 sm:p-6 overflow-y-auto">
-    <div id="modalSignatureBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all m-auto my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
+     class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="modalSignatureBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="hideSigModal()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-700/80">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/80 pb-3.5">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shadow-2xs">
@@ -944,7 +944,7 @@
                 </div>
                 <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base">Unggah Berkas TTD</h3>
             </div>
-            <button type="button" id="closeModalSignatureBtn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
+            <button type="button" id="closeModalSignatureBtn" onclick="hideSigModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
@@ -979,15 +979,16 @@
         </div>
 
         <div class="flex items-center space-x-2.5 mt-6 justify-end border-t border-slate-100 dark:border-slate-700/80 pt-4">
-            <button type="button" id="cancelModalSignatureBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
+            <button type="button" id="cancelModalSignatureBtn" onclick="hideSigModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
             <button type="submit" form="uploadSignatureForm" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/25 transition-all cursor-pointer" style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%) !important; color: #ffffff !important;">Simpan TTD</button>
         </div>
     </div>
 </div>
 
 {{-- MODAL HUBUNGI ADMIN UNTUK GANTI NOMOR WHATSAPP --}}
-<div id="modalChangePhone" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto transition-opacity duration-200">
-    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto transform transition-all animate-fadeIn">
+<div id="modalChangePhone" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeChangePhoneModal()"></div>
+    <div class="relative w-full max-w-lg my-auto max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
         
         {{-- Header Modal Hubungi Admin (shrink-0) --}}
         <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
@@ -1112,8 +1113,9 @@
 </div>
 
 {{-- MODAL HUBUNGI ADMIN UNTUK PERUBAHAN JADWAL KERJA --}}
-<div id="modalScheduleContactAdmin" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto transition-opacity duration-200">
-    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto transform transition-all animate-fadeIn">
+<div id="modalScheduleContactAdmin" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeScheduleContactAdminModal()"></div>
+    <div class="relative w-full max-w-lg my-auto max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
         
         {{-- Header Modal Hubungi Admin Jadwal (shrink-0) --}}
         <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
@@ -1254,9 +1256,9 @@
 
 {{-- MODAL PANDUAN CARA MENGETAHUI NIP DARI SLIP GAJI --}}
 <div id="modalPanduanNip"
-     class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm transition-opacity duration-200"
-     style="position: fixed; inset: 0; z-index: 9999; margin: 0;">
-    <div class="relative w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all m-auto">
+     class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalPanduanNip()"></div>
+    <div class="relative w-full max-w-lg my-auto max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all">
         
         {{-- Header Modal Panduan NIP (shrink-0) --}}
         <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-r from-sky-50/90 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-800/90 dark:to-slate-800">
@@ -1565,7 +1567,53 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function showPhotoModal() {
+        const modalPhoto = document.getElementById("photoModal");
+        if (modalPhoto) {
+            if (modalPhoto.parentElement !== document.body) {
+                document.body.appendChild(modalPhoto);
+            }
+            modalPhoto.classList.remove("hidden");
+            modalPhoto.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+        }
+    }
+    window.showPhotoModal = showPhotoModal;
+
+    function hidePhotoModal() {
+        const modalPhoto = document.getElementById("photoModal");
+        if (modalPhoto) {
+            modalPhoto.classList.remove("flex");
+            modalPhoto.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        }
+    }
+    window.hidePhotoModal = hidePhotoModal;
+
+    function showSigModal() {
+        const modalSig = document.getElementById("signatureModal");
+        if (modalSig) {
+            if (modalSig.parentElement !== document.body) {
+                document.body.appendChild(modalSig);
+            }
+            modalSig.classList.remove("hidden");
+            modalSig.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+        }
+    }
+    window.showSigModal = showSigModal;
+
+    function hideSigModal() {
+        const modalSig = document.getElementById("signatureModal");
+        if (modalSig) {
+            modalSig.classList.remove("flex");
+            modalSig.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        }
+    }
+    window.hideSigModal = hideSigModal;
+
+    function initPengaturanPage() {
         const urlParams = new URLSearchParams(window.location.search);
 
         if (urlParams.get('schedule_required') === '1' || window.location.hash === '#schedule_setting') {
@@ -1619,81 +1667,43 @@
             }, 300);
         }
 
-        toggleScheduleOptions();
+        if (typeof toggleScheduleOptions === 'function') {
+            toggleScheduleOptions();
+        }
 
         const selectedRadio = document.querySelector('input[name="current_shift_choice"]:checked');
-        if (selectedRadio) {
+        if (selectedRadio && typeof updateRosterPreviewUI === 'function') {
             updateRosterPreviewUI(selectedRadio.value);
         }
 
         const modalPhoto = document.getElementById("photoModal");
-        const openPhotoBtn = document.getElementById("openModalPhotoBtn");
-        const closePhotoBtn = document.getElementById("closeModalPhotoBtn");
-        const cancelPhotoBtn = document.getElementById("cancelModalPhotoBtn");
-        const backdropPhoto = document.getElementById("modalBackdrop");
-
-        function showPhotoModal() {
-            if (modalPhoto) {
-                if (modalPhoto.parentElement !== document.body) {
-                    document.body.appendChild(modalPhoto);
-                }
-                modalPhoto.classList.remove("hidden");
-                modalPhoto.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
-        }
-        function hidePhotoModal() {
-            if (modalPhoto) {
-                modalPhoto.classList.remove("flex");
-                modalPhoto.classList.add("hidden");
-                document.body.classList.remove("overflow-hidden");
-            }
-        }
-
-        if (openPhotoBtn) openPhotoBtn.addEventListener("click", showPhotoModal);
-        if (closePhotoBtn) closePhotoBtn.addEventListener("click", hidePhotoModal);
-        if (cancelPhotoBtn) cancelPhotoBtn.addEventListener("click", hidePhotoModal);
-        if (backdropPhoto) backdropPhoto.addEventListener("click", hidePhotoModal);
-
         if (modalPhoto && modalPhoto.dataset.hasError === 'true') {
             showPhotoModal();
         }
 
         const modalSig = document.getElementById("signatureModal");
-        const openSigBtn = document.getElementById("openModalSignatureBtn");
-        const closeSigBtn = document.getElementById("closeModalSignatureBtn");
-        const cancelSigBtn = document.getElementById("cancelModalSignatureBtn");
-        const backdropSig = document.getElementById("modalSignatureBackdrop");
-
-        function showSigModal() {
-            if (modalSig) {
-                if (modalSig.parentElement !== document.body) {
-                    document.body.appendChild(modalSig);
-                }
-                modalSig.classList.remove("hidden");
-                modalSig.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
-        }
-        function hideSigModal() {
-            if (modalSig) {
-                modalSig.classList.remove("flex");
-                modalSig.classList.add("hidden");
-                document.body.classList.remove("overflow-hidden");
-            }
-        }
-
-        if (openSigBtn) openSigBtn.addEventListener("click", showSigModal);
-        if (closeSigBtn) closeSigBtn.addEventListener("click", hideSigModal);
-        if (cancelSigBtn) cancelSigBtn.addEventListener("click", hideSigModal);
-        if (backdropSig) backdropSig.addEventListener("click", hideSigModal);
-
         if (modalSig && modalSig.dataset.hasError === 'true') {
             showSigModal();
         }
 
         const urlParamsSig = new URLSearchParams(window.location.search);
         if (urlParamsSig.get('signature_required') === '1' || window.location.hash === '#signature' || window.location.hash === '#signatureModal') {
+            showSigModal();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPengaturanPage);
+    document.addEventListener("turbo:load", initPengaturanPage);
+    document.addEventListener("turbo:render", initPengaturanPage);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initPengaturanPage();
+    }
+
+    // Global click listener delegation untuk modal tombol foto & signature
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#openModalPhotoBtn')) {
+            showPhotoModal();
+        } else if (e.target.closest('#openModalSignatureBtn')) {
             showSigModal();
         }
     });

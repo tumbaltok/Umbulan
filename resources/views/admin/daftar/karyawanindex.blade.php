@@ -386,7 +386,8 @@
 
 @push('modals')
 {{-- MODAL POPUP DETAIL KARYAWAN --}}
-<div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) { const modal = document.getElementById('detailKaryawanModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden'); }">
+<div id="detailKaryawanModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div id="detailModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="const modal = document.getElementById('detailKaryawanModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden');"></div>
     <div id="detailKaryawanModalCard" class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-5 sm:p-6 relative z-10 transform transition-all duration-200 my-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700/80">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Detail Lengkap Karyawan</h3>
@@ -507,7 +508,8 @@
 </div>
 
 {{-- MODAL EDIT SALDO CUTI UTAMA --}}
-<div id="editSaldoModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" onclick="if(event.target === this) tutupModalEditSaldo()">
+<div id="editSaldoModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalEditSaldo()"></div>
     <div id="editSaldoModalCard" class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-5 relative z-10 animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700 my-auto text-left">
         <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-3">Edit Sisa Saldo Cuti</h4>
 
@@ -530,7 +532,8 @@
 </div>
 
 {{-- MODAL KELOLA MULTI-ROLE KARYAWAN --}}
-<div id="modalKelolaRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalKelolaRole()">
+<div id="modalKelolaRole" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalKelolaRole()"></div>
     <div id="modalKelolaRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3 shrink-0">
             <div>
@@ -652,7 +655,8 @@
 </div>
 
 {{-- MODAL KELOLA / MUTASI STASIUN KERJA KARYAWAN --}}
-<div id="modalKelolaStasiun" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalKelolaStasiun()">
+<div id="modalKelolaStasiun" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalKelolaStasiun()"></div>
     <div id="modalKelolaStasiunCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 flex flex-col">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3 shrink-0">
             <div>

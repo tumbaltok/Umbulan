@@ -541,10 +541,10 @@
 {{-- ========================================================================= --}}
 {{--                       MODAL DETAIL LENGKAP CUTI                          --}}
 {{-- ========================================================================= --}}
-<div id="modalDetailCuti" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDetailCutiModal()"></div>
+<div id="modalDetailCuti" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeDetailCutiModal()"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all m-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700">
         {{-- Modal Header --}}
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-2.5">
@@ -678,9 +678,9 @@
 </div>
 
 {{-- MODAL CUSTOM DATE RANGE --}}
-<div id="customDateModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCustomDateModal()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 m-auto border border-slate-100 dark:border-slate-700">
+<div id="customDateModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeCustomDateModal()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 relative z-10 my-auto border border-slate-100 dark:border-slate-700">
         <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">Pilih Rentang Tanggal</h3>
         <p class="text-xs text-slate-400 mb-4">Tentukan periode tanggal pengajuan cuti yang ingin ditinjau.</p>
         <div class="space-y-3">
@@ -703,9 +703,9 @@
 </div>
 
 {{-- LIGHTBOX MODAL BUKTI LAMPIRAN --}}
-<div id="lightboxModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeLightboxModal()"></div>
-    <div class="relative z-10 max-w-3xl max-h-[85vh] p-4 m-auto flex flex-col items-center">
+<div id="lightboxModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeLightboxModal()"></div>
+    <div class="relative z-10 max-w-3xl my-auto max-h-[85vh] p-4 flex flex-col items-center">
         <button type="button" onclick="closeLightboxModal()" class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-lg hover:scale-105 transition-transform cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>

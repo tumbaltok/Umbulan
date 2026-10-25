@@ -10,7 +10,13 @@ return new class extends Migration
     public function up(): void
     {
         // Ubah kolom schedule_type menjadi string/varchar(50) agar mendukung reguler_5_hari, reguler_6_hari, roster
-        DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type VARCHAR(50) NULL DEFAULT 'reguler_5_hari'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type VARCHAR(50) NULL DEFAULT 'reguler_5_hari'");
+        } else {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('schedule_type', 50)->nullable()->default('reguler_5_hari')->change();
+            });
+        }
 
         // Migrasikan user yang sebelumnya bertipe 'normal' atau NULL menjadi 'reguler_5_hari'
         DB::table('users')
@@ -31,6 +37,12 @@ return new class extends Migration
             ->whereIn('schedule_type', ['reguler_5_hari', 'reguler_6_hari'])
             ->update(['schedule_type' => 'normal']);
 
-        DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type ENUM('normal', 'roster') NULL DEFAULT 'normal'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type ENUM('normal', 'roster') NULL DEFAULT 'normal'");
+        } else {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('schedule_type', 50)->nullable()->default('normal')->change();
+            });
+        }
     }
 };

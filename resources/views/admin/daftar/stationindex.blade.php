@@ -372,9 +372,9 @@
 
 @push('modals')
 {{-- MODAL FORM TAMBAH / EDIT STASIUN DENGAN PETA KALIBRASI INTERAKTIF LEAFLET --}}
-<div id="modalFormStasiun" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="tutupModalFormStasiun()"></div>
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl p-5 sm:p-7 relative z-10 animate-in fade-in zoom-in-95 duration-200 my-auto max-h-[94vh] flex flex-col border border-slate-100 dark:border-slate-700">
+<div id="modalFormStasiun" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalFormStasiun()"></div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl p-5 sm:p-7 relative z-10 animate-in fade-in zoom-in-95 duration-200 my-auto max-h-[92vh] flex flex-col border border-slate-100 dark:border-slate-700">
         
         {{-- HEADER MODAL --}}
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700/80 shrink-0">
@@ -428,10 +428,10 @@
 </div>
 
 {{-- MODAL POPUP PREVIEW PETA LOKASI STASIUN --}}
-<div id="stationMapModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
-    <div id="mapModalBackdrop" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"></div>
+<div id="stationMapModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div id="mapModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all flex flex-col border border-slate-100 dark:border-slate-700">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto flex flex-col border border-slate-100 dark:border-slate-700">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
             <div>
                 <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base" id="mapModalTitle">Peta Lokasi Stasiun</h3>
@@ -458,10 +458,10 @@
 </div>
 
 {{-- MODAL POPUP VIEW DAFTAR KARYAWAN PER STASIUN --}}
-<div id="staffStationModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
-    <div id="staffModalBackdrop" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"></div>
+<div id="staffStationModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div id="staffModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all max-h-[85vh] flex flex-col border border-slate-100 dark:border-slate-700">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative z-10 transform transition-all my-auto max-h-[85vh] flex flex-col border border-slate-100 dark:border-slate-700">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
             <div>
                 <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Daftar Anggota Staf</h3>
@@ -499,10 +499,10 @@
 </div>
 
 {{-- MODAL POPUP DETAIL LENGKAP KARYAWAN --}}
-<div id="detailKaryawanModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4">
-    <div id="detailModalBackdrop" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"></div>
+<div id="detailKaryawanModal" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div id="detailModalBackdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer"></div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 relative z-10 transform transition-all max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700 modal-scroll-area">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 relative z-10 transform transition-all my-auto max-h-[90vh] overflow-y-auto border border-slate-100 dark:border-slate-700 modal-scroll-area">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Detail Lengkap Karyawan</h3>
             <button type="button" id="closeDetailModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -1414,207 +1414,233 @@
     let previewMarkerInstance = null;
     let previewCircleInstance = null;
 
-    document.addEventListener("DOMContentLoaded", function () {
+    // Global Modal Functions for Station Page
+    function openMapModal() {
         const mapModal = document.getElementById("stationMapModal");
-        const backdropMap = document.getElementById("mapModalBackdrop");
-        const closeMapBtn = document.getElementById("closeMapModalBtn");
-        const closeMapBtn2 = document.getElementById("closeMapModalBtn2");
-        const mapContainer = document.getElementById("stationMap");
-
-        const mapResizeObserver = new ResizeObserver(() => {
-            if (previewMapInstance) {
-                previewMapInstance.invalidateSize();
+        if (mapModal) {
+            if (mapModal.parentElement !== document.body) {
+                document.body.appendChild(mapModal);
             }
-        });
-        mapResizeObserver.observe(mapContainer);
-
-        function openMapModal() {
-            if (mapModal) {
-                if (mapModal.parentElement !== document.body) {
-                    document.body.appendChild(mapModal);
-                }
-                mapModal.classList.remove("hidden");
-                mapModal.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
+            mapModal.classList.remove("hidden");
+            mapModal.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
         }
+    }
+    window.openMapModal = openMapModal;
 
-        function closeMapModal() {
-            if (mapModal) {
-                mapModal.classList.remove("flex");
-                mapModal.classList.add("hidden");
+    function closeMapModal() {
+        const mapModal = document.getElementById("stationMapModal");
+        if (mapModal) {
+            mapModal.classList.remove("flex");
+            mapModal.classList.add("hidden");
+        }
+        document.body.classList.remove("overflow-hidden");
+    }
+    window.closeMapModal = closeMapModal;
+
+    function openStaffModal() {
+        const modalStaff = document.getElementById("staffStationModal");
+        if (modalStaff) {
+            if (modalStaff.parentElement !== document.body) {
+                document.body.appendChild(modalStaff);
             }
+            modalStaff.classList.remove("hidden");
+            modalStaff.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+        }
+    }
+    window.openStaffModal = openStaffModal;
+
+    function closeStaffModal() {
+        const modalStaff = document.getElementById("staffStationModal");
+        if (modalStaff) {
+            modalStaff.classList.remove("flex");
+            modalStaff.classList.add("hidden");
+        }
+        document.body.classList.remove("overflow-hidden");
+    }
+    window.closeStaffModal = closeStaffModal;
+
+    function openDetailModal() {
+        const modalDetail = document.getElementById("detailKaryawanModal");
+        if (modalDetail) {
+            if (modalDetail.parentElement !== document.body) {
+                document.body.appendChild(modalDetail);
+            }
+            modalDetail.classList.remove("hidden");
+            modalDetail.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+        }
+    }
+    window.openDetailModal = openDetailModal;
+
+    function closeDetailModal() {
+        const modalDetail = document.getElementById("detailKaryawanModal");
+        const modalStaff = document.getElementById("staffStationModal");
+        if (modalDetail) {
+            modalDetail.classList.remove("flex");
+            modalDetail.classList.add("hidden");
+        }
+        if (!modalStaff || modalStaff.classList.contains("hidden")) {
             document.body.classList.remove("overflow-hidden");
         }
+    }
+    window.closeDetailModal = closeDetailModal;
 
-        if (closeMapBtn) closeMapBtn.addEventListener("click", closeMapModal);
-        if (closeMapBtn2) closeMapBtn2.addEventListener("click", closeMapModal);
-        if (backdropMap) backdropMap.addEventListener("click", closeMapModal);
+    function initStationModals() {
+        const mapContainer = document.getElementById("stationMap");
+        if (mapContainer && !window.__stationMapObserverAttached) {
+            window.__stationMapObserverAttached = true;
+            const mapResizeObserver = new ResizeObserver(() => {
+                if (previewMapInstance) {
+                    previewMapInstance.invalidateSize();
+                }
+            });
+            mapResizeObserver.observe(mapContainer);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initStationModals);
+    document.addEventListener("turbo:load", initStationModals);
+    document.addEventListener("turbo:render", initStationModals);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        initStationModals();
+    }
+
+    // Escape key listener untuk menutup modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMapModal();
+            closeStaffModal();
+            closeDetailModal();
+            if (typeof tutupModalFormStasiun === 'function') {
+                tutupModalFormStasiun();
+            }
+        }
+    });
+
+    // Global click listener delegation untuk modal stasiun & staf
+    document.addEventListener("click", function(e) {
+        // Close Buttons & Backdrops
+        if (e.target.closest("#closeMapModalBtn") || e.target.closest("#closeMapModalBtn2") || e.target.id === "mapModalBackdrop") {
+            closeMapModal();
+            return;
+        }
+        if (e.target.closest("#closeStaffModalBtn") || e.target.closest("#closeStaffModalBtn2") || e.target.id === "staffModalBackdrop") {
+            closeStaffModal();
+            return;
+        }
+        if (e.target.closest("#closeDetailModalBtn") || e.target.id === "detailModalBackdrop") {
+            closeDetailModal();
+            return;
+        }
 
         // KLIK TOMBOL VIEW PETA DI TABEL STASIUN
-        document.querySelectorAll(".btn-view-map").forEach(item => {
-            item.addEventListener("click", function () {
-                const name = this.getAttribute("data-name");
-                const lat = parseFloat(this.getAttribute("data-lat"));
-                const lng = parseFloat(this.getAttribute("data-lng"));
-                const radius = parseFloat(this.getAttribute("data-radius")) || COMPANY_DEFAULT_RADIUS;
+        const btnMap = e.target.closest(".btn-view-map");
+        if (btnMap) {
+            const name = btnMap.getAttribute("data-name");
+            const lat = parseFloat(btnMap.getAttribute("data-lat"));
+            const lng = parseFloat(btnMap.getAttribute("data-lng"));
+            const radius = parseFloat(btnMap.getAttribute("data-radius")) || COMPANY_DEFAULT_RADIUS;
 
-                if (isNaN(lat) || isNaN(lng)) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Koordinat Belum Dikalibrasi',
-                        text: 'Koordinat lokasi untuk stasiun ini belum diatur di database. Silakan klik tombol Edit untuk melakukan kalibrasi.',
-                        confirmColor: '#0284c7'
-                    });
-                    return;
-                }
-
-                openMapModal();
-
-                document.getElementById("mapModalTitle").textContent = `Lokasi Presensi: ${name}`;
-                document.getElementById("mapModalCoords").textContent = `Koordinat: ${lat}, ${lng} (Radius Geofencing: ${radius}m)`;
-                document.getElementById("btnOpenGoogleMaps").href = `https://www.google.com/maps?q=${lat},${lng}`;
-
-                if (previewMapInstance !== null) {
-                    previewMapInstance.remove();
-                    previewMapInstance = null;
-                }
-
-                previewMapInstance = L.map('stationMap', {
-                    center: [lat, lng],
-                    zoom: 16,
-                    attributionControl: false
+            if (isNaN(lat) || isNaN(lng)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Koordinat Belum Dikalibrasi',
+                    text: 'Koordinat lokasi untuk stasiun ini belum diatur di database. Silakan klik tombol Edit untuk melakukan kalibrasi.',
+                    confirmColor: '#0284c7'
                 });
+                return;
+            }
 
-                L.control.attribution({ prefix: false }).addTo(previewMapInstance);
+            openMapModal();
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
-                }).addTo(previewMapInstance);
+            const titleEl = document.getElementById("mapModalTitle");
+            const coordsEl = document.getElementById("mapModalCoords");
+            const gmapsLink = document.getElementById("btnOpenGoogleMaps");
+            if (titleEl) titleEl.textContent = `Lokasi Presensi: ${name}`;
+            if (coordsEl) coordsEl.textContent = `Koordinat: ${lat}, ${lng} (Radius Geofencing: ${radius}m)`;
+            if (gmapsLink) gmapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
 
-                previewMarkerInstance = L.marker([lat, lng], { icon: stationCustomMarkerIcon }).addTo(previewMapInstance)
-                    .bindPopup(`<b>${name}</b><br><span class="text-xs text-slate-500">Titik Validasi Absensi GPS (Radius: ${radius}m)</span>`)
-                    .openPopup();
+            if (previewMapInstance !== null) {
+                previewMapInstance.remove();
+                previewMapInstance = null;
+            }
 
-                // Lingkaran Geofencing Radius pada Pratinjau
-                previewCircleInstance = L.circle([lat, lng], {
-                    radius: radius,
-                    color: '#0284c7',
-                    fillColor: '#38bdf8',
-                    fillOpacity: 0.2,
-                    weight: 2
-                }).addTo(previewMapInstance);
-
-                setTimeout(() => {
-                    if (previewMapInstance) {
-                        previewMapInstance.invalidateSize();
-                    }
-                }, 350);
+            previewMapInstance = L.map('stationMap', {
+                center: [lat, lng],
+                zoom: 16,
+                attributionControl: false
             });
-        });
 
-        // MODAL STAF PER STASIUN
-        const modalStaff = document.getElementById("staffStationModal");
-        const backdropStaff = document.getElementById("staffModalBackdrop");
-        const closeStaffBtn = document.getElementById("closeStaffModalBtn");
-        const closeStaffBtn2 = document.getElementById("closeStaffModalBtn2");
+            L.control.attribution({ prefix: false }).addTo(previewMapInstance);
 
-        const loadingSectionStaff = document.getElementById("modalStaffLoading");
-        const contentSectionStaff = document.getElementById("modalStaffContent");
-        const stationTitle = document.getElementById("modalStationTitle");
-        const staffContainer = document.getElementById("staffListContainer");
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+            }).addTo(previewMapInstance);
 
-        // MODAL DETAIL KARYAWAN
-        const modalDetail = document.getElementById("detailKaryawanModal");
-        const backdropDetail = document.getElementById("detailModalBackdrop");
-        const closeDetailBtn = document.getElementById("closeDetailModalBtn");
-        const closeDetailBtn2 = document.getElementById("closeDetailModalBtn2");
+            previewMarkerInstance = L.marker([lat, lng], { icon: stationCustomMarkerIcon }).addTo(previewMapInstance)
+                .bindPopup(`<b>${name}</b><br><span class="text-xs text-slate-500">Titik Validasi Absensi GPS (Radius: ${radius}m)</span>`)
+                .openPopup();
 
-        const loadingSectionDetail = document.getElementById("modalLoadingDetail");
-        const contentSectionDetail = document.getElementById("modalDataContentDetail");
+            previewCircleInstance = L.circle([lat, lng], {
+                radius: radius,
+                color: '#0284c7',
+                fillColor: '#38bdf8',
+                fillOpacity: 0.2,
+                weight: 2
+            }).addTo(previewMapInstance);
 
-        function openStaffModal() {
-            if (modalStaff) {
-                if (modalStaff.parentElement !== document.body) {
-                    document.body.appendChild(modalStaff);
+            setTimeout(() => {
+                if (previewMapInstance) {
+                    previewMapInstance.invalidateSize();
                 }
-                modalStaff.classList.remove("hidden");
-                modalStaff.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
+            }, 350);
+            return;
         }
 
-        function closeStaffModal() {
-            if (modalStaff) {
-                modalStaff.classList.remove("flex");
-                modalStaff.classList.add("hidden");
-            }
-            document.body.classList.remove("overflow-hidden");
-        }
+        // KLIK TOMBOL VIEW STAF PER STASIUN
+        const btnStaff = e.target.closest(".btn-view-staff");
+        if (btnStaff) {
+            const stationId = btnStaff.getAttribute("data-id");
+            const stationName = btnStaff.getAttribute("data-name");
 
-        function openDetailModal() {
-            if (modalDetail) {
-                if (modalDetail.parentElement !== document.body) {
-                    document.body.appendChild(modalDetail);
-                }
-                modalDetail.classList.remove("hidden");
-                modalDetail.classList.add("flex");
-                document.body.classList.add("overflow-hidden");
-            }
-        }
+            if (!stationId || btnStaff.classList.contains('cursor-not-allowed')) return;
 
-        function closeDetailModal() {
-            if (modalDetail) {
-                modalDetail.classList.remove("flex");
-                modalDetail.classList.add("hidden");
-            }
-            if (modalStaff && modalStaff.classList.contains("hidden")) {
-                document.body.classList.remove("overflow-hidden");
-            }
-        }
+            openStaffModal();
+            const stationTitle = document.getElementById("modalStationTitle");
+            const loadingSectionStaff = document.getElementById("modalStaffLoading");
+            const contentSectionStaff = document.getElementById("modalStaffContent");
+            const staffContainer = document.getElementById("staffListContainer");
 
-        if (closeStaffBtn) closeStaffBtn.addEventListener("click", closeStaffModal);
-        if (closeStaffBtn2) closeStaffBtn2.addEventListener("click", closeStaffModal);
-        if (backdropStaff) backdropStaff.addEventListener("click", closeStaffModal);
+            if (stationTitle) stationTitle.textContent = `Lokasi Kerja: ${stationName}`;
+            if (loadingSectionStaff) loadingSectionStaff.classList.remove("hidden");
+            if (contentSectionStaff) contentSectionStaff.classList.add("hidden");
+            if (staffContainer) staffContainer.innerHTML = "";
 
-        if (closeDetailBtn) closeDetailBtn.addEventListener("click", closeDetailModal);
-        if (closeDetailBtn2) closeDetailBtn2.addEventListener("click", closeDetailModal);
-        if (backdropDetail) backdropDetail.addEventListener("click", closeDetailModal);
+            fetch(`/admin/stations/${stationId}/karyawan`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Gagal mengambil data staf (Status: ${response.status})`);
+                    return response.json();
+                })
+                .then(karyawanList => {
+                    if (loadingSectionStaff) loadingSectionStaff.classList.add("hidden");
+                    if (contentSectionStaff) contentSectionStaff.classList.remove("hidden");
 
-        // KLIK TOMBOL VIEW STAF
-        document.querySelectorAll(".btn-view-staff").forEach(badge => {
-            badge.addEventListener("click", function () {
-                const stationId = this.getAttribute("data-id");
-                const stationName = this.getAttribute("data-name");
-
-                if (!stationId || this.classList.contains('cursor-not-allowed')) return;
-
-                openStaffModal();
-                stationTitle.textContent = `Lokasi Kerja: ${stationName}`;
-                loadingSectionStaff.classList.remove("hidden");
-                contentSectionStaff.classList.add("hidden");
-                staffContainer.innerHTML = "";
-
-                fetch(`/admin/stations/${stationId}/karyawan`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Gagal mengambil data staf (Status: ${response.status})`);
-                        return response.json();
-                    })
-                    .then(karyawanList => {
-                        loadingSectionStaff.classList.add("hidden");
-                        contentSectionStaff.classList.remove("hidden");
-
-                        if (!karyawanList || karyawanList.length === 0) {
+                    if (!karyawanList || karyawanList.length === 0) {
+                        if (staffContainer) {
                             staffContainer.innerHTML = `
                                 <tr>
                                     <td colspan="2" class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                                         Tidak ada karyawan yang aktif di lokasi ini.
                                     </td>
                                 </tr>`;
-                            return;
                         }
+                        return;
+                    }
 
+                    if (staffContainer) {
                         karyawanList.forEach(karyawan => {
                             const initials = karyawan.name ? karyawan.name.substring(0, 2).toUpperCase() : '??';
                             const photoHtml = karyawan.profile_photo
@@ -1654,86 +1680,100 @@
                             `;
                             staffContainer.appendChild(tableRow);
                         });
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        loadingSectionStaff.classList.add("hidden");
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    if (loadingSectionStaff) loadingSectionStaff.classList.add("hidden");
+                    if (staffContainer) {
                         staffContainer.innerHTML = `
                             <tr>
                                 <td colspan="2" class="text-center py-8 text-rose-500 text-xs font-semibold bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                                     ⚠️ Terjadi masalah sistem: ${error.message}
                                 </td>
                             </tr>`;
-                        contentSectionStaff.classList.remove("hidden");
-                    });
-            });
-        });
+                    }
+                    if (contentSectionStaff) contentSectionStaff.classList.remove("hidden");
+                });
+            return;
+        }
 
         // KLIK DETAIL KARYAWAN
-        document.addEventListener("click", function(e) {
-            const button = e.target.closest(".btn-detail-karyawan");
-            if (button) {
-                const karyawanId = button.getAttribute("data-id");
+        const button = e.target.closest(".btn-detail-karyawan");
+        if (button) {
+            const karyawanId = button.getAttribute("data-id");
 
-                openDetailModal();
-                loadingSectionDetail.classList.remove("hidden");
-                contentSectionDetail.classList.add("hidden");
+            openDetailModal();
+            const loadingSectionDetail = document.getElementById("modalLoadingDetail");
+            const contentSectionDetail = document.getElementById("modalDataContentDetail");
+            if (loadingSectionDetail) loadingSectionDetail.classList.remove("hidden");
+            if (contentSectionDetail) contentSectionDetail.classList.add("hidden");
 
-                fetch(`/admin/karyawan/${karyawanId}/detail`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Gagal mengambil data (Status: ${response.status})`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data || Object.keys(data).length === 0) throw new Error("Data karyawan kosong.");
+            fetch(`/admin/karyawan/${karyawanId}/detail`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Gagal mengambil data (Status: ${response.status})`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || Object.keys(data).length === 0) throw new Error("Data karyawan kosong.");
 
-                        loadingSectionDetail.classList.add("hidden");
-                        contentSectionDetail.classList.remove("hidden");
+                    if (loadingSectionDetail) loadingSectionDetail.classList.add("hidden");
+                    if (contentSectionDetail) contentSectionDetail.classList.remove("hidden");
 
-                        document.getElementById("detail_name").textContent = data.name || '-';
-                        document.getElementById("detail_nip").textContent = data.nip ? data.nip : '-';
-                        document.getElementById("detail_role").textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
-                        document.getElementById("detail_station").textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
+                    const nameEl = document.getElementById("detail_name");
+                    const nipEl = document.getElementById("detail_nip");
+                    const roleEl = document.getElementById("detail_role");
+                    const stationEl = document.getElementById("detail_station");
+                    if (nameEl) nameEl.textContent = data.name || '-';
+                    if (nipEl) nipEl.textContent = data.nip ? data.nip : '-';
+                    if (roleEl) roleEl.textContent = data.role_name ? data.role_name : 'Tidak Ada Role';
+                    if (stationEl) stationEl.textContent = data.nama_stasiun ? `📍 ${data.nama_stasiun}` : '⚠️ Belum Diatur';
 
-                        const emailSpan = document.getElementById("detail_email");
-                        const emailLink = document.getElementById("detail_email_link");
+                    const emailSpan = document.getElementById("detail_email");
+                    const emailLink = document.getElementById("detail_email_link");
 
-                        if (data.email) {
-                            emailSpan.textContent = data.email;
+                    if (data.email) {
+                        if (emailSpan) emailSpan.textContent = data.email;
+                        if (emailLink) {
                             emailLink.href = `mailto:${data.email}`;
                             emailLink.classList.remove("hidden");
-                        } else {
-                            emailSpan.textContent = '-';
-                            emailLink.classList.add("hidden");
+                        }
+                    } else {
+                        if (emailSpan) emailSpan.textContent = '-';
+                        if (emailLink) emailLink.classList.add("hidden");
+                    }
+
+                    const phoneSpan = document.getElementById("detail_phone");
+                    const phoneLink = document.getElementById("detail_phone_link");
+
+                    if (data.phone_number) {
+                        if (phoneSpan) phoneSpan.textContent = data.phone_number;
+
+                        let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
+                        if (cleanNumber.startsWith('0')) {
+                            cleanNumber = '62' + cleanNumber.substring(1);
                         }
 
-                        const phoneSpan = document.getElementById("detail_phone");
-                        const phoneLink = document.getElementById("detail_phone_link");
-
-                        if (data.phone_number) {
-                            phoneSpan.textContent = data.phone_number;
-
-                            let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
-                            if (cleanNumber.startsWith('0')) {
-                                cleanNumber = '62' + cleanNumber.substring(1);
-                            }
-
+                        if (phoneLink) {
                             phoneLink.href = `https://wa.me/${cleanNumber}`;
                             phoneLink.classList.remove("hidden");
-                        } else {
-                            phoneSpan.textContent = '-';
-                            phoneLink.classList.add("hidden");
                         }
+                    } else {
+                        if (phoneSpan) phoneSpan.textContent = '-';
+                        if (phoneLink) phoneLink.classList.add("hidden");
+                    }
 
-                        let jobTitleText = 'Belum Memilih';
-                        if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
-                        else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
-                        else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
-                        else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
+                    let jobTitleText = 'Belum Memilih';
+                    if(data.job_title == 'Operator' || data.job_title == '1') jobTitleText = 'Operator';
+                    else if(data.job_title == 'Maintenance' || data.job_title == '2') jobTitleText = 'Maintenance';
+                    else if(data.job_title == 'HSE' || data.job_title == '3') jobTitleText = 'Safety (HSE)';
+                    else if(data.job_title == 'Dokumentasi' || data.job_title == '4') jobTitleText = 'Documenter';
 
-                        document.getElementById("detail_job").textContent = jobTitleText;
+                    const jobEl = document.getElementById("detail_job");
+                    if (jobEl) jobEl.textContent = jobTitleText;
 
-                        const photoContainer = document.getElementById("detail_photo_container");
+                    const photoContainer = document.getElementById("detail_photo_container");
+                    if (photoContainer) {
                         if (data.profile_photo) {
                             const img = document.createElement("img");
                             img.src = `/storage/${data.profile_photo}`;
@@ -1744,20 +1784,20 @@
                             const initials = data.name ? data.name.substring(0, 2).toUpperCase() : '??';
                             photoContainer.textContent = initials;
                         }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        loadingSectionDetail.classList.add("hidden");
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: `Masalah saat memuat data karyawan: ${error.message}`,
-                            confirmColor: '#e11d48'
-                        });
-                        closeDetailModal();
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    if (loadingSectionDetail) loadingSectionDetail.classList.add("hidden");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: `Masalah saat memuat data karyawan: ${error.message}`,
+                        confirmColor: '#e11d48'
                     });
-            }
-        });
+                    closeDetailModal();
+                });
+        }
     });
 </script>
 @endpush

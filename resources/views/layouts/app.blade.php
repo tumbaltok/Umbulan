@@ -1474,8 +1474,8 @@
     </script>
 
     {{-- MODAL POPUP DETAIL AKUN USER --}}
-    <div id="profileDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md transition-opacity duration-300">
-        <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200/90 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
+    <div id="profileDetailModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md transition-opacity duration-300 overflow-y-auto">
+        <div id="profileDetailModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200/90 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0 my-auto max-h-[90vh]">
 
             {{-- HEADER ELEGAN DENGAN DESAIN DEEP NAVY SAPPHIRE METALLIC SMART CARD --}}
             <div class="relative text-white p-6 sm:p-7 overflow-hidden border-b border-sky-400/20"
@@ -1734,8 +1734,8 @@
     </div>
 
     {{-- MODAL KONFIRMASI LOGOUT --}}
-    <div id="logoutConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-        <div id="logoutConfirmModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0">
+    <div id="logoutConfirmModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md transition-opacity duration-300 overflow-y-auto">
+        <div id="logoutConfirmModalCard" class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 dark:border-slate-800 transform transition-all duration-300 scale-95 opacity-0 my-auto">
             {{-- HEADER MODAL --}}
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-rose-600 to-rose-700 text-white">
                 <div class="flex items-center space-x-2.5">
@@ -1784,6 +1784,11 @@
             const modalCard = document.getElementById('profileDetailModalCard');
             if (!modal || !modalCard) return;
 
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
+
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modalCard.classList.remove('scale-95', 'opacity-0');
@@ -1798,6 +1803,7 @@
 
             modalCard.classList.remove('scale-100', 'opacity-100');
             modalCard.classList.add('scale-95', 'opacity-0');
+            document.body.classList.remove('overflow-hidden');
 
             setTimeout(() => {
                 modal.classList.add('hidden');
@@ -1815,6 +1821,11 @@
             const modal = document.getElementById('logoutConfirmModal');
             const modalCard = document.getElementById('logoutConfirmModalCard');
             if (!modal || !modalCard) return;
+
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            document.body.classList.add('overflow-hidden');
 
             // Sinkronisasi token CSRF form dengan meta tag terbaru
             const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -1837,11 +1848,17 @@
 
             modalCard.classList.remove('scale-100', 'opacity-100');
             modalCard.classList.add('scale-95', 'opacity-0');
+            document.body.classList.remove('overflow-hidden');
 
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 200);
         }
+
+        window.openProfileDetailModal = openProfileDetailModal;
+        window.closeProfileDetailModal = closeProfileDetailModal;
+        window.openLogoutModal = openLogoutModal;
+        window.closeLogoutModal = closeLogoutModal;
 
         document.getElementById('logoutConfirmModal')?.addEventListener('click', function(e) {
             if (e.target === this) {

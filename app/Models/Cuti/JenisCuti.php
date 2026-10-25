@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class JenisCuti extends Model
 {
+    protected $guarded = ['id'];
+
     protected $casts = [
         'keterangan' => 'array',
     ];

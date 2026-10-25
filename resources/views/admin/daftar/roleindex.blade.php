@@ -340,7 +340,8 @@
 
 @push('modals')
 {{-- MODAL FORM TAMBAH ROLE --}}
-<div id="modalTambahRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalTambahRole()">
+<div id="modalTambahRole" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalTambahRole()"></div>
     <div id="modalTambahRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[90vh] flex flex-col">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4 shrink-0">
             <div>
@@ -373,7 +374,8 @@
 </div>
 
 {{-- MODAL EDIT ROLE, HIERARKI & PENYETUJU MODUL --}}
-<div id="modalEditRole" class="fixed inset-0 z-50 items-center justify-center hidden p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto" onclick="if(event.target === this) tutupModalEditRole()">
+<div id="modalEditRole" class="fixed inset-0 z-[9999] items-center justify-center hidden p-3 sm:p-5 overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="tutupModalEditRole()"></div>
     <div id="modalEditRoleCard" class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 my-auto text-left border border-slate-100 dark:border-slate-700/80 transition-all duration-200 transform scale-95 opacity-0 max-h-[92vh] flex flex-col">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4 shrink-0">
             <div>

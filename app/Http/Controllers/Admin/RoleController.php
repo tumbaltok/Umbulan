@@ -82,6 +82,26 @@ class RoleController extends Controller
             'car_approver_2_role_id' => 'nullable|exists:roles,id',
         ]);
 
+        // Anti-Collusion Validation: Approver 1 dan 2 tidak boleh role yang sama jika bertingkat 2
+        if ((int)$request->cuti_approval_levels === 2 && !empty($request->cuti_approver_1_role_id) && $request->cuti_approver_1_role_id == $request->cuti_approver_2_role_id) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Konfigurasi Cuti ditolak: Penyetuju Tahap 1 dan Tahap 2 tidak boleh memiliki role yang sama!')
+                ->with('active_tab', 'tab-roles');
+        }
+        if ((int)$request->car_approval_levels === 2 && !empty($request->car_approver_1_role_id) && $request->car_approver_1_role_id == $request->car_approver_2_role_id) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Konfigurasi CAR ditolak: Penyetuju Tahap 1 dan Tahap 2 tidak boleh memiliki role yang sama!')
+                ->with('active_tab', 'tab-roles');
+        }
+        if ((int)$request->mpr_approval_levels === 2 && !empty($request->mpr_approver_1_role_id) && $request->mpr_approver_1_role_id == $request->mpr_approver_2_role_id) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Konfigurasi MPR ditolak: Penyetuju Tahap 1 dan Tahap 2 tidak boleh memiliki role yang sama!')
+                ->with('active_tab', 'tab-roles');
+        }
+
         $parentId = (!empty($request->parent_role_id) && $request->parent_role_id != $id)
             ? $request->parent_role_id
             : null;
@@ -170,6 +190,28 @@ class RoleController extends Controller
             'hierarchy.*.mpr_approver_1_role_id' => 'nullable|exists:roles,id',
             'hierarchy.*.mpr_approver_2_role_id' => 'nullable|exists:roles,id',
         ]);
+
+        // Anti-Collusion Validation di seluruh baris matriks
+        foreach ($request->hierarchy as $item) {
+            if ((int)($item['cuti_approval_levels'] ?? 1) === 2 && !empty($item['cuti_approver_1_role_id']) && $item['cuti_approver_1_role_id'] == ($item['cuti_approver_2_role_id'] ?? null)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Gagal menyimpan matriks: Penyetuju Tahap 1 dan Tahap 2 Cuti tidak boleh role yang sama!')
+                    ->with('active_tab', 'tab-hierarchy');
+            }
+            if ((int)($item['car_approval_levels'] ?? 1) === 2 && !empty($item['car_approver_1_role_id']) && $item['car_approver_1_role_id'] == ($item['car_approver_2_role_id'] ?? null)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Gagal menyimpan matriks: Penyetuju Tahap 1 dan Tahap 2 CAR tidak boleh role yang sama!')
+                    ->with('active_tab', 'tab-hierarchy');
+            }
+            if ((int)($item['mpr_approval_levels'] ?? 1) === 2 && !empty($item['mpr_approver_1_role_id']) && $item['mpr_approver_1_role_id'] == ($item['mpr_approver_2_role_id'] ?? null)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Gagal menyimpan matriks: Penyetuju Tahap 1 dan Tahap 2 MPR tidak boleh role yang sama!')
+                    ->with('active_tab', 'tab-hierarchy');
+            }
+        }
 
         foreach ($request->hierarchy as $item) {
             $role = Role::findOrFail($item['role_id']);
