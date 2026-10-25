@@ -519,7 +519,7 @@
                         ['no' => 15, 'kode' => 'RM_15', 'name' => 'Wonocolo', 'km' => 77.2, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Selatan', 'diam' => '1.200 mm', 'desc' => 'Pintu masuk suplai air curah Umbulan untuk PDAM Surya Sembada Surabaya.'],
                         ['no' => 16, 'kode' => 'RM_16', 'name' => 'Putat Gedhe', 'km' => 82.6, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Barat', 'diam' => '1.200 mm', 'desc' => 'Distribusi air minum untuk pengembangan wilayah perumahan Surabaya barat.'],
                         ['no' => 17, 'kode' => 'RM_17', 'name' => 'Alas Malang', 'km' => 87.3, 'region' => 'surabaya', 'region_name' => 'Kota Surabaya Barat', 'diam' => '1.200 mm', 'desc' => 'Koridor transmisi akhir Surabaya sebelum menyeberang ke perbatasan Gresik.'],
-                        ['no' => 18, 'kode' => 'RM_18', 'name' => 'Giri', 'km' => 97.0, 'region' => 'gresik', 'region_name' => 'Kabupaten Gresik', 'diam' => '1.000 mm', 'desc' => 'Titik hilir terjauh pipa transmisi 97 KM melayani kebutuhan PDAM Gresik.'],
+                        ['no' => 18, 'kode' => 'RM_18', 'name' => 'Giri', 'km' => 97.0, 'region' => 'gresik', 'region_name' => 'Kabupaten Gresik', 'diam' => '1.100 mm', 'desc' => 'Titik hilir terjauh pipa transmisi 97 KM melayani kebutuhan PDAM Gresik.'],
                     ];
                 @endphp
 
