@@ -212,8 +212,8 @@ class ApprovalRoutingService
             ];
         }
 
-        // 4. Hak Akses Administrator Sistem (Super Admin / Admin Level 1)
-        if ($atasan->isLevel1() || $atasan->hasRole('SUPER ADMIN') || $atasan->hasRole('ADMIN')) {
+        // 4. Hak Akses Administrator Sistem (Admin Level 1)
+        if ($atasan->isLevel1() || $atasan->hasRole('ADMIN')) {
             return [
                 'authorized' => true,
                 'reason'     => null,
@@ -281,7 +281,7 @@ class ApprovalRoutingService
     public function applyPendingApprovalScope(Builder $query, User $atasan, string $module): Builder
     {
         $atasanRoleIds = $this->getUserRoleIds($atasan);
-        $isAdmin = $atasan->isLevel1() || in_array(1, $atasanRoleIds) || $atasan->hasRole('SUPER ADMIN') || $atasan->hasRole('ADMIN');
+        $isAdmin = $atasan->isLevel1() || $atasan->hasRole('ADMIN');
 
         // Administrator memantau seluruh antrean pending global
         if ($isAdmin) {

@@ -73,13 +73,13 @@ class AuthController extends Controller
 
         $primaryRoleId = !empty($roleIds) ? $roleIds[0] : null;
 
-        // 2. SIMPAN USER BARU
+        // 2. SIMPAN USER BARU (Semua pendaftar web tanpa terkecuali murni Level 3 / Staf Biasa demi keamanan)
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $primaryRoleId,
-            'level' => 3, // [C-05 FIX] Set eksplisit level 3 (Staff/Karyawan Biasa)
+            'level' => 3,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
             'password' => Hash::make($request->password),

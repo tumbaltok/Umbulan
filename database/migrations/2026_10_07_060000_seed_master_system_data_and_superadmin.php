@@ -13,8 +13,8 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * Menginjeksi data master sistem yang bersifat WAJIB (Genders, Stations, Roles, dan 1 Akun Super Admin),
-     * sehingga aplikasi langsung siap pakai (production-ready) hanya dengan `php artisan migrate`.
+     * Menginjeksi data master sistem operasional WAJIB (Genders, Stations, dan 26 Roles Struktur Resmi PT META).
+     * Menerapkan Zero-User Initial State (tanpa akun user dummy) demi keamanan publik open-source.
      */
     public function up(): void
     {
@@ -45,7 +45,7 @@ return new class extends Migration
             'radius_meters' => 500,
         ]);
 
-        $stSurabaya = Station::updateOrCreate(['kode_stasiun' => 'HO_SBY'], [
+        $stSurabaya = Station::updateOrCreate(['kode_stasiun' => 'MO_SBY'], [
             'name' => 'Kantor Surabaya',
             'type' => 'kantor',
             'latitude' => -7.2574719,
@@ -53,7 +53,7 @@ return new class extends Migration
             'radius_meters' => 200,
         ]);
 
-        $stJakarta = Station::updateOrCreate(['kode_stasiun' => 'HO_JKT'], [
+        $stJakarta = Station::updateOrCreate(['kode_stasiun' => 'MO_JKT'], [
             'name' => 'Kantor Jakarta',
             'type' => 'kantor',
             'latitude' => -6.2087634,
@@ -92,14 +92,8 @@ return new class extends Migration
             ]);
         }
 
-        // 4. MASTER ROLES & STRUKTUR HIERARKI
-        // Role Super Admin Tertinggi
-        $adminRole = Role::firstOrCreate(
-            ['role_name' => 'SUPER ADMIN'],
-            ['description' => 'Administrator Tertinggi Sistem ERP']
-        );
-
-        // Daftar Role Utama
+        // 4. MASTER 26 ROLES STRUKTUR ORGANISASI RESMI PT META ADHYA TIRTA UMBULAN
+        // Tanpa role buatan 'SUPER ADMIN'. Hak akses sistem dikendalikan via users.level (1=Admin, 2=Approver, 3=Staff).
         $rawRoles = [
             'EXCECUTIVE ADVISOR'      => ['parent' => null],
             'PROCUREMENT'             => ['parent' => null],
@@ -135,47 +129,12 @@ return new class extends Migration
             $createdRoles[$name] = Role::firstOrCreate(['role_name' => $name]);
         }
 
-        // Hubungkan parent_role_id sesuai relasi atasan
+        // Hubungkan parent_role_id sesuai relasi atasan hirarki
         foreach ($rawRoles as $name => $meta) {
             if ($meta['parent'] && isset($createdRoles[$meta['parent']])) {
                 $createdRoles[$name]->update(['parent_role_id' => $createdRoles[$meta['parent']]->id]);
             }
         }
-
-        // 5. SATU AKUN SUPER ADMINISTRATOR SISTEM (LEVEL 1)
-        // Dibuat khusus untuk pengelola sistem, terpisah dari akun pengguna riil karyawan.
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@meta.com'],
-            [
-                'nip'               => 'ADM-001',
-                'name'              => 'Super Administrator',
-                'role_id'           => $adminRole->id,
-                'level'             => 1, // Admin Level 1 (Akses Penuh Panel Admin)
-                'gender_id'         => $pria->id,
-                'station_id'        => $stSurabaya->id,
-                'schedule_type'     => 'reguler_5_hari',
-                'normal_work_days'  => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                'normal_check_in'   => '07:00:00',
-                'normal_check_out'  => '16:00:00',
-                'password'          => Hash::make('Admin123.'),
-                'email_verified_at' => now(),
-                'phone_verified_at' => now(),
-                'phone_number'      => '081200000001',
-                'signature'         => 'signatures/dummy_signature.png',
-            ]
-        );
-
-        // Pastikan role_user pivot dan level tersinkronisasi untuk Super Admin
-        if ($superAdmin) {
-            $superAdmin->roles()->syncWithoutDetaching([$adminRole->id => ['is_primary' => true]]);
-            $superAdmin->update(['level' => 1]);
-        }
-
-        // 6. KEMBALIKAN AKUN USER RIIL (REKI M & YOGA FARELY) KE LEVEL PENGGUNA ASLI JIKA ADA
-        // Agar akun personil riil tidak terikat sebagai super admin sistem bawaan.
-        User::whereIn('email', ['reki@meta.com', 'yogafarely@meta.com'])
-            ->where('email', '!=', 'admin@meta.com')
-            ->update(['level' => 3]);
     }
 
     /**
@@ -183,6 +142,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        User::where('email', 'admin@meta.com')->delete();
+        // Tidak ada rollback yang menghapus user
     }
 };

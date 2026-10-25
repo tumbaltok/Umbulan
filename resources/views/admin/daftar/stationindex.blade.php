@@ -1119,11 +1119,11 @@
                     </label>
                     <select name="stations[${curIdx}][type]" required class="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-semibold focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none cursor-pointer transition-all">
                         <option value="stasiun" ${typeVal === 'stasiun' ? 'selected' : ''}>Stasiun Operasional</option>
-                        <option value="kantor" ${typeVal === 'kantor' ? 'selected' : ''}>Kantor / Head Office</option>
+                        <option value="kantor" ${typeVal === 'kantor' ? 'selected' : ''}>Kantor / Manajemen Operasional (MO)</option>
                     </select>
                 </div>
             `;
-            placeholderKode = 'Contoh: HO-SBY atau ST-UMB';
+            placeholderKode = 'Contoh: MO-SBY atau ST-UMB';
             placeholderNama = 'Contoh: Kantor Surabaya atau Stasiun Umbulan';
             labelNama = 'Nama Tempat Kerja / Stasiun';
         }
