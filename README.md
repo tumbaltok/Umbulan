@@ -1,5 +1,15 @@
-# 🌊 ERP META Adhya Tirta Umbulan
-### *Water Transmission Enterprise System & Operational Resource Planning*
+<p align="center">
+  <a href="https://github.com/tumbaltok/Umbulan">
+    <img src="public/images/iconfav.png" alt="Logo PT META Adhya Tirta Umbulan" width="96" height="96" style="border-radius: 50%;">
+  </a>
+</p>
+
+<h1 align="center">ERP META Adhya Tirta Umbulan</h1>
+
+<p align="center">
+  <strong>Water Transmission Enterprise System & Operational Resource Planning</strong><br>
+  <em>Badan Usaha Pelaksana Proyek Strategis Nasional KPBU SPAM Umbulan</em>
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-11%20%7C%2012-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Version">
@@ -33,7 +43,7 @@ Dokumen ini merupakan panduan arsitektur perangkat lunak (*software architecture
 - [9. Automasi Latar Belakang (Task Scheduler & Cron Jobs)](#9-automasi-latar-belakang-task-scheduler--cron-jobs)
 - [10. Panduan Instalasi Pengembangan Lokal (Local Quick Start)](#10-panduan-instalasi-pengembangan-lokal-local-quick-start)
 - [11. Panduan Deployment Server Produksi (Bare-Metal / VPS)](#11-panduan-deployment-server-produksi-bare-metal--vps)
-  - [11.0. ⚡ Jalur Cepat: One-Click Auto-Deployer via `deploy.sh` (aaPanel & VPS)](#110--jalur-cepat-one-click-auto-deployer-via-deploysh-aapanel--vps)
+  - [11.0. Jalur Cepat: One-Click Auto-Deployer via `deploy.sh` (aaPanel & VPS)](#110--jalur-cepat-one-click-auto-deployer-via-deploysh-aapanel--vps)
   - [11.1. Spesifikasi Server & Diagram Topologi Jaringan](#111-spesifikasi-server--diagram-topologi-jaringan)
   - [11.2. Langkah 1: Persiapan Server & Konfigurasi Firewall UFW](#112-langkah-1-persiapan-server--konfigurasi-firewall-ufw)
   - [11.3. Langkah 2: Instalasi Paket Inti Server & PHP 8.3 Ekstensi](#113-langkah-2-instalasi-paket-inti-server--php-83-ekstensi)
