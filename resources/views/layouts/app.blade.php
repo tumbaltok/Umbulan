@@ -1677,7 +1677,7 @@
                             <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Skema Jadwal Kerja</span>
                             <p class="font-bold text-indigo-600 dark:text-indigo-400 text-xs truncate">
                                 @if(Auth::user()->schedule_type === 'roster')
-                                    Sistem Roster (Shift 12 Jam)
+                                    Sistem Roster
                                 @elseif(Auth::user()->schedule_type === 'reguler_6_hari')
                                     Reguler 6 Hari (Sen–Sab)
                                 @elseif(Auth::user()->schedule_type === 'reguler_5_hari' || Auth::user()->schedule_type === 'normal')
