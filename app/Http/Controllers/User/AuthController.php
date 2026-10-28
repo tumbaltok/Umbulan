@@ -53,6 +53,7 @@ class AuthController extends Controller
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
+            'phone_number' => 'required|numeric|digits_between:10,15|unique:users,phone_number',
             'roles' => 'required_without:role_id|array|min:1',
             'roles.*' => 'exists:roles,id',
             'role_id' => 'nullable|exists:roles,id',
@@ -60,7 +61,19 @@ class AuthController extends Controller
             'station_id' => 'required|exists:stations,id',
             'assigned_stations' => 'nullable|array',
             'assigned_stations.*' => 'exists:stations,id',
+            'schedule_type' => 'required|in:reguler_5_hari,reguler_6_hari,roster',
+            'current_shift_choice' => 'required_if:schedule_type,roster|nullable|in:pagi,malam,libur',
+            'roster_start_date' => 'nullable|date_format:Y-m-d',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ], [
+            'phone_number.required' => 'Nomor WhatsApp wajib diisi.',
+            'phone_number.numeric' => 'Nomor WhatsApp hanya boleh berupa angka.',
+            'phone_number.digits_between' => 'Nomor WhatsApp harus terdiri dari 10 hingga 15 digit angka.',
+            'phone_number.unique' => 'Nomor WhatsApp ini telah terdaftar pada akun karyawan lain.',
+            'schedule_type.required' => 'Silakan tentukan jadwal kerja Anda.',
+            'schedule_type.in' => 'Tipe jadwal kerja yang dipilih tidak valid.',
+            'current_shift_choice.required_if' => 'Silakan tentukan shift awal untuk jadwal roster.',
+            'current_shift_choice.in' => 'Pilihan shift awal roster tidak valid.',
         ]);
 
         // Ambil daftar ID role terpilih
@@ -73,15 +86,68 @@ class AuthController extends Controller
 
         $primaryRoleId = !empty($roleIds) ? $roleIds[0] : null;
 
+        // Tentukan konfigurasi jadwal kerja berdasarkan tipe yang dipilih
+        $scheduleType = $request->schedule_type;
+        $normalWorkDays = null;
+        $normalCheckIn = null;
+        $normalCheckOut = null;
+        $rosterStartDate = null;
+
+        if ($scheduleType === 'reguler_5_hari') {
+            $normalWorkDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            $normalCheckIn = '07:00:00';
+            $normalCheckOut = '16:00:00';
+        } elseif ($scheduleType === 'reguler_6_hari') {
+            $normalWorkDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            $normalCheckIn = '07:00:00';
+            $normalCheckOut = '16:00:00';
+        } elseif ($scheduleType === 'roster') {
+            $selectedShift = $request->input('current_shift_choice');
+            if ($selectedShift) {
+                $now = Carbon::now('Asia/Jakarta');
+                $currentTuesday = $now->copy()->startOfWeek(Carbon::TUESDAY)->setTime(7, 0, 0);
+
+                if ($now->dayOfWeekIso === Carbon::TUESDAY && $now->lt($currentTuesday)) {
+                    $currentTuesday->subWeek();
+                }
+
+                if ($currentTuesday->gt($now)) {
+                    $currentTuesday->subWeek();
+                }
+
+                switch ($selectedShift) {
+                    case 'pagi':
+                        $rosterStartDate = $currentTuesday->copy()->format('Y-m-d');
+                        break;
+                    case 'malam':
+                        $rosterStartDate = $currentTuesday->copy()->subWeek()->format('Y-m-d');
+                        break;
+                    case 'libur':
+                        $rosterStartDate = $currentTuesday->copy()->subWeeks(2)->format('Y-m-d');
+                        break;
+                }
+            } elseif ($request->filled('roster_start_date')) {
+                $rosterStartDate = Carbon::parse($request->roster_start_date, 'Asia/Jakarta')->format('Y-m-d');
+            } else {
+                $rosterStartDate = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::TUESDAY)->format('Y-m-d');
+            }
+        }
+
         // 2. SIMPAN USER BARU (Semua pendaftar web tanpa terkecuali murni Level 3 / Staf Biasa demi keamanan)
         $user = User::create([
             'nip' => $request->nip,
             'name' => $request->name,
             'email' => $request->email,
+            'phone_number' => $request->phone_number,
             'role_id' => $primaryRoleId,
             'level' => 3,
             'gender_id' => $request->gender_id,
             'station_id' => $request->station_id,
+            'schedule_type' => $scheduleType,
+            'normal_work_days' => $normalWorkDays,
+            'normal_check_in' => $normalCheckIn,
+            'normal_check_out' => $normalCheckOut,
+            'roster_start_date' => $rosterStartDate,
             'password' => Hash::make($request->password),
         ]);
 

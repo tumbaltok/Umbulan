@@ -236,8 +236,29 @@
                                 </div>
                             </div>
 
+                            {{-- Field Input Nomor WhatsApp --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="phone_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                        Nomor WhatsApp (Aktif)
+                                    </label>
+                                    <span class="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                                        <i class="fa-brands fa-whatsapp"></i> OTP WhatsApp
+                                    </span>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                    </div>
+                                    <input type="tel" id="phone_number" name="phone_number" value="{{ old('phone_number') }}" required
+                                        class="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-mono"
+                                        placeholder="Contoh: 08123456789">
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-1">* Wajib aktif untuk menerima kode OTP verifikasi.</p>
+                            </div>
+
                             {{-- Pilihan Jenis Kelamin --}}
-                            <div class="md:col-span-2">
+                            <div>
                                 <label for="gender_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -413,7 +434,160 @@
                         </div>
                     </div>
 
-                    {{-- Seksi 3: Keamanan Sandi Akun --}}
+                    {{-- Seksi 3: Jadwal Kerja Kedinasan --}}
+                    <div class="border-b border-slate-100 pb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block">
+                                <i class="fa-solid fa-business-time mr-1"></i> Jadwal Kerja Kedinasan
+                            </span>
+                            <span class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">
+                                <i class="fa-solid fa-lock text-[9px] mr-0.5"></i> Terkunci setelah pendaftaran
+                            </span>
+                        </div>
+
+                        <div class="space-y-3">
+                            {{-- Dropdown Pilihan Jadwal --}}
+                            <div>
+                                <label for="schedule_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Pilih Jenis Jadwal Kerja
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-calendar-days text-xs"></i>
+                                    </div>
+                                    <select id="schedule_type" name="schedule_type" required onchange="toggleScheduleOptions()"
+                                        class="block w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="" disabled {{ old('schedule_type') ? '' : 'selected' }}>-- Pilih Tipe Jadwal Kerja --</option>
+                                        <option value="reguler_5_hari" {{ old('schedule_type', 'reguler_5_hari') === 'reguler_5_hari' ? 'selected' : '' }}>
+                                            Reguler (5 Hari: Senin – Jumat)
+                                        </option>
+                                        <option value="reguler_6_hari" {{ old('schedule_type') === 'reguler_6_hari' ? 'selected' : '' }}>
+                                            Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
+                                        </option>
+                                        <option value="roster" {{ old('schedule_type') === 'roster' ? 'selected' : '' }}>
+                                            Roster / Shift (12 Jam)
+                                        </option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Card Info Jadwal Reguler 5 Hari --}}
+                            <div id="section_reguler_5_info" class="{{ old('schedule_type', 'reguler_5_hari') === 'reguler_5_hari' ? '' : 'hidden' }} p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-2xl space-y-2.5">
+                                <div class="flex items-center gap-2 text-sky-800 font-bold text-xs uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar-check text-sky-600"></i>
+                                    Ketentuan Baku Jadwal Reguler 5 Hari
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center sm:text-left">
+                                    <div class="p-2.5 bg-white rounded-xl border border-sky-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                        <span class="text-xs font-bold text-slate-800">Senin s/d Jumat</span>
+                                    </div>
+                                    <div class="p-2.5 bg-white rounded-xl border border-sky-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja</span>
+                                        <span class="text-xs font-bold text-sky-600">07:00 – 16:00 WIB</span>
+                                    </div>
+                                    <div class="p-2.5 bg-white rounded-xl border border-sky-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                        <span class="text-xs font-bold text-rose-600">Sabtu & Minggu (OFF)</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-sky-500"></i>
+                                    Mengikuti Hari Libur Nasional & cuti bersama resmi pemerintah.
+                                </p>
+                            </div>
+
+                            {{-- Card Info Jadwal Reguler 6 Hari --}}
+                            <div id="section_reguler_6_info" class="{{ old('schedule_type') === 'reguler_6_hari' ? '' : 'hidden' }} p-3.5 bg-teal-50/70 border border-teal-200/80 rounded-2xl space-y-2.5">
+                                <div class="flex items-center gap-2 text-teal-800 font-bold text-xs uppercase tracking-wider">
+                                    <i class="fa-solid fa-calendar-check text-teal-600"></i>
+                                    Ketentuan Baku Jadwal Reguler 6 Hari
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center sm:text-left">
+                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
+                                        <span class="text-xs font-bold text-slate-800">Senin s/d Sabtu</span>
+                                    </div>
+                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja</span>
+                                        <span class="text-xs font-bold text-teal-600">Sen–Jum: 07–16, Sab: 07–12</span>
+                                    </div>
+                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
+                                        <span class="text-xs font-bold text-rose-600">Minggu (OFF)</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-teal-500"></i>
+                                    Khusus Sabtu berlaku setengah hari kerja (pulang 12:00 WIB).
+                                </p>
+                            </div>
+
+                            {{-- Card Info & Pilihan Shift Jadwal Roster --}}
+                            <div id="section_roster_schedule" class="{{ old('schedule_type') === 'roster' ? '' : 'hidden' }} p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">
+                                        Tentukan Shift Anda Saat Mendaftar
+                                    </label>
+                                    <p class="text-[11px] text-amber-700 mb-2.5">
+                                        Sistem akan otomatis menghitung rotasi shift Anda setiap hari Selasa pk 07:00 WIB.
+                                    </p>
+
+                                    <input type="hidden" id="roster_start_date_input" name="roster_start_date" value="{{ old('roster_start_date') }}">
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                        <label class="flex items-center space-x-2.5 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-sky-500 transition-all shadow-2xs">
+                                            <input type="radio" name="current_shift_choice" value="pagi" {{ old('current_shift_choice', 'pagi') === 'pagi' ? 'checked' : '' }} onchange="calculateRosterAnchor('pagi')" class="text-sky-600 focus:ring-sky-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800">Shift Pagi</span>
+                                                <span class="text-[10px] text-slate-500">07:00 - 19:00 WIB</span>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center space-x-2.5 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all shadow-2xs">
+                                            <input type="radio" name="current_shift_choice" value="malam" {{ old('current_shift_choice') === 'malam' ? 'checked' : '' }} onchange="calculateRosterAnchor('malam')" class="text-indigo-600 focus:ring-indigo-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800">Shift Malam</span>
+                                                <span class="text-[10px] text-slate-500">19:00 - 07:00 WIB</span>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center space-x-2.5 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 transition-all shadow-2xs">
+                                            <input type="radio" name="current_shift_choice" value="libur" {{ old('current_shift_choice') === 'libur' ? 'checked' : '' }} onchange="calculateRosterAnchor('libur')" class="text-emerald-600 focus:ring-emerald-500">
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-800">OFF (Libur)</span>
+                                                <span class="text-[10px] text-slate-500">Minggu Libur Roster</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Pratinjau Rotasi Roster --}}
+                                <div id="roster_preview_box" class="p-3 bg-white border border-amber-300 rounded-xl text-xs space-y-2">
+                                    <div class="font-bold text-amber-900 border-b border-slate-100 pb-1.5 flex items-center text-[11px]">
+                                        <i class="fa-solid fa-eye text-amber-600 mr-1.5"></i> Pratinjau Rotasi Shift Mingguan:
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 text-center">
+                                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                            <span class="block text-[9px] text-slate-400 font-bold uppercase">Minggu Ini</span>
+                                            <span id="preview_week_1" class="font-bold text-sky-600 text-xs">Shift Pagi</span>
+                                        </div>
+                                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                            <span class="block text-[9px] text-slate-400 font-bold uppercase">Selasa Depan</span>
+                                            <span id="preview_week_2" class="font-bold text-indigo-600 text-xs">Shift Malam</span>
+                                        </div>
+                                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                            <span class="block text-[9px] text-slate-400 font-bold uppercase">2 Mgg Lagi</span>
+                                            <span id="preview_week_3" class="font-bold text-rose-600 text-xs">Minggu Libur</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Seksi 4: Keamanan Sandi Akun --}}
                     <div>
                         <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block mb-3">
                             <i class="fa-solid fa-shield-halved mr-1"></i> Keamanan Akun
@@ -671,7 +845,95 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             onRoleCheckboxChange();
+            toggleScheduleOptions();
         });
+
+        // Pengaturan Opsi & Kalkulasi Jadwal Kerja
+        function toggleScheduleOptions() {
+            const scheduleSelect = document.getElementById('schedule_type');
+            const scheduleType = scheduleSelect ? scheduleSelect.value : '';
+            const sectionReguler5 = document.getElementById('section_reguler_5_info');
+            const sectionReguler6 = document.getElementById('section_reguler_6_info');
+            const sectionRoster = document.getElementById('section_roster_schedule');
+
+            if (sectionReguler5) sectionReguler5.classList.add('hidden');
+            if (sectionReguler6) sectionReguler6.classList.add('hidden');
+            if (sectionRoster) sectionRoster.classList.add('hidden');
+
+            if (!scheduleType) return;
+
+            if (scheduleType === 'reguler_6_hari') {
+                if (sectionReguler6) sectionReguler6.classList.remove('hidden');
+            } else if (scheduleType === 'roster') {
+                if (sectionRoster) {
+                    sectionRoster.classList.remove('hidden');
+                    const checkedRadio = document.querySelector('input[name="current_shift_choice"]:checked');
+                    if (checkedRadio) {
+                        calculateRosterAnchor(checkedRadio.value);
+                    } else {
+                        calculateRosterAnchor('pagi');
+                    }
+                }
+            } else if (scheduleType === 'reguler_5_hari') {
+                if (sectionReguler5) sectionReguler5.classList.remove('hidden');
+            }
+        }
+
+        function calculateRosterAnchor(selectedShift) {
+            const now = new Date();
+            const day = now.getDay();
+
+            let daysSinceTuesday = (day - 2 + 7) % 7;
+            let currentTuesday = new Date(now);
+            currentTuesday.setDate(now.getDate() - daysSinceTuesday);
+            currentTuesday.setHours(7, 0, 0, 0);
+
+            if (day === 2 && now.getHours() < 7) {
+                currentTuesday.setDate(currentTuesday.getDate() - 7);
+            }
+
+            if (selectedShift === 'malam') {
+                currentTuesday.setDate(currentTuesday.getDate() - 7);
+            } else if (selectedShift === 'libur') {
+                currentTuesday.setDate(currentTuesday.getDate() - 14);
+            }
+
+            const year = currentTuesday.getFullYear();
+            const month = String(currentTuesday.getMonth() + 1).padStart(2, '0');
+            const date = String(currentTuesday.getDate()).padStart(2, '0');
+
+            const input = document.getElementById('roster_start_date_input');
+            if (input) {
+                input.value = `${year}-${month}-${date}`;
+            }
+
+            updateRosterPreviewUI(selectedShift);
+        }
+
+        function updateRosterPreviewUI(selectedShift) {
+            const previewBox = document.getElementById('roster_preview_box');
+            const w1 = document.getElementById('preview_week_1');
+            const w2 = document.getElementById('preview_week_2');
+            const w3 = document.getElementById('preview_week_3');
+
+            if (!previewBox || !w1 || !w2 || !w3) return;
+
+            previewBox.classList.remove('hidden');
+
+            if (selectedShift === 'pagi') {
+                w1.innerText = "Shift Pagi"; w1.className = "font-bold text-sky-600 text-xs";
+                w2.innerText = "Shift Malam"; w2.className = "font-bold text-indigo-600 text-xs";
+                w3.innerText = "Minggu Libur"; w3.className = "font-bold text-rose-600 text-xs";
+            } else if (selectedShift === 'malam') {
+                w1.innerText = "Shift Malam"; w1.className = "font-bold text-indigo-600 text-xs";
+                w2.innerText = "Minggu Libur"; w2.className = "font-bold text-rose-600 text-xs";
+                w3.innerText = "Shift Pagi"; w3.className = "font-bold text-sky-600 text-xs";
+            } else {
+                w1.innerText = "Minggu Libur"; w1.className = "font-bold text-rose-600 text-xs";
+                w2.innerText = "Shift Pagi"; w2.className = "font-bold text-sky-600 text-xs";
+                w3.innerText = "Shift Malam"; w3.className = "font-bold text-indigo-600 text-xs";
+            }
+        }
 
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
@@ -763,8 +1025,19 @@
             const notifIcon = document.getElementById('notif-icon');
             const notifMessage = document.getElementById('notif-message');
 
-            const isPasswordValid = checkPasswordStrength();
+            // Validasi Nomor WhatsApp
+            const phoneInput = document.getElementById('phone_number');
+            const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+            if (!phoneVal || !/^[0-9]{10,15}$/.test(phoneVal)) {
+                notification.style.display = 'flex';
+                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
+                notifIcon.innerHTML = `<i class="fa-brands fa-whatsapp text-rose-500 text-lg"></i>`;
+                notifMessage.innerText = "Error: Nomor WhatsApp wajib diisi angka antara 10 hingga 15 digit.";
+                if (phoneInput) phoneInput.focus();
+                return;
+            }
 
+            // Validasi Pemilihan Role
             const selectedRoles = document.querySelectorAll('input[name="roles[]"]:checked');
             const roleError = document.getElementById('role-selection-error');
             if (selectedRoles.length === 0) {
@@ -776,6 +1049,32 @@
                 return;
             }
             if (roleError) roleError.classList.add('hidden');
+
+            // Validasi Jadwal Kerja
+            const scheduleSelect = document.getElementById('schedule_type');
+            const scheduleVal = scheduleSelect ? scheduleSelect.value : '';
+            if (!scheduleVal) {
+                notification.style.display = 'flex';
+                notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
+                notifIcon.innerHTML = `<i class="fa-solid fa-business-time text-rose-500 text-lg"></i>`;
+                notifMessage.innerText = "Error: Silakan tentukan jenis jadwal kerja operasional Anda.";
+                if (scheduleSelect) scheduleSelect.focus();
+                return;
+            }
+
+            if (scheduleVal === 'roster') {
+                const shiftChoice = document.querySelector('input[name="current_shift_choice"]:checked');
+                if (!shiftChoice) {
+                    notification.style.display = 'flex';
+                    notification.className = "mb-6 p-4 rounded-xl border flex items-center space-x-3 bg-rose-50 border-rose-200 text-rose-800";
+                    notifIcon.innerHTML = `<i class="fa-solid fa-rotate text-rose-500 text-lg"></i>`;
+                    notifMessage.innerText = "Error: Silakan tentukan shift awal Anda saat mendaftar untuk jadwal sistem roster.";
+                    return;
+                }
+                calculateRosterAnchor(shiftChoice.value);
+            }
+
+            const isPasswordValid = checkPasswordStrength();
 
             if (!isPasswordValid) {
                 notification.style.display = 'flex';
