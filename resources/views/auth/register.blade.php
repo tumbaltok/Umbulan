@@ -36,85 +36,95 @@
             background-size: 20px 20px;
         }
     </style>
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
+<body class="bg-slate-50 min-h-screen py-6 sm:py-10 px-3 sm:px-6 md:px-8 overflow-x-hidden flex flex-col items-center justify-start">
 
     {{-- Kontainer Utama Registrasi --}}
-    <div class="bg-white w-full max-w-6xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-auto lg:min-h-[700px] border border-slate-100 transition-all duration-300">
+    <div class="bg-white w-full max-w-6xl rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row border border-slate-100 transition-all duration-300">
 
-        {{-- Sisi Kiri: Branding & Infrastruktur Mega Transmisi Air Umbulan --}}
-        <div class="lg:w-5/12 wave-bg text-white p-4 sm:p-6 lg:p-10 flex flex-col justify-between relative overflow-hidden shrink-0">
-            {{-- Elemen Grafis Latar Belakang (Grid & Water Wave) --}}
-            <div class="absolute inset-0 water-pattern opacity-70 pointer-events-none"></div>
-            <div class="absolute -top-24 -left-24 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div class="absolute bottom-0 left-0 right-0 opacity-15 pointer-events-none">
-                <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-                </svg>
+        {{-- Sisi Kiri: Branding & Informasi Kedinasan --}}
+        <div class="lg:w-5/12 wave-bg text-white rounded-t-2xl sm:rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl relative shrink-0">
+            {{-- Elemen Grafis Latar Belakang --}}
+            <div class="absolute inset-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl pointer-events-none">
+                <div class="absolute inset-0 water-pattern opacity-70"></div>
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 right-0 opacity-15">
+                    <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+                </div>
             </div>
 
-            {{-- 1. Logo Brand Perusahaan (Tampil di Desktop & Mobile sebagai header ringkas) --}}
-            <div class="z-10 flex items-center space-x-3.5">
-                <div class="bg-white/15 p-1.5 rounded-2xl backdrop-blur-md border border-white/20 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg shadow-slate-950/20 overflow-hidden shrink-0">
-                    <img src="{{ asset('images/iconfav.png') }}" alt="Logo PT META" class="w-full h-full object-cover rounded-xl">
+            {{-- Konten Sisi Kiri: Sticky Mengikuti Scroll Form --}}
+            <div class="relative z-10 lg:sticky lg:top-8 p-5 sm:p-7 lg:p-9 flex flex-col space-y-5">
+                {{-- 1. Logo Brand Perusahaan --}}
+                <div class="flex items-center space-x-3.5">
+                    <div class="bg-white/15 p-1.5 rounded-2xl backdrop-blur-md border border-white/20 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg shadow-slate-950/20 overflow-hidden shrink-0">
+                        <img src="{{ asset('images/iconfav.png') }}" alt="Logo PT META" class="w-full h-full object-cover rounded-xl">
+                    </div>
+
+                    <div>
+                        <h2 class="font-extrabold tracking-wide text-xs sm:text-sm text-cyan-200 leading-tight">META ADHYA TIRTA UMBULAN</h2>
+                        <p class="text-[9px] sm:text-[10px] text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Portal Layanan Karyawan
+                        </p>
+                    </div>
                 </div>
 
-                <div>
-                    <h2 class="font-extrabold tracking-wide text-xs sm:text-base text-cyan-200 leading-tight">META ADHYA TIRTA UMBULAN</h2>
-                    <p class="text-[9px] sm:text-[10px] text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Portal Layanan Karyawan
+                {{-- 2. Headline & Deskripsi Ringkas --}}
+                <div class="hidden lg:flex flex-col space-y-2">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-bold tracking-wider text-cyan-200 uppercase w-fit">
+                        <i class="fa-solid fa-id-card-clip text-cyan-300 text-xs"></i>
+                        <span>Aktivasi Akun Kepegawaian</span>
+                    </div>
+
+                    <h1 class="text-xl sm:text-2xl font-extrabold leading-tight text-white tracking-tight">
+                        Pendaftaran Akun Karyawan
+                    </h1>
+
+                    <p class="text-cyan-100/85 text-xs font-light leading-relaxed">
+                        Lengkapi pendaftaran akun resmi kedinasan Anda untuk mengakses portal mandiri karyawan: Presensi biometrik wajah berbasis lokasi kerja, pengajuan dokumen dinas (CAR & MPR), serta administrasi kepegawaian.
                     </p>
                 </div>
-            </div>
 
-            {{-- 2. Visual Informasi Registrasi Akun & Panduan Kepegawaian (Tampil di Desktop lg:flex, Disembunyikan di Mobile) --}}
-            <div class="my-auto py-6 z-10 hidden lg:flex flex-col items-start w-full">
-                {{-- Kartu Status & Validasi Registrasi Akun --}}
-                <div class="w-full bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-sky-950/50 mb-5 relative overflow-hidden">
-                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
-
-                    {{-- Header Kartu Registrasi --}}
-                    <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3.5">
+                {{-- 3. Kartu Status & Validasi Sistem --}}
+                <div class="hidden lg:block w-full bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+                    <div class="flex items-center justify-between pb-2.5 border-b border-white/10 mb-3">
                         <div class="flex items-center gap-2">
                             <span class="relative flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
                             </span>
-                            <span class="text-[11px] font-bold text-cyan-200 tracking-wider uppercase font-mono">REGISTRASI AKUN • RESMI</span>
+                            <span class="text-[10px] font-bold text-cyan-200 tracking-wider uppercase font-mono">REGISTRASI AKUN • RESMI</span>
                         </div>
-                        <div id="liveClock" class="text-[11px] font-mono text-cyan-300 font-semibold bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/10">
+                        <div id="liveClock" class="text-[10px] font-mono text-cyan-300 font-semibold bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/10">
                             {{ date('H:i:s') }} WIB
                         </div>
                     </div>
 
-                    {{-- Grid 3 Pilar Validasi Pendaftaran --}}
-                    <div class="grid grid-cols-3 gap-2 text-center mb-3.5">
-                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Identitas</span>
-                            <span class="text-xs sm:text-sm font-black text-cyan-200 font-mono">Tervalidasi</span>
-                            <span class="text-[9px] text-white/60 block">Email & NIP</span>
+                    <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                        <div class="p-2 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[8px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Identitas</span>
+                            <span class="text-xs font-black text-cyan-200 font-mono">Tervalidasi</span>
+                            <span class="text-[8px] text-white/60 block">Email & NIP</span>
                         </div>
-                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Penugasan</span>
-                            <span class="text-xs sm:text-sm font-black text-white font-mono">Resmi</span>
-                            <span class="text-[9px] text-white/60 block">Role & Unit</span>
+                        <div class="p-2 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[8px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Penugasan</span>
+                            <span class="text-xs font-black text-white font-mono">Resmi</span>
+                            <span class="text-[8px] text-white/60 block">Role & Unit</span>
                         </div>
-                        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Keamanan</span>
-                            <span class="text-xs sm:text-sm font-black text-emerald-300 font-mono">Terenkripsi</span>
-                            <span class="text-[9px] text-white/60 block">Akses TLS</span>
+                        <div class="p-2 rounded-xl bg-white/5 border border-white/10">
+                            <span class="text-[8px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Keamanan</span>
+                            <span class="text-xs font-black text-emerald-300 font-mono">Terenkripsi</span>
+                            <span class="text-[8px] text-white/60 block">Akses TLS</span>
                         </div>
                     </div>
 
-                    {{-- Baris Status Pendaftaran --}}
-                    <div class="flex items-center justify-between text-[10px] text-cyan-100/90 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 font-mono">
+                    <div class="flex items-center justify-between text-[10px] text-cyan-100/90 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 font-mono">
                         <span class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-user-check text-cyan-300"></i> Sistem Registrasi Kedinasan Terpadu
+                            <i class="fa-solid fa-user-check text-cyan-300"></i> Sistem Registrasi Terpadu
                         </span>
                         <span class="text-emerald-300 font-semibold flex items-center gap-1">
                             <i class="fa-solid fa-circle-check text-[9px]"></i> Portal Siap
@@ -122,48 +132,34 @@
                     </div>
                 </div>
 
-                {{-- Badging & Headline --}}
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-bold tracking-wider text-cyan-200 uppercase mb-2.5">
-                    <i class="fa-solid fa-id-card-clip text-cyan-300 text-xs"></i>
-                    <span>Aktivasi Akun Kepegawaian</span>
-                </div>
-
-                <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight text-white mb-2.5 tracking-tight">
-                    Pendaftaran Akun Karyawan
-                </h1>
-                
-                <p class="text-cyan-100/85 text-xs sm:text-sm font-light leading-relaxed mb-5">
-                    Lengkapi pendaftaran akun resmi kedinasan Anda untuk mengakses portal mandiri karyawan: Presensi biometrik wajah berbasis lokasi kerja, pengajuan dokumen dinas (CAR & MPR), serta administrasi kepegawaian.
-                </p>
-
-                {{-- 3 Panduan Pendaftaran Karyawan --}}
-                <div class="grid grid-cols-1 gap-2 w-full text-xs text-white/90">
+                {{-- 4. Panduan Ketentuan Registrasi --}}
+                <div class="hidden lg:flex flex-col space-y-2 text-xs text-white/90">
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
                         <i class="fa-solid fa-envelope-circle-check text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Gunakan Email Perusahaan & Identitas Sesuai SK Kepegawaian</span>
+                        <span class="text-[11px] font-medium text-cyan-100">Gunakan Email Perusahaan & Identitas SK</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
                         <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Presensi Biometrik Wajah Berbasis Geofencing Lokasi Kerja</span>
+                        <span class="text-[11px] font-medium text-cyan-100">Presensi Biometrik Wajah Berbasis Geofencing</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
                         <i class="fa-solid fa-shield-halved text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Multi-Tier Authorization & Validasi Alur Dokumen Dinas</span>
+                        <span class="text-[11px] font-medium text-cyan-100">Multi-Tier Authorization & Validasi Alur Dokumen</span>
                     </div>
                 </div>
-            </div>
 
-            {{-- 3. Footer Hak Cipta & Keamanan (Disembunyikan di Mobile) --}}
-            <div class="z-10 pt-4 border-t border-white/15 hidden lg:flex flex-col sm:flex-row items-center justify-between text-[11px] text-cyan-100/70 gap-2">
-                <span>&copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan</span>
-                <span class="flex items-center gap-1.5 text-[10px] font-medium text-cyan-200/90">
-                    <i class="fa-solid fa-shield-halved text-cyan-300"></i> Sistem Resmi Terenkripsi
-                </span>
+                {{-- 5. Footer Hak Cipta --}}
+                <div class="pt-3 border-t border-white/15 hidden lg:flex items-center justify-between text-[11px] text-cyan-100/70">
+                    <span>&copy; <?= date('Y') ?> PT Meta Adhya Tirta Umbulan</span>
+                    <span class="flex items-center gap-1.5 text-[10px] font-medium text-cyan-200/90">
+                        <i class="fa-solid fa-shield-halved text-cyan-300"></i> Terenkripsi
+                    </span>
+                </div>
             </div>
         </div>
 
         {{-- Sisi Kanan: Formulir Registrasi Akun --}}
-        <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between">
+        <div class="w-full lg:w-7/12 p-5 sm:p-10 md:p-12 flex flex-col justify-between bg-white rounded-b-2xl sm:rounded-b-3xl lg:rounded-bl-none lg:rounded-r-3xl">
 
             <div>
                 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-5">
@@ -1126,8 +1122,5 @@
         }
         setInterval(updateLiveClock, 1000);
     </script>
-
-    @laravelPwa
-    @pwaInstallButton
 </body>
 </html>
