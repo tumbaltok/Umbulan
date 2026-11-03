@@ -4,15 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {{-- Deteksi PWA: Alihkan otomatis ke login jika dibuka dari aplikasi HP --}}
-    <script>
-        (function() {
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            if (isPWA) {
-                window.location.replace("{{ route('login') }}");
-            }
-        })();
-    </script>
 
     {{-- Pengaturan warna background bilah status peramban mobile --}}
     <meta name="theme-color" content="#ffffff">
@@ -125,8 +116,16 @@
         }
     </style>
 
-    {{-- Komponen Head PWA --}}
-    @pwaHead
+    {{-- Pembersihan Service Worker PWA agar browser tidak memunculkan prompt install APK --}}
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
 </head>
 <body class="font-sans text-slate-800 antialiased bg-white flex flex-col min-h-screen">
 
@@ -159,10 +158,6 @@
                 <a href="#about-kami" class="hover:text-blue-600 transition">Tentang Proyek</a>
                 <a href="#titik-distribusi" class="hover:text-blue-600 transition">Wilayah Layanan</a>
             </nav>
-            <a href="/login" onclick="showToast('Mengarahkan ke Portal Karyawan...', 'info')" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all duration-150 flex items-center space-x-2">
-                <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
-                <span>Portal Karyawan</span>
-            </a>
         </div>
 
         <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 hover:text-blue-600 focus:outline-none" aria-label="Toggle Menu">
@@ -191,11 +186,6 @@
                         Wilayah Distribusi Jatim
                     </a>
                 </nav>
-            </div>
-            <div class="pt-6 border-t border-blue-50">
-                <a href="/login" onclick="showToast('Mengarahkan ke Portal Karyawan...', 'info')" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-sky-600 text-white text-center font-bold rounded-2xl shadow-lg shadow-blue-600/20 block text-sm">
-                    <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Portal Karyawan
-                </a>
             </div>
         </div>
     </div>
@@ -1011,9 +1001,5 @@
     </script>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-auto"></div>
-
-    {{-- Pendaftaran Skrip PWA --}}
-    @laravelPwa
-    @pwaInstallButton
 </body>
 </html>
