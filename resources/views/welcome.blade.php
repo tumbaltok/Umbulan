@@ -938,8 +938,8 @@
                     return;
                 }
 
-                // Alirkan ke bawah secara halus
-                window.scrollBy({ top: 3.5, behavior: 'auto' });
+                // Alirkan ke bawah secara halus 
+                window.scrollBy({ top: 20, behavior: 'auto' });
             }, 16);
         }
 
