@@ -60,25 +60,36 @@
             background: #60a5fa;
         }
 
-        /* Animasi Aliran Air di Dalam Pipa */
+        /* Animasi Aliran Air di Dalam Pipa yang Realistis & Seamless */
         @keyframes waterFlowAnim {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 40px; }
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 0 80px, 0 0; }
         }
 
         @keyframes waterFlowHorizontal {
-            0% { background-position: 0 0; }
-            100% { background-position: 40px 0; }
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 80px 0, 0 0; }
         }
 
         .water-stream-anim {
-            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 12px, transparent 12px, transparent 24px);
-            animation: waterFlowAnim 1.6s linear infinite;
+            background-image: 
+                linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0px, rgba(255,255,255,0.2) 2px, transparent 2px, transparent 8px);
+            background-size: 100% 80px, 100% 100%;
+            animation: waterFlowAnim 1.4s linear infinite;
+        }
+
+        /* Mode aliran deras bertekanan tinggi saat auto-scroll aktif */
+        .pipeline-fast-flow .water-stream-anim {
+            animation-duration: 0.35s !important;
         }
 
         .water-stream-horizontal {
-            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 12px, transparent 12px, transparent 24px);
-            animation: waterFlowHorizontal 1.6s linear infinite;
+            background-image: 
+                linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%),
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 2px, transparent 2px, transparent 8px);
+            background-size: 80px 100%, 100% 100%;
+            animation: waterFlowHorizontal 1.4s linear infinite;
         }
 
         .water-pattern {
@@ -111,7 +122,8 @@
             border-color: #bfdbfe !important;
         }
 
-        .rm-node.active-flow .rm-ping {
+        /* Ping sonar hanya menyala di stasiun yang sedang dilewati air */
+        .rm-node.current-flow .rm-ping {
             display: inline-flex !important;
         }
     </style>
@@ -434,7 +446,7 @@
 
                 
                 <div class="mt-3 w-full bg-blue-100/60 rounded-full h-2.5 overflow-hidden p-0.5 border border-blue-200/60">
-                    <div id="mini-progress-fill" class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-blue-500 rounded-full transition-all duration-150" style="width: 2%;"></div>
+                    <div id="mini-progress-fill" class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-blue-500 rounded-full will-change-[width]" style="width: 2%;"></div>
                 </div>
             </div>
 
@@ -465,10 +477,10 @@
                 
                 <div class="absolute left-6 md:left-1/2 top-12 bottom-12 -translate-x-1/2 w-6 sm:w-8 bg-blue-100/60 rounded-full border-2 border-blue-200 shadow-inner overflow-hidden z-10">
                     
-                    <div id="pipe-water-fill" class="w-full bg-gradient-to-b from-blue-600 via-sky-400 to-blue-500 rounded-full transition-all duration-75 relative overflow-hidden" style="height: 5%;">
-                        <div class="absolute inset-0 water-stream-anim opacity-40"></div>
+                    <div id="pipe-water-fill" class="w-full bg-gradient-to-b from-blue-600 via-sky-400 to-blue-500 rounded-full will-change-[height] relative overflow-hidden" style="height: 0%;">
+                        <div class="absolute inset-0 water-stream-anim opacity-45"></div>
                         
-                        <div class="absolute bottom-0 left-0 right-0 h-4 bg-sky-200 rounded-full blur-xs"></div>
+                        <div class="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-sky-300 rounded-full shadow-[0_0_12px_#38bdf8] opacity-90"></div>
                     </div>
                 </div>
 
@@ -1656,6 +1668,7 @@
         const hudKm = document.getElementById('hud-km');
         const hudStation = document.getElementById('hud-station');
         const rmNodes = document.querySelectorAll('.rm-node');
+        const rmIndicators = document.querySelectorAll('.rm-node .rm-indicator');
 
         // Variabel pelacak persentase kemajuan aliran pipa secara global (0.0 - 1.0)
         let currentPipelineProgress = 0;
@@ -1663,10 +1676,9 @@
         function updatePipelineOnScroll() {
             if (!pipelineContainer) return;
 
+            // 1. Kalkulasi Progress Aliran Air Vertikal (0.0 - 1.0)
             const rect = pipelineContainer.getBoundingClientRect();
             const windowHeight = window.innerHeight;
-
-            // Hitung kemajuan aliran berdasarkan posisi vertikal wadah pipa di viewport
             const startTrigger = windowHeight * 0.75;
             const totalDistance = rect.height;
             const distanceCovered = startTrigger - rect.top;
@@ -1675,33 +1687,44 @@
             progress = Math.max(0, Math.min(1, progress));
             currentPipelineProgress = progress;
 
-            // Perbarui visual tinggi air dalam pipa utama
             const percentHeight = (progress * 100).toFixed(1);
-            if (pipeWaterFill) {
-                pipeWaterFill.style.height = `${percentHeight}%`;
-            }
-            if (miniProgressFill) {
-                miniProgressFill.style.width = `${Math.max(2, percentHeight)}%`;
-            }
-
-            // Hitung KM saat ini (0.0 KM sampai 97.0 KM)
             const currentKm = (progress * 97.0).toFixed(1);
-            if (hudKm) {
-                hudKm.textContent = `${currentKm} KM`;
-            }
 
-            // Evaluasi stasiun Rumah Meter yang sudah tercapai oleh air
+            // 2. Perbarui visual ketinggian air dan indikator progress
+            if (pipeWaterFill) pipeWaterFill.style.height = `${percentHeight}%`;
+            if (miniProgressFill) miniProgressFill.style.width = `${Math.max(2, percentHeight)}%`;
+            if (hudKm) hudKm.textContent = `${currentKm} KM`;
+
+            // 3. Posisi fisik ujung bawah air yang sedang mengalir di dalam pipa
+            const waterHeadY = pipeWaterFill ? pipeWaterFill.getBoundingClientRect().bottom : 0;
+
             let lastActiveStation = 'Mata Air Umbulan (Hulu Transmisi)';
+            let leadingNode = null;
 
-            rmNodes.forEach(node => {
-                const nodeRect = node.getBoundingClientRect();
-                if (nodeRect.top < startTrigger) {
+            // 4. Periksa apakah ujung air sudah benar-benar menyentuh nomor stasiun
+            rmNodes.forEach((node, index) => {
+                const indicator = rmIndicators[index];
+                if (!indicator || node.offsetParent === null) return;
+
+                const indRect = indicator.getBoundingClientRect();
+                const indicatorCenterY = indRect.top + (indRect.height / 2);
+
+                // Menyala tepat saat posisi ujung air mencapai/melewati titik tengah nomor Rumah Meter
+                if (waterHeadY >= indicatorCenterY) {
                     node.classList.add('active-flow');
                     lastActiveStation = node.getAttribute('data-name');
+                    leadingNode = node;
                 } else {
                     node.classList.remove('active-flow');
+                    node.classList.remove('current-flow');
                 }
             });
+
+            // Hanya stasiun paling depan (leading node) yang memancarkan efek radar/ping
+            rmNodes.forEach(node => node.classList.remove('current-flow'));
+            if (leadingNode && progress < 0.98) {
+                leadingNode.classList.add('current-flow');
+            }
 
             if (progress >= 0.98) {
                 lastActiveStation = 'Reservoir Giri Gresik (Hilir Transmisi 97 KM)';
@@ -1716,17 +1739,23 @@
         window.addEventListener('resize', updatePipelineOnScroll, { passive: true });
         setTimeout(updatePipelineOnScroll, 100);
 
-        // 4. LOGIKA ALIRAN OTOMATIS (AUTO-SCROLL) TANPA STUCK DI WARU
-        let autoScrollInterval = null;
+        // 4. LOGIKA ALIRAN OTOMATIS (AUTO-SCROLL) ULTRA SMOOTH (60/120 FPS)
+        const AUTO_SCROLL_SPEED = 400; // Kecepatan aliran (pixel per detik)
+        let autoScrollRaf = null;
         let isAutoScrolling = false;
+        let lastAutoScrollTime = 0;
+        let autoScrollStartTime = 0;
 
         function toggleAutoScroll() {
             if (!isAutoScrolling) {
-                // Jika sudah berada di titik akhir (97 KM), reset ke hulu dahulu lalu mulai
-                if (currentPipelineProgress >= 0.98) {
-                    resetToHulu();
-                    setTimeout(() => startAutoScroll(), 600);
-                    return;
+                // Jika sudah berada di titik hilir akhir (97 KM), langsung posisikan ke Hulu terlebih dahulu
+                if (currentPipelineProgress >= 0.95) {
+                    const jalurSection = document.getElementById('jalur-pipa');
+                    if (jalurSection) {
+                        const targetY = jalurSection.getBoundingClientRect().top + window.scrollY;
+                        window.scrollTo({ top: targetY, behavior: 'instant' });
+                        updatePipelineOnScroll();
+                    }
                 }
                 startAutoScroll();
             } else {
@@ -1735,40 +1764,55 @@
         }
 
         function startAutoScroll() {
+            if (isAutoScrolling) return;
             isAutoScrolling = true;
+            autoScrollStartTime = performance.now();
+
+            // Nonaktifkan sementara class scroll-smooth agar browser tidak meng-cancel animasi per frame
+            document.documentElement.classList.remove('scroll-smooth');
+
             const btnText = document.getElementById('btn-auto-text');
             const btnIcon = document.getElementById('btn-auto-icon');
             if (btnText) btnText.textContent = 'Jeda Aliran';
             if (btnIcon) btnIcon.className = 'fa-solid fa-pause text-[10px]';
 
-            clearInterval(autoScrollInterval);
+            if (pipelineContainer) pipelineContainer.classList.add('pipeline-fast-flow');
 
-            autoScrollInterval = setInterval(() => {
-                if (!isAutoScrolling) {
-                    clearInterval(autoScrollInterval);
-                    return;
-                }
+            if (autoScrollRaf) cancelAnimationFrame(autoScrollRaf);
+            lastAutoScrollTime = performance.now();
 
-                // Berhenti hanya jika air telah mengalir sampai titik hilir akhir (97 KM)
-                if (currentPipelineProgress >= 0.99) {
+            function autoScrollStep(currentTime) {
+                if (!isAutoScrolling) return;
+
+                const deltaTime = Math.min(currentTime - lastAutoScrollTime, 64);
+                lastAutoScrollTime = currentTime;
+
+                // Kecepatan aliran sesuai konstanta AUTO_SCROLL_SPEED (pixel per detik)
+                const scrollAmount = (AUTO_SCROLL_SPEED * deltaTime) / 1000;
+                window.scrollBy({ top: scrollAmount, behavior: 'instant' });
+
+                // Berhenti otomatis jika sudah mencapai hilir akhir 97 KM atau batas dokumen
+                if (currentPipelineProgress >= 0.99 || (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 10)) {
                     stopAutoScroll();
                     return;
                 }
 
-                // Pengaman batas bawah dokumen
-                if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 15)) {
-                    stopAutoScroll();
-                    return;
-                }
+                autoScrollRaf = requestAnimationFrame(autoScrollStep);
+            }
 
-                // Alirkan ke bawah secara halus 
-                window.scrollBy({ top: 20, behavior: 'auto' });
-            }, 16);
+            autoScrollRaf = requestAnimationFrame(autoScrollStep);
         }
 
         function stopAutoScroll() {
             isAutoScrolling = false;
-            clearInterval(autoScrollInterval);
+            // Kembalikan class scroll-smooth ke html
+            document.documentElement.classList.add('scroll-smooth');
+
+            if (pipelineContainer) pipelineContainer.classList.remove('pipeline-fast-flow');
+            if (autoScrollRaf) {
+                cancelAnimationFrame(autoScrollRaf);
+                autoScrollRaf = null;
+            }
             const btnText = document.getElementById('btn-auto-text');
             const btnIcon = document.getElementById('btn-auto-icon');
             if (btnText) btnText.textContent = 'Alirkan Otomatis';
@@ -1785,13 +1829,16 @@
 
         // Hentikan auto-scroll jika pengguna melakukan scrolling manual dengan mouse/touch
         window.addEventListener('wheel', (e) => {
-            if (isAutoScrolling && Math.abs(e.deltaY) > 6) {
+            // Berikan jeda 300ms setelah tombol ditekan agar klik touchpad tidak membatalkan auto-scroll
+            if (isAutoScrolling && (performance.now() - autoScrollStartTime > 300) && Math.abs(e.deltaY) > 10) {
                 stopAutoScroll();
             }
         }, { passive: true });
 
         window.addEventListener('touchmove', () => {
-            if (isAutoScrolling) stopAutoScroll();
+            if (isAutoScrolling && (performance.now() - autoScrollStartTime > 300)) {
+                stopAutoScroll();
+            }
         }, { passive: true });
 
         // 5. Filter Wilayah Rumah Meter
