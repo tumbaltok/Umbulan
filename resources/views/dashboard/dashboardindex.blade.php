@@ -606,76 +606,66 @@
     </div>
 
     <style>
-        /* Biometrik AI & Liveness Scanner Style (Standar Fintech / KYC Perbankan) */
+        /* Biometrik Scanner Style (Fintech / Vermuk Perbankan Elegan) */
         @keyframes biometricScanSweep {
             0% {
-                top: 10%;
-                opacity: 0.15;
+                top: 15%;
+                opacity: 0.05;
             }
-            15% {
-                opacity: 0.95;
-            }
-            85% {
-                opacity: 0.95;
+            50% {
+                opacity: 0.55;
             }
             100% {
-                top: 86%;
-                opacity: 0.15;
+                top: 80%;
+                opacity: 0.05;
             }
         }
 
-        @keyframes biometricPulseGlow {
+        @keyframes biometricSoftPulse {
             0%, 100% {
-                box-shadow: 0 0 15px 2px rgba(56, 189, 248, 0.4), inset 0 0 15px 2px rgba(56, 189, 248, 0.2);
+                border-color: rgba(255, 255, 255, 0.7);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.15);
             }
             50% {
-                box-shadow: 0 0 30px 6px rgba(56, 189, 248, 0.75), inset 0 0 25px 4px rgba(56, 189, 248, 0.35);
-            }
-        }
-
-        @keyframes biometricSuccessGlow {
-            0%, 100% {
-                box-shadow: 0 0 25px 4px rgba(16, 185, 129, 0.6), inset 0 0 20px 3px rgba(16, 185, 129, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 45px 8px rgba(16, 185, 129, 0.95), inset 0 0 30px 6px rgba(16, 185, 129, 0.5);
+                border-color: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.2);
             }
         }
 
         .laser-scanner-beam {
             position: absolute;
-            left: 4%;
-            right: 4%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.8) 20%, #38bdf8 50%, rgba(56, 189, 248, 0.8) 80%, transparent);
-            box-shadow: 0 0 16px 3px rgba(56, 189, 248, 0.9), 0 0 30px 6px rgba(96, 165, 250, 0.5);
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.5) 75%, transparent);
+            box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.3);
             border-radius: 9999px;
-            animation: biometricScanSweep 2.2s ease-in-out infinite alternate;
+            animation: biometricScanSweep 2.5s ease-in-out infinite alternate;
         }
 
         .laser-scanner-beam-success {
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.8) 20%, #10b981 50%, rgba(16, 185, 129, 0.8) 80%, transparent) !important;
-            box-shadow: 0 0 18px 4px rgba(16, 185, 129, 0.95), 0 0 35px 8px rgba(52, 211, 153, 0.6) !important;
+            background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.5) 25%, rgba(52, 211, 153, 0.9) 50%, rgba(52, 211, 153, 0.5) 75%, transparent) !important;
+            box-shadow: 0 0 8px 1px rgba(52, 211, 153, 0.4) !important;
         }
 
         .oval-reticle-default {
-            border: 2.5px solid rgba(56, 189, 248, 0.85);
-            animation: biometricPulseGlow 2.5s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            animation: biometricSoftPulse 3s ease-in-out infinite;
         }
 
         .oval-reticle-active {
-            border: 2.5px solid rgba(245, 158, 11, 0.95) !important;
-            box-shadow: 0 0 30px 6px rgba(245, 158, 11, 0.75), inset 0 0 20px 4px rgba(245, 158, 11, 0.35) !important;
+            border: 2.5px solid rgba(251, 191, 36, 0.95) !important;
+            box-shadow: 0 0 14px 2px rgba(251, 191, 36, 0.3) !important;
         }
 
         .oval-reticle-success {
-            border: 2.5px solid rgba(16, 185, 129, 0.95) !important;
-            animation: biometricSuccessGlow 2s ease-in-out infinite;
+            border: 2.5px solid rgba(52, 211, 153, 0.95) !important;
+            box-shadow: 0 0 16px 2px rgba(52, 211, 153, 0.35) !important;
         }
 
         .oval-reticle-error {
-            border: 2.5px solid rgba(244, 63, 94, 0.95) !important;
-            box-shadow: 0 0 30px 6px rgba(244, 63, 94, 0.75), inset 0 0 20px 4px rgba(244, 63, 94, 0.35) !important;
+            border: 2.5px solid rgba(248, 113, 113, 0.95) !important;
+            box-shadow: 0 0 14px 2px rgba(248, 113, 113, 0.3) !important;
         }
     </style>
 
@@ -686,29 +676,29 @@
 
         <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
             {{-- Header Modal --}}
-            <div class="bg-gradient-to-r from-sky-50 via-slate-50 to-blue-50/40 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-800/90 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
-                <div class="flex items-center space-x-3.5 min-w-0">
-                    <div class="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-lg shrink-0">
-                        <i class="fa-solid fa-face-viewfinder"></i>
+            <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-face-smile"></i>
                     </div>
                     <div class="min-w-0">
-                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Perekaman Biometrik Wajah</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Pendaftaran data AI Face-Recognition karyawan</p>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Perekaman Wajah Pegawai</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Daftarkan data biometrik untuk presensi kehadiran</p>
                     </div>
                 </div>
-                <button type="button" onclick="tutupModalRekamWajah()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                <button type="button" onclick="tutupModalRekamWajah()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0" title="Tutup">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             <div class="p-5 sm:p-6 space-y-3.5 flex-1 overflow-y-auto">
-                <div class="p-3 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 rounded-2xl text-xs text-sky-800 dark:text-sky-300 flex items-start gap-2.5 leading-relaxed">
-                    <i class="fa-solid fa-circle-info text-sky-500 mt-0.5 shrink-0 text-sm"></i>
-                    <span>Posisikan wajah Anda tegak lurus di dalam bingkai scanner. Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa masker atau kacamata gelap.</span>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 rounded-xl text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
+                    <i class="fa-solid fa-circle-info text-sky-500 shrink-0 text-sm"></i>
+                    <span>Posisikan wajah Anda di dalam bingkai oval. Pastikan pencahayaan cukup dan hindari penggunaan masker.</span>
                 </div>
 
-                {{-- Container Video Kamera Perekaman Potret Canggih Standar Fintech KYC --}}
-                <div class="relative bg-slate-950 rounded-3xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center border-2 border-slate-700/80 shadow-2xl shrink-0 group select-none">
+                {{-- Container Video Kamera Perekaman Wajah (Fintech / Vermuk Style) --}}
+                <div class="relative bg-slate-950 rounded-2xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center shadow-lg shrink-0 group select-none">
                     
                     {{-- 1. Video Stream --}}
                     <video id="videoRekamWajah"
@@ -721,7 +711,7 @@
                     {{-- 2. Canvas Landmark AI Processing --}}
                     <canvas id="canvasRekamWajah" class="absolute inset-0 w-full h-full pointer-events-none object-cover" style="transform: scaleX(-1) !important;"></canvas>
 
-                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar lingkaran oval wajah --}}
+                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar bingkai oval wajah --}}
                     <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" width="100%" height="100%">
                         <defs>
                             <mask id="faceMaskRekam" maskContentUnits="objectBoundingBox">
@@ -729,64 +719,46 @@
                                 <ellipse cx="0.5" cy="0.46" rx="0.33" ry="0.36" fill="black" />
                             </mask>
                         </defs>
-                        <rect width="100%" height="100%" fill="rgba(2, 6, 23, 0.45)" mask="url(#faceMaskRekam)" />
+                        <rect width="100%" height="100%" fill="rgba(15, 23, 42, 0.6)" mask="url(#faceMaskRekam)" />
                     </svg>
 
-                    {{-- 4. Cybernetic HUD Corner Brackets --}}
-                    <div class="absolute top-3.5 left-3.5 w-5 h-5 border-t-2 border-l-2 border-sky-400/80 rounded-tl-lg pointer-events-none z-20"></div>
-                    <div class="absolute top-3.5 right-3.5 w-5 h-5 border-t-2 border-r-2 border-sky-400/80 rounded-tr-lg pointer-events-none z-20"></div>
-                    <div class="absolute bottom-16 left-3.5 w-5 h-5 border-b-2 border-l-2 border-sky-400/80 rounded-bl-lg pointer-events-none z-20"></div>
-                    <div class="absolute bottom-16 right-3.5 w-5 h-5 border-b-2 border-r-2 border-sky-400/80 rounded-br-lg pointer-events-none z-20"></div>
-
-                    {{-- 5. Top Bar HUD: Security Badge & AI Status --}}
-                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-none">
-                        <div class="bg-slate-900/85 backdrop-blur-md text-sky-400 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-sky-500/40 flex items-center gap-1.5 shadow-sm">
+                    {{-- 4. Top Status Pill --}}
+                    <div class="absolute top-3 inset-x-0 flex items-center justify-center z-20 pointer-events-none">
+                        <div class="bg-slate-900/75 backdrop-blur-md text-white/90 text-[11px] font-medium px-3.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
                             <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-                            <span>AI ENROLLMENT • 3D</span>
-                        </div>
-
-                        <div class="bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            <span>ISO/IEC 30107</span>
+                            <span>Perekaman Biometrik</span>
                         </div>
                     </div>
 
-                    {{-- 6. The Biometric Face Oval Guide (Reticle) --}}
+                    {{-- 5. The Biometric Face Oval Guide (Reticle) --}}
                     <div id="ovalReticleRekam" class="absolute top-[10%] left-[17%] right-[17%] bottom-[18%] rounded-[50%] oval-reticle-default pointer-events-none z-10 transition-all duration-300 flex items-center justify-center">
-                        {{-- Reticle Tick Crosshairs --}}
-                        <span class="absolute -top-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -bottom-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -left-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -right-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-
-                        {{-- Head Silhouette Wireframe Guide when idle --}}
-                        <div id="faceSilhouetteRekam" class="opacity-25 transition-opacity duration-300 text-sky-400 flex flex-col items-center select-none">
+                        {{-- Minimalist Face Guide Silhouette --}}
+                        <div id="faceSilhouetteRekam" class="opacity-20 transition-opacity duration-300 text-white flex flex-col items-center select-none">
                             <i class="fa-solid fa-user text-6xl sm:text-7xl"></i>
                         </div>
 
-                        {{-- Sweeping Laser Scan Line --}}
+                        {{-- Subtle Shimmer Light Sweep --}}
                         <div id="laserBeamRekam" class="laser-scanner-beam pointer-events-none"></div>
                     </div>
 
-                    {{-- 7. Kotak Status Scanning HUD --}}
-                    <div id="statusRekamWajahBox" class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5 transition-all">
+                    {{-- 6. Floating Status Pill --}}
+                    <div id="statusRekamWajahBox" class="absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...
                     </div>
                 </div>
 
-                {{-- Footnote Standar Keamanan Finansial --}}
-                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">
-                    <i class="fa-solid fa-shield-halved text-sky-500 text-xs"></i>
-                    <span>Enkripsi Biometrik 128-Point Facial Vector • Aman & Rahasia</span>
+                {{-- Footnote Standar Keamanan --}}
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 font-medium pt-0.5">
+                    <i class="fa-solid fa-shield-halved text-emerald-500 text-xs"></i>
+                    <span>Data biometrik terenkripsi & disimpan secara aman</span>
                 </div>
             </div>
 
-            <div class="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
-                <button type="button" onclick="tutupModalRekamWajah()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs">
-                    <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+            <div class="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center gap-2.5 shrink-0">
+                <button type="button" onclick="tutupModalRekamWajah()" class="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer">
                     <span>Batal</span>
                 </button>
-                <button type="button" onclick="simpanBiometrikWajah()" id="btnSimpanWajah" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
+                <button type="button" onclick="simpanBiometrikWajah()" id="btnSimpanWajah" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
                     <i class="fa-solid fa-floppy-disk text-slate-400 dark:text-slate-500"></i>
                     <span>Simpan Data Wajah</span>
                 </button>
@@ -802,17 +774,17 @@
         <div class="relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col my-auto transform transition-all animate-in fade-in zoom-in-95 duration-200">
 
             {{-- Header Modal --}}
-            <div class="bg-gradient-to-r from-slate-50 via-sky-50/40 to-indigo-50/30 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-800/90 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
-                <div class="flex items-center space-x-3.5 min-w-0">
-                    <div class="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-lg shrink-0">
-                        <i class="fa-solid fa-camera-rotate"></i>
+            <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-face-smile"></i>
                     </div>
                     <div class="min-w-0">
-                        <h3 id="judulModalAbsen" class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Verifikasi Absensi</h3>
+                        <h3 id="judulModalAbsen" class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate">Verifikasi Presensi</h3>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Pemindaian biometrik wajah & deteksi radius GPS</p>
                     </div>
                 </div>
-                <button type="button" onclick="tutupModalAbsen()" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 dark:border-slate-700 shadow-2xs shrink-0" title="Tutup">
+                <button type="button" onclick="tutupModalAbsen()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0" title="Tutup">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -821,14 +793,14 @@
             <div class="p-5 sm:p-6 space-y-3.5 flex-1 overflow-y-auto">
 
                 {{-- Status GPS --}}
-                <div id="statusLokasiBox" class="p-3 sm:p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl flex items-center justify-between transition-all shrink-0">
-                    <div class="flex items-center space-x-3 min-w-0">
-                        <div class="w-8 h-8 rounded-xl bg-slate-200/60 dark:bg-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0">
-                            <i id="iconLokasi" class="fa-solid fa-location-dot text-sm"></i>
+                <div id="statusLokasiBox" class="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 rounded-xl flex items-center justify-between transition-all shrink-0">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                            <i id="iconLokasi" class="fa-solid fa-location-dot text-xs"></i>
                         </div>
                         <div class="min-w-0">
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi Terkini GPS:</span>
-                            <span id="textNamaLokasi" class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate block">Mendeteksi lokasi GPS...</span>
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Lokasi GPS:</span>
+                            <span id="textNamaLokasi" class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate block">Mendeteksi lokasi GPS...</span>
                         </div>
                     </div>
                     <div id="reloadContainer" class="hidden text-right pl-2 border-l border-rose-200/60 dark:border-rose-800/60 shrink-0">
@@ -837,8 +809,8 @@
                     </div>
                 </div>
 
-                {{-- Container Video Kamera Verifikasi Wajah Potret Canggih Standar Fintech KYC --}}
-                <div class="relative bg-slate-950 rounded-3xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center border-2 border-slate-700/80 shadow-2xl shrink-0 group select-none">
+                {{-- Container Video Kamera Verifikasi Wajah (Fintech / Vermuk Style) --}}
+                <div class="relative bg-slate-950 rounded-2xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] mx-auto aspect-[3/4] flex items-center justify-center shadow-lg shrink-0 group select-none">
                     
                     {{-- 1. Video Stream --}}
                     <video id="webcamVideo"
@@ -851,7 +823,7 @@
                     {{-- 2. Canvas Landmark AI Processing --}}
                     <canvas id="webcamCanvas" class="absolute inset-0 w-full h-full pointer-events-none object-cover" style="transform: scaleX(-1) !important;"></canvas>
                     
-                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar lingkaran oval wajah --}}
+                    {{-- 3. SVG Mask Cutout: Meneduhkan area di luar bingkai oval wajah --}}
                     <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" width="100%" height="100%">
                         <defs>
                             <mask id="faceMaskAbsen" maskContentUnits="objectBoundingBox">
@@ -859,55 +831,38 @@
                                 <ellipse cx="0.5" cy="0.46" rx="0.33" ry="0.36" fill="black" />
                             </mask>
                         </defs>
-                        <rect width="100%" height="100%" fill="rgba(2, 6, 23, 0.45)" mask="url(#faceMaskAbsen)" />
+                        <rect width="100%" height="100%" fill="rgba(15, 23, 42, 0.6)" mask="url(#faceMaskAbsen)" />
                     </svg>
 
-                    {{-- 4. Cybernetic HUD Corner Brackets --}}
-                    <div class="absolute top-3.5 left-3.5 w-5 h-5 border-t-2 border-l-2 border-sky-400/80 rounded-tl-lg pointer-events-none z-20"></div>
-                    <div class="absolute top-3.5 right-3.5 w-5 h-5 border-t-2 border-r-2 border-sky-400/80 rounded-tr-lg pointer-events-none z-20"></div>
-                    <div class="absolute bottom-16 left-3.5 w-5 h-5 border-b-2 border-l-2 border-sky-400/80 rounded-bl-lg pointer-events-none z-20"></div>
-                    <div class="absolute bottom-16 right-3.5 w-5 h-5 border-b-2 border-r-2 border-sky-400/80 rounded-br-lg pointer-events-none z-20"></div>
-
-                    {{-- 5. Top Bar HUD: Security Badge & Liveness Indicator --}}
-                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-none">
-                        <div class="bg-slate-900/85 backdrop-blur-md text-sky-400 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-sky-500/40 flex items-center gap-1.5 shadow-sm">
-                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-                            <span>KYC • BIOMETRIK AI</span>
-                        </div>
-
-                        <div id="livenessBadge" class="bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm transition-all pointer-events-none">
+                    {{-- 4. Top Status Pill: Liveness Indicator --}}
+                    <div class="absolute top-3 inset-x-0 flex items-center justify-center z-20 pointer-events-none">
+                        <div id="livenessBadge" class="bg-slate-900/75 backdrop-blur-md text-white/90 text-[11px] font-medium px-3.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm transition-all pointer-events-none">
                             <span id="livenessBadgeDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                            <span id="livenessBadgeText">Liveness: Menunggu Wajah</span>
+                            <span id="livenessBadgeText">Verifikasi Keaktifan Wajah</span>
                         </div>
                     </div>
 
-                    {{-- 6. The Biometric Face Oval Guide (Reticle) --}}
+                    {{-- 5. The Biometric Face Oval Guide (Reticle) --}}
                     <div id="ovalReticleAbsen" class="absolute top-[10%] left-[17%] right-[17%] bottom-[18%] rounded-[50%] oval-reticle-default pointer-events-none z-10 transition-all duration-300 flex items-center justify-center">
-                        {{-- Reticle Tick Crosshairs --}}
-                        <span class="absolute -top-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -bottom-1 w-3 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -left-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-                        <span class="absolute -right-1 h-3 w-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_#38bdf8]"></span>
-
-                        {{-- Head Silhouette Wireframe Guide when idle --}}
-                        <div id="faceSilhouetteAbsen" class="opacity-25 transition-opacity duration-300 text-sky-400 flex flex-col items-center select-none">
+                        {{-- Minimalist Face Guide Silhouette --}}
+                        <div id="faceSilhouetteAbsen" class="opacity-20 transition-opacity duration-300 text-white flex flex-col items-center select-none">
                             <i class="fa-solid fa-user text-6xl sm:text-7xl"></i>
                         </div>
 
-                        {{-- Sweeping Laser Scan Line --}}
+                        {{-- Subtle Shimmer Light Sweep --}}
                         <div id="laserBeamAbsen" class="laser-scanner-beam pointer-events-none"></div>
                     </div>
 
-                    {{-- 7. Floating Instruction HUD Pill --}}
-                    <div id="cameraStatus" class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5 transition-all">
+                    {{-- 6. Floating Instruction HUD Pill --}}
+                    <div id="cameraStatus" class="absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan verifikasi biometrik...
                     </div>
                 </div>
 
-                {{-- Footnote Standar Keamanan Finansial --}}
-                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">
-                    <i class="fa-solid fa-shield-halved text-sky-500 text-xs"></i>
-                    <span>Sistem Verifikasi Biometrik Standar ISO/IEC 30107-3 Anti-Spoofing</span>
+                {{-- Footnote Standar Keamanan --}}
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 font-medium pt-0.5">
+                    <i class="fa-solid fa-shield-halved text-emerald-500 text-xs"></i>
+                    <span>Verifikasi biometrik dengan proteksi anti-spoofing</span>
                 </div>
 
                 <div id="facePromptNotice" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-xs">
@@ -922,12 +877,11 @@
             </div>
 
             {{-- Footer Tombol --}}
-            <div class="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900/90 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-3 shrink-0">
-                <button type="button" onclick="tutupModalAbsen()" class="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 shadow-xs">
-                    <i class="fa-solid fa-xmark text-slate-400 dark:text-slate-400"></i>
+            <div class="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center gap-2.5 shrink-0">
+                <button type="button" onclick="tutupModalAbsen()" class="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer">
                     <span>Batal</span>
                 </button>
-                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
+                <button type="button" onclick="verifikasiDanLanjut()" id="btnVerifikasiLanjut" disabled class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none">
                     <i class="fa-solid fa-circle-check text-slate-400 dark:text-slate-500"></i>
                     <span>Lanjutkan Presensi</span>
                 </button>
@@ -1845,16 +1799,16 @@
 
         badgeText.innerText = text;
         if (status === 'passed') {
-            badge.className = "bg-emerald-950/85 backdrop-blur-md text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/50 flex items-center gap-1.5 shadow-sm animate-pulse pointer-events-none";
+            badge.className = "bg-emerald-950/80 backdrop-blur-md text-emerald-300 text-[11px] font-medium px-3.5 py-1 rounded-full border border-emerald-500/40 flex items-center gap-1.5 shadow-sm pointer-events-none";
             badgeDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
         } else if (status === 'active') {
-            badge.className = "bg-amber-950/85 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-500/50 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badge.className = "bg-amber-950/80 backdrop-blur-md text-amber-300 text-[11px] font-medium px-3.5 py-1 rounded-full border border-amber-500/40 flex items-center gap-1.5 shadow-sm pointer-events-none";
             badgeDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping";
         } else if (status === 'failed') {
-            badge.className = "bg-rose-950/85 backdrop-blur-md text-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-rose-500/50 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badge.className = "bg-rose-950/80 backdrop-blur-md text-rose-300 text-[11px] font-medium px-3.5 py-1 rounded-full border border-rose-500/40 flex items-center gap-1.5 shadow-sm pointer-events-none";
             badgeDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
         } else {
-            badge.className = "bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700/80 flex items-center gap-1.5 shadow-sm pointer-events-none";
+            badge.className = "bg-slate-900/75 backdrop-blur-md text-white/90 text-[11px] font-medium px-3.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm pointer-events-none";
             badgeDot.className = "w-1.5 h-1.5 rounded-full bg-slate-400";
         }
 
@@ -1952,10 +1906,10 @@
         if (!btn) return;
         btn.disabled = !isEnabled;
         if (isEnabled) {
-            btn.className = "px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-500 active:from-blue-700 active:to-indigo-700 text-white border border-blue-500/40 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-blue-600/30 dark:shadow-blue-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
+            btn.className = "px-5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-sky-600/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
             btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Lanjutkan Presensi</span>`;
         } else {
-            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
+            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
             btn.innerHTML = `<i class="fa-solid fa-circle-check text-slate-400 dark:text-slate-500"></i> <span>Lanjutkan Presensi</span>`;
         }
     }
@@ -1965,10 +1919,10 @@
         if (!btn) return;
         btn.disabled = !isEnabled;
         if (isEnabled) {
-            btn.className = "px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-500 active:from-blue-700 active:to-indigo-700 text-white border border-blue-500/40 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-blue-600/30 dark:shadow-blue-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
+            btn.className = "px-5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-sky-600/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95";
             btn.innerHTML = `<i class="fa-solid fa-floppy-disk text-white"></i> <span>Simpan Data Wajah</span>`;
         } else {
-            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
+            btn.className = "px-5 py-2.5 bg-slate-200 dark:bg-slate-800/90 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center gap-2 cursor-not-allowed select-none shadow-none";
             btn.innerHTML = `<i class="fa-solid fa-floppy-disk text-slate-400 dark:text-slate-500"></i> <span>Simpan Data Wajah</span>`;
         }
     }
@@ -2070,7 +2024,7 @@
         stableDetectionCount = 0;
 
         if (statusBox) {
-            statusBox.className = "absolute bottom-2.5 left-2.5 right-2.5 bg-slate-900/85 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-xl z-10 text-center font-medium border border-slate-700/60 shadow-lg flex items-center justify-center gap-1.5";
+            statusBox.className = "absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all";
             statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempersiapkan model biometrik wajah...`;
         }
 
@@ -2102,7 +2056,7 @@
         } catch (err) {
             console.error("Gagal akses kamera untuk perekaman:", err);
             if (statusBox) {
-                statusBox.className = "absolute bottom-2.5 left-2.5 right-2.5 bg-rose-600/95 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-xl z-10 text-center font-bold border border-rose-500/60 shadow-lg flex items-center justify-center gap-1.5";
+                statusBox.className = "absolute bottom-3 left-4 right-4 bg-rose-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-rose-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                 statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Izin kamera ditolak atau tidak tersedia.`;
             }
         }
@@ -2149,7 +2103,7 @@
                     }
 
                     if (statusBox) {
-                        statusBox.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
+                        statusBox.className = "absolute bottom-3 left-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-emerald-400/30 shadow-lg flex items-center justify-center gap-2 transition-all";
                         statusBox.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> <span>Wajah Terdeteksi Jelas! Menyimpan biometrik otomatis...</span>`;
                     }
 
@@ -2158,7 +2112,7 @@
                     }, 500);
                 } else if (!isSubmittingFaceRegister) {
                     if (statusBox) {
-                        statusBox.className = "absolute bottom-3 left-3 right-3 bg-sky-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-sky-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                        statusBox.className = "absolute bottom-3 left-4 right-4 bg-sky-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-sky-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                         statusBox.innerHTML = `<i class="fa-solid fa-camera mr-1"></i> Wajah Terdeteksi! Tahan posisi...`;
                     }
                 }
@@ -2169,7 +2123,7 @@
                 updateOvalReticleRekam('idle');
 
                 if (statusBox && !isSubmittingFaceRegister) {
-                    statusBox.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
+                    statusBox.className = "absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                     statusBox.innerHTML = `<i class="fa-solid fa-arrows-to-eye text-sky-400 mr-1"></i> Posisikan wajah Anda di dalam lingkaran oval...`;
                 }
             }
@@ -2495,7 +2449,7 @@
             }
 
             if (camStatus) {
-                camStatus.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
+                camStatus.className = "absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                 camStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat model biometrik...`;
             }
 
@@ -2504,7 +2458,7 @@
         } catch (err) {
             console.error("Gagal Akses Kamera:", err);
             if (camStatus) {
-                camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                camStatus.className = "absolute bottom-3 left-4 right-4 bg-rose-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-rose-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Kamera tidak dapat diakses`;
             }
         }
@@ -2559,7 +2513,7 @@
                     stableAttendanceFaceCount = 0;
                     resetLivenessState();
                     if (camStatus) {
-                        camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                        camStatus.className = "absolute bottom-3 left-4 right-4 bg-amber-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-amber-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                         camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Biometrik wajah belum terdaftar. Presensi dinonaktifkan!`;
                     }
                     setBtnLanjutState(false);
@@ -2613,7 +2567,7 @@
                             setBtnLanjutState(false);
 
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                                camStatus.className = "absolute bottom-3 left-4 right-4 bg-rose-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-rose-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Verifikasi gagal. Harap gunakan wajah asli dan pastikan Anda berkedip/bergerak.`;
                             }
 
@@ -2637,7 +2591,7 @@
                             setBtnLanjutState(false);
 
                             if (camStatus && !isAutoSubmittingAttendance) {
-                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                                camStatus.className = "absolute bottom-3 left-4 right-4 bg-amber-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-amber-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                                 camStatus.innerHTML = `<i class="fa-solid fa-eye animate-pulse text-amber-200"></i> Wajah Cocok (${confidence}%)! Silakan BERKEDIP untuk verifikasi wajah asli (${blinkCount}/${REQUIRED_BLINKS})...`;
                             }
                             return;
@@ -2666,7 +2620,7 @@
                         if (isLate || !isUserInRadius) {
                             // Jeda auto-submit untuk memunculkan form alasan wajib & bukti
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-amber-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-amber-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
+                                camStatus.className = "absolute bottom-3 left-4 right-4 bg-amber-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-amber-400/30 shadow-lg flex items-center justify-center gap-2 transition-all";
                                 camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Hidup Terverifikasi! Anda ${isLate ? 'Terlambat / Pulang Cepat' : 'Di Luar Radius'}. Membuka form konfirmasi alasan...`;
                             }
                             setTimeout(() => {
@@ -2675,7 +2629,7 @@
                         } else {
                             // Auto-Submit Presensi Langsung (Tanpa harus klik submit manual)
                             if (camStatus) {
-                                camStatus.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-2 animate-pulse";
+                                camStatus.className = "absolute bottom-3 left-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-emerald-400/30 shadow-lg flex items-center justify-center gap-2 transition-all";
                                 camStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Wajah Hidup Terverifikasi (${confidence}%)! Memproses presensi otomatis...`;
                             }
                             setTimeout(() => {
@@ -2688,7 +2642,7 @@
                         }
                     } else if (!isAutoSubmittingAttendance) {
                         if (camStatus) {
-                            camStatus.className = "absolute bottom-3 left-3 right-3 bg-emerald-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-emerald-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                            camStatus.className = "absolute bottom-3 left-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-emerald-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                             camStatus.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Wajah Hidup Terverifikasi (${confidence}%)! Tahan posisi...`;
                         }
                     }
@@ -2699,7 +2653,7 @@
                     setBtnLanjutState(false);
                     updateOvalReticle('failed');
                     if (camStatus && !isAutoSubmittingAttendance) {
-                        camStatus.className = "absolute bottom-3 left-3 right-3 bg-rose-600/95 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-rose-500/60 shadow-2xl flex items-center justify-center gap-1.5";
+                        camStatus.className = "absolute bottom-3 left-4 right-4 bg-rose-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-rose-400/30 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                         camStatus.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Wajah Tidak Cocok (${confidence}%). Harap hadap lurus ke kamera.`;
                     }
                 }
@@ -2710,7 +2664,7 @@
                 setBtnLanjutState(false);
                 updateOvalReticle('idle');
                 if (camStatus && !isAutoSubmittingAttendance) {
-                    camStatus.className = "absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2.5 rounded-2xl z-20 text-center font-bold border border-slate-700/80 shadow-2xl flex items-center justify-center gap-1.5";
+                    camStatus.className = "absolute bottom-3 left-4 right-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-white/10 shadow-lg flex items-center justify-center gap-1.5 transition-all";
                     camStatus.innerHTML = `<i class="fa-solid fa-arrows-to-eye text-sky-400 mr-1"></i> Posisikan wajah Anda di dalam lingkaran oval...`;
                 }
             }
