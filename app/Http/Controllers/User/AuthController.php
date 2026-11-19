@@ -61,7 +61,7 @@ class AuthController extends Controller
             'station_id' => 'required|exists:stations,id',
             'assigned_stations' => 'nullable|array',
             'assigned_stations.*' => 'exists:stations,id',
-            'schedule_type' => 'required|in:reguler_5_hari,reguler_6_hari,roster',
+            'schedule_type' => 'required|in:normal,roster',
             'current_shift_choice' => 'required_if:schedule_type,roster|nullable|in:pagi,malam,libur',
             'roster_start_date' => 'nullable|date_format:Y-m-d',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
@@ -93,12 +93,9 @@ class AuthController extends Controller
         $normalCheckOut = null;
         $rosterStartDate = null;
 
-        if ($scheduleType === 'reguler_5_hari') {
+        if ($scheduleType === 'normal' || $scheduleType === 'reguler_5_hari') {
+            $scheduleType = 'normal';
             $normalWorkDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-            $normalCheckIn = '07:00:00';
-            $normalCheckOut = '16:00:00';
-        } elseif ($scheduleType === 'reguler_6_hari') {
-            $normalWorkDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             $normalCheckIn = '07:00:00';
             $normalCheckOut = '16:00:00';
         } elseif ($scheduleType === 'roster') {

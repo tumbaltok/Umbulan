@@ -9,21 +9,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Ubah kolom schedule_type menjadi string/varchar(50) agar mendukung reguler_5_hari, reguler_6_hari, roster
+        // Ubah kolom schedule_type menjadi string/varchar(50) dengan default 'normal' (mendukung normal dan roster)
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type VARCHAR(50) NULL DEFAULT 'reguler_5_hari'");
+            DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type VARCHAR(50) NULL DEFAULT 'normal'");
         } else {
             Schema::table('users', function (Blueprint $table) {
-                $table->string('schedule_type', 50)->nullable()->default('reguler_5_hari')->change();
+                $table->string('schedule_type', 50)->nullable()->default('normal')->change();
             });
         }
 
-        // Migrasikan user yang sebelumnya bertipe 'normal' atau NULL menjadi 'reguler_5_hari'
+        // Migrasikan user yang sebelumnya bertipe 'reguler_5_hari', 'reguler_6_hari', atau NULL menjadi 'normal'
         DB::table('users')
-            ->where('schedule_type', 'normal')
+            ->whereIn('schedule_type', ['reguler_5_hari', 'reguler_6_hari'])
             ->orWhereNull('schedule_type')
             ->update([
-                'schedule_type' => 'reguler_5_hari',
+                'schedule_type' => 'normal',
                 'normal_check_in' => '07:00:00',
                 'normal_check_out' => '16:00:00',
                 'normal_work_days' => json_encode(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']),
@@ -32,11 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Kembalikan ke enum sebelumnya
-        DB::table('users')
-            ->whereIn('schedule_type', ['reguler_5_hari', 'reguler_6_hari'])
-            ->update(['schedule_type' => 'normal']);
-
         if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE users MODIFY COLUMN schedule_type ENUM('normal', 'roster') NULL DEFAULT 'normal'");
         } else {

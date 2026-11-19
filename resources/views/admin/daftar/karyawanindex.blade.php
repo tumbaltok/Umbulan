@@ -1226,23 +1226,14 @@
                 const rosterBox = document.getElementById("detail_roster_schedule_box");
 
                 if (data.schedule_type === 'normal' || data.schedule_type === 'reguler_5_hari') {
-                    scheduleBadge.textContent = 'Reguler 5 Hari';
+                    scheduleBadge.textContent = 'Jadwal Normal';
                     const liburSpan5 = document.getElementById("detail_normal_libur");
                     if (liburSpan5) liburSpan5.textContent = 'Sabtu & Minggu (OFF)';
                     scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-sky-100 text-sky-700 border border-sky-200';
                     normalBox.classList.remove('hidden');
                     rosterBox.classList.add('hidden');
-                    document.getElementById("detail_normal_days").textContent = data.normal_work_days;
+                    document.getElementById("detail_normal_days").textContent = data.normal_work_days || 'Senin - Jumat';
                     document.getElementById("detail_normal_hours").textContent = `${data.normal_check_in} - ${data.normal_check_out} WIB`;
-                } else if (data.schedule_type === 'reguler_6_hari') {
-                    scheduleBadge.textContent = 'Reguler 6 Hari';
-                    const liburSpan6 = document.getElementById("detail_normal_libur");
-                    if (liburSpan6) liburSpan6.textContent = 'Minggu (OFF)';
-                    scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-teal-100 text-teal-700 border border-teal-200';
-                    normalBox.classList.remove('hidden');
-                    rosterBox.classList.add('hidden');
-                    document.getElementById("detail_normal_days").textContent = data.normal_work_days || 'Senin - Sabtu';
-                    document.getElementById("detail_normal_hours").textContent = 'Sen–Jum: 07:00–16:00 | Sab: 07:00–12:00 WIB';
                 } else {
                     scheduleBadge.textContent = 'Jadwal Roster';
                     scheduleBadge.className = 'px-2 py-0.5 text-xs font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200';

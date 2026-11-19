@@ -120,9 +120,9 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
     }
 
     /**
-     * Test 3: Pendaftaran sukses dengan Jadwal Reguler 5 Hari.
+     * Test 3: Pendaftaran sukses dengan Jadwal Normal (Senin - Jumat).
      */
-    public function test_successful_registration_with_reguler_5_hari_schedule(): void
+    public function test_successful_registration_with_normal_schedule(): void
     {
         $response = $this->post(route('register.post'), [
             'name' => 'Budi Reguler',
@@ -131,7 +131,7 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
             'phone_number' => '081298765432',
-            'schedule_type' => 'reguler_5_hari',
+            'schedule_type' => 'normal',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
         ]);
@@ -141,7 +141,7 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
         $user = User::where('email', 'budi.reguler@umbulan.co.id')->first();
         $this->assertNotNull($user);
         $this->assertEquals('081298765432', $user->phone_number);
-        $this->assertEquals('reguler_5_hari', $user->schedule_type);
+        $this->assertEquals('normal', $user->schedule_type);
         $this->assertEquals(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], $user->normal_work_days);
         $this->assertEquals('07:00:00', $user->normal_check_in);
         $this->assertEquals('16:00:00', $user->normal_check_out);
@@ -149,9 +149,9 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
     }
 
     /**
-     * Test 4: Pendaftaran sukses dengan Jadwal Reguler 6 Hari.
+     * Test 4: Pendaftaran menolak tipe jadwal reguler_6_hari (sudah dihapus dari sistem).
      */
-    public function test_successful_registration_with_reguler_6_hari_schedule(): void
+    public function test_registration_rejects_reguler_6_hari_schedule(): void
     {
         $response = $this->post(route('register.post'), [
             'name' => 'Siti Enam Hari',
@@ -165,16 +165,8 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'password_confirmation' => 'Password123!',
         ]);
 
-        $response->assertRedirect(route('login'));
-
-        $user = User::where('email', 'siti.6hari@umbulan.co.id')->first();
-        $this->assertNotNull($user);
-        $this->assertEquals('085712345678', $user->phone_number);
-        $this->assertEquals('reguler_6_hari', $user->schedule_type);
-        $this->assertEquals(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], $user->normal_work_days);
-        $this->assertEquals('07:00:00', $user->normal_check_in);
-        $this->assertEquals('16:00:00', $user->normal_check_out);
-        $this->assertNull($user->roster_start_date);
+        $response->assertSessionHasErrors(['schedule_type']);
+        $this->assertNull(User::where('email', 'siti.6hari@umbulan.co.id')->first());
     }
 
     /**

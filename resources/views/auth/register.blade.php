@@ -454,11 +454,8 @@
                                     <select id="schedule_type" name="schedule_type" required onchange="toggleScheduleOptions()"
                                         class="block w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white focus:outline-none transition-all appearance-none cursor-pointer">
                                         <option value="" disabled {{ old('schedule_type') ? '' : 'selected' }}>-- Pilih Tipe Jadwal Kerja --</option>
-                                        <option value="reguler_5_hari" {{ old('schedule_type', 'reguler_5_hari') === 'reguler_5_hari' ? 'selected' : '' }}>
-                                            Reguler (5 Hari: Senin – Jumat)
-                                        </option>
-                                        <option value="reguler_6_hari" {{ old('schedule_type') === 'reguler_6_hari' ? 'selected' : '' }}>
-                                            Reguler (6 Hari: Senin – Sabtu, Setengah Hari)
+                                        <option value="normal" {{ in_array(old('schedule_type', 'normal'), ['normal', 'reguler_5_hari']) ? 'selected' : '' }}>
+                                            Normal (Senin – Jumat)
                                         </option>
                                         <option value="roster" {{ old('schedule_type') === 'roster' ? 'selected' : '' }}>
                                             Roster / Shift (12 Jam)
@@ -470,11 +467,11 @@
                                 </div>
                             </div>
 
-                            {{-- Card Info Jadwal Reguler 5 Hari --}}
-                            <div id="section_reguler_5_info" class="{{ old('schedule_type', 'reguler_5_hari') === 'reguler_5_hari' ? '' : 'hidden' }} p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-2xl space-y-2.5">
+                            {{-- Card Info Jadwal Normal --}}
+                            <div id="section_normal_info" class="{{ in_array(old('schedule_type', 'normal'), ['normal', 'reguler_5_hari']) ? '' : 'hidden' }} p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-2xl space-y-2.5">
                                 <div class="flex items-center gap-2 text-sky-800 font-bold text-xs uppercase tracking-wider">
                                     <i class="fa-solid fa-calendar-check text-sky-600"></i>
-                                    Ketentuan Baku Jadwal Reguler 5 Hari
+                                    Ketentuan Baku Jadwal Normal (5 Hari)
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center sm:text-left">
                                     <div class="p-2.5 bg-white rounded-xl border border-sky-100 shadow-2xs">
@@ -493,32 +490,6 @@
                                 <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
                                     <i class="fa-solid fa-circle-info text-sky-500"></i>
                                     Mengikuti Hari Libur Nasional & cuti bersama resmi pemerintah.
-                                </p>
-                            </div>
-
-                            {{-- Card Info Jadwal Reguler 6 Hari --}}
-                            <div id="section_reguler_6_info" class="{{ old('schedule_type') === 'reguler_6_hari' ? '' : 'hidden' }} p-3.5 bg-teal-50/70 border border-teal-200/80 rounded-2xl space-y-2.5">
-                                <div class="flex items-center gap-2 text-teal-800 font-bold text-xs uppercase tracking-wider">
-                                    <i class="fa-solid fa-calendar-check text-teal-600"></i>
-                                    Ketentuan Baku Jadwal Reguler 6 Hari
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center sm:text-left">
-                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
-                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Kerja</span>
-                                        <span class="text-xs font-bold text-slate-800">Senin s/d Sabtu</span>
-                                    </div>
-                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
-                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Jam Kerja</span>
-                                        <span class="text-xs font-bold text-teal-600">Sen–Jum: 07–16, Sab: 07–12</span>
-                                    </div>
-                                    <div class="p-2.5 bg-white rounded-xl border border-teal-100 shadow-2xs">
-                                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Hari Libur</span>
-                                        <span class="text-xs font-bold text-rose-600">Minggu (OFF)</span>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-circle-info text-teal-500"></i>
-                                    Khusus Sabtu berlaku setengah hari kerja (pulang 12:00 WIB).
                                 </p>
                             </div>
 
@@ -848,19 +819,15 @@
         function toggleScheduleOptions() {
             const scheduleSelect = document.getElementById('schedule_type');
             const scheduleType = scheduleSelect ? scheduleSelect.value : '';
-            const sectionReguler5 = document.getElementById('section_reguler_5_info');
-            const sectionReguler6 = document.getElementById('section_reguler_6_info');
+            const sectionNormal = document.getElementById('section_normal_info');
             const sectionRoster = document.getElementById('section_roster_schedule');
 
-            if (sectionReguler5) sectionReguler5.classList.add('hidden');
-            if (sectionReguler6) sectionReguler6.classList.add('hidden');
+            if (sectionNormal) sectionNormal.classList.add('hidden');
             if (sectionRoster) sectionRoster.classList.add('hidden');
 
             if (!scheduleType) return;
 
-            if (scheduleType === 'reguler_6_hari') {
-                if (sectionReguler6) sectionReguler6.classList.remove('hidden');
-            } else if (scheduleType === 'roster') {
+            if (scheduleType === 'roster') {
                 if (sectionRoster) {
                     sectionRoster.classList.remove('hidden');
                     const checkedRadio = document.querySelector('input[name="current_shift_choice"]:checked');
@@ -870,8 +837,8 @@
                         calculateRosterAnchor('pagi');
                     }
                 }
-            } else if (scheduleType === 'reguler_5_hari') {
-                if (sectionReguler5) sectionReguler5.classList.remove('hidden');
+            } else if (scheduleType === 'normal' || scheduleType === 'reguler_5_hari') {
+                if (sectionNormal) sectionNormal.classList.remove('hidden');
             }
         }
 

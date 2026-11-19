@@ -101,24 +101,28 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     protected $attributes = [
-        'schedule_type' => 'reguler_5_hari',
+        'schedule_type' => 'normal',
     ];
 
     const CUTI_TAHUNAN_ID = 4;
     const CUTI_HAID_ID = 5;
 
-    public const SCHEDULE_REGULER_5 = 'reguler_5_hari';
-    public const SCHEDULE_REGULER_6 = 'reguler_6_hari';
+    public const SCHEDULE_NORMAL = 'normal';
     public const SCHEDULE_ROSTER = 'roster';
+    public const SCHEDULE_REGULER_5 = 'normal'; // Backward compatibility
 
     public function getScheduleLabelAttribute(): string
     {
         return match ($this->schedule_type) {
-            'reguler_5_hari', 'normal' => 'Reguler 5 Hari (Senin – Jumat)',
-            'reguler_6_hari' => 'Reguler 6 Hari (Senin – Sabtu, Setengah Hari)',
+            'normal', 'reguler_5_hari' => 'Normal (Senin – Jumat)',
             'roster' => 'Roster / Shift',
             default => 'Belum Diatur',
         };
+    }
+
+    public function isNormal(): bool
+    {
+        return in_array($this->schedule_type, [self::SCHEDULE_NORMAL, 'reguler_5_hari']) || empty($this->schedule_type);
     }
 
     public function isRoster(): bool
@@ -128,12 +132,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isReguler5Hari(): bool
     {
-        return in_array($this->schedule_type, [self::SCHEDULE_REGULER_5, 'normal']) || empty($this->schedule_type);
-    }
-
-    public function isReguler6Hari(): bool
-    {
-        return $this->schedule_type === self::SCHEDULE_REGULER_6;
+        return $this->isNormal();
     }
 
     // Relasi Many-to-Many ke tabel roles via pivot role_user

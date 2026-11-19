@@ -1678,10 +1678,8 @@
                             <p class="font-bold text-indigo-600 dark:text-indigo-400 text-xs truncate">
                                 @if(Auth::user()->schedule_type === 'roster')
                                     Sistem Roster
-                                @elseif(Auth::user()->schedule_type === 'reguler_6_hari')
-                                    Reguler 6 Hari (Sen–Sab)
-                                @elseif(Auth::user()->schedule_type === 'reguler_5_hari' || Auth::user()->schedule_type === 'normal')
-                                    Reguler 5 Hari (07:00–16:00)
+                                @elseif(Auth::user()->schedule_type === 'normal' || Auth::user()->schedule_type === 'reguler_5_hari')
+                                    Normal (07:00–16:00)
                                 @else
                                     {{ Auth::user()->schedule_label ?? 'Belum Diatur' }}
                                 @endif

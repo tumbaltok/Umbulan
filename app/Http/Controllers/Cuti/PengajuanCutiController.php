@@ -48,7 +48,7 @@ class PengajuanCutiController extends Controller
             $daySchedule = $this->scheduleService->getTodaySchedule($user, $dateString);
 
             if ($user->schedule_type !== 'roster') {
-                // Jadwal Reguler (5 Hari & 6 Hari): Hari libur dan tanggal merah nasional tidak dihitung
+                // Jadwal Normal (Senin - Jumat): Hari libur dan tanggal merah nasional tidak dihitung
                 $isNationalHoliday = isset($holidays[$dateString]);
                 if (!$daySchedule['is_day_off'] && !$isNationalHoliday) {
                     $totalHariKerja++;

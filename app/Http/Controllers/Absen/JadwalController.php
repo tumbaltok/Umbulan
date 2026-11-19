@@ -62,18 +62,18 @@ class JadwalController extends Controller
             ->with('success', 'Shift berhasil dikonfirmasi. Rotasi otomatis setiap Selasa pukul 07:00 WIB.');
     }
 
-    // Memperbarui pengaturan jadwal kerja karyawan (tipe Reguler 5 Hari, Reguler 6 Hari, atau Roster)
+    // Memperbarui pengaturan jadwal kerja karyawan (tipe Normal atau Roster)
     public function updateSchedule(Request $request)
     {
         $request->validate([
-            'schedule_type' => ['required', 'in:reguler_5_hari,reguler_6_hari,roster,normal'],
+            'schedule_type' => ['required', 'in:normal,roster,reguler_5_hari'],
             'current_shift_choice' => ['nullable', 'in:pagi,malam,libur'],
             'roster_start_date' => ['nullable', 'date_format:Y-m-d'],
         ]);
 
         $scheduleType = $request->schedule_type;
-        if ($scheduleType === 'normal') {
-            $scheduleType = 'reguler_5_hari';
+        if ($scheduleType === 'reguler_5_hari') {
+            $scheduleType = 'normal';
         }
 
         $user = $request->user();
@@ -81,20 +81,14 @@ class JadwalController extends Controller
             'schedule_type' => $scheduleType,
         ];
 
-        // Tipe 1: Reguler 5 Hari (Senin - Jumat, 07:00 - 16:00, Sabtu-Minggu OFF)
-        if ($scheduleType === 'reguler_5_hari') {
+        // Tipe 1: Normal (Senin - Jumat, 07:00 - 16:00, Sabtu-Minggu OFF)
+        if ($scheduleType === 'normal') {
             $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
             $updateData['normal_check_in'] = '07:00:00';
             $updateData['normal_check_out'] = '16:00:00';
             $updateData['roster_start_date'] = null;
-        } elseif ($scheduleType === 'reguler_6_hari') {
-            // Tipe 2: Reguler 6 Hari (Senin - Sabtu; Sen-Jum 07:00 - 16:00, Sab 07:00 - 12:00, Minggu OFF)
-            $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            $updateData['normal_check_in'] = '07:00:00';
-            $updateData['normal_check_out'] = '16:00:00';
-            $updateData['roster_start_date'] = null;
         } elseif ($scheduleType === 'roster') {
-            // Tipe 3: Roster / Shift (Rotasi 3 mingguan setiap Selasa pukul 07:00 WIB)
+            // Tipe 2: Roster / Shift (Rotasi 3 mingguan setiap Selasa pukul 07:00 WIB)
             $updateData['normal_work_days'] = null;
             $updateData['normal_check_in'] = null;
             $updateData['normal_check_out'] = null;

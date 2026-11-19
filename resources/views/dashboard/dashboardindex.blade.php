@@ -267,13 +267,9 @@
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
                             Sistem Roster
                         </span>
-                    @elseif($user->schedule_type === 'reguler_6_hari')
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50">
-                            Reguler 6 Hari
-                        </span>
-                    @elseif($user->schedule_type === 'reguler_5_hari' || $user->schedule_type === 'normal')
+                    @elseif($user->schedule_type === 'normal' || $user->schedule_type === 'reguler_5_hari')
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800/50">
-                            Reguler 5 Hari
+                            Jadwal Normal
                         </span>
                     @endif
                 </div>

@@ -122,7 +122,7 @@ class AccountController extends Controller
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
-            'schedule_type' => 'nullable|in:reguler_5_hari,reguler_6_hari,roster,normal',
+            'schedule_type' => 'nullable|in:normal,roster,reguler_5_hari',
             'roster_start_date' => 'nullable|date',
         ]);
 
@@ -227,18 +227,13 @@ class AccountController extends Controller
 
             if ($canSetSchedule && $request->has('schedule_type') && ! empty($request->schedule_type)) {
                 $scheduleType = $request->schedule_type;
-                if ($scheduleType === 'normal') {
-                    $scheduleType = 'reguler_5_hari';
+                if ($scheduleType === 'reguler_5_hari') {
+                    $scheduleType = 'normal';
                 }
                 $updateData['schedule_type'] = $scheduleType;
 
-                if ($scheduleType === 'reguler_5_hari') {
+                if ($scheduleType === 'normal') {
                     $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                    $updateData['normal_check_in'] = '07:00:00';
-                    $updateData['normal_check_out'] = '16:00:00';
-                    $updateData['roster_start_date'] = null;
-                } elseif ($scheduleType === 'reguler_6_hari') {
-                    $updateData['normal_work_days'] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                     $updateData['normal_check_in'] = '07:00:00';
                     $updateData['normal_check_out'] = '16:00:00';
                     $updateData['roster_start_date'] = null;

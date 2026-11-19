@@ -298,7 +298,7 @@
                                 <div class="text-left sm:text-right text-[11px] text-slate-500 dark:text-slate-400 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/60 dark:border-slate-700/60">
                                     <span class="block font-medium text-slate-600 dark:text-slate-300">Pola Kerja Anda:</span>
                                     <span class="font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wide">
-                                        {{ str_replace('_', ' ', auth()->user()->schedule_type ?? 'reguler_5_hari') }}
+                                        {{ auth()->user()->schedule_label ?? 'Normal' }}
                                     </span>
                                 </div>
                             </div>
@@ -733,7 +733,7 @@
         const isPria = (userGender === 'pria' || userGender === 'male' || userGender === '1');
 
         // SINKRONISASI JADWAL DAN LIBUR NASIONAL
-        const scheduleType = "{{ auth()->user()->schedule_type ?? 'reguler_5_hari' }}";
+        const scheduleType = "{{ auth()->user()->schedule_type ?? 'normal' }}";
         const rosterOffDates = @json($rosterOffDates ?? []);
         const rawHolidays = @json($holidays ?? []);
 
@@ -822,17 +822,12 @@
             const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
             const dayOfWeek = dateObj.getDay(); // 0 = Minggu, 6 = Sabtu
 
-            if (scheduleType === 'reguler_6_hari') {
-                if (dayOfWeek === 0) return "Hari Minggu (Libur Kerja)";
-                if (holidaysList.includes(dateString)) {
-                    return holidayNamesMap[dateString] ? `Libur Nasional: ${holidayNamesMap[dateString]}` : "Hari Libur Nasional";
-                }
-            } else if (scheduleType === 'roster') {
+            if (scheduleType === 'roster') {
                 if (rosterOffDates.includes(dateString)) {
                     return "Jadwal OFF Roster (Libur Shift)";
                 }
             } else {
-                // Default: reguler_5_hari
+                // Default: normal
                 if (dayOfWeek === 0) return "Hari Minggu (Libur Kerja)";
                 if (dayOfWeek === 6) return "Hari Sabtu (Libur Kerja)";
                 if (holidaysList.includes(dateString)) {
