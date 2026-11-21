@@ -28,3 +28,17 @@ Schedule::command('pengajuan:followup-wa')
     ->runInBackground()
     ->timezone('Asia/Jakarta');
 
+// Auto-sync hari libur nasional & cuti bersama SKB 3 Menteri setiap pergantian tahun (1 Jan) dan awal bulan
+Schedule::command('holiday:sync')
+    ->yearlyOn(1, 1, '00:05')
+    ->withoutOverlapping(60)
+    ->runInBackground()
+    ->timezone('Asia/Jakarta');
+
+Schedule::command('holiday:sync')
+    ->monthlyOn(1, '01:00')
+    ->withoutOverlapping(60)
+    ->runInBackground()
+    ->timezone('Asia/Jakarta');
+
+

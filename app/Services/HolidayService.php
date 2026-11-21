@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Holiday\Holiday;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -10,12 +11,13 @@ use Illuminate\Support\Facades\Log;
 class HolidayService
 {
     /**
-     * Cache TTL: 30 hari
+     * Cache TTL: 24 jam (86400 detik)
      */
-    private const CACHE_TTL_SECONDS = 2592000;
+    private const CACHE_TTL_SECONDS = 86400;
 
     /**
-     * Master Data Resmi Hari Libur Nasional & Cuti Bersama SKB 3 Menteri (Indonesia)
+     * Master Baseline Cadangan Resmi Hari Libur Nasional & Cuti Bersama SKB 3 Menteri
+     * Digunakan sebagai pertahanan terakhir jika database kosong dan jaringan internet offline.
      */
     private const OFFICIAL_INDONESIA_HOLIDAYS = [
         '2025' => [
@@ -48,7 +50,6 @@ class HolidayService
             '2025-12-26' => 'Cuti Bersama Hari Raya Natal',
         ],
         '2026' => [
-            // 1. Libur Nasional & Cuti Bersama Resmi 2026 SKB 3 Menteri
             '2026-01-01' => 'Tahun Baru 2026 Masehi',
             '2026-01-16' => 'Isra Mi\'raj Nabi Muhammad SAW',
             '2026-02-16' => 'Cuti Bersama Tahun Baru Imlek 2577 Kongzili',
@@ -96,39 +97,176 @@ class HolidayService
     ];
 
     /**
-     * Ambil Seluruh Data Hari Libur Nasional & Cuti Bersama untuk Tahun Tertentu
+     * Ambil Seluruh Data Hari Libur Nasional & Cuti Bersama untuk Tahun Tertentu.
+     * Menggunakan Database 'holidays' sebagai sumber utama.
+     * Jika database untuk tahun tersebut masih kosong, sistem otomatis menjalankan auto-sync.
      *
      * @return array<string, string> Format: ['YYYY-MM-DD' => 'Nama Libur', ...]
      */
     public function getNationalHolidays(int|string $year): array
     {
-        $yearKey = (string) $year;
+        $yearInt = (int) $year;
+        $cacheKey = "national_holidays_id_{$yearInt}";
 
-        return Cache::remember("national_holidays_id_{$yearKey}", self::CACHE_TTL_SECONDS, function () use ($yearKey) {
-            $holidays = self::OFFICIAL_INDONESIA_HOLIDAYS[$yearKey] ?? [];
-
-            // Ambil data tambahan dari API eksternal jika tersedia (timeout 3 detik)
+        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($yearInt) {
             try {
-                $response = Http::timeout(3)->get("https://date.nager.at/api/v3/PublicHolidays/{$yearKey}/ID");
-                if ($response->successful()) {
-                    foreach ($response->json() as $item) {
-                        $date = Carbon::parse($item['date'])->format('Y-m-d');
-                        $name = $item['localName'] ?? $item['name'];
-                        if (!isset($holidays[$date])) {
-                            $holidays[$date] = $name;
+                // 1. Cek apakah database sudah memiliki data hari libur untuk tahun ini
+                $dbHolidays = Holiday::forYear($yearInt)
+                    ->orderBy('holiday_date')
+                    ->get();
+
+                // 2. Jika database kosong untuk tahun ini, lakukan auto-sync otomatis
+                if ($dbHolidays->isEmpty()) {
+                    $this->syncYear($yearInt);
+                    $dbHolidays = Holiday::forYear($yearInt)
+                        ->orderBy('holiday_date')
+                        ->get();
+                }
+
+                $holidays = [];
+                foreach ($dbHolidays as $holiday) {
+                    $dateStr = $holiday->holiday_date instanceof Carbon 
+                        ? $holiday->holiday_date->format('Y-m-d') 
+                        : substr((string) $holiday->holiday_date, 0, 10);
+                    $holidays[$dateStr] = $holiday->holiday_name;
+                }
+
+                // 3. Jika database masih tetap kosong (misal kegagalan network total dan tahun belum ada di DB),
+                // gunakan master baseline darurat jika tersedia
+                if (empty($holidays) && isset(self::OFFICIAL_INDONESIA_HOLIDAYS[(string) $yearInt])) {
+                    $holidays = self::OFFICIAL_INDONESIA_HOLIDAYS[(string) $yearInt];
+                }
+
+                ksort($holidays);
+                return $holidays;
+
+            } catch (\Throwable $e) {
+                Log::warning("HolidayService: Gagal memuat dari database, fallback ke baseline. Error: " . $e->getMessage());
+                return self::OFFICIAL_INDONESIA_HOLIDAYS[(string) $yearInt] ?? [];
+            }
+        });
+    }
+
+    /**
+     * Sinkronisasi Data Hari Libur untuk Tahun Tertentu dari Sumber Pemerintah / Mirror Dataset
+     *
+     * @param int|string $year
+     * @return array Ringkasan hasil sinkronisasi
+     */
+    public function syncYear(int|string $year): array
+    {
+        $yearInt = (int) $year;
+        $syncedCount = 0;
+        $fetchedHolidays = [];
+
+        // 1. Ambil dari Mirror Dataset SKB 3 Menteri Indonesia (guangrei/APIHariLibur_V2)
+        try {
+            $response = Http::timeout(4)->get('https://raw.githubusercontent.com/guangrei/APIHariLibur_V2/master/calendar.min.json');
+            if ($response->successful()) {
+                $calendarData = $response->json();
+                if (is_array($calendarData)) {
+                    foreach ($calendarData as $dateKey => $item) {
+                        if (str_starts_with($dateKey, (string) $yearInt)) {
+                            $name = null;
+                            if (isset($item['summary']) && is_array($item['summary']) && !empty($item['summary'])) {
+                                $name = $item['summary'][0];
+                            } elseif (isset($item['name'])) {
+                                $name = $item['name'];
+                            }
+
+                            if ($name) {
+                                $isCuti = str_contains(strtolower($name), 'cuti bersama');
+                                $fetchedHolidays[$dateKey] = [
+                                    'name' => $name,
+                                    'is_cuti_bersama' => $isCuti,
+                                    'source' => 'government_sync',
+                                ];
+                            }
                         }
                     }
                 }
-            } catch (\Exception $e) {
-                // Fallback menggunakan master data resmi SKB 3 Menteri jika API gagal
-                Log::info("HolidayService: Menggunakan master resmi SKB 3 Menteri untuk tahun {$yearKey}. Info: " . $e->getMessage());
             }
+        } catch (\Throwable $e) {
+            Log::info("HolidayService: Mirror SKB 3 Menteri tidak terjangkau ({$e->getMessage()}), mencoba fallback...");
+        }
 
-            // Urutkan data berdasarkan kunci tanggal
-            ksort($holidays);
+        // 2. Gabungkan dengan Baseline Resmi jika tahun tersebut terdaftar
+        if (isset(self::OFFICIAL_INDONESIA_HOLIDAYS[(string) $yearInt])) {
+            foreach (self::OFFICIAL_INDONESIA_HOLIDAYS[(string) $yearInt] as $dateKey => $name) {
+                if (!isset($fetchedHolidays[$dateKey])) {
+                    $isCuti = str_contains(strtolower($name), 'cuti bersama');
+                    $fetchedHolidays[$dateKey] = [
+                        'name' => $name,
+                        'is_cuti_bersama' => $isCuti,
+                        'source' => 'system_baseline',
+                    ];
+                }
+            }
+        }
 
-            return $holidays;
-        });
+        // 3. Fallback sekunder: date.nager.at API jika belum ada sama sekali
+        if (empty($fetchedHolidays)) {
+            try {
+                $response = Http::timeout(3)->get("https://date.nager.at/api/v3/PublicHolidays/{$yearInt}/ID");
+                if ($response->successful()) {
+                    foreach ($response->json() as $item) {
+                        $dateKey = Carbon::parse($item['date'])->format('Y-m-d');
+                        $name = $item['localName'] ?? $item['name'];
+                        if (!isset($fetchedHolidays[$dateKey])) {
+                            $fetchedHolidays[$dateKey] = [
+                                'name' => $name,
+                                'is_cuti_bersama' => false,
+                                'source' => 'government_sync',
+                            ];
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning("HolidayService: API Nager gagal diakses. Error: " . $e->getMessage());
+            }
+        }
+
+        // 4. Simpan ke database tanpa menimpa data buatan manual admin ('manual_admin')
+        try {
+            foreach ($fetchedHolidays as $dateKey => $data) {
+                $existing = Holiday::where('holiday_date', $dateKey)->first();
+
+                if ($existing && $existing->source === 'manual_admin') {
+                    // Jangan timpa modifikasi manual dari admin
+                    continue;
+                }
+
+                Holiday::updateOrCreate(
+                    ['holiday_date' => $dateKey],
+                    [
+                        'holiday_name' => $data['name'],
+                        'holiday_year' => $yearInt,
+                        'is_cuti_bersama' => $data['is_cuti_bersama'],
+                        'source' => $data['source'],
+                    ]
+                );
+                $syncedCount++;
+            }
+        } catch (\Throwable $e) {
+            Log::error("HolidayService: Gagal menyimpan data sinkronisasi ke database. Error: " . $e->getMessage());
+        }
+
+        // Bersihkan cache agar data terbaru langsung aktif
+        $this->clearYearCache($yearInt);
+
+        return [
+            'year' => $yearInt,
+            'total_fetched' => count($fetchedHolidays),
+            'synced_count' => $syncedCount,
+        ];
+    }
+
+    /**
+     * Hapus cache kalender untuk tahun tertentu
+     */
+    public function clearYearCache(int|string $year): void
+    {
+        Cache::forget("national_holidays_id_{(int)$year}");
     }
 
     /**

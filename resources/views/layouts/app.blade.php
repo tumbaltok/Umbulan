@@ -812,7 +812,7 @@
                 @php
                     $isAdminActive = (request()->is('admin/*') || request()->routeIs('admin.*'))
                                     && !request()->is('admin/persetujuan/*');
-                    $isDaftarActive = request()->routeIs('admin.karyawan.*') || request()->routeIs('admin.stations.*') || request()->routeIs('admin.role.*');
+                    $isDaftarActive = request()->routeIs('admin.karyawan.*') || request()->routeIs('admin.stations.*') || request()->routeIs('admin.role.*') || request()->routeIs('admin.holidays.*');
                     $isRecordActive = request()->is('admin/record/*');
                 @endphp
                     <div class="px-2 pt-3 pb-1 hide-on-collapse">
@@ -873,6 +873,11 @@
                                         class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.stations.*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
                                         <span class="w-1 h-1 rounded-full {{ request()->routeIs('admin.stations.*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
                                         <span class="hide-on-collapse">Stasiun Transmisi</span>
+                                    </a>
+                                    <a href="{{ route('admin.holidays.index') }}"
+                                        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs transition-all {{ request()->routeIs('admin.holidays.*') ? 'text-sky-700 font-bold bg-sky-50 border border-sky-200 dark:text-sky-300 dark:font-semibold dark:bg-sky-500/15 dark:border-sky-500/30' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50' }}">
+                                        <span class="w-1 h-1 rounded-full {{ request()->routeIs('admin.holidays.*') ? 'bg-sky-600 dark:bg-sky-400' : 'bg-slate-300 dark:bg-slate-600' }}"></span>
+                                        <span class="hide-on-collapse">Hari Libur Nasional</span>
                                     </a>
                                 </div>
                             </div>

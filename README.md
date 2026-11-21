@@ -131,7 +131,7 @@ Aplikasi dibangun menggunakan arsitektur modular berlapis (*multi-tier architect
 | **Tailwind CSS v4** | `^4.0` | Utility-first CSS framework dengan engine modern `@tailwindcss/vite`. Menghasilkan bundel CSS sangat ringkas (< 150 KB gzip), mendukung tema *dark mode / light mode* adaptif, dan visual modern glassmorphism. |
 | **Face-API.js** | Assets Lokal | Model kecerdasan buatan berbasis WebGL/TensorFlow.js yang dieksekusi **murni di peramban pengguna (*client-side*)**. Menghasilkan 128-vektor *descriptor* untuk verifikasi presensi harian tanpa perlu mengirim rekaman video atau foto selfie harian ke server database (menghemat ruang penyimpanan hingga ratusan gigabyte). |
 | **Node.js & Baileys** | `^6.7` | Microservice *self-hosted* mandiri berbasis WebSocket Baileys multidevice. Menggantikan gateway berbayar pihak ketiga, menghilangkan biaya langganan bulanan per nomor, dan menjaga kerahasiaan nomor internal perusahaan. |
-| **HolidayService** | Internal | Service kalender yang memuat master data resmi Surat Keputusan Bersama (SKB) 3 Menteri (Menag, Menaker, MenPAN-RB) tahun 2025–2027 dengan sistem caching 30 hari, menjamin keakuratan deteksi tanggal merah dinamis keagamaan. |
+| **HolidayService** | Internal | Service kalender terintegrasi tabel database `holidays` dengan sistem sinkronisasi dinamis tahunan (SKB 3 Menteri), caching 24 jam, fail-safe 3 lapis, dan antarmuka manajemen admin. Menjamin keakuratan deteksi tanggal merah dinamis keagamaan tanpa perlu intervensi manual setiap pergantian tahun. |
 
 ---
 
@@ -409,8 +409,16 @@ Jika karyawan terpaksa presensi di luar radius stasiun atau terlambat karena ken
 
 ## 6. Logika Modul Pengajuan Cuti, Validasi Kuota & Kalibrasi Hari Libur
 
-### A. Kalibrasi Akurasi Hari Libur Nasional (SKB 3 Menteri)
-Dikelola oleh [HolidayService.php](app/Services/HolidayService.php) yang menyimpan master data baku Surat Keputusan Bersama (SKB) 3 Menteri untuk tahun 2025, 2026, dan 2027. Service dilengkapi mekanisme caching 30 hari untuk menjamin deteksi akurat hari libur keagamaan yang sifatnya dinamis (seperti Idul Fitri, Nyepi, Waisak, dan Maulid Nabi Muhammad SAW).
+### A. Kalibrasi Akurasi Hari Libur Nasional & Cuti Bersama (SKB 3 Menteri)
+Dikelola oleh [HolidayService.php](app/Services/HolidayService.php) yang terhubung langsung dengan tabel database `holidays`. Sistem memiliki kapabilitas **Auto-Update Tahunan Mandiri** dengan arsitektur fail-safe 3 tingkat:
+1. **Primary Persistence & Caching:** Data dibaca dari tabel `holidays` dengan *application caching* 24 jam (`national_holidays_id_{tahun}`), meminimalkan beban I/O database pada jam sibuk presensi.
+2. **Auto-Sync Otomatis (Pergantian Tahun):** Apabila sistem mendeteksi tahun baru belum memiliki data di tabel `holidays`, [HolidayService.php](app/Services/HolidayService.php) secara otomatis memicu `syncYear($year)` untuk mengunduh ketetapan resmi SKB 3 Menteri (Menteri Agama, Menteri Ketenagakerjaan, dan MenPAN-RB).
+3. **Fail-Safe Bertingkat (Online & Offline):**
+   - **Tingkat 1 (Dataset Mirror Resmi):** Mengambil data JSON kalender nasional dari repositori ketetapan libur Indonesia (`guangrei/APIHariLibur_V2`).
+   - **Tingkat 2 (Master Baseline Lokal):** Baseline darurat terintegrasi untuk tahun 2025–2027 sebagai pertahanan terakhir jika server kehilangan akses internet secara total.
+   - **Tingkat 3 (Global Public API Fallback):** Fallback sekunder ke API Nager (`date.nager.at`).
+4. **Proteksi Modifikasi Manual Admin (`source = 'manual_admin'`):** Hari libur atau cuti bersama yang ditambahkan atau dimodifikasi oleh manajemen kantor via Panel Admin **TIDAK AKAN PERNAH DITIMPA** saat sinkronisasi otomatis berjalan.
+5. **Panel Kontrol Admin Terpadu (`/admin/holidays`):** Disediakan modul [HolidayController.php](app/Http/Controllers/Admin/HolidayController.php) bagi Administrator untuk memantau ringkasan statistik (Total Libur, Libur Nasional, Cuti Bersama, Input Manual), filter tahun/kategori, tombol sinkronisasi 1-klik, serta form input libur dadakan pemerintah daerah.
 
 ### B. Perbedaan Perhitungan Hari Efektif: Normal vs Roster
 Method `hitungHariKerjaEfektif` pada [PengajuanCutiController.php](app/Http/Controllers/Cuti/PengajuanCutiController.php) memperlakukan kedua kelompok kerja secara presisi dan adil:
@@ -537,12 +545,13 @@ Otomatisasi pemeliharaan sistem didefinisikan secara deklaratif pada [routes/con
 * * * * * cd /var/www/nama-proyek && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-### Rincian 3 Tugas Terjadwal:
+### Rincian 4 Tugas Terjadwal:
 
 | Perintah Artisan | Frekuensi & Waktu Eksekusi | Target Data & Logika Bisnis |
 | :--- | :---: | :--- |
 | `saldo:reset-haid` | Tanggal 1 awal bulan, **pukul 00:00 WIB** | **Reset Kuota Cuti Haid Bulanan:** Mengalokasikan kuota baru sebanyak **2 hari** untuk bulan kalender berjalan di tabel `saldo_cutis` bagi seluruh karyawan perempuan aktif (`isPerempuan()`). Kuota bulan sebelumnya tidak diakumulasikan. |
 | `saldo:reset-tahunan` | Tanggal 1 Januari, **pukul 00:00 WIB** | **Inisialisasi Saldo Cuti Tahunan:** Mengalokasikan kuota baku sebanyak **12 hari kerja** untuk tahun kalender baru di tabel `saldo_cutis` bagi seluruh karyawan aktif pada jenis cuti tahunan (`CT`). |
+| `holiday:sync` | Tanggal 1 Januari, **pukul 00:05 WIB** & Tanggal 1 setiap bulan, **pukul 01:00 WIB** | **Auto-Update Hari Libur SKB 3 Menteri:** Mengunduh dan memperbarui seluruh penetapan hari libur nasional dan cuti bersama ke tabel `holidays` untuk tahun berjalan dan tahun berikutnya, dengan proteksi penuh terhadap data manual admin. |
 | `pengajuan:followup-wa` | Setiap **10 menit** (Timezone: `Asia/Jakarta`) | **Pengingat WhatsApp Dokumen Pending:** Mengirim pesan follow-up berkala ke ponsel penanggung jawab persetujuan yang sedang pending (Cuti, CAR, MPR) dengan proteksi ganda. |
 
 ### Mekanisme Perlindungan `pengajuan:followup-wa`:

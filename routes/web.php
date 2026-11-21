@@ -3,6 +3,7 @@
 use App\Http\Controllers\Absen\JadwalController;
 use App\Http\Controllers\Absen\KehadiranController;
 use App\Http\Controllers\Admin\AbsensiAdminController;
+use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\RecordController;
 use App\Http\Controllers\Admin\RoleController;
@@ -226,6 +227,13 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             Route::put('/admin/stations/{id}', [StationController::class, 'update'])->name('admin.stations.update');
             Route::delete('/admin/stations/{id}', [StationController::class, 'destroy'])->name('admin.stations.destroy');
             Route::get('/admin/stations/{id}/karyawan', [StationController::class, 'getKaryawan'])->name('admin.stations.karyawan');
+
+            // CRUD Hari Libur & Kalender SKB 3 Menteri
+            Route::get('/admin/holidays', [HolidayController::class, 'index'])->name('admin.holidays.index');
+            Route::post('/admin/holidays', [HolidayController::class, 'store'])->name('admin.holidays.store');
+            Route::put('/admin/holidays/{id}', [HolidayController::class, 'update'])->name('admin.holidays.update');
+            Route::delete('/admin/holidays/{id}', [HolidayController::class, 'destroy'])->name('admin.holidays.destroy');
+            Route::post('/admin/holidays/sync', [HolidayController::class, 'sync'])->name('admin.holidays.sync');
 
             // Record Cuti
             Route::get('/admin/record/cuti', [RecordController::class, 'cuti'])->name('admin.record.cuti');
