@@ -50,8 +50,11 @@ class FaceDescriptorExtractorService {
         final data = await rootBundle.load(assetPath);
         request.response.headers.set('Content-Type', contentType);
         request.response.headers.set('Access-Control-Allow-Origin', '*');
-        request.response.add(data.buffer.asUint8List());
-      } catch (_) {
+        request.response.add(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        );
+      } catch (e) {
+        debugPrint('[FaceExtractor] Missing asset: $assetPath ($e)');
         request.response.statusCode = HttpStatus.notFound;
       } finally {
         await request.response.close();

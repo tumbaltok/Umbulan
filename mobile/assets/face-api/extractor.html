@@ -12,6 +12,12 @@
 
     async function ensureModelsLoaded() {
       if (modelsLoaded) return true;
+      if (faceapi.tf && faceapi.tf.setBackend) {
+        try {
+          await faceapi.tf.setBackend('cpu');
+          await faceapi.tf.ready();
+        } catch (_) {}
+      }
       const modelUrl = '/models/face-api';
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
