@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Mpr;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\User;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -78,9 +77,9 @@ class PersetujuanMprController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp status ditolak ke pemohon
+                // Push notification status ditolak ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('mpr', $pengajuan, 'rejected', $catatanPenolakan);
+                    SendPushNotification::sendStatusUpdate('mpr', $pengajuan, 'rejected', $catatanPenolakan);
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi penolakan MPR ke pemohon: ' . $e->getMessage());
                 }
@@ -105,20 +104,20 @@ class PersetujuanMprController extends Controller
 
                 DB::commit();
 
-                // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
+                // PUSH NOTIFICATION KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
                 if (!$isSingleLevel) {
                     try {
                         $step2Approvers = $approvalService->getApproversForStage($pengajuan->user, 'mpr', 2);
                         foreach ($step2Approvers as $app2) {
-                            SendWhatsAppNotification::sendNewSubmission('mpr', $pengajuan, $app2, 2);
+                            SendPushNotification::sendNewSubmission('mpr', $pengajuan, $app2, 2);
                         }
                     } catch (\Exception $e) {
-                        Log::error('Gagal kirim WA persetujuan tahap 2 MPR: ' . $e->getMessage());
+                        Log::error('Gagal kirim push notification persetujuan tahap 2 MPR: ' . $e->getMessage());
                     }
                 } else {
                     // Alur 1-Step langsung Final: Kirim notifikasi disetujui ke pemohon
                     try {
-                        SendWhatsAppNotification::sendStatusUpdate('mpr', $pengajuan, 'approved');
+                        SendPushNotification::sendStatusUpdate('mpr', $pengajuan, 'approved');
                     } catch (\Throwable $e) {
                         Log::error('Gagal kirim notifikasi MPR disetujui ke pemohon: ' . $e->getMessage());
                     }
@@ -139,9 +138,9 @@ class PersetujuanMprController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp disetujui (Final) ke pemohon
+                // Push notification disetujui (Final) ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('mpr', $pengajuan, 'approved');
+                    SendPushNotification::sendStatusUpdate('mpr', $pengajuan, 'approved');
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi MPR disetujui tahap 2 ke pemohon: ' . $e->getMessage());
                 }

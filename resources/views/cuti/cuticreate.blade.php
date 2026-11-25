@@ -24,7 +24,7 @@
                         Pengajuan Cuti & Izin Kerja
                     </h1>
                     <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                        Layanan mandiri (ESS) pengajuan cuti resmi dengan verifikasi berjenjang otomatis via WhatsApp
+                        Layanan mandiri (ESS) pengajuan cuti resmi dengan verifikasi berjenjang & notifikasi aplikasi otomatis
                     </p>
                 </div>
             </div>
@@ -638,7 +638,7 @@
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>
-                        <span><strong>Notifikasi:</strong> Setelah dikirim, atasan Anda akan menerima tautan persetujuan via WhatsApp secara instan.</span>
+                        <span><strong>Notifikasi:</strong> Setelah dikirim, atasan Anda akan menerima Push Notification persetujuan langsung di aplikasi.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>

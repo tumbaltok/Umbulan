@@ -23,6 +23,9 @@ class CekAtasan
 
         // Jika tidak punya role di pivot maupun kolom role_id, tolak akses
         if ($roles->isEmpty() && ! $user->role) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Akun Anda tidak memiliki role yang valid!'], 403);
+            }
             return redirect()->route('dashboard')->with('error', 'Akun Anda tidak memiliki role yang valid!');
         }
 
@@ -36,15 +39,18 @@ class CekAtasan
 
         // Level > 2 (Level 3, dst) Ditolak dari Area Administrator
         if ($level > 2) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Anda tidak memiliki hak akses ke area administrator!'], 403);
+            }
             return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki hak akses ke halaman administrator!');
         }
 
         // Level 2 = Monitoring / Read-Only (Kecuali untuk Rute Persetujuan)
         if ($level === 2 && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-            $isApprovalRoute = $request->routeIs('admin.persetujuan.*');
+            $isApprovalRoute = $request->routeIs('admin.persetujuan.*') || $request->routeIs('api.approvals.*');
 
             if (! $isApprovalRoute) {
-                if ($request->expectsJson()) {
+                if ($request->expectsJson() || $request->is('api/*')) {
                     return response()->json(['message' => 'Akun Anda hanya memiliki akses Monitoring (Read-Only)!'], 403);
                 }
 

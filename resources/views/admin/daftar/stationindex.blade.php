@@ -537,16 +537,6 @@
                         </a>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/60 pb-2 items-center">
-                    <span class="text-slate-400 dark:text-slate-400 font-medium">No. Telepon</span>
-                    <div class="col-span-2 flex items-center space-x-2">
-                        <span id="detail_phone" class="text-slate-800 dark:text-slate-100 font-semibold">-</span>
-                        <a id="detail_phone_link" href="#" target="_blank" class="hidden inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0">
-                            <i class="fa-brands fa-whatsapp text-sm"></i>
-                            <span>Chat WA</span>
-                        </a>
-                    </div>
-                </div>
                 <div class="grid grid-cols-3 border-b border-slate-50 dark:border-slate-700/60 pb-2">
                     <span class="text-slate-400 dark:text-slate-400 font-medium">Jobdesk</span>
                     <span id="detail_job" class="col-span-2 text-slate-800 dark:text-slate-100 font-semibold">-</span>
@@ -1741,26 +1731,6 @@
                     } else {
                         if (emailSpan) emailSpan.textContent = '-';
                         if (emailLink) emailLink.classList.add("hidden");
-                    }
-
-                    const phoneSpan = document.getElementById("detail_phone");
-                    const phoneLink = document.getElementById("detail_phone_link");
-
-                    if (data.phone_number) {
-                        if (phoneSpan) phoneSpan.textContent = data.phone_number;
-
-                        let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
-                        if (cleanNumber.startsWith('0')) {
-                            cleanNumber = '62' + cleanNumber.substring(1);
-                        }
-
-                        if (phoneLink) {
-                            phoneLink.href = `https://wa.me/${cleanNumber}`;
-                            phoneLink.classList.remove("hidden");
-                        }
-                    } else {
-                        if (phoneSpan) phoneSpan.textContent = '-';
-                        if (phoneLink) phoneLink.classList.add("hidden");
                     }
 
                     let jobTitleText = 'Belum Memilih';

@@ -76,9 +76,6 @@
                 linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
         }
     </style>
-
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
 <body class="h-full bg-slate-50 text-slate-800 flex flex-col justify-between antialiased relative selection:bg-brand-500 selection:text-white">
 

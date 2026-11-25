@@ -29,8 +29,6 @@
             background-size: 20px 20px;
         }
     </style>
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-x-hidden">
 
@@ -282,8 +280,8 @@
                         <i class="fa-solid fa-circle-question text-sky-500 text-sm"></i>
                         <span>Butuh bantuan akses login?</span>
                     </div>
-                    <a href="https://wa.me/6281131132067" target="_blank" class="text-xs font-semibold text-sky-700 hover:text-sky-800 border border-sky-200 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> Kontak IT Helpdesk
+                    <a href="mailto:it-helpdesk@umbulan.co.id?subject=Bantuan%20Akses%20Login%20ERP" class="text-xs font-semibold text-sky-700 hover:text-sky-800 border border-sky-200 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-envelope text-sky-600 text-sm"></i> Kontak IT Helpdesk
                     </a>
                 </div>
             </div>
@@ -362,27 +360,5 @@
         }
         setInterval(updateLiveClock, 1000);
     </script>
-
-    {{-- Pendaftaran Skrip PWA --}}
-    @laravelPwa
-    @pwaInstallButton
-    {{-- <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(registration => {
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm("[META System] Versi baru telah tersedia. Perbarui halaman sekarang?")) {
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-        }
-    </script> --}}
 </body>
 </html>

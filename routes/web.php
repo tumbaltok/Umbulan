@@ -19,9 +19,7 @@ use App\Http\Controllers\Mpr\PersetujuanMprController;
 use App\Http\Controllers\User\AccountController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
-use App\Http\Controllers\Admin\WhatsAppSettingController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\PhoneVerificationController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -68,16 +66,12 @@ Route::middleware(['guest', 'prevent-back-history'])->group(function () {
 Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 
     // ----------------------------------------------------------
-    // 1. Verifikasi Email (Tier 1)
+    // 1. Verifikasi Email
     // ----------------------------------------------------------
     Route::get('/auth/verify-email', function (Request $request) {
         if ($request->user()->hasVerifiedEmail()) {
-            if (!$request->user()->hasVerifiedPhone()) {
-                return redirect()->route('verification.phone.notice');
-            }
-
             $intended = session()->get('url.intended');
-            if ($intended && (str_contains($intended, '/auth/verify-email') || str_contains($intended, '/auth/verify-phone'))) {
+            if ($intended && str_contains($intended, '/auth/verify-email')) {
                 session()->forget('url.intended');
             }
 
@@ -94,17 +88,13 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/auth/verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
-        return $request->user()->hasVerifiedPhone()
-            ? redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!')
-            : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
+        return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
     })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
-        return $request->user()->hasVerifiedPhone()
-            ? redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!')
-            : redirect()->route('verification.phone.notice')->with('message', 'Email berhasil diverifikasi! Silakan lanjutkan verifikasi nomor WhatsApp.');
+        return redirect('/dashboard')->with('message', 'Email berhasil diverifikasi!');
     })->middleware(['signed', 'throttle:6,1']);
 
     Route::post('/auth/email/verification-notification', function (Request $request) {
@@ -119,24 +109,14 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1');
 
-    // ----------------------------------------------------------
-    // 2. Verifikasi WhatsApp OTP (Tier 2)
-    // ----------------------------------------------------------
-    Route::middleware('verified')->group(function () {
-        Route::get('/auth/verify-phone', [PhoneVerificationController::class, 'notice'])->name('verification.phone.notice');
-        Route::post('/auth/verify-phone', [PhoneVerificationController::class, 'verify'])->name('verification.phone.verify');
-        Route::post('/auth/phone/send-otp', [PhoneVerificationController::class, 'sendOtp'])->middleware('throttle:3,1')->name('verification.phone.send');
-        Route::post('/auth/phone/update-number', [PhoneVerificationController::class, 'updateNumber'])->name('verification.phone.update');
-    });
-
     // Proses keluar akun (Logout)
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
     Route::get('/logout', fn () => redirect()->route('login'));
 
     // ----------------------------------------------------------
-    // 3. Rute Internal (Wajib Email & WhatsApp Terverifikasi)
+    // 2. Rute Internal (Wajib Email Terverifikasi)
     // ----------------------------------------------------------
-    Route::middleware(['verified', 'phone.verified'])->group(function () {
+    Route::middleware(['verified'])->group(function () {
 
         // Dashboard & Profil
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -250,13 +230,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             // Rekap Absensi Harian
             Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
             Route::get('/admin/absensi/export', [AbsensiAdminController::class, 'export'])->name('admin.absensi.export');
-
-            // WhatsApp Gateway
-            Route::get('/admin/whatsapp', [WhatsAppSettingController::class, 'index'])->name('admin.whatsapp.index');
-            Route::get('/admin/whatsapp/status', [WhatsAppSettingController::class, 'status'])->name('admin.whatsapp.status');
-            Route::get('/admin/whatsapp/qr', [WhatsAppSettingController::class, 'qr'])->name('admin.whatsapp.qr');
-            Route::post('/admin/whatsapp/send-test', [WhatsAppSettingController::class, 'sendTest'])->name('admin.whatsapp.send_test');
-            Route::post('/admin/whatsapp/disconnect', [WhatsAppSettingController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
 
             // Update Hierarchy Matrix
             Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');

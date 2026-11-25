@@ -431,7 +431,7 @@
                     @endif
 
                     {{-- Alamat Email --}}
-                    <div>
+                    <div class="md:col-span-2">
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Alamat Email</label>
                             <div>
@@ -457,56 +457,6 @@
                         <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
                             <i class="fa-solid fa-lock text-slate-400 text-[10px]"></i>
                             Email akun kedinasan bersifat permanen dan tidak dapat diubah mandiri.
-                        </p>
-                    </div>
-
-                    {{-- No. WhatsApp / Telepon --}}
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">No. WhatsApp / Telepon</label>
-                            <div class="flex items-center gap-2">
-                                @if($user->hasVerifiedPhone())
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                                        <i class="fa-solid fa-circle-check mr-1 text-[9px]"></i> Terverifikasi
-                                    </span>
-                                    <button type="button"
-                                        id="btn-change-phone"
-                                        onclick="openChangePhoneModal()"
-                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 border border-sky-200/80 dark:border-sky-800 px-2.5 py-0.5 rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
-                                        title="Ajukan permohonan ganti nomor ke Admin">
-                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                                        <span>Ganti</span>
-                                    </button>
-                                @else
-                                    <span id="phone-badge" class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
-                                        Belum Verifikasi
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="relative">
-                            @if($user->hasVerifiedPhone())
-                                <input type="text"
-                                    value="{{ $user->phone_number }}"
-                                    class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl cursor-not-allowed select-none font-medium text-sm font-mono"
-                                    readonly
-                                    disabled>
-                                <input type="hidden" name="phone_number" value="{{ $user->phone_number }}">
-                            @else
-                                <input type="text"
-                                    name="phone_number"
-                                    id="phone_number"
-                                    value="{{ old('phone_number', $user->phone_number ?? '') }}"
-                                    class="w-full px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium text-slate-800 dark:text-slate-100 text-sm font-mono transition-all"
-                                    placeholder="Contoh: 08123456789">
-                            @endif
-                        </div>
-                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
-                            @if($user->hasVerifiedPhone())
-                                * Nomor terverifikasi terkunci demi keamanan dinas. Klik tombol <strong class="text-sky-600 dark:text-sky-400">Ganti</strong> untuk hubungi Admin.
-                            @else
-                                * Pastikan nomor aktif terhubung WhatsApp untuk penerimaan OTP dan notifikasi dinas.
-                            @endif
                         </p>
                     </div>
                 </div>
@@ -614,8 +564,8 @@
                                             <span>Ubah (Admin)</span>
                                         </button>
                                     @endif
-                                    <button type="button" onclick="openScheduleContactAdminModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer">
-                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                    <button type="button" onclick="openScheduleContactAdminModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer">
+                                        <i class="fa-solid fa-envelope text-sm"></i>
                                         <span>Hubungi Admin</span>
                                     </button>
                                 </div>
@@ -941,133 +891,6 @@
     </div>
 </div>
 
-{{-- MODAL HUBUNGI ADMIN UNTUK GANTI NOMOR WHATSAPP --}}
-<div id="modalChangePhone" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeChangePhoneModal()"></div>
-    <div class="relative w-full max-w-lg my-auto max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all animate-fadeIn">
-        
-        {{-- Header Modal Hubungi Admin (shrink-0) --}}
-        <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200/80 dark:border-emerald-800">
-                    <i class="fa-brands fa-whatsapp text-2xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
-                        Ganti Nomor WhatsApp
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Hubungi Administrator untuk Perubahan Nomor Resmi
-                    </p>
-                </div>
-            </div>
-            <button type="button" onclick="closeChangePhoneModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer" title="Tutup">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-        </div>
-
-        {{-- Body Modal Hubungi Admin (flex-1 overflow-y-auto) --}}
-        <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
-            
-            {{-- Alert Informasi Keamanan Nomor WhatsApp --}}
-            <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
-                <i class="fa-solid fa-shield-halved text-amber-600 dark:text-amber-400 mt-0.5 text-base shrink-0"></i>
-                <div class="leading-relaxed">
-                    <p class="font-bold text-amber-950 dark:text-amber-100 mb-1">Nomor WhatsApp Terverifikasi Terkunci</p>
-                    <p>
-                        Nomor <span class="font-mono font-bold">{{ $user->phone_number }}</span> telah terdaftar dan terverifikasi untuk presensi absensi, notifikasi cuti, dan keamanan sistem ERP. Penggantian nomor harus disetujui dan diperbarui langsung oleh <strong>Administrator Sistem</strong>.
-                    </p>
-                </div>
-            </div>
-
-            {{-- Daftar Kontak Administrator Sistem --}}
-            <div class="space-y-3 pt-1">
-                <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 px-1">
-                    <span>Pilih Administrator Tujuan:</span>
-                    <span class="text-[11px] text-slate-400 font-medium">{{ isset($adminUsers) ? $adminUsers->count() : 0 }} Admin Tersedia</span>
-                </div>
-
-                @if(isset($adminUsers) && $adminUsers->count() > 0)
-                    <div class="space-y-2.5">
-                        @foreach($adminUsers as $admin)
-                            @php
-                                $cleanPhone = preg_replace('/[^0-9]/', '', $admin->phone_number);
-                                if (str_starts_with($cleanPhone, '0')) {
-                                    $cleanPhone = '62' . substr($cleanPhone, 1);
-                                } elseif (str_starts_with($cleanPhone, '8')) {
-                                    $cleanPhone = '62' . $cleanPhone;
-                                }
-
-                                $waText = "Halo Admin {$admin->name}, perkenalkan saya *" . ($user->name ?? 'Karyawan') . "* (NIP: *" . ($user->nip ?? '-') . "*).\n\n"
-                                    . "Saya bermaksud mengajukan permohonan penggantian nomor WhatsApp akun ERP Umbulan saya:\n"
-                                    . "• Nomor Terverifikasi Lama: *" . ($user->phone_number ?? '-') . "*\n"
-                                    . "• Mohon bantuan dan verifikasi untuk nomor baru saya.\n\n"
-                                    . "Terima kasih.";
-
-                                $waUrl = "https://wa.me/{$cleanPhone}?text=" . rawurlencode($waText);
-                                $adminRoleName = $admin->role?->role_name ?? ($admin->roles->first()?->role_name ?? 'Administrator');
-                            @endphp
-
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/90 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/20 dark:hover:bg-emerald-950/20 transition-all shadow-2xs">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 dark:border-emerald-800 shadow-2xs">
-                                        {{ strtoupper(substr($admin->name, 0, 2)) }}
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                                                {{ $admin->name }}
-                                            </h4>
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300">
-                                                {{ $adminRoleName }}
-                                            </span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            <span class="font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
-                                                <i class="fa-brands fa-whatsapp text-xs mr-0.5"></i> {{ $admin->phone_number }}
-                                            </span>
-                                            @if($admin->station)
-                                                <span>•</span>
-                                                <span class="truncate">{{ $admin->station->name }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="shrink-0 self-end sm:self-auto">
-                                    <a href="{{ $waUrl }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs transition-all hover:scale-[1.02] cursor-pointer">
-                                        <i class="fa-brands fa-whatsapp text-sm"></i>
-                                        <span>Chat WhatsApp</span>
-                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-80 ml-0.5"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center py-6">
-                        <i class="fa-solid fa-user-shield text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kontak WhatsApp Administrator Belum Tersedia</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Silakan hubungi tim IT atau HRD di kantor stasiun Anda untuk bantuan penggantian nomor.</p>
-                    </div>
-                @endif
-            </div>
-
-        </div>
-
-        {{-- Footer Modal Hubungi Admin (shrink-0) --}}
-        <div class="shrink-0 p-4 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-            <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">
-                Tutup
-            </button>
-        </div>
-
-    </div>
-</div>
-
 {{-- MODAL HUBUNGI ADMIN UNTUK PERUBAHAN JADWAL KERJA --}}
 <div id="modalScheduleContactAdmin" class="fixed inset-0 z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
     <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity -z-10 cursor-pointer" onclick="closeScheduleContactAdminModal()"></div>
@@ -1076,15 +899,15 @@
         {{-- Header Modal Hubungi Admin Jadwal (shrink-0) --}}
         <div class="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/60">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs border border-emerald-200 dark:border-emerald-800">
-                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                <div class="w-11 h-11 rounded-2xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs border border-sky-200 dark:border-sky-800">
+                    <i class="fa-solid fa-envelope-open-text text-xl"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
                         Penyesuaian Jadwal Kerja
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Hubungi Administrator untuk Koreksi atau Perubahan Jadwal
+                        Hubungi Administrator melalui Email Dinas untuk Perubahan Jadwal
                     </p>
                 </div>
             </div>
@@ -1108,7 +931,7 @@
                             @else
                                 Normal (Senin – Jumat)
                             @endif
-                        </span>) telah dikunci demi integritas absensi kedinasan. Apabila terjadi <strong>salah input</strong> atau <strong>pergantian shift dinas</strong>, silakan hubungi salah satu Administrator di bawah ini untuk pembaruan data resmi.
+                        </span>) telah dikunci demi integritas absensi kedinasan. Apabila terjadi <strong>salah input</strong> atau <strong>pergantian shift dinas</strong>, silakan hubungi salah satu Administrator di bawah ini melalui email resmi.
                     </p>
                 </div>
             </div>
@@ -1124,32 +947,27 @@
                     <div class="space-y-2.5">
                         @foreach($adminUsers as $admin)
                             @php
-                                $cleanPhone = preg_replace('/[^0-9]/', '', $admin->phone_number);
-                                if (str_starts_with($cleanPhone, '0')) {
-                                    $cleanPhone = '62' . substr($cleanPhone, 1);
-                                } elseif (str_starts_with($cleanPhone, '8')) {
-                                    $cleanPhone = '62' . $cleanPhone;
-                                }
-
-                                $scheduleLabelForWa = match($user->schedule_type) {
+                                $scheduleLabel = match($user->schedule_type) {
                                     'roster' => 'Sistem Roster / Shift (12 Jam)',
                                     'normal', 'reguler_5_hari' => 'Normal (Senin – Jumat)',
                                     default => 'Belum Diatur'
                                 };
 
-                                $waScheduleText = "Halo Admin {$admin->name}, perkenalkan saya *" . ($user->name ?? 'Karyawan') . "* (NIP: *" . ($user->nip ?? '-') . "*).\n\n"
+                                $mailSubject = "Permohonan Penyesuaian Jadwal Kerja - " . ($user->name ?? 'Karyawan');
+                                $mailBody = "Halo Admin {$admin->name},\n\n"
+                                    . "Perkenalkan saya " . ($user->name ?? 'Karyawan') . " (NIP: " . ($user->nip ?? '-') . ").\n"
                                     . "Saya bermaksud mengajukan permohonan penyesuaian/koreksi Jadwal Kerja pada akun ERP Umbulan saya:\n"
-                                    . "• Jadwal Saat Ini: *" . $scheduleLabelForWa . "*\n"
-                                    . "• Keterangan: (Mohon bantuan penyesuaian jadwal kerja karena salah input / mutasi shift dinas)\n\n"
-                                    . "Mohon bantuan dan verifikasi penyesuaian jadwal akun saya. Terima kasih.";
+                                    . "- Jadwal Saat Ini: " . $scheduleLabel . "\n"
+                                    . "- Keterangan: (Mohon bantuan penyesuaian jadwal kerja karena salah input / mutasi shift dinas)\n\n"
+                                    . "Terima kasih.";
 
-                                $waScheduleUrl = "https://wa.me/{$cleanPhone}?text=" . rawurlencode($waScheduleText);
+                                $mailtoUrl = "mailto:" . $admin->email . "?subject=" . rawurlencode($mailSubject) . "&body=" . rawurlencode($mailBody);
                                 $adminRoleName = $admin->role?->role_name ?? ($admin->roles->first()?->role_name ?? 'Administrator');
                             @endphp
 
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/90 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all shadow-2xs">
+                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/90 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-sky-300 hover:bg-sky-50/20 transition-all shadow-2xs">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 border border-emerald-300/70 dark:border-emerald-800 shadow-2xs">
+                                    <div class="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 font-extrabold text-xs flex items-center justify-center shrink-0 border border-sky-300/70 dark:border-sky-800 shadow-2xs">
                                         {{ strtoupper(substr($admin->name, 0, 2)) }}
                                     </div>
                                     <div class="min-w-0">
@@ -1162,8 +980,8 @@
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            <span class="font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
-                                                <i class="fa-brands fa-whatsapp text-xs mr-0.5"></i> {{ $admin->phone_number }}
+                                            <span class="font-mono text-sky-700 dark:text-sky-400 font-semibold truncate">
+                                                <i class="fa-solid fa-envelope text-[10px] mr-0.5"></i> {{ $admin->email }}
                                             </span>
                                             @if($admin->station)
                                                 <span>•</span>
@@ -1174,13 +992,10 @@
                                 </div>
 
                                 <div class="shrink-0 self-end sm:self-auto">
-                                    <a href="{{ $waScheduleUrl }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs transition-all hover:scale-[1.02] cursor-pointer">
-                                        <i class="fa-brands fa-whatsapp text-sm"></i>
-                                        <span>Chat WhatsApp</span>
-                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-80 ml-0.5"></i>
+                                    <a href="{{ $mailtoUrl }}"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white shadow-xs transition-all hover:scale-[1.02] cursor-pointer">
+                                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                                        <span>Kirim Email</span>
                                     </a>
                                 </div>
                             </div>
@@ -1189,7 +1004,7 @@
                 @else
                     <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center py-6">
                         <i class="fa-solid fa-user-shield text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kontak WhatsApp Administrator Belum Tersedia</p>
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kontak Administrator Belum Tersedia</p>
                         <p class="text-[11px] text-slate-400 mt-1">Silakan hubungi tim IT atau HRD di kantor stasiun Anda untuk bantuan penyesuaian jadwal.</p>
                     </div>
                 @endif
@@ -1363,27 +1178,6 @@
 
 @push('scripts')
 <script>
-    function openChangePhoneModal() {
-        const modal = document.getElementById('modalChangePhone');
-        if (modal) {
-            if (modal.parentElement !== document.body) {
-                document.body.appendChild(modal);
-            }
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-        }
-    }
-
-    function closeChangePhoneModal() {
-        const modal = document.getElementById('modalChangePhone');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
-    }
-
     function openScheduleContactAdminModal() {
         const modal = document.getElementById('modalScheduleContactAdmin');
         if (modal) {
@@ -1407,16 +1201,11 @@
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            closeChangePhoneModal();
             closeScheduleContactAdminModal();
         }
     });
 
     document.addEventListener('click', function(e) {
-        const modalPhone = document.getElementById('modalChangePhone');
-        if (modalPhone && e.target === modalPhone) {
-            closeChangePhoneModal();
-        }
         const modalSchedule = document.getElementById('modalScheduleContactAdmin');
         if (modalSchedule && e.target === modalSchedule) {
             closeScheduleContactAdminModal();
@@ -1586,32 +1375,6 @@
                     setTimeout(() => {
                         scheduleSection.classList.remove("ring-4", "ring-amber-400", "bg-amber-50/40", "border-amber-300");
                     }, 3500);
-                }
-            }, 300);
-        }
-
-        if (urlParams.get('phone_required') === '1' || window.location.hash === '#phone_number') {
-            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-
-            setTimeout(function () {
-                const phoneInput = document.getElementById("phone_number");
-
-                if (phoneInput) {
-                    phoneInput.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                        inline: 'nearest'
-                    });
-
-                    if (!phoneInput.readOnly) {
-                        phoneInput.focus();
-                        phoneInput.classList.add("ring-4", "ring-rose-400", "border-rose-500", "animate-pulse");
-
-                        phoneInput.addEventListener('input', function () {
-                            phoneInput.classList.remove("ring-4", "ring-rose-400", "border-rose-500", "animate-pulse");
-                        }, { once: true });
-                    }
                 }
             }, 300);
         }

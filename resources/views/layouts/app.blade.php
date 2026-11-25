@@ -906,13 +906,6 @@
                                     </a>
                                 </div>
                             </div>
-
-                            {{-- Pengaturan WhatsApp Gateway --}}
-                            <a href="{{ route('admin.whatsapp.index') }}"
-                                class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/whatsapp*') ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:font-semibold dark:border-emerald-500/30' : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/60 dark:text-slate-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/30' }}">
-                                <i class="fa-brands fa-whatsapp text-xs text-emerald-500 dark:text-emerald-400"></i>
-                                <span class="hide-on-collapse">WhatsApp Gateway</span>
-                            </a>
                         </div>
                     </div>
                 @endif
@@ -1094,37 +1087,6 @@
         </header>
 
         <main id="mainContent" class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6 page-transition-enter">
-            {{-- ALERT BANNER: WHATSAPP GATEWAY BELUM TERHUBUNG (KHUSUS LEVEL 1 / ADMIN) --}}
-            @if($isAdminRole && !request()->routeIs('admin.whatsapp.*'))
-                @php
-                    $waStatusData = \App\Services\WhatsAppService::getStatusCached();
-                @endphp
-                @if(($waStatusData['status'] ?? 'disconnected') !== 'connected')
-                    <div class="mb-6 p-4.5 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border border-amber-300/80 dark:border-amber-700/60 rounded-2xl shadow-sm backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
-                        <div class="flex items-start sm:items-center space-x-3.5">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-amber-500/20 mt-0.5 sm:mt-0">
-                                <i class="fa-brands fa-whatsapp"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                    <span>⚠️ WhatsApp Gateway Belum Terhubung</span>
-                                    <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                                        {{ strtoupper($waStatusData['status'] ?? 'TERPUTUS') }}
-                                    </span>
-                                </h4>
-                                <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-                                    Sistem tidak dapat mengirim OTP & notifikasi persetujuan. Sambungkan perangkat sekarang.
-                                </p>
-                            </div>
-                        </div>
-                        <a href="{{ route('admin.whatsapp.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all shrink-0 whitespace-nowrap active:scale-95">
-                            <i class="fa-solid fa-qrcode"></i>
-                            <span>Sambungkan Perangkat</span>
-                        </a>
-                    </div>
-                @endif
-            @endif
-
             @yield('content')
         </main>
     </div>
@@ -1590,30 +1552,6 @@
                                     <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span> Belum diatur
                                 </p>
                             @endif
-                        </div>
-                    </div>
-
-                    {{-- NOMOR WHATSAPP & VERIFIKASI --}}
-                    <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xs hover:border-sky-300/60 dark:hover:border-sky-700/60 transition-all flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-brands fa-whatsapp text-sm"></i>
-                        </div>
-                        <div class="min-w-0 flex-1 space-y-1">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">WhatsApp</span>
-                                @if(Auth::user()->phone_verified_at)
-                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/70">
-                                        <i class="fa-solid fa-check text-[8px]"></i> Terverifikasi
-                                    </span>
-                                @else
-                                    <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/70">
-                                        Belum Verifikasi
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm truncate">
-                                {{ Auth::user()->phone_number ?? '-' }}
-                            </p>
                         </div>
                     </div>
 

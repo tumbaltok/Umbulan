@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Car;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Models\Car\PengajuanCar;
 use App\Models\User\User;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -76,9 +75,9 @@ class PersetujuanCarController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp status ditolak ke pemohon
+                // Push notification status ditolak ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'rejected', $request->catatan_penolakan);
+                    SendPushNotification::sendStatusUpdate('car', $pengajuan, 'rejected', $request->catatan_penolakan);
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi penolakan CAR ke pemohon: ' . $e->getMessage());
                 }
@@ -103,20 +102,20 @@ class PersetujuanCarController extends Controller
 
                 DB::commit();
 
-                // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
+                // PUSH NOTIFICATION KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
                 if (!$isSingleLevel) {
                     try {
                         $step2Approvers = $approvalService->getApproversForStage($pengajuan->user, 'car', 2);
                         foreach ($step2Approvers as $app2) {
-                            SendWhatsAppNotification::sendNewSubmission('car', $pengajuan, $app2, 2);
+                            SendPushNotification::sendNewSubmission('car', $pengajuan, $app2, 2);
                         }
                     } catch (\Exception $e) {
-                        Log::error('Gagal kirim WA persetujuan tahap 2 CAR: ' . $e->getMessage());
+                        Log::error('Gagal kirim push notification persetujuan tahap 2 CAR: ' . $e->getMessage());
                     }
                 } else {
                     // Alur 1-Step langsung Final: Kirim notifikasi disetujui ke pemohon
                     try {
-                        SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'approved');
+                        SendPushNotification::sendStatusUpdate('car', $pengajuan, 'approved');
                     } catch (\Throwable $e) {
                         Log::error('Gagal kirim notifikasi CAR disetujui ke pemohon: ' . $e->getMessage());
                     }
@@ -137,9 +136,9 @@ class PersetujuanCarController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp disetujui (Final) ke pemohon
+                // Push notification disetujui (Final) ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('car', $pengajuan, 'approved');
+                    SendPushNotification::sendStatusUpdate('car', $pengajuan, 'approved');
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi CAR disetujui tahap 2 ke pemohon: ' . $e->getMessage());
                 }

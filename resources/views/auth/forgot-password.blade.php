@@ -38,13 +38,6 @@
                             700: '#0369a1',
                             800: '#075985',
                             900: '#0c4a6e',
-                        },
-                        wa: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
                         }
                     }
                 }
@@ -69,9 +62,6 @@
                 linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
         }
     </style>
-
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
@@ -112,7 +102,7 @@
                     </div>
                     <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Pemulihan Kata Sandi</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed" id="step-desc">
-                        Masukkan Email atau Nomor WhatsApp Anda untuk mencari akun dan menerima kode OTP.
+                        Masukkan Email atau NIP Anda untuk mencari akun dan menerima kode OTP via Email.
                     </p>
                 </div>
 
@@ -141,7 +131,7 @@
                     @csrf
                     <div>
                         <label for="identity" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                            Email atau Nomor WhatsApp
+                            Email atau NIP Kepegawaian
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -150,10 +140,10 @@
                             <input type="text" id="identity" name="identity" required autofocus
                                 value="{{ old('identity') }}"
                                 class="block w-full pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white"
-                                placeholder="nama@meta.com atau 08123456789">
+                                placeholder="nama@meta.com atau NIP">
                         </div>
                         <p class="text-[11px] text-slate-400 mt-1.5">
-                            Gunakan Email dinas atau Nomor WhatsApp yang sudah terdaftar pada sistem.
+                            Gunakan Email dinas atau NIP yang sudah terdaftar pada sistem.
                         </p>
                     </div>
 
@@ -165,7 +155,7 @@
                     </button>
                 </form>
 
-                {{-- Tahap 2: Pemilihan Saluran Pengiriman OTP (Email / WhatsApp) --}}
+                {{-- Tahap 2: Konfirmasi Pengiriman OTP Email --}}
                 <div id="channelSelectionSection" class="space-y-5 hidden">
                     {{-- Informasi Akun Karyawan Teridentifikasi --}}
                     <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between">
@@ -205,21 +195,6 @@
                                             <span class="text-[10px] font-semibold text-brand-600 bg-brand-100/60 px-2 py-0.5 rounded-full">Resmi</span>
                                         </div>
                                         <p class="text-xs text-slate-500 font-mono mt-0.5 truncate" id="masked-email-display">-</p>
-                                    </div>
-                                </label>
-
-                                {{-- Saluran Pengiriman via WhatsApp --}}
-                                <label id="channel-card-whatsapp" class="relative flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-wa-500 bg-white cursor-pointer transition-all hover:bg-wa-50/30">
-                                    <input type="radio" name="channel" value="whatsapp" class="text-wa-600 focus:ring-wa-500 w-4 h-4">
-                                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base shrink-0">
-                                        <i class="fa-brands fa-whatsapp"></i>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-xs font-bold text-slate-800">WhatsApp Gateway</span>
-                                            <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Instan</span>
-                                        </div>
-                                        <p class="text-xs text-slate-500 font-mono mt-0.5 truncate" id="masked-whatsapp-display">-</p>
                                     </div>
                                 </label>
                             </div>
@@ -287,7 +262,7 @@
             const btnSpinner = document.getElementById('btn-identify-spinner');
 
             if (!identityInput) {
-                showAlert('error', 'Silakan masukkan Email atau Nomor WhatsApp Anda.');
+                showAlert('error', 'Silakan masukkan Email atau NIP Anda.');
                 return;
             }
 
@@ -316,31 +291,16 @@
 
                     // Update channels
                     const emailChannel = data.channels.find(c => c.id === 'email');
-                    const waChannel = data.channels.find(c => c.id === 'whatsapp');
-
                     if (emailChannel) {
                         document.getElementById('masked-email-display').innerText = emailChannel.target_masked;
                     }
 
-                    const waCard = document.getElementById('channel-card-whatsapp');
-                    const waRadio = waCard.querySelector('input[type="radio"]');
-
-                    if (waChannel && waChannel.available) {
-                        document.getElementById('masked-whatsapp-display').innerText = waChannel.target_masked;
-                        waCard.classList.remove('opacity-50', 'pointer-events-none', 'bg-slate-100');
-                        waRadio.disabled = false;
-                    } else {
-                        document.getElementById('masked-whatsapp-display').innerText = 'Nomor WhatsApp belum terdaftar';
-                        waCard.classList.add('opacity-50', 'pointer-events-none', 'bg-slate-100');
-                        waRadio.disabled = true;
-                    }
-
-                    // Tampilkan form pemilihan channel
+                    // Tampilkan form konfirmasi pengiriman OTP Email
                     document.getElementById('identifyForm').classList.add('hidden');
                     document.getElementById('channelSelectionSection').classList.remove('hidden');
-                    document.getElementById('step-desc').innerText = 'Pilih saluran pengiriman kode OTP yang Anda inginkan.';
+                    document.getElementById('step-desc').innerText = 'Konfirmasi pengiriman kode OTP ke alamat Email Kepegawaian Anda.';
 
-                    showAlert('success', 'Akun ditemukan! Silakan pilih saluran pengiriman kode OTP.');
+                    showAlert('success', 'Akun ditemukan! Klik Kirim Kode OTP untuk menerima kode melalui Email.');
                 } else {
                     showAlert('error', data.message || 'Akun tidak ditemukan. Silakan periksa kembali data Anda.');
                 }
@@ -413,25 +373,9 @@
             hideAlert();
             document.getElementById('channelSelectionSection').classList.add('hidden');
             document.getElementById('identifyForm').classList.remove('hidden');
-            document.getElementById('step-desc').innerText = 'Masukkan Email atau Nomor WhatsApp Anda untuk mencari akun dan menerima kode OTP.';
+            document.getElementById('step-desc').innerText = 'Masukkan Email atau NIP Anda untuk mencari akun dan menerima kode OTP via Email.';
             document.getElementById('identity').focus();
         }
-
-        // Stylize radio cards on click
-        document.querySelectorAll('input[name="channel"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const emailCard = document.getElementById('channel-card-email');
-                const waCard = document.getElementById('channel-card-whatsapp');
-
-                if (this.value === 'email') {
-                    emailCard.className = "relative flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-500 bg-brand-50/40 cursor-pointer transition-all";
-                    waCard.className = "relative flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-wa-500 bg-white cursor-pointer transition-all";
-                } else {
-                    waCard.className = "relative flex items-center gap-3 p-3.5 rounded-2xl border-2 border-wa-500 bg-wa-50/40 cursor-pointer transition-all";
-                    emailCard.className = "relative flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-brand-500 bg-white cursor-pointer transition-all";
-                }
-            });
-        });
 
         // BFCache Buster
         window.addEventListener('pageshow', function(event) {
@@ -440,9 +384,5 @@
             }
         });
     </script>
-
-    {{-- Pendaftaran Skrip PWA --}}
-    @laravelPwa
-    @pwaInstallButton
 </body>
 </html>

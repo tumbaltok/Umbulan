@@ -11,7 +11,7 @@ use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\Role;
 use App\Models\User\User;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
+use App\Services\PushNotificationService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -68,9 +68,7 @@ class DynamicApprovalRoutingTest extends TestCase
             'role_id' => $this->roleDirector->id,
             'station_id' => $this->station->id,
             'gender_id' => $this->gender->id,
-            'phone_number' => '628111111111',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'schedule_type' => 'reguler_5_hari',
             'level' => 1,
         ]);
@@ -83,9 +81,7 @@ class DynamicApprovalRoutingTest extends TestCase
             'role_id' => $this->roleManager->id,
             'station_id' => $this->station->id,
             'gender_id' => $this->gender->id,
-            'phone_number' => '628222222222',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'schedule_type' => 'reguler_5_hari',
             'level' => 2,
         ]);
@@ -98,9 +94,7 @@ class DynamicApprovalRoutingTest extends TestCase
             'role_id' => $this->roleSpv->id,
             'station_id' => $this->station->id,
             'gender_id' => $this->gender->id,
-            'phone_number' => '628333333333',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'schedule_type' => 'reguler_5_hari',
             'level' => 2,
         ]);
@@ -113,9 +107,7 @@ class DynamicApprovalRoutingTest extends TestCase
             'role_id' => $this->roleOperator->id,
             'station_id' => $this->station->id,
             'gender_id' => $this->gender->id,
-            'phone_number' => '628444444444',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'schedule_type' => 'reguler_5_hari',
             'level' => 3,
         ]);
@@ -310,8 +302,8 @@ class DynamicApprovalRoutingTest extends TestCase
         $this->assertEquals('approved', $cuti->status_tahap_1);
         $this->assertEquals('approved', $cuti->status_akhir);
 
-        // Pastikan job notifikasi status ter-dispatch ke antrean untuk dikirim via WA
-        Queue::assertPushed(\App\Jobs\SendWhatsAppNotification::class, function ($job) {
+        // Pastikan job push notification status ter-dispatch ke antrean
+        Queue::assertPushed(\App\Jobs\SendPushNotification::class, function ($job) {
             return $job->type === 'status_update';
         });
     }

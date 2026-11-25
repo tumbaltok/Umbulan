@@ -160,7 +160,6 @@ class KaryawanController extends Controller
                 'name' => $karyawan->name ?? '-',
                 'email' => $karyawan->email ?? '-',
                 'sektor' => optional($primaryRole)->role_name ?? 'Operasional',
-                'phone_number' => $karyawan->phone_number ?? null,
                 'profile_photo' => $karyawan->profile_photo ?? null,
                 'role_name' => $roleNames ?: 'Tidak Ada Role',
                 'role_ids' => $karyawan->roles->pluck('id')->toArray(),

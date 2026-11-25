@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Cuti;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\User\User;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use App\Traits\CutiHelperTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,9 +83,9 @@ class PersetujuanCutiController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp status ditolak ke pemohon
+                // Push notification status ditolak ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'rejected', $request->catatan_penolakan);
+                    SendPushNotification::sendStatusUpdate('cuti', $pengajuan, 'rejected', $request->catatan_penolakan);
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi penolakan cuti ke pemohon: ' . $e->getMessage());
                 }
@@ -115,20 +114,20 @@ class PersetujuanCutiController extends Controller
 
                 DB::commit();
 
-                // NOTIFIKASI WHATSAPP KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
+                // PUSH NOTIFICATION KE ATASAN TAHAP 2 JIKA ALUR BERJENJANG
                 if (!$isSingleLevel) {
                     try {
                         $step2Approvers = $approvalService->getApproversForStage($pengajuan->user, 'cuti', 2);
                         foreach ($step2Approvers as $app2) {
-                            SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $app2, 2);
+                            SendPushNotification::sendNewSubmission('cuti', $pengajuan, $app2, 2);
                         }
                     } catch (\Exception $e) {
-                        Log::error('Gagal kirim WA persetujuan tahap 2 cuti: ' . $e->getMessage());
+                        Log::error('Gagal kirim push notification persetujuan tahap 2 cuti: ' . $e->getMessage());
                     }
                 } else {
                     // Alur 1-Step langsung Final: Kirim notifikasi disetujui ke pemohon
                     try {
-                        SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
+                        SendPushNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
                     } catch (\Throwable $e) {
                         Log::error('Gagal kirim notifikasi cuti disetujui ke pemohon: ' . $e->getMessage());
                     }
@@ -151,9 +150,9 @@ class PersetujuanCutiController extends Controller
 
                 DB::commit();
 
-                // Notifikasi WhatsApp disetujui (Final) ke pemohon
+                // Push notification disetujui (Final) ke pemohon
                 try {
-                    SendWhatsAppNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
+                    SendPushNotification::sendStatusUpdate('cuti', $pengajuan, 'approved');
                 } catch (\Throwable $e) {
                     Log::error('Gagal kirim notifikasi cuti disetujui tahap 2 ke pemohon: ' . $e->getMessage());
                 }

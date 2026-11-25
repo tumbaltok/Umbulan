@@ -34,12 +34,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'station_id',
         'atasan_langsung_id',
         'atasan_dua_id',
-        'phone_number',
         'profile_photo',
         'signature',
-        'phone_verified_at',
-        'phone_otp',
-        'phone_otp_expires_at',
         'schedule_type',
         'normal_work_days',
         'normal_check_in',
@@ -57,8 +53,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'phone_verified_at' => 'datetime',
-            'phone_otp_expires_at' => 'datetime',
             'password' => 'hashed',
             'normal_work_days' => 'array',
             'face_descriptor' => 'encrypted:array',
@@ -313,39 +307,35 @@ class User extends Authenticatable implements MustVerifyEmail
         return (int)$this->level === 3;
     }
 
-    // Cek apakah nomor telepon pengguna telah terverifikasi
-    public function hasVerifiedPhone(): bool
+    // Relasi ke perangkat APK Native untuk Push Notification FCM
+    public function devices(): HasMany
     {
-        return !is_null($this->phone_verified_at);
+        return $this->hasMany(UserDevice::class, 'user_id');
     }
 
-    // Evaluasi kelengkapan 5 syarat akun (Email, Telepon, Biometrik Wajah, TTD, Jadwal)
+    // Evaluasi kelengkapan 4 syarat akun (Email, Biometrik Wajah, TTD, Jadwal)
     public function isAccountComplete(): bool
     {
         return !is_null($this->email_verified_at)
-            && !empty($this->phone_number)
-            && !is_null($this->phone_verified_at)
             && !empty($this->face_descriptor)
             && !empty($this->signature)
             && !empty($this->schedule_type);
     }
 
-    // Rincian status kelengkapan 5 syarat akun
+    // Rincian status kelengkapan 4 syarat akun
     public function getAccountCompletionStatus(): array
     {
         $hasEmail = !is_null($this->email_verified_at);
-        $hasPhone = !empty($this->phone_number) && !is_null($this->phone_verified_at);
         $hasFace = !empty($this->face_descriptor);
         $hasSignature = !empty($this->signature);
         $hasSchedule = !empty($this->schedule_type);
 
         return [
             'email_verified'  => $hasEmail,
-            'phone_verified'  => $hasPhone,
             'face_registered' => $hasFace,
             'signature_set'   => $hasSignature,
             'schedule_set'    => $hasSchedule,
-            'is_complete'     => $hasEmail && $hasPhone && $hasFace && $hasSignature && $hasSchedule,
+            'is_complete'     => $hasEmail && $hasFace && $hasSignature && $hasSchedule,
         ];
     }
 

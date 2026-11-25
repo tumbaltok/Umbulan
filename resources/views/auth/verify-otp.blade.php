@@ -78,9 +78,6 @@
             -moz-appearance: textfield;
         }
     </style>
-
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
@@ -129,23 +126,13 @@
                 <div class="w-full bg-slate-50 border border-slate-200/90 rounded-2xl p-4 mb-6 text-left">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
-                            @if($channel === 'whatsapp')
-                                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-lg border border-emerald-200">
-                                    <i class="fa-brands fa-whatsapp"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">WhatsApp Gateway</div>
-                                    <div class="text-xs sm:text-sm font-bold text-slate-800 font-mono truncate mt-0.5">{{ $targetMasked }}</div>
-                                </div>
-                            @else
-                                <div class="w-10 h-10 rounded-full bg-sky-100 text-brand-600 flex items-center justify-center shrink-0 text-base border border-brand-200">
-                                    <i class="fa-solid fa-envelope"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="text-[11px] font-bold text-brand-700 uppercase tracking-wider">Email Kepegawaian</div>
-                                    <div class="text-xs sm:text-sm font-bold text-slate-800 font-mono truncate mt-0.5">{{ $targetMasked }}</div>
-                                </div>
-                            @endif
+                            <div class="w-10 h-10 rounded-full bg-sky-100 text-brand-600 flex items-center justify-center shrink-0 text-base border border-brand-200">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[11px] font-bold text-brand-700 uppercase tracking-wider">Email Kepegawaian</div>
+                                <div class="text-xs sm:text-sm font-bold text-slate-800 font-mono truncate mt-0.5">{{ $targetMasked }}</div>
+                            </div>
                         </div>
                         <a href="{{ route('forgot') }}" class="text-xs font-semibold text-brand-600 hover:text-brand-700 whitespace-nowrap">
                             Ganti
@@ -490,9 +477,5 @@
             }
         });
     </script>
-
-    {{-- Pendaftaran Skrip PWA --}}
-    @laravelPwa
-    @pwaInstallButton
 </body>
 </html>

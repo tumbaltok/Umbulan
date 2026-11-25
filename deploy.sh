@@ -131,35 +131,8 @@ if command -v npm >/dev/null 2>&1 && [ -f "$APP_DIR/package.json" ]; then
     npm run build
 fi
 
-# 12. Setup Microservice WhatsApp Gateway (Node.js Baileys)
-if [ -d "$APP_DIR/whatsapp-service" ]; then
-    echo "🤖 [6/11] Mempersiapkan WhatsApp Gateway Microservice..."
-    cd "$APP_DIR/whatsapp-service"
-    mkdir -p auth_session
-    
-    if command -v npm >/dev/null 2>&1; then
-        npm ci 2>/dev/null || npm install --no-audit --no-fund
-    fi
-
-    # Pastikan PM2 tersedia untuk background process manager
-    if ! command -v pm2 >/dev/null 2>&1; then
-        echo "📦 Menginstall PM2 Process Manager secara global..."
-        npm install -g pm2 2>/dev/null || true
-    fi
-
-    if command -v pm2 >/dev/null 2>&1; then
-        echo "🚀 Menjalankan WhatsApp Gateway di latar belakang via PM2 (Port 3001)..."
-        if pm2 describe umbulan-whatsapp >/dev/null 2>&1; then
-            pm2 restart umbulan-whatsapp
-        else
-            pm2 start server.js --name umbulan-whatsapp
-        fi
-        pm2 save 2>/dev/null || true
-    else
-        echo "⚠️ PM2 tidak dapat diinstall global. Microservice dapat dijalankan via: cd whatsapp-service && npm start"
-    fi
-    cd "$APP_DIR"
-fi
+# 12. Sistem Notifikasi Push Notification (FCM) via Queue Worker Laravel
+echo "🔔 [6/11] Notifikasi menggunakan Push Notification APK & Database Notifications..."
 
 # 13. Migrasi Database & Symlink Storage
 echo "🗄️ [7/11] Memeriksa koneksi database & menjalankan migrasi..."
@@ -189,7 +162,7 @@ if command -v supervisorctl >/dev/null 2>&1; then
     sudo supervisorctl restart umbulan-worker:* 2>/dev/null || supervisorctl restart umbulan-worker:* 2>/dev/null || true
 fi
 
-# 15. Pemasangan Otomatis Cron Job (Reset Saldo Cuti Haid Bulanan, Reset Saldo Tahunan, Followup WA)
+# 15. Pemasangan Otomatis Cron Job (Reset Saldo Cuti Haid Bulanan, Reset Saldo Tahunan, Followup Notif)
 echo "⏰ [10/11] Mengonfigurasi Crontab Otomatis untuk Laravel Scheduler..."
 CRON_CMD="* * * * * cd $APP_DIR && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
 CURRENT_CRON=$(crontab -l 2>/dev/null || true)
@@ -199,7 +172,7 @@ if echo "$CURRENT_CRON" | grep -Fq "$APP_DIR"; then
 else
     echo "➕ Mendaftarkan Laravel Scheduler ke Crontab sistem..."
     (echo "$CURRENT_CRON"; echo "$CRON_CMD") | crontab -
-    echo "✅ Berhasil mendaftarkan Scheduler (Reset Saldo Bulanan, Tahunan, & Notifikasi WA aktif otomatis)."
+    echo "✅ Berhasil mendaftarkan Scheduler (Reset Saldo Bulanan, Tahunan, & Push Notif aktif otomatis)."
 fi
 
 # 16. Optimasi Cache & Izin Berkas (File Permissions)
@@ -208,14 +181,14 @@ $PHP_BIN artisan optimize:clear 2>/dev/null || true
 $PHP_BIN artisan optimize 2>/dev/null || true
 $PHP_BIN artisan view:cache 2>/dev/null || true
 
-# Atur permission storage, cache, dan auth_session
-chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+# Atur permission storage dan bootstrap cache
+chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
 
 # Berikan kepemilikan ke user web server (aaPanel: www, Ubuntu: www-data)
 if id "www" >/dev/null 2>&1; then
-    chown -R www:www "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+    chown -R www:www "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
 elif id "www-data" >/dev/null 2>&1; then
-    chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" "$APP_DIR/whatsapp-service/auth_session" 2>/dev/null || true
+    chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
 fi
 
 # 17. Kembalikan Aplikasi ke Status Online
@@ -227,9 +200,9 @@ echo "=================================================================="
 echo "  🎉 ONE-CLICK DEPLOYMENT SELESAI & SISTEM SIAP DIGUNAKAN!        "
 echo "=================================================================="
 echo "  🌐 Aplikasi Web          : ONLINE"
-echo "  🤖 WhatsApp Gateway      : AKTIF (Port 3001 via PM2)"
+echo "  🔔 Push Notification     : AKTIF (Database & FCM via Queue)"
 echo "  ⚙️ Queue Worker          : AKTIF (Background Service)"
-echo "  ⏰ Cron Job Scheduler    : AKTIF (Reset Saldo Tahunan/Haid & WA)"
+echo "  ⏰ Cron Job Scheduler    : AKTIF (Reset Saldo & Followup Notif)"
 echo "  🔗 Storage Symlink       : TERHUBUNG"
 echo "------------------------------------------------------------------"
 echo "  💡 CATATAN PENTING DI aaPanel:"

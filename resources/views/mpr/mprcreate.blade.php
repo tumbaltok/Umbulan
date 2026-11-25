@@ -753,7 +753,7 @@
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>
-                        <span><strong>Verifikasi WhatsApp:</strong> Notifikasi persetujuan instan dikirim ke Atasan/Manager via WhatsApp Gateway resmi.</span>
+                        <span><strong>Push Notification:</strong> Notifikasi persetujuan instan dikirim langsung ke aplikasi Atasan/Manager terkait.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>

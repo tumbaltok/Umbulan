@@ -9,12 +9,11 @@
         $accStatus = auth()->user()->getAccountCompletionStatus();
         $completedCount = collect([
             $accStatus['email_verified'],
-            $accStatus['phone_verified'],
             $accStatus['face_registered'],
             $accStatus['signature_set'],
             $accStatus['schedule_set'],
         ])->filter()->count();
-        $percentComplete = round(($completedCount / 5) * 100);
+        $percentComplete = round(($completedCount / 4) * 100);
     @endphp
 
     @if(!$accStatus['is_complete'])
@@ -28,11 +27,11 @@
                         <div class="flex items-center gap-2">
                             <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Peringatan Kelengkapan Akun Karyawan</h4>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-300">
-                                {{ $completedCount }}/5 Syarat Selesai ({{ $percentComplete }}%)
+                                {{ $completedCount }}/4 Syarat Selesai ({{ $percentComplete }}%)
                             </span>
                         </div>
                         <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed max-w-2xl">
-                            Akses pembuatan formulir pengajuan (Cuti, CAR, & MPR) <strong>terkunci</strong> sampai seluruh 5 syarat kepegawaian di bawah ini diverifikasi dan dilengkapi.
+                            Akses pembuatan formulir pengajuan (Cuti, CAR, & MPR) <strong>terkunci</strong> sampai seluruh 4 syarat kepegawaian di bawah ini diverifikasi dan dilengkapi.
                         </p>
                     </div>
                 </div>
@@ -49,8 +48,8 @@
                 </div>
             </div>
 
-            {{-- 5 Checklist Items Grid Sesuai Urutan Baku --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
+            {{-- 4 Checklist Items Grid Sesuai Urutan Baku --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4">
                 {{-- 1. Verifikasi Email --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['email_verified'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
                     <div>
@@ -80,36 +79,7 @@
                     @endif
                 </div>
 
-                {{-- 2. Nomor Telepon / WA --}}
-                <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['phone_verified'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
-                    <div>
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-brands fa-whatsapp text-base {{ $accStatus['phone_verified'] ? 'text-emerald-600' : 'text-amber-600' }}"></i>
-                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">No. WhatsApp</span>
-                            </div>
-                            @if($accStatus['phone_verified'])
-                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            @else
-                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i>
-                            @endif
-                        </div>
-                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                            {{ $accStatus['phone_verified'] ? 'Nomor telah diverifikasi OTP' : 'Nomor WhatsApp belum terverifikasi' }}
-                        </div>
-                    </div>
-                    @if(!$accStatus['phone_verified'])
-                        <a href="{{ url('/profile?phone_required=1#phone_number') }}" class="w-full text-center py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[11px] font-bold transition-all shadow-xs">
-                            Belum Verifikasi
-                        </a>
-                    @else
-                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-xs"></i> Terverifikasi
-                        </span>
-                    @endif
-                </div>
-
-                {{-- 3. Biometrik Wajah --}}
+                {{-- 2. Biometrik Wajah --}}
                 <div class="p-3 rounded-2xl border transition-all flex flex-col justify-between {{ $accStatus['face_registered'] ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40' : 'bg-white/80 border-amber-200 dark:bg-slate-800/80 dark:border-amber-800/40' }}">
                     <div>
                         <div class="flex items-start justify-between mb-2">

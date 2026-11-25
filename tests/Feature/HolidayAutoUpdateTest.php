@@ -42,9 +42,7 @@ class HolidayAutoUpdateTest extends TestCase
         $this->adminUser = User::create([
             'name' => 'Super Administrator',
             'email' => 'admin@umbulan.co.id',
-            'phone_number' => '081234567890',
             'email_verified_at' => now(),
-            'phone_verified_at' => now(),
             'password' => bcrypt('Password123!'),
             'role_id' => $roleAdmin->id,
             'level' => 1,

@@ -8,16 +8,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AccountReadinessGuardTest extends TestCase
 {
-    public function test_incomplete_user_sees_banner_with_5_items_and_gets_blocked()
+    public function test_incomplete_user_sees_banner_with_4_items_and_gets_blocked()
     {
         $user = new User([
             'id' => 1,
             'name' => 'User Test',
             'email' => 'user@test.com',
-            'phone_number' => '081234567890',
         ]);
         $user->email_verified_at = now();
-        $user->phone_verified_at = now();
         $user->face_descriptor = null; // Biometrik belum
         $user->signature = null;       // TTD belum
         $user->schedule_type = 'reguler_5_hari';
@@ -25,7 +23,7 @@ class AccountReadinessGuardTest extends TestCase
         // 1. Cek evaluasi model
         $status = $user->getAccountCompletionStatus();
         $this->assertTrue($status['email_verified']);
-        $this->assertTrue($status['phone_verified']);
+        $this->assertFalse($status['face_registered']);
         $this->assertFalse($status['face_registered']);
         $this->assertFalse($status['signature_set']);
         $this->assertTrue($status['schedule_set']);
@@ -42,7 +40,7 @@ class AccountReadinessGuardTest extends TestCase
         });
 
         $this->assertTrue($response->isRedirect());
-        $this->assertEquals(session('error'), 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+        $this->assertEquals(session('error'), 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
     }
 
     public function test_complete_user_passes_middleware()
@@ -51,10 +49,8 @@ class AccountReadinessGuardTest extends TestCase
             'id' => 1,
             'name' => 'User Test',
             'email' => 'user@test.com',
-            'phone_number' => '081234567890',
         ]);
         $user->email_verified_at = now();
-        $user->phone_verified_at = now();
         $user->face_descriptor = [0.1, 0.2];
         $user->signature = 'signatures/dummy.png';
         $user->schedule_type = 'reguler_5_hari';
@@ -75,16 +71,14 @@ class AccountReadinessGuardTest extends TestCase
         $this->assertEquals('OK', $response->getContent());
     }
 
-    public function test_banner_renders_correct_5_card_order()
+    public function test_banner_renders_correct_4_card_order()
     {
         $user = new User([
             'id' => 1,
             'name' => 'User Test',
             'email' => 'user@test.com',
-            'phone_number' => '081234567890',
         ]);
         $user->email_verified_at = now();
-        $user->phone_verified_at = now();
         $user->face_descriptor = null;
         $user->signature = null;
         $user->schedule_type = 'reguler_5_hari';
@@ -100,24 +94,21 @@ class AccountReadinessGuardTest extends TestCase
         $html = \Illuminate\Support\Facades\Blade::render($bannerBlade);
 
         $this->assertStringContainsString('Peringatan Kelengkapan Akun Karyawan', $html);
-        $this->assertStringContainsString('3/5 Syarat Selesai (60%)', $html);
+        $this->assertStringContainsString('2/4 Syarat Selesai (50%)', $html);
 
         // Verifikasi urutan kemunculan teks kartu:
         $posEmail = strpos($html, 'Verifikasi Email');
-        $posPhone = strpos($html, 'No. WhatsApp');
         $posFace = strpos($html, 'Biometrik Wajah');
         $posSig = strpos($html, 'Tanda Tangan Digital');
         $posSchedule = strpos($html, 'Jadwal Kerja');
 
         $this->assertNotFalse($posEmail);
-        $this->assertNotFalse($posPhone);
         $this->assertNotFalse($posFace);
         $this->assertNotFalse($posSig);
         $this->assertNotFalse($posSchedule);
 
-        // Urutan baku: Email < Phone < Face < Sig < Schedule
-        $this->assertTrue($posEmail < $posPhone, 'Urutan: Email harus sebelum WhatsApp');
-        $this->assertTrue($posPhone < $posFace, 'Urutan: WhatsApp harus sebelum Biometrik Wajah');
+        // Urutan baku: Email < Face < Sig < Schedule
+        $this->assertTrue($posEmail < $posFace, 'Urutan: Email harus sebelum Biometrik Wajah');
         $this->assertTrue($posFace < $posSig, 'Urutan: Biometrik Wajah harus sebelum TTD');
         $this->assertTrue($posSig < $posSchedule, 'Urutan: TTD harus sebelum Jadwal Kerja');
     }

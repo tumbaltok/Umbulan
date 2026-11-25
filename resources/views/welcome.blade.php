@@ -127,17 +127,6 @@
             display: inline-flex !important;
         }
     </style>
-
-    {{-- Pembersihan Service Worker PWA agar browser tidak memunculkan prompt install APK --}}
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
-    </script>
 </head>
 <body class="font-sans text-slate-800 antialiased bg-white flex flex-col min-h-screen">
 

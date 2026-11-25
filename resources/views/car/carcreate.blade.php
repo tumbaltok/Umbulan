@@ -624,7 +624,7 @@
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>
-                        <span><strong>Persetujuan Bertingkat:</strong> Verifikasi persetujuan instan dikirim ke Atasan & Finance via WhatsApp Gateway.</span>
+                        <span><strong>Persetujuan Bertingkat:</strong> Verifikasi persetujuan instan dikirim ke Atasan & Finance melalui Push Notification Aplikasi.</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 text-xs mt-0.5 shrink-0"></i>

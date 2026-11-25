@@ -7,9 +7,8 @@ use App\Models\Car\PengajuanCar;
 use App\Models\Car\PengajuanCarDetail;
 use App\Models\User\Station;
 use App\Models\User\User;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +33,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         // Format nomor CAR: [No] / META / PAS / CAR / [Romawi] / [Tahun]
@@ -90,7 +89,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $request->validate([
@@ -177,16 +176,16 @@ class PengajuanCarController extends Controller
 
             DB::commit();
 
-            // Kirim notifikasi WhatsApp ke Atasan
+            // Kirim Push Notification ke Atasan
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
                     $approvers = $approvalService->getApproversForStage($user, 'car', 1);
 
                     foreach ($approvers as $approver) {
-                        SendWhatsAppNotification::sendNewSubmission('car', $carHeader, $approver, 1);
+                        SendPushNotification::sendNewSubmission('car', $carHeader, $approver, 1);
                     }
-                } catch (\Exception $waEx) {
-                    Log::error('Gagal mengirim notifikasi WA CAR baru: ' . $waEx->getMessage());
+                } catch (\Exception $notifEx) {
+                    Log::error('Gagal mengirim push notification CAR baru: ' . $notifEx->getMessage());
                 }
             }
 

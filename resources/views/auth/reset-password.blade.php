@@ -62,9 +62,6 @@
                 linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
         }
     </style>
-
-    {{-- Komponen Head PWA --}}
-    @pwaHead
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
@@ -366,9 +363,5 @@
             }
         });
     </script>
-
-    {{-- Pendaftaran Skrip PWA --}}
-    @laravelPwa
-    @pwaInstallButton
 </body>
 </html>

@@ -11,9 +11,8 @@ use App\Models\User\User;
 use App\Services\CalendarScheduleService;
 use App\Services\ScheduleService;
 use App\Traits\CutiHelperTrait;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -71,7 +70,7 @@ class PengajuanCutiController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $jenisCuti = JenisCuti::with('subCutis')->get();
@@ -155,13 +154,13 @@ class PengajuanCutiController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';
         $request->validate([
             'jenis_cuti_id' => 'required|exists:jenis_cutis,id',
-            'sub_cuti_id'   => 'nullable|exists:sub_cutis,id',
+            'sub_cuti_id'   => 'nullable|exists:jenis_cutis,id',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'alasan_cuti'   => 'nullable|string',
@@ -328,16 +327,16 @@ class PengajuanCutiController extends Controller
 
             DB::commit();
 
-            // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
+            // KIRIM PUSH NOTIFICATION KE ATASAN TAHAP 1
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
                     $approvers = $approvalService->getApproversForStage($user, 'cuti', 1);
 
                     foreach ($approvers as $approver) {
-                        SendWhatsAppNotification::sendNewSubmission('cuti', $pengajuan, $approver, 1);
+                        SendPushNotification::sendNewSubmission('cuti', $pengajuan, $approver, 1);
                     }
-                } catch (\Exception $waEx) {
-                    Log::error('Gagal mengirim notifikasi WA cuti baru: ' . $waEx->getMessage());
+                } catch (\Exception $notifEx) {
+                    Log::error('Gagal mengirim push notification cuti baru: ' . $notifEx->getMessage());
                 }
             }
 

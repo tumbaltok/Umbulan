@@ -40,7 +40,7 @@ class AccountController extends Controller
             ->orderBy('kode_stasiun', 'asc')
             ->get();
 
-        // Data administrator dengan kontak aktif
+        // Data administrator aktif untuk kontak email penyesuaian jadwal
         $adminUsers = User::where(function ($q) {
                 $q->where('role_id', 1)
                   ->orWhere('level', 1)
@@ -51,8 +51,7 @@ class AccountController extends Controller
                       $r->where('roles.id', 1)->orWhere('roles.role_name', 'LIKE', '%ADMIN%');
                   });
             })
-            ->whereNotNull('phone_number')
-            ->where('phone_number', '!=', '')
+            ->whereNotNull('email')
             ->with(['role', 'roles', 'station'])
             ->orderBy('name', 'asc')
             ->get();
@@ -117,7 +116,6 @@ class AccountController extends Controller
             'roles.*' => 'exists:roles,id',
             'assigned_stations' => 'nullable|array',
             'assigned_stations.*' => 'exists:stations,id',
-            'phone_number' => 'nullable|string|max:20',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'current_password' => 'nullable|required_with:new_password',
@@ -141,14 +139,6 @@ class AccountController extends Controller
                 if ($request->email !== $user->email) {
                     $updateData['email'] = $request->email;
                     $updateData['email_verified_at'] = null;
-                }
-            }
-
-            // CEK PERUBAHAN NO TELEPON
-            if ($request->has('phone_number')) {
-                if ($request->phone_number !== $user->phone_number) {
-                    $updateData['phone_number'] = $request->phone_number;
-                    $updateData['phone_verified_at'] = null;
                 }
             }
 

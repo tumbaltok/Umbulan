@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\Mpr\PengajuanMprDetail;
 use App\Models\User\User;
-use App\Jobs\SendWhatsAppNotification;
+use App\Jobs\SendPushNotification;
 use App\Services\ApprovalRoutingService;
-use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +33,7 @@ class PengajuanMprController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $now = Carbon::now();
@@ -101,7 +100,7 @@ class PengajuanMprController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, nomor WhatsApp, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $request->validate([
@@ -186,16 +185,16 @@ class PengajuanMprController extends Controller
 
             DB::commit();
 
-            // KIRIM NOTIFIKASI INSTAN WHATSAPP KE ATASAN TAHAP 1
+            // KIRIM PUSH NOTIFICATION KE ATASAN TAHAP 1
             if ($statusTahap1 === 'pending' && !empty($approver1RoleId)) {
                 try {
                     $approvers = $approvalService->getApproversForStage($user, 'mpr', 1);
 
                     foreach ($approvers as $approver) {
-                        SendWhatsAppNotification::sendNewSubmission('mpr', $mpr, $approver, 1);
+                        SendPushNotification::sendNewSubmission('mpr', $mpr, $approver, 1);
                     }
-                } catch (\Exception $waEx) {
-                    Log::error('Gagal mengirim notifikasi WA MPR baru: ' . $waEx->getMessage());
+                } catch (\Exception $notifEx) {
+                    Log::error('Gagal mengirim push notification MPR baru: ' . $notifEx->getMessage());
                 }
             }
 

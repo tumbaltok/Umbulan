@@ -38,24 +38,24 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
     }
 
     /**
-     * Test 0: Halaman register menampilkan input nomor WhatsApp dan opsi jadwal kerja.
+     * Test 0: Halaman register tidak menampilkan input nomor telepon/WhatsApp dan menampilkan opsi jadwal kerja.
      */
-    public function test_register_page_displays_phone_number_and_schedule_fields(): void
+    public function test_register_page_displays_schedule_fields_without_phone_number(): void
     {
         $response = $this->get(route('register'));
 
         $response->assertStatus(200);
-        $response->assertSee('phone_number');
+        $response->assertDontSee('name="phone_number"', false);
+        $response->assertDontSee('Nomor WhatsApp');
         $response->assertSee('schedule_type');
         $response->assertSee('current_shift_choice');
-        $response->assertSee('Nomor WhatsApp (Aktif)');
         $response->assertSee('Pilih Jenis Jadwal Kerja');
     }
 
     /**
-     * Test 1: Registrasi mewajibkan nomor WhatsApp dan pilihan jadwal kerja.
+     * Test 1: Registrasi mewajibkan pilihan jadwal kerja dan tidak membutuhkan nomor telepon.
      */
-    public function test_registration_requires_phone_number_and_schedule_type(): void
+    public function test_registration_requires_schedule_type(): void
     {
         $response = $this->post(route('register.post'), [
             'name' => 'Karyawan Baru',
@@ -65,18 +65,18 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'roles' => [$this->role->id],
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
-            // phone_number and schedule_type omitted
+            // schedule_type omitted
         ]);
 
-        $response->assertSessionHasErrors(['phone_number', 'schedule_type']);
+        $response->assertSessionHasErrors(['schedule_type']);
     }
 
     /**
-     * Test 2: Validasi format dan keunikan nomor telepon WhatsApp.
+     * Test 2: Validasi keunikan alamat email saat registrasi.
      */
-    public function test_registration_validates_phone_number_format_and_uniqueness(): void
+    public function test_registration_validates_email_uniqueness(): void
     {
-        // Setup user dengan nomor WA yang sudah terdaftar
+        // Setup user dengan email yang sudah terdaftar
         User::create([
             'name' => 'User Lama',
             'email' => 'lama@umbulan.co.id',
@@ -84,39 +84,36 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'role_id' => $this->role->id,
             'station_id' => $this->station->id,
             'gender_id' => $this->gender->id,
-            'phone_number' => '081234567890',
-            'schedule_type' => 'reguler_5_hari',
+            'schedule_type' => 'normal',
         ]);
 
-        // Coba mendaftar dengan nomor telepon yang sama (duplikat)
+        // Coba mendaftar dengan email yang sama (duplikat)
         $responseDuplicate = $this->post(route('register.post'), [
             'name' => 'User Kembar',
-            'email' => 'kembar@umbulan.co.id',
+            'email' => 'lama@umbulan.co.id',
             'gender_id' => $this->gender->id,
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
-            'phone_number' => '081234567890',
-            'schedule_type' => 'reguler_5_hari',
+            'schedule_type' => 'normal',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
         ]);
 
-        $responseDuplicate->assertSessionHasErrors(['phone_number']);
+        $responseDuplicate->assertSessionHasErrors(['email']);
 
-        // Coba mendaftar dengan nomor telepon bukan angka / terlalu pendek (<10 digit)
+        // Coba mendaftar dengan format email tidak valid
         $responseInvalid = $this->post(route('register.post'), [
             'name' => 'User Salah',
-            'email' => 'salah@umbulan.co.id',
+            'email' => 'bukan-email',
             'gender_id' => $this->gender->id,
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
-            'phone_number' => '0812abc',
-            'schedule_type' => 'reguler_5_hari',
+            'schedule_type' => 'normal',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
         ]);
 
-        $responseInvalid->assertSessionHasErrors(['phone_number']);
+        $responseInvalid->assertSessionHasErrors(['email']);
     }
 
     /**
@@ -130,7 +127,6 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'gender_id' => $this->gender->id,
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
-            'phone_number' => '081298765432',
             'schedule_type' => 'normal',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -140,7 +136,6 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
 
         $user = User::where('email', 'budi.reguler@umbulan.co.id')->first();
         $this->assertNotNull($user);
-        $this->assertEquals('081298765432', $user->phone_number);
         $this->assertEquals('normal', $user->schedule_type);
         $this->assertEquals(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], $user->normal_work_days);
         $this->assertEquals('07:00:00', $user->normal_check_in);
@@ -159,7 +154,6 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'gender_id' => $this->gender->id,
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
-            'phone_number' => '085712345678',
             'schedule_type' => 'reguler_6_hari',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -180,7 +174,6 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
             'gender_id' => $this->gender->id,
             'station_id' => $this->station->id,
             'roles' => [$this->role->id],
-            'phone_number' => '087812345678',
             'schedule_type' => 'roster',
             'current_shift_choice' => 'pagi',
             'password' => 'Password123!',
@@ -191,7 +184,6 @@ class UserRegistrationScheduleAndPhoneTest extends TestCase
 
         $user = User::where('email', 'agus.roster@umbulan.co.id')->first();
         $this->assertNotNull($user);
-        $this->assertEquals('087812345678', $user->phone_number);
         $this->assertEquals('roster', $user->schedule_type);
         $this->assertNull($user->normal_work_days);
         $this->assertNull($user->normal_check_in);

@@ -21,8 +21,8 @@ Schedule::command('saldo:reset-tahunan')
     ->withoutOverlapping(60)
     ->runInBackground();
 
-// [SEC-09 FIX] Pengingat WhatsApp berkala (setiap 10 menit) untuk pengajuan pending dengan proteksi jam kerja
-Schedule::command('pengajuan:followup-wa')
+// Pengingat berkala (setiap 10 menit) notifikasi in-app & push notification pengajuan pending dengan proteksi jam kerja
+Schedule::command('pengajuan:followup-notif')
     ->everyTenMinutes()
     ->withoutOverlapping(15)
     ->runInBackground()

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\PasswordResetOtpMail;
 use App\Models\User\User;
-use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,13 +26,13 @@ class ForgotPasswordController extends Controller
         return view('auth.forgot-password');
     }
 
-    // Mencari akun pengguna berdasarkan email, nomor WhatsApp, atau NIP
+    // Mencari akun pengguna berdasarkan email atau NIP
     public function identify(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
             'identity' => 'required|string|max:255',
         ], [
-            'identity.required' => 'Silakan masukkan Email atau Nomor WhatsApp terdaftar Anda.',
+            'identity.required' => 'Silakan masukkan Email atau NIP terdaftar Anda.',
         ]);
 
         $identity = trim($request->identity);
@@ -53,19 +52,11 @@ class ForgotPasswordController extends Controller
                     'icon' => 'fa-solid fa-envelope',
                     'available' => true,
                 ],
-                [
-                    'id' => 'whatsapp',
-                    'name' => 'WhatsApp Gateway',
-                    'description' => 'Kirim kode verifikasi instan ke nomor WhatsApp Anda.',
-                    'target_masked' => !$isEmail ? $this->maskPhone($identity) : '******',
-                    'icon' => 'fa-brands fa-whatsapp',
-                    'available' => true,
-                ],
             ];
 
             $responseData = [
                 'status' => 'success',
-                'message' => 'Identifikasi akun selesai. Silakan tentukan saluran pengiriman kode verifikasi.',
+                'message' => 'Identifikasi akun selesai. Kode verifikasi OTP akan dikirimkan melalui Email Kepegawaian.',
                 'user' => [
                     'name' => 'Akun Pengguna',
                     'nip' => 'Terlindungi',
@@ -81,10 +72,8 @@ class ForgotPasswordController extends Controller
             return back()->with('identification', $responseData);
         }
 
-        // Siapkan data saluran pengiriman (channel) yang valid tanpa mengekspos identifier sensitif
+        // Saluran pengiriman OTP resmi (Email Kepegawaian)
         $channels = [];
-
-        // 1. Channel Email (Selalu ada karena email wajib pada sistem)
         if (!empty($user->email)) {
             $channels[] = [
                 'id' => 'email',
@@ -96,26 +85,13 @@ class ForgotPasswordController extends Controller
             ];
         }
 
-        // 2. Channel WhatsApp (Jika nomor telepon sudah terdaftar di profil user)
-        $hasPhone = !empty($user->phone_number);
-        $channels[] = [
-            'id' => 'whatsapp',
-            'name' => 'WhatsApp Gateway',
-            'description' => $hasPhone 
-                ? 'Kirim kode verifikasi instan ke nomor WhatsApp Anda.' 
-                : 'Nomor WhatsApp belum terdaftar pada akun ini.',
-            'target_masked' => $hasPhone ? $this->maskPhone($user->phone_number) : null,
-            'icon' => 'fa-brands fa-whatsapp',
-            'available' => $hasPhone,
-        ];
-
         // [SEC-02 FIX] Simpan identifier pengguna hanya di session server-side
         session(['reset_candidate_id' => $user->id]);
 
         // Hapus data sensitif (id, name, nip) dari payload response JSON
         $responseData = [
             'status' => 'success',
-            'message' => 'Identifikasi akun selesai. Silakan tentukan saluran pengiriman kode verifikasi.',
+            'message' => 'Identifikasi akun selesai. Kode verifikasi OTP akan dikirimkan melalui Email Kepegawaian.',
             'user' => [
                 'name' => 'Akun Pengguna',
                 'nip' => 'Terlindungi',
@@ -131,16 +107,13 @@ class ForgotPasswordController extends Controller
         return back()->with('identification', $responseData);
     }
 
-    // Menghasilkan dan mengirimkan kode OTP 6 digit ke saluran terpilih (Email atau WhatsApp)
-    public function sendOtp(Request $request, WhatsAppService $whatsAppService): JsonResponse|RedirectResponse
+    // Menghasilkan dan mengirimkan kode OTP 6 digit melalui Email
+    public function sendOtp(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
             'user_id' => 'nullable',
             'identity' => 'nullable|string|max:255',
-            'channel' => 'required|string|in:email,whatsapp',
-        ], [
-            'channel.required' => 'Silakan pilih saluran pengiriman kode OTP (Email atau WhatsApp).',
-            'channel.in' => 'Saluran pengiriman OTP tidak valid.',
+            'channel' => 'nullable|string|in:email',
         ]);
 
         $user = null;
@@ -166,16 +139,7 @@ class ForgotPasswordController extends Controller
             return redirect()->route('forgot.verify_otp_view')->with('success', 'Jika akun terdaftar pada sistem kami, kode verifikasi OTP telah dikirimkan ke saluran yang dipilih.');
         }
 
-        $channel = $request->channel;
-
-        // Validasi ketersediaan nomor telepon jika memilih WhatsApp
-        if ($channel === 'whatsapp' && empty($user->phone_number)) {
-            $msg = 'Nomor WhatsApp belum terdaftar pada akun Anda. Silakan pilih saluran Email.';
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
-            }
-            return back()->withErrors(['channel' => $msg]);
-        }
+        $channel = 'email';
 
         // Proteksi batas permintaan (Rate Limiting) kirim OTP
         $ipThrottleKey = 'send-reset-otp-ip:' . $request->ip();
@@ -205,40 +169,25 @@ class ForgotPasswordController extends Controller
         $otp = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         $expiryMinutes = 5;
 
-        $targetMasked = '';
+        $targetMasked = $this->maskEmail($user->email);
         $sendSuccess = false;
         $sendErrorMessage = '';
 
-        if ($channel === 'email') {
-            $targetMasked = $this->maskEmail($user->email);
+        try {
+            Mail::to($user->email)->send(new PasswordResetOtpMail($user, $otp, $expiryMinutes));
+            $sendSuccess = true;
+            Log::info("[ForgotPassword] Email OTP berhasil dikirim ke {$user->email} untuk User ID {$user->id}");
+        } catch (\Exception $e) {
+            Log::error("[ForgotPassword] Gagal mengirim email OTP ke {$user->email}: " . $e->getMessage());
+            // Fallback pengiriman pesan teks jika rendering template email bermasalah
             try {
-                Mail::to($user->email)->send(new PasswordResetOtpMail($user, $otp, $expiryMinutes));
+                Mail::raw("Kode OTP Pemulihan Kata Sandi Akun Anda: {$otp}. Berlaku selama {$expiryMinutes} menit.", function ($msg) use ($user) {
+                    $msg->to($user->email)->subject('Kode OTP Pemulihan Kata Sandi - PT META Adhya Tirta Umbulan');
+                });
                 $sendSuccess = true;
-                Log::info("[ForgotPassword] Email OTP berhasil dikirim ke {$user->email} untuk User ID {$user->id}");
-            } catch (\Exception $e) {
-                Log::error("[ForgotPassword] Gagal mengirim email OTP ke {$user->email}: " . $e->getMessage());
-                // Fallback pengiriman pesan teks jika rendering template email bermasalah
-                try {
-                    Mail::raw("Kode OTP Pemulihan Kata Sandi Akun Anda: {$otp}. Berlaku selama {$expiryMinutes} menit.", function ($msg) use ($user) {
-                        $msg->to($user->email)->subject('Kode OTP Pemulihan Kata Sandi - PT META Adhya Tirta Umbulan');
-                    });
-                    $sendSuccess = true;
-                } catch (\Exception $ex2) {
-                    $sendSuccess = false;
-                    $sendErrorMessage = 'Layanan pengiriman email sedang tidak dapat dijangkau. Silakan hubungi IT Helpdesk.';
-                }
-            }
-        } elseif ($channel === 'whatsapp') {
-            $targetMasked = $this->maskPhone($user->phone_number);
-            $result = $whatsAppService->sendPasswordResetOtp($user, $otp, $expiryMinutes);
-
-            if ($result['success'] ?? false) {
-                $sendSuccess = true;
-                Log::info("[ForgotPassword] WhatsApp OTP berhasil dikirim ke {$user->phone_number} untuk User ID {$user->id}");
-            } else {
+            } catch (\Exception $ex2) {
                 $sendSuccess = false;
-                $sendErrorMessage = $result['message'] ?? 'Gateway WhatsApp sedang tidak aktif. Anda dapat memilih pengiriman melalui Email.';
-                Log::warning("[ForgotPassword] Gagal kirim WhatsApp OTP: " . $sendErrorMessage);
+                $sendErrorMessage = 'Layanan pengiriman email sedang tidak dapat dijangkau. Silakan hubungi IT Helpdesk.';
             }
         }
 
@@ -410,7 +359,7 @@ class ForgotPasswordController extends Controller
     }
 
     // Mengirimkan kembali kode OTP pemulihan kata sandi
-    public function resendOtp(Request $request, WhatsAppService $whatsAppService): JsonResponse|RedirectResponse
+    public function resendOtp(Request $request): JsonResponse|RedirectResponse
     {
         $userId = session('reset_user_id');
         if (!$userId) {
@@ -422,10 +371,8 @@ class ForgotPasswordController extends Controller
             return redirect()->route('forgot');
         }
 
-        $channel = $request->input('channel', session('reset_channel', 'email'));
-
-        $request->merge(['user_id' => $user->id, 'channel' => $channel]);
-        return $this->sendOtp($request, $whatsAppService);
+        $request->merge(['user_id' => $user->id, 'channel' => 'email']);
+        return $this->sendOtp($request);
     }
 
     // Menampilkan formulir input kata sandi baru
@@ -517,7 +464,7 @@ class ForgotPasswordController extends Controller
     // HELPER UTILITIES
     // ==========================================================
 
-    // Mencari akun pengguna berdasarkan email, nomor WhatsApp, atau NIP
+    // Mencari akun pengguna berdasarkan email atau NIP
     protected function findUserByIdentity(string $identity): ?User
     {
         // Cari langsung jika format email
@@ -525,38 +472,8 @@ class ForgotPasswordController extends Controller
             return User::where('email', strtolower($identity))->first();
         }
 
-        // Normalisasi format nomor telepon
-        $clean = preg_replace('/[^0-9]/', '', $identity);
-
-        if (!empty($clean)) {
-            $variations = [$clean, $identity];
-
-            if (str_starts_with($clean, '62')) {
-                $variations[] = '0' . substr($clean, 2);
-                $variations[] = '+' . $clean;
-            } elseif (str_starts_with($clean, '0')) {
-                $variations[] = '62' . substr($clean, 1);
-                $variations[] = '+62' . substr($clean, 1);
-            }
-
-            $user = User::where(function ($query) use ($variations) {
-                foreach ($variations as $var) {
-                    $query->orWhere('phone_number', $var);
-                }
-            })->first();
-
-            if ($user) {
-                return $user;
-            }
-
-            // Fallback pencarian melalui NIP
-            $userByNip = User::where('nip', $identity)->orWhere('nip', $clean)->first();
-            if ($userByNip) {
-                return $userByNip;
-            }
-        }
-
-        return null;
+        // Pencarian melalui NIP
+        return User::where('nip', $identity)->first();
     }
 
     // Menyamarkan alamat email untuk privasi (contoh: y***@meta.com)
@@ -578,22 +495,6 @@ class ForgotPasswordController extends Controller
         }
 
         return $maskedName . '@' . $domain;
-    }
-
-    // Menyamarkan nomor telepon untuk privasi (contoh: 0812****2529)
-    protected function maskPhone(string $phone): string
-    {
-        $clean = preg_replace('/[^0-9]/', '', $phone);
-        $len = strlen($clean);
-
-        if ($len <= 7) {
-            return substr($clean, 0, 3) . '****';
-        }
-
-        $start = substr($clean, 0, 4);
-        $end = substr($clean, -4);
-
-        return $start . '****' . $end;
     }
 
     // Mengambil inisial nama untuk avatar badge
