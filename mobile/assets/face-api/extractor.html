@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biometric Extractor</title>
+  <script src="/face-api/face-api.min.js"></script>
+</head>
+<body>
+  <script>
+    let modelsLoaded = false;
+
+    async function ensureModelsLoaded() {
+      if (modelsLoaded) return true;
+      const modelUrl = '/models/face-api';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
+        faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
+        faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+      ]);
+      modelsLoaded = true;
+      return true;
+    }
+
+    async function extractDescriptor(requestId, dataUrl) {
+      try {
+        await ensureModelsLoaded();
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('Gagal memuat citra wajah.'));
+        });
+
+        const detection = await faceapi
+          .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        if (!detection || !detection.descriptor) {
+          window.FaceBridge.postMessage(JSON.stringify({
+            requestId: requestId,
+            success: false,
+            message: 'Wajah tidak terdeteksi jelas pada frame. Pastikan pencahayaan cukup.'
+          }));
+          return;
+        }
+
+        window.FaceBridge.postMessage(JSON.stringify({
+          requestId: requestId,
+          success: true,
+          descriptor: Array.from(detection.descriptor)
+        }));
+      } catch (err) {
+        window.FaceBridge.postMessage(JSON.stringify({
+          requestId: requestId,
+          success: false,
+          message: err && err.message ? err.message : 'Gagal mengekstrak vektor wajah.'
+        }));
+      }
+    }
+
+    ensureModelsLoaded()
+      .then(() => {
+        if (window.FaceBridge) {
+          window.FaceBridge.postMessage(JSON.stringify({ ready: true }));
+        }
+      })
+      .catch((err) => {
+        if (window.FaceBridge) {
+          window.FaceBridge.postMessage(JSON.stringify({
+            ready: false,
+            message: err && err.message ? err.message : 'Gagal memuat model biometrik.'
+          }));
+        }
+      });
+  </script>
+</body>
+</html>
