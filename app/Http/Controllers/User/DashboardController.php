@@ -15,6 +15,7 @@ use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -40,7 +41,9 @@ class DashboardController extends Controller
         $today = $now->format('Y-m-d');
 
         // Data seluruh titik stasiun & Rumah Meter untuk geofencing
-        $daftarStasiun = Station::select('id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters')->get();
+        $daftarStasiun = Cache::remember('daftar_stasiun_geofence', 3600, function () {
+            return Station::select('id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters')->get();
+        });
 
         // Parameter navigasi kalender
         $selectedMonth = (int) $request->get('month', $now->month);
@@ -52,10 +55,7 @@ class DashboardController extends Controller
 
         // Data presensi hari ini
         $todayAttendance = Kehadiran::where('user_id', $user->id)
-            ->where(function ($q) use ($today) {
-                $q->whereDate('created_at', $today)
-                    ->orWhere('date', $today);
-            })
+            ->where('date', $today)
             ->first();
 
         // Cek Peringatan Terlambat & Waktunya Pulang

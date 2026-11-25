@@ -5,10 +5,17 @@ namespace App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Station extends Model
 {
     protected $table = 'stations';
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget('daftar_stasiun_geofence'));
+        static::deleted(fn () => Cache::forget('daftar_stasiun_geofence'));
+    }
 
     protected $fillable = [
         'name',

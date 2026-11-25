@@ -292,10 +292,7 @@ class KehadiranController extends Controller
             ) {
                 // Periksa apakah karyawan sudah melakukan absen masuk hari ini dengan lockForUpdate
                 $attendance = Kehadiran::where('user_id', $user->id)
-                    ->where(function ($q) use ($today) {
-                        $q->whereDate('date', $today)
-                            ->orWhereDate('created_at', $today);
-                    })
+                    ->where('date', $today)
                     ->lockForUpdate()
                     ->first();
 
@@ -538,10 +535,7 @@ class KehadiranController extends Controller
 
             // 1. Periksa jadwal dan keberadaan catatan absen masuk hari ini terlebih dahulu untuk validasi shift
             $preAttendance = Kehadiran::where('user_id', $user->id)
-                ->where(function ($q) use ($today) {
-                    $q->whereDate('date', $today)
-                        ->orWhereDate('created_at', $today);
-                })
+                ->where('date', $today)
                 ->first();
 
             if (!$preAttendance || $preAttendance->check_in === null) {
@@ -625,10 +619,7 @@ class KehadiranController extends Controller
                 $isEarly, $isFaceVerified, $reason, $evidencePath
             ) {
                 $attendance = Kehadiran::where('user_id', $user->id)
-                    ->where(function ($q) use ($today) {
-                        $q->whereDate('date', $today)
-                            ->orWhereDate('created_at', $today);
-                    })
+                    ->where('date', $today)
                     ->lockForUpdate()
                     ->first();
 

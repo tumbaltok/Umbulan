@@ -1839,7 +1839,7 @@
         return Array.isArray(descriptor) && descriptor.length === 128;
     }
 
-    const FACE_API_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+    const FACE_API_MODEL_URL = '/models/face-api';
 
     function checkLateOrEarlyStatus(type) {
         const now = new Date();
