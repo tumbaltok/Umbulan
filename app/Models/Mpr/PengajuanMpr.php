@@ -3,6 +3,7 @@
 namespace App\Models\Mpr;
 
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,7 +11,10 @@ class PengajuanMpr extends Model
 {
     use HasFactory;
 
+    protected $table = 'procurements';
+
     protected $fillable = [
+        'tipe',
         'user_id',
         'nomor_mpr',
         'priority',
@@ -20,6 +24,7 @@ class PengajuanMpr extends Model
         'tanggal_pengajuan',
         'keperluan_urgensi',
         'dokumen_pendukung',
+        'total_approval_levels',
         'status_tahap_1',
         'approver_tahap_1_id',
         'status_tahap_2',
@@ -34,6 +39,17 @@ class PengajuanMpr extends Model
         'tanggal_pengajuan' => 'date',
         'latest_mpr_date'   => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('is_mpr', function (Builder $builder) {
+            $builder->where('tipe', 'MPR');
+        });
+
+        static::creating(function ($model) {
+            $model->tipe = 'MPR';
+        });
+    }
 
     public function user()
     {
@@ -50,18 +66,8 @@ class PengajuanMpr extends Model
         return $this->belongsTo(User::class, 'approver_tahap_2_id');
     }
 
-    public function supervisor()
-    {
-        return $this->belongsTo(User::class, 'approver_tahap_1_id');
-    }
-
-    public function manager()
-    {
-        return $this->belongsTo(User::class, 'approver_tahap_2_id');
-    }
-
     public function items()
     {
-        return $this->hasMany(PengajuanMprDetail::class, 'pengajuan_mpr_id');
+        return $this->hasMany(PengajuanMprDetail::class, 'procurement_id');
     }
 }

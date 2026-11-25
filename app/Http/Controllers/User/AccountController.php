@@ -27,7 +27,7 @@ class AccountController extends Controller
             ->get();
 
         // Data jenis kelamin (gender)
-        $daftarGender = Gender::orderBy('id', 'asc')->get();
+        $daftarGender = Gender::all();
 
         // Data peran/jabatan non-admin
         $daftarRole = Role::where('role_name', 'NOT LIKE', '%admin%')

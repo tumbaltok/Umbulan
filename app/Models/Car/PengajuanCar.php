@@ -3,6 +3,7 @@
 namespace App\Models\Car;
 
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,10 @@ class PengajuanCar extends Model
 {
     use HasFactory;
 
+    protected $table = 'procurements';
+
     protected $fillable = [
+        'tipe',
         'user_id',
         'nomor_car',
         'tanggal_pengajuan',
@@ -34,6 +38,17 @@ class PengajuanCar extends Model
         'tanggal_pengajuan' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('is_car', function (Builder $builder) {
+            $builder->where('tipe', 'CAR');
+        });
+
+        static::creating(function ($model) {
+            $model->tipe = 'CAR';
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -51,6 +66,6 @@ class PengajuanCar extends Model
 
     public function details(): HasMany
     {
-        return $this->hasMany(PengajuanCarDetail::class, 'pengajuan_car_id');
+        return $this->hasMany(PengajuanCarDetail::class, 'procurement_id');
     }
 }

@@ -26,12 +26,10 @@ class ResetSaldoHaidBulanan extends Command
 
         $jenisCutiId = $jenisCutiImpi ? $jenisCutiImpi->id : 1;
 
-        // Filter seluruh karyawan perempuan: gender_id = 2 atau nama gender Wanita/Perempuan
+        // Filter seluruh karyawan perempuan: gender = Perempuan atau gender_id = 2
         $karyawanPerempuan = User::where(function ($q) {
-            $q->where('gender_id', 2)
-                ->orWhereHas('gender', function ($g) {
-                    $g->whereIn('name', ['Wanita', 'Perempuan', 'wanita', 'perempuan', 'Female', 'female']);
-                });
+            $q->where('gender', 'Perempuan')
+                ->orWhere('gender_id', 2);
         })->get();
 
         $count = 0;

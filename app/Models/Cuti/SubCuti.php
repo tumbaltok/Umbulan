@@ -11,11 +11,11 @@ class SubCuti extends Model
 {
     use HasFactory;
 
-    protected $table = 'sub_cutis';
+    protected $table = 'jenis_cutis';
 
     protected $fillable = [
-        'jenis_cuti_id',
-        'nama_sub_cuti',
+        'parent_id',
+        'name_cuti',
         'durasi_default',
         'keterangan_opsional',
         'apakah_wajib_dokumen',
@@ -25,10 +25,35 @@ class SubCuti extends Model
         'apakah_wajib_dokumen' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('is_sub', fn ($q) => $q->whereNotNull('parent_id'));
+    }
+
+    public function getNamaSubCutiAttribute(): ?string
+    {
+        return $this->attributes['name_cuti'] ?? null;
+    }
+
+    public function setNamaSubCutiAttribute($value): void
+    {
+        $this->attributes['name_cuti'] = $value;
+    }
+
+    public function getJenisCutiIdAttribute(): ?int
+    {
+        return $this->attributes['parent_id'] ?? null;
+    }
+
+    public function setJenisCutiIdAttribute($value): void
+    {
+        $this->attributes['parent_id'] = $value;
+    }
+
     // Relasi balik: Satu sub-cuti dimiliki oleh satu Jenis Cuti utama
     public function jenisCuti(): BelongsTo
     {
-        return $this->belongsTo(JenisCuti::class, 'jenis_cuti_id');
+        return $this->belongsTo(JenisCuti::class, 'parent_id');
     }
 
     // Relasi: Satu Sub Cuti memiliki banyak pengajuan cuti

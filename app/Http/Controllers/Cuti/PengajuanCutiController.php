@@ -208,9 +208,9 @@ class PengajuanCutiController extends Controller
             if ($subDb) {
                 $namaSub = strtolower($subDb->nama_sub_cuti);
 
-                // [L-04 FIX] Validasi Gender: Cuti Haid & Melahirkan hanya untuk Karyawan Perempuan (gender_id = 2)
+                // [L-04 FIX] Validasi Gender: Cuti Haid & Melahirkan hanya untuk Karyawan Perempuan
                 if (str_contains($namaSub, 'haid') || str_contains($namaSub, 'lahir')) {
-                    if ((int)$user->gender_id !== 2) {
+                    if (!$user->isPerempuan()) {
                         return back()->withErrors(['error' => 'Pengajuan ' . $subDb->nama_sub_cuti . ' hanya diperuntukkan bagi karyawan perempuan.'])->withInput();
                     }
                 }

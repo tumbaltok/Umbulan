@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role_id',
         'level',
+        'gender',
         'gender_id',
         'station_id',
         'atasan_langsung_id',
@@ -72,15 +73,15 @@ class User extends Authenticatable implements MustVerifyEmail
             $semuaJenisCuti = JenisCuti::all();
 
             foreach ($semuaJenisCuti as $cuti) {
-                // Proteksi Cuti Melahirkan (id = 3) -> Hanya untuk Gender Wanita (id = 2)
-                if ($cuti->id == 3 && $user->gender_id != 2) {
+                // Proteksi Cuti Melahirkan (id = 3) -> Hanya untuk Gender Wanita
+                if ($cuti->id == 3 && !$user->isPerempuan()) {
                     continue;
                 }
 
                 $saldoAwal = $cuti->kuota_default ?? 0;
 
-                // Jika Ijin Meninggalkan Pekerjaan (id = 1) dan Gender Wanita (id = 2), beri kuota 2 untuk Haid
-                if ($cuti->id == 1 && $user->gender_id == 2) {
+                // Jika Ijin Meninggalkan Pekerjaan (id = 1) dan Gender Wanita, beri kuota 2 untuk Haid
+                if ($cuti->id == 1 && $user->isPerempuan()) {
                     $saldoAwal = 2;
                 }
 
@@ -354,16 +355,33 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Station::class, 'station_id', 'id');
     }
 
-    // Relasi ke jenis kelamin
-    public function gender(): BelongsTo
+    // Accessor / Mutator Jenis Kelamin
+    public function getGenderAttribute($value): string
     {
-        return $this->belongsTo(Gender::class, 'gender_id', 'id');
+        if (!empty($value)) {
+            return $value;
+        }
+        return (($this->attributes['gender_id'] ?? null) == 2) ? 'Perempuan' : 'Laki-laki';
+    }
+
+    public function getGenderIdAttribute(): int
+    {
+        $gender = $this->attributes['gender'] ?? null;
+        if ($gender) {
+            return in_array(strtolower($gender), ['perempuan', 'wanita', 'female']) ? 2 : 1;
+        }
+        return (($this->attributes['gender_id'] ?? null) == 2) ? 2 : 1;
+    }
+
+    public function setGenderIdAttribute($value): void
+    {
+        $this->attributes['gender'] = ($value == 2 || in_array(strtolower((string)$value), ['perempuan', 'wanita', 'female'])) ? 'Perempuan' : 'Laki-laki';
     }
 
     // Cek apakah user adalah karyawan perempuan / wanita
     public function isPerempuan(): bool
     {
-        $genderName = strtolower($this->gender?->name ?? '');
+        $genderName = strtolower($this->gender ?? '');
         return $this->gender_id === 2 || in_array($genderName, ['wanita', 'perempuan', 'female', 'p']);
     }
 

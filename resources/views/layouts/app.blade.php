@@ -1649,7 +1649,7 @@
                         <div class="min-w-0 flex-1 space-y-0.5">
                             <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
                             <p class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
-                                {{ Auth::user()->gender->name_gender ?? (Auth::user()->gender_id == 2 ? 'Perempuan' : 'Laki-Laki') }}
+                                {{ Auth::user()->gender ?? (Auth::user()->gender_id == 2 ? 'Perempuan' : 'Laki-Laki') }}
                             </p>
                         </div>
                     </div>

@@ -16,9 +16,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->integer('level')->default(3);
-            $table->foreignId('gender_id')->nullable()->constrained('genders');
+            $table->enum('gender', ['Laki-laki', 'Perempuan'])->default('Laki-laki');
+            $table->unsignedBigInteger('gender_id')->nullable();
             $table->foreignId('station_id')->constrained('stations');
-            $table->enum('schedule_type', ['normal', 'roster'])->nullable()->default('normal');
+            $table->string('schedule_type', 50)->nullable()->default('normal');
             $table->json('normal_work_days')->nullable();
             $table->time('normal_check_in')->nullable();
             $table->time('normal_check_out')->nullable();

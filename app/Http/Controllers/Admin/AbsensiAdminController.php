@@ -71,7 +71,7 @@ class AbsensiAdminController extends Controller
         // 2. Query Data Kehadiran dengan Eager Loading
         $query = Kehadiran::with([
             'user' => function ($u) {
-                $u->with(['roles', 'station', 'gender']);
+                $u->with(['roles', 'station']);
             },
         ])->whereBetween('date', [$startDate, $endDate]);
 
@@ -292,7 +292,7 @@ class AbsensiAdminController extends Controller
 
         $query = Kehadiran::with([
             'user' => function ($u) {
-                $u->with(['roles', 'station', 'gender']);
+                $u->with(['roles', 'station']);
             },
         ])->whereBetween('date', [$startDate, $endDate]);
 

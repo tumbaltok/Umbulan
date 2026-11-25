@@ -47,6 +47,7 @@ return new class extends Migration
             $table->string('face_photo_in')->nullable();
             $table->string('face_photo_out')->nullable();
 
+            $table->unique(['user_id', 'date'], 'kehadirans_user_id_date_unique');
             $table->timestamps();
         });
     }
