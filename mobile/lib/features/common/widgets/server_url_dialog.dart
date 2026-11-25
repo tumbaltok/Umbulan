@@ -31,7 +31,12 @@ Future<void> showServerConfigDialog(BuildContext context) async {
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
+            runSpacing: 6,
             children: [
+              ActionChip(
+                label: const Text('Produksi (umbulan.site)'),
+                onPressed: () => ctrl.text = 'https://karyawan.umbulan.site/api',
+              ),
               ActionChip(
                 label: const Text('Emulator (10.0.2.2)'),
                 onPressed: () => ctrl.text = 'http://10.0.2.2:8000/api',

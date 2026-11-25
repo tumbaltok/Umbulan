@@ -159,6 +159,18 @@
                 <a href="#about-kami" class="hover:text-blue-600 transition">Tentang Proyek</a>
                 <a href="#titik-distribusi" class="hover:text-blue-600 transition">Wilayah Layanan</a>
             </nav>
+            @php
+                $currentHost = strtolower(request()->getHost());
+                $mainDom = strtolower((string) config('app.main_domain', 'umbulan.site'));
+                $portalDom = strtolower((string) config('app.portal_domain', 'karyawan.umbulan.site'));
+                $portalLoginUrl = ($currentHost === $mainDom || $currentHost === 'www.' . $mainDom)
+                    ? request()->getScheme() . '://' . $portalDom . '/login'
+                    : route('login');
+            @endphp
+            <a href="{{ $portalLoginUrl }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-blue-500/20 transition">
+                <i class="fa-solid fa-right-to-bracket"></i> Portal Karyawan
+            </a>
         </div>
 
         <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 hover:text-blue-600 focus:outline-none" aria-label="Toggle Menu">
@@ -185,6 +197,10 @@
                     </a>
                     <a href="#titik-distribusi" class="mobile-link text-sm font-semibold text-slate-700 hover:text-blue-600 transition py-2.5 border-b border-blue-50">
                         Wilayah Distribusi Jatim
+                    </a>
+                    <a href="{{ $portalLoginUrl }}"
+                        class="mt-3 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm transition">
+                        <i class="fa-solid fa-right-to-bracket"></i> Portal Karyawan
                     </a>
                 </nav>
             </div>

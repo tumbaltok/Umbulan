@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'main_domain' => env('APP_MAIN_DOMAIN', 'umbulan.site'),
+    'portal_domain' => env('APP_PORTAL_DOMAIN', 'karyawan.umbulan.site'),
+    'portal_subdomain_mode' => env('PORTAL_SUBDOMAIN_MODE', 'auto'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

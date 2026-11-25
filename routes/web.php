@@ -24,8 +24,17 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Halaman utama / landing page
-Route::get('/', function () {
+// Halaman utama: redirect ke portal jika diakses via subdomain karyawan.*, selain itu tampilkan landing page
+Route::get('/', function (Request $request) {
+    $host = strtolower($request->getHost());
+    $portalDomain = strtolower((string) config('app.portal_domain', 'karyawan.umbulan.site'));
+
+    if ($host === $portalDomain || str_starts_with($host, 'karyawan.')) {
+        return auth()->check()
+            ? redirect()->route('dashboard')
+            : redirect()->route('login');
+    }
+
     return view('welcome');
 });
 
