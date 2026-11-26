@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260.25" height="28" role="img" aria-label="FACE BIOMETRICS: 128 VEKTOR">
+  <title>FACE BIOMETRICS: 128 VEKTOR</title>
+  <g shape-rendering="crispEdges">
+    <rect width="153.75" height="28" fill="#555"/>
+    <rect x="153.75" width="106.5" height="28" fill="#00add8"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="100">
+    <g transform="translate(9,7) scale(0.583333)">
+      <path d="M4 3a1 1 0 0 0-1 1v4h2V5h3V3H4zm12 0v2h3v3h2V4a1 1 0 0 0-1-1h-4zM5 16H3v4a1 1 0 0 0 1 1h4v-2H5v-3zm14 0v3h-3v2h4a1 1 0 0 0 1-1v-4h-2zM9 9.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm6 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm-6.5 4.8c.9 1.1 2.15 1.7 3.5 1.7s2.6-.6 3.5-1.7l1.3 1.1C15.55 16.9 13.85 17.7 12 17.7s-3.55-.8-4.8-2.3l1.3-1.1z"/>
+    </g>
+    <text transform="scale(.1)" x="853.75" y="175" textLength="1127.5">FACE BIOMETRICS</text>
+    <text transform="scale(.1)" x="2070" y="175" textLength="825" font-weight="bold">128 VEKTOR</text>
+  </g>
+</svg>
