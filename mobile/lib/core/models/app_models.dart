@@ -202,6 +202,10 @@ class AttendanceRecord {
   final String? checkOut;
   final bool isLate;
   final bool isInRadiusCheckIn;
+  final bool isOffDayWork;
+  final bool isRestAfterOvertime;
+  final String? checkoutDate;
+  final String? checkoutType;
   final String? status;
 
   AttendanceRecord({
@@ -214,13 +218,18 @@ class AttendanceRecord {
     this.checkOut,
     required this.isLate,
     required this.isInRadiusCheckIn,
+    this.isOffDayWork = false,
+    this.isRestAfterOvertime = false,
+    this.checkoutDate,
+    this.checkoutType,
     this.status,
   });
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) {
+    final rawDate = json['date']?.toString() ?? '';
     return AttendanceRecord(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      date: json['date']?.toString().substring(0, 10) ?? '',
+      date: rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate,
       shiftType: json['shift_type']?.toString(),
       scheduledIn: json['scheduled_in']?.toString(),
       scheduledOut: json['scheduled_out']?.toString(),
@@ -228,6 +237,10 @@ class AttendanceRecord {
       checkOut: json['check_out']?.toString(),
       isLate: json['is_late'] == true,
       isInRadiusCheckIn: json['is_in_radius_check_in'] == true,
+      isOffDayWork: json['is_off_day_work'] == true,
+      isRestAfterOvertime: json['is_rest_after_overtime'] == true,
+      checkoutDate: json['checkout_date']?.toString(),
+      checkoutType: json['checkout_type']?.toString(),
       status: json['status']?.toString(),
     );
   }

@@ -333,7 +333,11 @@
                             // Shift Label & Class
                             $shiftTypeLower = strtolower($absen->shift_type ?? 'normal');
                             $shiftBadge = 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600';
-                            if (str_contains($shiftTypeLower, 'pagi')) {
+                            if (!empty($absen->is_off_day_work) || str_contains($shiftTypeLower, 'hari off')) {
+                                $shiftBadge = 'bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800';
+                            } elseif (!empty($absen->is_rest_after_overtime) || str_contains($shiftTypeLower, 'istirahat')) {
+                                $shiftBadge = 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800';
+                            } elseif (str_contains($shiftTypeLower, 'pagi')) {
                                 $shiftBadge = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
                             } elseif (str_contains($shiftTypeLower, 'malam')) {
                                 $shiftBadge = 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
@@ -475,6 +479,26 @@
                                         @if($isEarlyOut)
                                             <span class="inline-flex items-center text-[10px] font-bold text-purple-600 dark:text-purple-400">
                                                 <i class="fa-solid fa-person-walking-arrow-right mr-1"></i> Pulang Cepat
+                                            </span>
+                                        @endif
+
+                                        @if(!empty($absen->is_off_day_work))
+                                            <span class="inline-flex items-center text-[10px] font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/50 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-800">
+                                                <i class="fa-solid fa-utensils mr-1"></i> Masuk OFF (Uang Makan)
+                                            </span>
+                                        @endif
+
+                                        @if(!empty($absen->is_rest_after_overtime))
+                                            <span class="inline-flex items-center text-[10px] font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800">
+                                                <i class="fa-solid fa-bed mr-1"></i> Istirahat Lembur
+                                            </span>
+                                        @elseif(($absen->checkout_type ?? null) === 'forgot_checkout')
+                                            <span class="inline-flex items-center text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                                                <i class="fa-solid fa-rotate-left mr-1"></i> Lupa Checkout ({{ $absen->checkout_date?->format('d/m') ?? '-' }})
+                                            </span>
+                                        @elseif(($absen->checkout_type ?? null) === 'overnight_overtime')
+                                            <span class="inline-flex items-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                                                <i class="fa-solid fa-moon mr-1"></i> Menginap Lembur ({{ $absen->checkout_date?->format('d/m') ?? '-' }})
                                             </span>
                                         @endif
 

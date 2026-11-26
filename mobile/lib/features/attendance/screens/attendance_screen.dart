@@ -27,6 +27,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   List<StationModel> _stations = [];
   Map<String, dynamic> _todaySchedule = {};
   AttendanceRecord? _todayAttendance;
+  AttendanceRecord? _openPreviousAttendance;
+  bool _requiresCrossDayCheckout = false;
+  bool _needsCrossDayResolution = false;
+  bool _isRestAfterOvertime = false;
   StationModel? _nearestStation;
   double? _nearestDistance;
   bool _isInRadius = false;
@@ -54,6 +58,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _todayAttendance = data['today_attendance'] is Map<String, dynamic>
           ? AttendanceRecord.fromJson(data['today_attendance'] as Map<String, dynamic>)
           : null;
+      _openPreviousAttendance = data['open_previous_attendance'] is Map<String, dynamic>
+          ? AttendanceRecord.fromJson(data['open_previous_attendance'] as Map<String, dynamic>)
+          : null;
+      _requiresCrossDayCheckout = data['requires_cross_day_checkout'] == true;
+      _needsCrossDayResolution = data['needs_cross_day_resolution'] == true;
+      _isRestAfterOvertime = data['is_rest_after_overtime'] == true;
 
       await _refreshGps();
     } catch (e) {
@@ -166,12 +176,42 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       String? reason;
       XFile? evidenceFile;
+      String? crossDayResolution;
 
-      // Jika di luar radius (atau server meminta alasan), tampilkan dialog alasan cepat.
-      if (!_isInRadius) {
+      final isDayOff = _todaySchedule['is_day_off'] == true;
+
+      // Jika check-out lintas hari yang butuh pilihan lupa absen pulang vs menginap (lembur)
+      if (!isCheckIn && _needsCrossDayResolution) {
+        final chosen = await _askCrossDayResolution(
+          targetDate: _openPreviousAttendance?.date ?? 'Kemarin',
+        );
+        if (chosen == null || !mounted) {
+          setState(() => _submitting = false);
+          return;
+        }
+        crossDayResolution = chosen;
+      }
+
+      // Jika masuk pada Jadwal OFF dan/atau berada di luar radius, wajib isi keterangan
+      if ((isCheckIn && isDayOff) || !_isInRadius) {
+        final title = (isCheckIn && isDayOff)
+            ? 'Keterangan Masuk Hari OFF'
+            : 'Konfirmasi Lokasi Luar Radius';
+        final parts = <String>[];
+        if (isCheckIn && isDayOff) {
+          parts.add('Anda melakukan absen masuk pada Jadwal OFF (untuk pencatatan kehadiran & uang makan).');
+        }
+        if (!_isInRadius) {
+          parts.add('Anda terdeteksi di luar radius stasiun (${_nearestDistance?.round() ?? '-'}m).');
+        }
+        parts.add('Harap isi keterangan / alasan wajib di bawah ini.');
+
         final extra = await _askReasonAndEvidence(
-          title: 'Konfirmasi Lokasi Luar Radius',
-          subtitle: 'Anda terdeteksi di luar radius stasiun (${_nearestDistance?.round() ?? '-'}m). Wajib isi alasan.',
+          title: title,
+          subtitle: parts.join(' '),
+          hint: (isCheckIn && isDayOff)
+              ? 'Contoh: Pengganti shift / pekerjaan darurat / maintenance'
+              : 'Contoh: Dinas lapangan / kendala perjalanan',
         );
         if (extra == null) {
           if (mounted) setState(() => _submitting = false);
@@ -187,6 +227,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         scan: scan,
         reason: reason,
         evidenceFile: evidenceFile,
+        crossDayResolution: crossDayResolution,
       );
     } on ApiException catch (e) {
       if (e.statusCode == 422 &&
@@ -217,6 +258,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     required FaceScanResult scan,
     String? reason,
     XFile? evidenceFile,
+    String? crossDayResolution,
   }) async {
     final pos = _position!;
     final api = context.read<ApiClient>();
@@ -233,6 +275,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         scan.selfieFile.path,
         filename: 'selfie_${DateTime.now().millisecondsSinceEpoch}.jpg',
       ),
+      if (crossDayResolution != null && crossDayResolution.isNotEmpty)
+        'cross_day_resolution': crossDayResolution,
       if (reason != null && reason.isNotEmpty) 'reason': reason,
       if (evidenceFile != null)
         'evidence': await MultipartFile.fromFile(
@@ -258,8 +302,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         await _loadContext();
       }
     } on ApiException catch (e) {
+      final msgLower = e.message.toLowerCase();
+      if (!isCheckIn &&
+          e.statusCode == 422 &&
+          crossDayResolution == null &&
+          (msgLower.contains('lupa absen pulang') || msgLower.contains('menginap')) &&
+          mounted) {
+        final chosen = await _askCrossDayResolution(
+          targetDate: _openPreviousAttendance?.date ?? 'Kemarin',
+        );
+        if (chosen != null && mounted) {
+          final freshChallenge = await api.get('/attendance/challenge');
+          if (!mounted) return;
+          await _submitToServer(
+            isCheckIn: isCheckIn,
+            nonce: freshChallenge['nonce']?.toString() ?? nonce,
+            scan: scan,
+            reason: reason,
+            evidenceFile: evidenceFile,
+            crossDayResolution: chosen,
+          );
+          return;
+        }
+      }
+
       if (e.statusCode == 422 &&
-          e.message.toLowerCase().contains('alasan') &&
+          msgLower.contains('alasan') &&
           (reason == null || reason.isEmpty) &&
           mounted) {
         final extra = await _askReasonAndEvidence(
@@ -275,6 +343,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             scan: scan,
             reason: extra['reason'] as String?,
             evidenceFile: extra['evidence'] as XFile?,
+            crossDayResolution: crossDayResolution,
           );
           return;
         }
@@ -283,9 +352,108 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
+  Future<String?> _askCrossDayResolution({required String targetDate}) async {
+    String? selected;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(
+            'Pulang Lintas Hari ($targetDate)',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Anda melakukan absen pulang melewati tanggal masuk sebelumnya. Pilih keterangan yang sesuai:',
+                  style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                RadioGroup<String>(
+                  groupValue: selected,
+                  onChanged: (v) => setDialogState(() => selected = v),
+                  child: const Column(
+                    children: [
+                      RadioListTile<String>(
+                        value: 'forgot_checkout',
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Kemarin Lupa Absen Pulang',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(
+                          'Anda tetap dapat melakukan Absen Masuk untuk bekerja hari ini.',
+                          style: TextStyle(fontSize: 11.5),
+                        ),
+                      ),
+                      RadioListTile<String>(
+                        value: 'overnight_overtime',
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Menginap (Lembur) di Station',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(
+                          'Tercatat sebagai lembur menginap di station.',
+                          style: TextStyle(fontSize: 11.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: AppTheme.danger, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'IMPORTANT: Jika memilih Menginap (Lembur), maka tidak dapat melakukan absen masuk hari ini karena harus beristirahat pada hari tersebut.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF991B1B),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, null),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: selected == null ? null : () => Navigator.pop(ctx, selected),
+              child: const Text('Lanjutkan'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<Map<String, dynamic>?> _askReasonAndEvidence({
     required String title,
     required String subtitle,
+    String hint = 'Contoh: Dinas lapangan / kendala perjalanan',
   }) async {
     final reasonCtrl = TextEditingController();
     XFile? picked;
@@ -305,9 +473,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               TextField(
                 controller: reasonCtrl,
                 maxLines: 3,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Alasan Wajib *',
-                  hintText: 'Contoh: Dinas lapangan / kendala perjalanan',
+                  hintText: hint,
                 ),
               ),
               const SizedBox(height: 10),
@@ -436,25 +604,126 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            if (isDayOff)
+            const SizedBox(height: 12),
+            if (_requiresCrossDayCheckout)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: AppTheme.danger),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Anda belum absen pulang untuk sesi tanggal ${_openPreviousAttendance?.date ?? 'sebelumnya'}. Selesaikan Absen Pulang terlebih dahulu sebelum dapat Absen Masuk hari ini.',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF991B1B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (_isRestAfterOvertime)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.bedtime_rounded, color: AppTheme.primary),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Anda memilih Menginap (Lembur) di Station, sehingga hari ini terkunci untuk istirahat wajib dan tidak dapat melakukan absen masuk.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryDark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (isDayOff && !hasIn)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.work_history_rounded, color: AppTheme.warning),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Jadwal hari ini adalah OFF (Libur). Anda tetap dapat melakukan Absen Masuk jika ada keperluan kerja dengan mengisi keterangan alasan (pencatatan kehadiran & uang makan).',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF92400E),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            if (_requiresCrossDayCheckout)
+              FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: AppTheme.danger),
+                onPressed: _submitting ? null : () => _handleAttendance(isCheckIn: false),
+                icon: const Icon(Icons.logout_rounded),
+                label: Text(
+                  _submitting
+                      ? 'Memproses...'
+                      : 'Absen Pulang (${_openPreviousAttendance?.date ?? 'Kemarin'})',
+                ),
+              )
+            else if (_isRestAfterOvertime)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: const Color(0xFFEEF2FF),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
                 ),
                 child: const Text(
-                  'Hari ini adalah jadwal libur (OFF) Anda.',
+                  'Istirahat Wajib Pasca Menginap / Lembur (Terkunci Hari Ini)',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryDark),
                 ),
               )
             else if (!hasIn)
               FilledButton.icon(
+                style: isDayOff
+                    ? FilledButton.styleFrom(backgroundColor: AppTheme.warning)
+                    : null,
                 onPressed: _submitting ? null : () => _handleAttendance(isCheckIn: true),
                 icon: const Icon(Icons.login_rounded),
-                label: Text(_submitting ? 'Memproses...' : 'Absen Masuk (Biometrik)'),
+                label: Text(
+                  _submitting
+                      ? 'Memproses...'
+                      : (isDayOff ? 'Absen Masuk (Jadwal OFF)' : 'Absen Masuk (Biometrik)'),
+                ),
               )
             else if (!hasOut)
               FilledButton.icon(

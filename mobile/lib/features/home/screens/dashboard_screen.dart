@@ -75,6 +75,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final att = _data['today_attendance'] is Map<String, dynamic>
         ? AttendanceRecord.fromJson(_data['today_attendance'] as Map<String, dynamic>)
         : null;
+    final openPrev = _data['open_previous_attendance'] is Map<String, dynamic>
+        ? AttendanceRecord.fromJson(_data['open_previous_attendance'] as Map<String, dynamic>)
+        : null;
+    final requiresCrossDayCheckout = _data['requires_cross_day_checkout'] == true;
+    final isRestAfterOvertime = _data['is_rest_after_overtime'] == true;
     final leaveBalance = (_data['leave_balance'] as Map<String, dynamic>?) ?? {};
 
     return RefreshIndicator(
@@ -170,10 +175,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      schedule['is_day_off'] == true
-                          ? 'Status hari ini: Libur Kerja (OFF)'
-                          : 'Jam Kerja: ${schedule['scheduled_in'] ?? '-'} s/d ${schedule['scheduled_out'] ?? '-'} WIB',
-                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      requiresCrossDayCheckout
+                          ? 'Anda belum absen pulang sesi ${openPrev?.date ?? 'sebelumnya'} (wajib absen pulang dahulu).'
+                          : isRestAfterOvertime
+                              ? 'Istirahat Wajib Pasca Menginap / Lembur di Station (tidak bisa absen masuk hari ini).'
+                              : schedule['is_day_off'] == true
+                                  ? 'Status hari ini: Libur Kerja (OFF) — tetap bisa absen masuk jika ada keperluan.'
+                                  : 'Jam Kerja: ${schedule['scheduled_in'] ?? '-'} s/d ${schedule['scheduled_out'] ?? '-'} WIB',
+                      style: TextStyle(
+                        color: requiresCrossDayCheckout
+                            ? AppTheme.danger
+                            : (isRestAfterOvertime ? AppTheme.primary : AppTheme.textSecondary),
+                        fontSize: 13,
+                        fontWeight: (requiresCrossDayCheckout || isRestAfterOvertime)
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -182,7 +199,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: FilledButton.icon(
                             onPressed: widget.onGoToAttendance,
                             icon: const Icon(Icons.face_retouching_natural, size: 18),
-                            label: const Text('Buka Absensi'),
+                            label: Text(
+                              requiresCrossDayCheckout
+                                  ? 'Absen Pulang Kemarin'
+                                  : (schedule['is_day_off'] == true && !isRestAfterOvertime && att?.checkIn == null)
+                                      ? 'Absen (Hari OFF)'
+                                      : 'Buka Absensi',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),

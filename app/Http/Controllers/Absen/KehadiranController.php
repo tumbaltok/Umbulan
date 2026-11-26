@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class KehadiranController extends Controller
 {
@@ -224,13 +225,37 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Evaluasi jadwal kerja karyawan
-            $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
-            if (isset($schedule['is_day_off']) && $schedule['is_day_off']) {
+            // 0. Pastikan tidak ada sesi absen masuk hari sebelumnya yang belum di-checkout
+            $openPrevious = Kehadiran::where('user_id', $user->id)
+                ->whereDate('date', '<', $today)
+                ->whereNotNull('check_in')
+                ->whereNull('check_out')
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($openPrevious) {
                 return response()->json([
-                    'message' => 'Hari ini adalah jadwal libur (OFF) Anda.',
-                ], 400);
+                    'message' => 'Anda belum melakukan absen pulang untuk tanggal ' . $openPrevious->date->format('d/m/Y') . '. Harap lakukan absen pulang terlebih dahulu sebelum absen masuk hari ini.',
+                    'requires_cross_day_checkout' => true,
+                    'open_previous_date' => $openPrevious->date->format('Y-m-d'),
+                ], 422);
             }
+
+            // 0b. Pastikan karyawan tidak sedang dikunci istirahat pasca menginap (lembur) di station
+            $todayExisting = Kehadiran::where('user_id', $user->id)
+                ->whereDate('date', $today)
+                ->first();
+
+            if ($todayExisting && $todayExisting->is_rest_after_overtime) {
+                return response()->json([
+                    'message' => 'Anda tidak dapat melakukan absen masuk hari ini karena telah memilih Menginap (Lembur) di Station dan wajib beristirahat pada hari ini.',
+                    'is_rest_after_overtime' => true,
+                ], 422);
+            }
+
+            // 1. Evaluasi jadwal kerja karyawan (jadwal OFF tetap boleh masuk dengan wajib keterangan alasan)
+            $schedule = $this->scheduleService->getTodaySchedule($user, $today) ?? [];
+            $isWorkingOnOffDay = !empty($schedule['is_day_off']);
 
             // 2. Evaluasi geolokasi terhadap seluruh stasiun dan Rumah Meter
             $geo = $this->evaluateGeofence((float) $request->latitude, (float) $request->longitude);
@@ -239,11 +264,11 @@ class KehadiranController extends Controller
             $nearestStation = $geo['nearestStation'];
             $distanceMeters = $geo['distanceMeters'];
 
-            // 3. Evaluasi status keterlambatan
+            // 3. Evaluasi status keterlambatan (tidak berlaku terlambat jika masuk pada jadwal OFF)
             $isLate = false;
-            $scheduledInStr = $schedule['scheduled_in'] ?? null;
+            $scheduledInStr = $isWorkingOnOffDay ? null : ($schedule['scheduled_in'] ?? null);
 
-            if (!empty($scheduledInStr) && $scheduledInStr !== '--:--') {
+            if (!$isWorkingOnOffDay && !empty($scheduledInStr) && $scheduledInStr !== '--:--') {
                 try {
                     $scheduledIn = Carbon::parse($today . ' ' . $scheduledInStr, 'Asia/Jakarta');
                     if ($now->gt($scheduledIn)) {
@@ -254,10 +279,11 @@ class KehadiranController extends Controller
                 }
             }
 
-            // 4. Validasi alasan jika terlambat atau berada di luar radius
+            // 4. Validasi alasan wajib jika masuk pada jadwal OFF, terlambat, atau berada di luar radius
             $reason = trim((string) ($request->reason ?? $request->reason_out_of_radius));
-            if ((!$isInRadius || $isLate) && empty($reason)) {
+            if (($isWorkingOnOffDay || !$isInRadius || $isLate) && empty($reason)) {
                 $kondisi = [];
+                if ($isWorkingOnOffDay) $kondisi[] = 'masuk kerja pada jadwal libur (OFF)';
                 if ($isLate) $kondisi[] = 'terlambat';
                 if (!$isInRadius) {
                     $stName = $nearestStation ? $nearestStation->name : 'stasiun terdekat';
@@ -265,7 +291,7 @@ class KehadiranController extends Controller
                 }
 
                 return response()->json([
-                    'message' => 'Harap isi alasan wajib karena Anda terdeteksi ' . implode(' dan ', $kondisi) . '!',
+                    'message' => 'Harap isi keterangan alasan wajib karena Anda ' . implode(' dan ', $kondisi) . '!',
                 ], 422);
             }
 
@@ -274,7 +300,9 @@ class KehadiranController extends Controller
             $evidencePath = null;
 
             if ($evidenceFile) {
-                $statusWatermark = $isLate ? 'TERLAMBAT' : 'TEPAT WAKTU';
+                $statusWatermark = $isWorkingOnOffDay
+                    ? 'MASUK HARI OFF'
+                    : ($isLate ? 'TERLAMBAT' : 'TEPAT WAKTU');
                 if (!$isInRadius) {
                     $stName = $nearestStation ? $nearestStation->name : 'Stasiun';
                     $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm dari ' . $stName . ')';
@@ -282,19 +310,29 @@ class KehadiranController extends Controller
                 $evidencePath = $this->processAndWatermarkEvidence($evidenceFile, 'checkin', $user, $statusWatermark, $now);
             }
 
-            $shiftType = $schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal');
+            $shiftType = $isWorkingOnOffDay
+                ? 'Masuk Hari OFF'
+                : ($schedule['shift_type'] ?? ($schedule['shift_name'] ?? 'Normal'));
+            $scheduledOutStr = $isWorkingOnOffDay ? null : ($schedule['scheduled_out'] ?? null);
             $isFaceVerified = true;
 
             // [SEC-09 FIX] Bungkus proses check-in ke dalam DB::transaction dengan lockForUpdate untuk mencegah race condition
             $result = DB::transaction(function () use (
-                $user, $today, $waktuSekarang, $shiftType, $scheduledInStr, $schedule,
-                $request, $distanceMeters, $isInRadius, $isLate, $isFaceVerified, $reason, $evidencePath
+                $user, $today, $waktuSekarang, $shiftType, $scheduledInStr, $scheduledOutStr,
+                $request, $distanceMeters, $isInRadius, $isLate, $isWorkingOnOffDay, $isFaceVerified, $reason, $evidencePath
             ) {
                 // Periksa apakah karyawan sudah melakukan absen masuk hari ini dengan lockForUpdate
                 $attendance = Kehadiran::where('user_id', $user->id)
-                    ->where('date', $today)
+                    ->whereDate('date', $today)
                     ->lockForUpdate()
                     ->first();
+
+                if ($attendance && $attendance->is_rest_after_overtime) {
+                    return [
+                        'status'  => 422,
+                        'message' => 'Anda tidak dapat melakukan absen masuk hari ini karena telah memilih Menginap (Lembur) di Station dan wajib beristirahat.',
+                    ];
+                }
 
                 if ($attendance && $attendance->check_in !== null) {
                     return [
@@ -303,28 +341,34 @@ class KehadiranController extends Controller
                     ];
                 }
 
-                $absensi = Kehadiran::updateOrCreate(
-                    [
+                $payloadIn = [
+                    'shift_type'              => $shiftType,
+                    'scheduled_in'            => $scheduledInStr,
+                    'scheduled_out'           => $scheduledOutStr,
+                    'check_in'                => $waktuSekarang,
+                    'check_in_lat'            => (string) $request->latitude,
+                    'check_in_long'           => (string) $request->longitude,
+                    'check_in_distance'       => round($distanceMeters, 2),
+                    'is_in_radius_check_in'   => $isInRadius,
+                    'is_late'                 => $isLate,
+                    'is_off_day_work'         => $isWorkingOnOffDay,
+                    'is_rest_after_overtime'  => false,
+                    'is_face_verified_in'     => $isFaceVerified,
+                    'reason_in'               => !empty($reason) ? $reason : null,
+                    'reason_out_of_radius_in' => !empty($reason) ? $reason : null,
+                    'evidence_in'             => $evidencePath,
+                    'status'                  => $isLate ? 'Terlambat' : 'Hadir',
+                ];
+
+                if ($attendance) {
+                    $attendance->update($payloadIn);
+                    $absensi = $attendance->fresh();
+                } else {
+                    $absensi = Kehadiran::create(array_merge([
                         'user_id' => $user->id,
                         'date'    => $today,
-                    ],
-                    [
-                        'shift_type'              => $shiftType,
-                        'scheduled_in'            => $scheduledInStr,
-                        'scheduled_out'           => $schedule['scheduled_out'] ?? null,
-                        'check_in'                => $waktuSekarang,
-                        'check_in_lat'            => (string) $request->latitude,
-                        'check_in_long'           => (string) $request->longitude,
-                        'check_in_distance'       => round($distanceMeters, 2),
-                        'is_in_radius_check_in'   => $isInRadius,
-                        'is_late'                 => $isLate,
-                        'is_face_verified_in'     => $isFaceVerified,
-                        'reason_in'               => !empty($reason) ? $reason : null,
-                        'reason_out_of_radius_in' => !empty($reason) ? $reason : null,
-                        'evidence_in'             => $evidencePath,
-                        'status'                  => $isLate ? 'Terlambat' : 'Hadir',
-                    ]
-                );
+                    ], $payloadIn));
+                }
 
                 return [
                     'status'  => 200,
@@ -339,12 +383,18 @@ class KehadiranController extends Controller
             }
 
             $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
+            $successMsg = $isWorkingOnOffDay
+                ? 'Berhasil melakukan absen masuk di hari OFF (' . $locName . '). Kehadiran & keterangan kerja hari libur Anda telah tercatat.'
+                : 'Berhasil melakukan absen masuk di ' . $locName . '. Selamat bekerja!';
+
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil melakukan absen masuk di ' . $locName . '. Selamat bekerja!',
+                'message' => $successMsg,
                 'data'    => $result['absensi'],
             ], 200);
 
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Throwable $th) {
             Log::error('Error CheckIn: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
 
@@ -525,6 +575,7 @@ class KehadiranController extends Controller
                 'face_descriptor'      => 'nullable',
                 'reason'               => 'nullable|string|max:500',
                 'reason_checkout'      => 'nullable|string|max:500',
+                'cross_day_resolution' => 'nullable|in:forgot_checkout,overnight_overtime',
                 'evidence'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
                 'bukti_alasan'         => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             ]);
@@ -533,21 +584,65 @@ class KehadiranController extends Controller
             $today = $now->format('Y-m-d');
             $waktuSekarang = $now->format('H:i:s');
 
-            // 1. Periksa jadwal dan keberadaan catatan absen masuk hari ini terlebih dahulu untuk validasi shift
-            $preAttendance = Kehadiran::where('user_id', $user->id)
-                ->where('date', $today)
+            // 1. Tentukan record target absen pulang (hari ini atau sesi tanggal sebelumnya yang belum checkout)
+            $todayAttendance = Kehadiran::where('user_id', $user->id)
+                ->whereDate('date', $today)
                 ->first();
 
-            if (!$preAttendance || $preAttendance->check_in === null) {
+            $openPrevious = Kehadiran::where('user_id', $user->id)
+                ->whereDate('date', '<', $today)
+                ->whereNotNull('check_in')
+                ->whereNull('check_out')
+                ->orderBy('date', 'desc')
+                ->first();
+
+            $isCrossDay = false;
+            $preAttendance = null;
+
+            if ($todayAttendance && $todayAttendance->check_in !== null) {
+                if ($todayAttendance->check_out !== null) {
+                    return response()->json([
+                        'message' => 'Anda sudah melakukan absen pulang hari ini!',
+                    ], 400);
+                }
+                $preAttendance = $todayAttendance;
+            } elseif ($openPrevious) {
+                $preAttendance = $openPrevious;
+                $isCrossDay = true;
+            } else {
                 return response()->json([
                     'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.',
                 ], 400);
             }
 
-            if ($preAttendance->check_out !== null) {
-                return response()->json([
-                    'message' => 'Anda sudah melakukan absen pulang hari ini!',
-                ], 400);
+            $targetDateStr = $preAttendance->date->format('Y-m-d');
+            $needsCrossDayResolution = false;
+            $resolvedType = 'normal';
+
+            if ($isCrossDay) {
+                $yesterdayStr = $now->copy()->subDay()->format('Y-m-d');
+                $isNightShiftFromYesterday = $targetDateStr === $yesterdayStr
+                    && (
+                        stripos((string) $preAttendance->shift_type, 'malam') !== false
+                        || (!empty($preAttendance->scheduled_out) && !empty($preAttendance->scheduled_in) && $preAttendance->scheduled_out < $preAttendance->scheduled_in)
+                    );
+
+                // Shift malam kemarin yang pulang di pagi hari (< 11:00) tetap diproses normal tanpa popup menginap/lupa
+                if ($isNightShiftFromYesterday && $now->hour < 11) {
+                    $needsCrossDayResolution = false;
+                    $resolvedType = 'normal';
+                } else {
+                    $needsCrossDayResolution = true;
+                    $resolution = $request->input('cross_day_resolution');
+                    if (!in_array($resolution, ['forgot_checkout', 'overnight_overtime'], true)) {
+                        return response()->json([
+                            'message' => 'Anda melakukan absen pulang untuk sesi tanggal ' . Carbon::parse($targetDateStr)->format('d/m/Y') . '. Silakan pilih keterangan apakah lupa absen pulang atau menginap (lembur) di station.',
+                            'requires_cross_day_resolution' => true,
+                            'target_date' => $targetDateStr,
+                        ], 422);
+                    }
+                    $resolvedType = $resolution;
+                }
             }
 
             // 2. Evaluasi geolokasi pulang terhadap seluruh stasiun dan Rumah Meter
@@ -559,7 +654,7 @@ class KehadiranController extends Controller
 
             // 3. Evaluasi apakah karyawan pulang lebih awal
             $isEarly = false;
-            if (!empty($preAttendance->scheduled_out) && $preAttendance->scheduled_out !== '--:--') {
+            if (!$isCrossDay && !empty($preAttendance->scheduled_out) && $preAttendance->scheduled_out !== '--:--') {
                 try {
                     $currentMinutes = $now->hour * 60 + $now->minute;
                     [$hOut, $mOut] = explode(':', $preAttendance->scheduled_out);
@@ -581,6 +676,17 @@ class KehadiranController extends Controller
                 } catch (\Exception $e) {
                     $isEarly = false;
                 }
+            } elseif ($isCrossDay && !$needsCrossDayResolution && !empty($preAttendance->scheduled_out) && $preAttendance->scheduled_out !== '--:--') {
+                // Shift malam kemarin yang check-out pagi ini sebelum pukul 11:00
+                try {
+                    [$hOut, $mOut] = explode(':', $preAttendance->scheduled_out);
+                    $schedOutToday = $now->copy()->startOfDay()->setTime((int) $hOut, (int) $mOut);
+                    if ($now->lt($schedOutToday)) {
+                        $isEarly = true;
+                    }
+                } catch (\Exception $e) {
+                    $isEarly = false;
+                }
             }
 
             // 4. Validasi alasan jika pulang awal atau berada di luar radius
@@ -598,12 +704,23 @@ class KehadiranController extends Controller
                 ], 422);
             }
 
+            $crossDayLabel = match ($resolvedType) {
+                'forgot_checkout'    => '[Lupa Absen Pulang Kemarin]',
+                'overnight_overtime' => '[Menginap / Lembur di Station]',
+                default              => null,
+            };
+            $finalReasonOut = trim(implode(' ', array_filter([$crossDayLabel, $reason]))) ?: null;
+
             // 5. Proses unggah dan watermark dokumen/foto bukti alasan
             $evidenceFile = $request->file('evidence') ?? $request->file('bukti_alasan');
             $evidencePath = null;
 
             if ($evidenceFile) {
-                $statusWatermark = $isEarly ? 'PULANG AWAL' : 'SELESAI SHIFT';
+                $statusWatermark = match ($resolvedType) {
+                    'forgot_checkout'    => 'LUPA ABSEN PULANG',
+                    'overnight_overtime' => 'MENGINAP LEMBUR',
+                    default              => ($isEarly ? 'PULANG AWAL' : 'SELESAI SHIFT'),
+                };
                 if (!$isInRadius) {
                     $stName = $nearestStation ? $nearestStation->name : 'Stasiun';
                     $statusWatermark .= ' | LUAR RADIUS (' . round($distanceMeters) . 'm dari ' . $stName . ')';
@@ -615,41 +732,68 @@ class KehadiranController extends Controller
 
             // [SEC-09 FIX] Bungkus proses check-out ke dalam DB::transaction dengan lockForUpdate
             $result = DB::transaction(function () use (
-                $user, $today, $waktuSekarang, $request, $distanceMeters, $isInRadius,
-                $isEarly, $isFaceVerified, $reason, $evidencePath
+                $user, $today, $targetDateStr, $preAttendance, $resolvedType, $waktuSekarang, $request,
+                $distanceMeters, $isInRadius, $isEarly, $isFaceVerified, $reason, $finalReasonOut, $evidencePath
             ) {
-                $attendance = Kehadiran::where('user_id', $user->id)
-                    ->where('date', $today)
+                $attendance = Kehadiran::where('id', $preAttendance->id)
                     ->lockForUpdate()
                     ->first();
 
                 if (!$attendance || $attendance->check_in === null) {
                     return [
                         'status'  => 400,
-                        'message' => 'Gagal! Anda belum melakukan absen masuk hari ini.',
+                        'message' => 'Gagal! Data absen masuk tidak ditemukan.',
                     ];
                 }
 
                 if ($attendance->check_out !== null) {
                     return [
                         'status'  => 400,
-                        'message' => 'Anda sudah melakukan absen pulang hari ini!',
+                        'message' => 'Anda sudah melakukan absen pulang untuk sesi tanggal tersebut!',
                     ];
                 }
 
                 // Simpan catatan absensi pulang ke database
                 $attendance->update([
                     'check_out'              => $waktuSekarang,
+                    'checkout_date'          => $today,
+                    'checkout_type'          => $resolvedType,
                     'check_out_lat'          => (string) $request->latitude,
                     'check_out_long'         => (string) $request->longitude,
                     'check_out_distance'     => round($distanceMeters, 2),
                     'is_in_radius_check_out' => $isInRadius,
                     'is_early_checkout'      => $isEarly,
                     'is_face_verified_out'   => $isFaceVerified,
-                    'reason_out'             => !empty($reason) ? $reason : null,
-                    'reason_checkout'        => !empty($reason) ? $reason : null,
+                    'reason_out'             => $finalReasonOut,
+                    'reason_checkout'        => $finalReasonOut,
                     'evidence_out'           => $evidencePath,
                 ]);
+
+                // Jika memilih Menginap (Lembur) di station, kunci hari ini sebagai Istirahat Pasca Lembur
+                if ($resolvedType === 'overnight_overtime') {
+                    $todayLock = Kehadiran::where('user_id', $user->id)
+                        ->whereDate('date', $today)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$todayLock || $todayLock->check_in === null) {
+                        $restPayload = [
+                            'shift_type'             => 'Istirahat Pasca Lembur',
+                            'status'                 => 'Libur',
+                            'is_rest_after_overtime' => true,
+                            'reason_in'              => 'Istirahat wajib pasca menginap / lembur di station pada ' . Carbon::parse($targetDateStr)->format('d/m/Y') . (!empty($reason) ? ' (' . $reason . ')' : ''),
+                        ];
+
+                        if ($todayLock) {
+                            $todayLock->update($restPayload);
+                        } else {
+                            Kehadiran::create(array_merge([
+                                'user_id' => $user->id,
+                                'date'    => $today,
+                            ], $restPayload));
+                        }
+                    }
+                }
 
                 return [
                     'status'     => 200,
@@ -664,12 +808,22 @@ class KehadiranController extends Controller
             }
 
             $locName = $matchedStation ? $matchedStation->name : ($nearestStation ? 'Luar Radius (' . $nearestStation->name . ')' : 'Lokasi Terdaftar');
+            $successMessage = match ($resolvedType) {
+                'forgot_checkout'    => 'Absen pulang kemarin (' . Carbon::parse($targetDateStr)->format('d/m/Y') . ') tercatat sebagai Lupa Absen Pulang. Anda dapat melakukan absen masuk untuk hari ini.',
+                'overnight_overtime' => 'Absen pulang kemarin (' . Carbon::parse($targetDateStr)->format('d/m/Y') . ') tercatat sebagai Menginap / Lembur di Station. Hari ini Anda wajib beristirahat dan tidak dapat absen masuk.',
+                default              => 'Berhasil melakukan absen pulang di ' . $locName . '. Hati-hati di jalan!',
+            };
+
             return response()->json([
-                'success' => true,
-                'message' => 'Berhasil melakukan absen pulang di ' . $locName . '. Hati-hati di jalan!',
-                'data'    => $result['attendance'],
+                'success'               => true,
+                'message'               => $successMessage,
+                'cross_day_resolution'  => $resolvedType,
+                'locked_today_for_rest' => $resolvedType === 'overnight_overtime',
+                'data'                  => $result['attendance'],
             ], 200);
 
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Throwable $th) {
             Log::error('Error CheckOut: ' . $th->getMessage() . ' File: ' . $th->getFile() . ' Line: ' . $th->getLine());
 

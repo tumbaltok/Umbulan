@@ -32,7 +32,8 @@ class DashboardApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user()->load(['station', 'roles']);
-        $today = Carbon::today('Asia/Jakarta')->toDateString();
+        $now = Carbon::now('Asia/Jakarta');
+        $today = $now->toDateString();
         $tahunSekarang = (int) date('Y');
 
         $stations = Cache::remember('daftar_stasiun_geofence', now()->addHours(12), function () {
@@ -45,6 +46,22 @@ class DashboardApiController extends Controller
         $todayAttendance = Kehadiran::where('user_id', $user->id)
             ->whereDate('date', $today)
             ->first();
+
+        $openPreviousAttendance = Kehadiran::where('user_id', $user->id)
+            ->whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->whereDate('date', '<', $today)
+            ->orderByDesc('date')
+            ->first();
+
+        $requiresCrossDayCheckout = $openPreviousAttendance !== null;
+        $needsCrossDayResolution = false;
+        if ($openPreviousAttendance) {
+            $isYesterday = $openPreviousAttendance->date && $openPreviousAttendance->date->copy()->addDay()->toDateString() === $today;
+            $isNightShift = str_contains(strtolower((string) $openPreviousAttendance->shift_type), 'malam');
+            $needsCrossDayResolution = !($isYesterday && $isNightShift && $now->hour < 11);
+        }
+        $isRestAfterOvertime = (bool) ($todayAttendance?->is_rest_after_overtime ?? false);
 
         $cutiTahunan = JenisCuti::whereNull('parent_id')
             ->whereRaw('LOWER(name_cuti) LIKE ?', ['%tahunan%'])
@@ -90,6 +107,10 @@ class DashboardApiController extends Controller
                 'today' => $today,
                 'today_schedule' => $todaySchedule,
                 'today_attendance' => $todayAttendance,
+                'open_previous_attendance' => $openPreviousAttendance,
+                'requires_cross_day_checkout' => $requiresCrossDayCheckout,
+                'needs_cross_day_resolution' => $needsCrossDayResolution,
+                'is_rest_after_overtime' => $isRestAfterOvertime,
                 'leave_balance' => [
                     'tahun' => $tahunSekarang,
                     'sisa_cuti_tahunan' => (int) ($saldoTahunan ?? 0),

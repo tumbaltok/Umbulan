@@ -53,16 +53,34 @@ class DashboardController extends Controller
         $calendarDays = $this->calendarService->getMonthlyCalendar($user, $selectedMonth, $selectedYear);
         $todaySchedule = $this->scheduleService->getTodaySchedule($user, $today);
 
-        // Data presensi hari ini
+        // Data presensi hari ini & cek sesi absensi lintas hari yang belum di-checkout
         $todayAttendance = Kehadiran::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereDate('date', $today)
             ->first();
+
+        $openPreviousAttendance = Kehadiran::where('user_id', $user->id)
+            ->whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->whereDate('date', '<', $today)
+            ->orderByDesc('date')
+            ->first();
+
+        $requiresCrossDayCheckout = $openPreviousAttendance !== null;
+        $needsCrossDayResolution = false;
+        if ($openPreviousAttendance) {
+            $isYesterday = $openPreviousAttendance->date && $openPreviousAttendance->date->copy()->addDay()->toDateString() === $today;
+            $isNightShift = str_contains(strtolower((string) $openPreviousAttendance->shift_type), 'malam');
+            // Jika shift malam kemarin dan check-out masih pada pagi hari (<= 11:00 WIB), tidak dianggap lupa/menginap
+            $needsCrossDayResolution = !($isYesterday && $isNightShift && $now->hour < 11);
+        }
+
+        $isRestAfterOvertime = (bool) ($todayAttendance?->is_rest_after_overtime ?? false);
 
         // Cek Peringatan Terlambat & Waktunya Pulang
         $isLateNotCheckedIn = false;
         $canCheckOutNow = false;
 
-        if (! empty($todaySchedule) && empty($todaySchedule['is_day_off'])) {
+        if (! empty($todaySchedule) && empty($todaySchedule['is_day_off']) && !$requiresCrossDayCheckout && !$isRestAfterOvertime) {
             $scheduledInStr = $todaySchedule['scheduled_in'] ?? null;
             $scheduledOutStr = $todaySchedule['scheduled_out'] ?? null;
 
@@ -203,6 +221,10 @@ class DashboardController extends Controller
             'riwayatMpr',
             'todaySchedule',
             'todayAttendance',
+            'openPreviousAttendance',
+            'requiresCrossDayCheckout',
+            'needsCrossDayResolution',
+            'isRestAfterOvertime',
             'calendarDays',
             'selectedMonth',
             'selectedYear',

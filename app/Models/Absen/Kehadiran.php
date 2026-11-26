@@ -28,12 +28,16 @@ class Kehadiran extends Model
         'check_in_distance',
         'is_in_radius_check_in',
         'is_late',
+        'is_off_day_work',
+        'is_rest_after_overtime',
         'is_face_verified_in',
         'reason_in',
         'evidence_in',
 
         // Clock Out
         'check_out',
+        'checkout_date',
+        'checkout_type',
         'check_out_lat',
         'check_out_long',
         'check_out_distance',
@@ -53,8 +57,11 @@ class Kehadiran extends Model
 
     protected $casts = [
         'date' => 'date',
+        'checkout_date' => 'date',
         'is_in_radius_check_in' => 'boolean',
         'is_late' => 'boolean',
+        'is_off_day_work' => 'boolean',
+        'is_rest_after_overtime' => 'boolean',
         'is_face_verified_in' => 'boolean',
         'is_in_radius_check_out' => 'boolean',
         'is_early_checkout' => 'boolean',
@@ -104,14 +111,15 @@ class Kehadiran extends Model
 
         try {
             $dateStr = $this->date ? $this->date->format('Y-m-d') : now()->format('Y-m-d');
+            $outDateStr = $this->checkout_date ? $this->checkout_date->format('Y-m-d') : $dateStr;
             $in = \Carbon\Carbon::parse($dateStr . ' ' . $this->check_in);
-            $out = \Carbon\Carbon::parse($dateStr . ' ' . $this->check_out);
+            $out = \Carbon\Carbon::parse($outDateStr . ' ' . $this->check_out);
 
-            if ($out->lt($in)) {
+            if ($outDateStr === $dateStr && $out->lt($in)) {
                 $out->addDay();
             }
 
-            return (int) $in->diffInMinutes($out);
+            return (int) max(0, $in->diffInMinutes($out));
         } catch (\Throwable $e) {
             return null;
         }
@@ -120,12 +128,20 @@ class Kehadiran extends Model
     // Format durasi kerja agar mudah dibaca pengguna
     public function getWorkDurationFormattedAttribute(): string
     {
+        if ($this->is_rest_after_overtime) {
+            return 'Istirahat Lembur';
+        }
+
         if (empty($this->check_in)) {
             return '-';
         }
 
         if (empty($this->check_out)) {
             return 'Sedang Bekerja';
+        }
+
+        if ($this->checkout_type === 'forgot_checkout') {
+            return 'Lupa Absen Pulang';
         }
 
         $minutes = $this->work_duration_minutes;

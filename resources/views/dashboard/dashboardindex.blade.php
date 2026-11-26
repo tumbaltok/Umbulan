@@ -275,9 +275,17 @@
                                 </span>
                             @endif
                         @else
-                            @if(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
+                            @if(isset($requiresCrossDayCheckout) && $requiresCrossDayCheckout)
                                 <span class="text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Sedang OFF (Libur)
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> Menunggu Absen Pulang Sesi Sebelumnya
+                                </span>
+                            @elseif(isset($isRestAfterOvertime) && $isRestAfterOvertime)
+                                <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Istirahat Wajib Pasca Menginap (Lembur)
+                                </span>
+                            @elseif(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
+                                <span class="text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Sedang OFF (Bisa Masuk Kerja Tambahan)
                                 </span>
                             @elseif($isWorkingNow)
                                 <span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
@@ -295,15 +303,29 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
                     @if(is_null($user->schedule_type))
                         Harap lakukan atur jam kerja pada menu profil Anda.
+                    @elseif(isset($requiresCrossDayCheckout) && $requiresCrossDayCheckout && isset($openPreviousAttendance) && $openPreviousAttendance)
+                        Sesi masuk tanggal <strong class="text-rose-600 dark:text-rose-400">{{ $openPreviousAttendance->date->translatedFormat('d M Y') }} ({{ substr($openPreviousAttendance->check_in, 0, 5) }} WIB)</strong> belum memiliki absen pulang.
+                    @elseif(isset($isRestAfterOvertime) && $isRestAfterOvertime)
+                        Anda tercatat memilih <strong>Menginap (Lembur) di Station</strong>, sehingga hari ini terkunci untuk beristirahat.
                     @elseif(isset($todaySchedule['is_day_off']) && !$todaySchedule['is_day_off'])
                         Ketentuan Jam Kerja: <strong class="text-slate-700 dark:text-slate-200">{{ $todaySchedule['scheduled_in'] ?? '--:--' }} - {{ $todaySchedule['scheduled_out'] ?? '--:--' }} WIB</strong>
                     @else
-                        Hari ini Anda tidak memiliki jadwal shift aktif.
+                        Jadwal hari ini adalah <strong>OFF (Libur)</strong>. Jika ada keperluan masuk kerja, Anda tetap dapat absen masuk dengan mengisi keterangan alasan (pencatatan kehadiran & uang makan).
                     @endif
                 </p>
 
-                {{-- TANDA DANGER TERLAMBAT ATAU INFO WAKTUNYA PULANG --}}
-                @if(isset($isLateNotCheckedIn) && $isLateNotCheckedIn)
+                {{-- TANDA DANGER LINTAS HARI / ISTIRAHAT / TERLAMBAT / WAKTUNYA PULANG --}}
+                @if(isset($requiresCrossDayCheckout) && $requiresCrossDayCheckout && isset($openPreviousAttendance) && $openPreviousAttendance)
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-500 animate-pulse"></i>
+                        <span><strong>Perhatian:</strong> Anda tidak dapat melakukan Absen Masuk sebelum menyelesaikan Absen Pulang sesi tanggal {{ $openPreviousAttendance->date->translatedFormat('d M Y') }}.</span>
+                    </div>
+                @elseif(isset($isRestAfterOvertime) && $isRestAfterOvertime)
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                        <i class="fa-solid fa-bed text-indigo-500"></i>
+                        <span><strong>Istirahat Lembur:</strong> Anda tidak dapat melakukan Absen Masuk hari ini karena sedang masa istirahat wajib pasca menginap di station.</span>
+                    </div>
+                @elseif(isset($isLateNotCheckedIn) && $isLateNotCheckedIn)
                     <div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300">
                         <i class="fa-solid fa-triangle-exclamation text-rose-500 animate-pulse"></i>
                         <span><strong>Peringatan:</strong> Jam kerja Anda sudah dimulai ({{ $todaySchedule['scheduled_in'] ?? '--:--' }} WIB) dan Anda belum melakukan absen masuk (Terlambat).</span>
@@ -316,7 +338,7 @@
                 @endif
             </div>
 
-            @if(!is_null($user->schedule_type) && isset($todaySchedule['is_day_off']) && !$todaySchedule['is_day_off'])
+            @if(!is_null($user->schedule_type))
                 <div class="flex flex-wrap items-center gap-2">
                     {{-- Status / Tombol Rekam Wajah Biometrik --}}
                     @if(!empty($user->face_descriptor))
@@ -331,11 +353,27 @@
                         </button>
                     @endif
 
-                    @if(!$todayAttendance || !$todayAttendance->check_in)
-                        <button type="button" onclick="bukaModalAbsen('in')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Absen Masuk</span>
+                    @if(isset($requiresCrossDayCheckout) && $requiresCrossDayCheckout && isset($openPreviousAttendance) && $openPreviousAttendance)
+                        <button type="button" onclick="bukaModalAbsen('out')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Absen Pulang ({{ $openPreviousAttendance->date->format('d/m') }})</span>
                         </button>
+                    @elseif(isset($isRestAfterOvertime) && $isRestAfterOvertime)
+                        <span class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-2 px-4 rounded-xl border border-indigo-200 dark:border-indigo-700">
+                            <i class="fa-solid fa-bed mr-1"></i> Istirahat Lembur (Terkunci)
+                        </span>
+                    @elseif(!$todayAttendance || !$todayAttendance->check_in)
+                        @if(isset($todaySchedule['is_day_off']) && $todaySchedule['is_day_off'])
+                            <button type="button" onclick="bukaModalAbsen('in')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-briefcase"></i>
+                                <span>Absen Masuk (Jadwal OFF)</span>
+                            </button>
+                        @else
+                            <button type="button" onclick="bukaModalAbsen('in')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>Absen Masuk</span>
+                            </button>
+                        @endif
                     @elseif(!$todayAttendance->check_out)
                         <button type="button" onclick="bukaModalAbsen('out')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center space-x-2 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket"></i>
@@ -921,6 +959,41 @@
                     <div id="boxWarningStatus" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-300 text-xs flex items-start space-x-2.5">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
                         <span id="txtWarningMessage" class="leading-relaxed">Harap lengkapi alasan di bawah ini sebelum mengirim absensi.</span>
+                    </div>
+
+                    {{-- Pilihan Penyelesaian Absen Pulang Lintas Hari --}}
+                    <div id="wrapperCrossDayResolution" class="hidden space-y-2.5 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-exclamation text-rose-500"></i>
+                            <span>Konfirmasi Pulang Lintas Hari (<span id="txtCrossDayTargetDate">Kemarin</span>)</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                            Anda melakukan absen pulang tidak pada tanggal hari masuk sebelumnya. Pilih keterangan yang sesuai:
+                        </p>
+
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 cursor-pointer hover:border-sky-400 transition-colors">
+                                <input type="radio" name="cross_day_resolution" value="forgot_checkout" class="mt-0.5 text-sky-600 focus:ring-sky-500">
+                                <div class="text-xs">
+                                    <span class="font-bold text-slate-800 dark:text-slate-100 block">Kemarin Lupa Absen Pulang</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Menutup presensi kemarin. Anda tetap dapat melakukan Absen Masuk hari ini.</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 cursor-pointer hover:border-rose-400 transition-colors">
+                                <input type="radio" name="cross_day_resolution" value="overnight_overtime" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                                <div class="text-xs">
+                                    <span class="font-bold text-slate-800 dark:text-slate-100 block">Menginap (Lembur) di Station</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Tercatat sebagai lembur menginap di station pada sesi tersebut.</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="p-2.5 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-700/80 rounded-xl text-rose-800 dark:text-rose-200 text-[11px] flex items-start gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-rose-600 dark:text-rose-400 mt-0.5 shrink-0"></i>
+                            <span><strong>IMPORTANT:</strong> Jika memilih <strong>Menginap (Lembur)</strong>, maka Anda <strong>tidak bisa melakukan absen masuk hari ini</strong> karena harus beristirahat pada hari tersebut.</span>
+                        </div>
+                        <span id="errorCrossDayMsg" class="text-[11px] text-rose-600 dark:text-rose-400 hidden font-semibold">* Silakan pilih salah satu keterangan di atas!</span>
                     </div>
 
                     {{-- Input Alasan Khusus --}}
@@ -1803,6 +1876,9 @@
 
     const daftarStasiun = JSON.parse('{!! json_encode($daftarStasiun ?? []) !!}');
     const todaySchedule = JSON.parse('{!! json_encode($todaySchedule ?? []) !!}');
+    const requiresCrossDayCheckout = @json($requiresCrossDayCheckout ?? false);
+    const needsCrossDayResolution = @json($needsCrossDayResolution ?? false);
+    const openPreviousDate = @json(isset($openPreviousAttendance) && $openPreviousAttendance ? $openPreviousAttendance->date->translatedFormat('d M Y') : null);
     let userFaceDescriptor = {!! json_encode(auth()->user()->face_descriptor) !!};
 
     function hasValidFaceDescriptor(descriptor) {
@@ -1812,6 +1888,9 @@
     const FACE_API_MODEL_URL = '/models/face-api';
 
     function checkLateOrEarlyStatus(type) {
+        if (type === 'out' && requiresCrossDayCheckout) {
+            return false;
+        }
         const now = new Date();
         let isLate = false;
         if (todaySchedule && !todaySchedule.is_day_off) {
@@ -2581,13 +2660,25 @@
 
                         const type = document.getElementById('absen_type').value;
                         const isLate = checkLateOrEarlyStatus(type);
+                        const isOffCheckIn = (type === 'in' && todaySchedule && !!todaySchedule.is_day_off);
+                        const requiresCrossDayPopup = (type === 'out' && !!needsCrossDayResolution);
 
-                        // Evaluasi apakah terlambat atau di luar radius
-                        if (isLate || !isUserInRadius) {
-                            // Jeda auto-submit untuk memunculkan form alasan wajib & bukti
+                        // Evaluasi apakah terlambat/pulang awal, luar radius, masuk di hari OFF, atau pulang lintas hari
+                        if (isLate || !isUserInRadius || isOffCheckIn || requiresCrossDayPopup) {
+                            // Jeda auto-submit untuk memunculkan form konfirmasi / pilihan wajib
                             if (camStatus) {
+                                let statusAlasan = 'Konfirmasi Diperlukan';
+                                if (requiresCrossDayPopup) {
+                                    statusAlasan = 'Pulang Lintas Hari';
+                                } else if (isOffCheckIn) {
+                                    statusAlasan = 'Masuk Hari OFF';
+                                } else if (isLate) {
+                                    statusAlasan = 'Terlambat / Pulang Cepat';
+                                } else if (!isUserInRadius) {
+                                    statusAlasan = 'Di Luar Radius';
+                                }
                                 camStatus.className = "absolute bottom-3 left-4 right-4 bg-amber-600/90 backdrop-blur-md text-white text-[11px] sm:text-xs px-3.5 py-2 rounded-full z-20 text-center font-medium border border-amber-400/30 shadow-lg flex items-center justify-center gap-2 transition-all";
-                                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Hidup Terverifikasi! Anda ${isLate ? 'Terlambat / Pulang Cepat' : 'Di Luar Radius'}. Membuka form konfirmasi alasan...`;
+                                camStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Wajah Hidup Terverifikasi! ${statusAlasan}. Membuka form konfirmasi...`;
                             }
                             setTimeout(() => {
                                 verifikasiDanLanjut();
@@ -2719,8 +2810,39 @@
 
         isLateOrEarly = false;
         let warningText = "";
+        const isOffCheckIn = (type === 'in' && todaySchedule && !!todaySchedule.is_day_off);
+        const wrapperCrossDay = document.getElementById('wrapperCrossDayResolution');
+        const txtCrossDayDate = document.getElementById('txtCrossDayTargetDate');
+        const errorCrossDayMsg = document.getElementById('errorCrossDayMsg');
+        const labelAlasan = document.getElementById('labelAlasan');
+        const txtJamJadwal = document.getElementById('txtJamJadwal');
 
-        if (todaySchedule && !todaySchedule.is_day_off) {
+        if (errorCrossDayMsg) errorCrossDayMsg.classList.add('hidden');
+        document.querySelectorAll('input[name="cross_day_resolution"]').forEach(el => {
+            el.checked = false;
+        });
+
+        if (type === 'out' && needsCrossDayResolution) {
+            if (wrapperCrossDay) wrapperCrossDay.classList.remove('hidden');
+            if (txtCrossDayDate) txtCrossDayDate.innerText = openPreviousDate || 'Kemarin';
+            if (txtJamJadwal) txtJamJadwal.innerText = 'Pulang Lintas Hari (' + (openPreviousDate || 'Kemarin') + ')';
+        } else {
+            if (wrapperCrossDay) wrapperCrossDay.classList.add('hidden');
+            if (txtJamJadwal) {
+                txtJamJadwal.innerText = isOffCheckIn
+                    ? 'Jadwal OFF (Masuk Tambahan)'
+                    : ((todaySchedule?.scheduled_in || '--:--') + ' - ' + (todaySchedule?.scheduled_out || '--:--') + ' WIB');
+            }
+        }
+
+        if (isOffCheckIn) {
+            warningText += "Anda melakukan Absen Masuk pada Jadwal OFF (Libur). Wajib menuliskan keterangan alasan kerja hari libur untuk pencatatan kehadiran dan uang makan. ";
+            if (labelAlasan) labelAlasan.innerText = "Keterangan Masuk Hari OFF (Wajib untuk Uang Makan):";
+        } else if (labelAlasan) {
+            labelAlasan.innerText = "Alasan Khusus / Keterangan:";
+        }
+
+        if (!(type === 'out' && requiresCrossDayCheckout) && todaySchedule && !todaySchedule.is_day_off) {
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
             if (type === 'in' && todaySchedule.scheduled_in) {
@@ -2762,7 +2884,7 @@
         const txtWarningMessage = document.getElementById('txtWarningMessage');
         const inputAlasan = document.getElementById('inputAlasan');
 
-        if (!isUserInRadius || isLateOrEarly) {
+        if (!isUserInRadius || isLateOrEarly || isOffCheckIn) {
             boxWarning.classList.remove('hidden');
             txtWarningMessage.innerText = warningText + "Harap lengkapi alasan wajib di bawah ini sebelum mengirim absensi.";
             inputAlasan.required = true;
@@ -2800,7 +2922,17 @@
         if (video) video.srcObject = null;
 
         const inputAlasan = document.getElementById('inputAlasan');
-        if (inputAlasan) inputAlasan.value = '';
+        if (inputAlasan) {
+            inputAlasan.value = '';
+            inputAlasan.required = false;
+        }
+        const errorAlasanMsg = document.getElementById('errorAlasanMsg');
+        if (errorAlasanMsg) errorAlasanMsg.classList.add('hidden');
+        const errorCrossDayMsg = document.getElementById('errorCrossDayMsg');
+        if (errorCrossDayMsg) errorCrossDayMsg.classList.add('hidden');
+        document.querySelectorAll('input[name="cross_day_resolution"]').forEach(el => {
+            el.checked = false;
+        });
 
         setBtnLanjutState(false);
 
@@ -2907,6 +3039,21 @@
 
         const inputAlasan = document.getElementById('inputAlasan');
         const errorAlasanMsg = document.getElementById('errorAlasanMsg');
+        const type = document.getElementById('absen_type').value || 'in';
+
+        // Validasi pilihan wajib absen pulang lintas hari (Lupa Absen vs Menginap Lembur)
+        const errorCrossDayMsg = document.getElementById('errorCrossDayMsg');
+        let selectedCrossDay = null;
+        if (type === 'out' && needsCrossDayResolution) {
+            selectedCrossDay = document.querySelector('input[name="cross_day_resolution"]:checked')?.value || null;
+            if (!selectedCrossDay) {
+                if (errorCrossDayMsg) errorCrossDayMsg.classList.remove('hidden');
+                const wrapperCrossDay = document.getElementById('wrapperCrossDayResolution');
+                if (wrapperCrossDay) wrapperCrossDay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+        }
+        if (errorCrossDayMsg) errorCrossDayMsg.classList.add('hidden');
 
         if (inputAlasan && inputAlasan.required && inputAlasan.value.trim() === '') {
             if (errorAlasanMsg) errorAlasanMsg.classList.remove('hidden');
@@ -2921,7 +3068,6 @@
             btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengirim Presensi...`;
         }
 
-        const type = document.getElementById('absen_type').value || 'in';
         const url = type === 'in' ? '/attendance/check-in' : '/attendance/check-out';
 
         const reasonValue = inputAlasan ? inputAlasan.value : '';
@@ -2937,6 +3083,9 @@
         formData.append('is_liveness_verified', isLivenessPassed ? '1' : '0');
         if (latestCameraFaceDescriptor && latestCameraFaceDescriptor.length === 128) {
             formData.append('face_descriptor', JSON.stringify(latestCameraFaceDescriptor));
+        }
+        if (selectedCrossDay) {
+            formData.append('cross_day_resolution', selectedCrossDay);
         }
         formData.append('reason', reasonValue);
         formData.append('reason_out_of_radius', reasonValue);

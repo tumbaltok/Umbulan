@@ -371,8 +371,14 @@ class AbsensiAdminController extends Controller
                 $stationName = $item->user->station->name ?? 'Pusat';
 
                 $statusMasuk = '-';
-                if ($item->check_in) {
-                    $statusMasuk = $item->is_late ? 'Terlambat' : 'Tepat Waktu';
+                if ($item->is_rest_after_overtime) {
+                    $statusMasuk = 'Istirahat Pasca Lembur Menginap';
+                } elseif ($item->check_in) {
+                    if ($item->is_off_day_work) {
+                        $statusMasuk = 'Masuk Hari OFF (Uang Makan)';
+                    } else {
+                        $statusMasuk = $item->is_late ? 'Terlambat' : 'Tepat Waktu';
+                    }
                 }
 
                 $radiusMasuk = '-';
@@ -384,7 +390,13 @@ class AbsensiAdminController extends Controller
 
                 $statusPulang = '-';
                 if ($item->check_out) {
-                    $statusPulang = $item->is_early_checkout ? 'Pulang Cepat' : 'Normal';
+                    if ($item->checkout_type === 'forgot_checkout') {
+                        $statusPulang = 'Lupa Absen Pulang';
+                    } elseif ($item->checkout_type === 'overnight_overtime') {
+                        $statusPulang = 'Menginap (Lembur Station)';
+                    } else {
+                        $statusPulang = $item->is_early_checkout ? 'Pulang Cepat' : 'Normal';
+                    }
                 }
 
                 $radiusPulang = '-';
