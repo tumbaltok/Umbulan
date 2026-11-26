@@ -4,12 +4,19 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
+$mainDomain = strtolower((string) config('app.main_domain', 'umbulan.site'));
+$portalDomain = strtolower((string) config('app.portal_domain', 'karyawan.umbulan.site'));
+
+// Simulasikan request pada domain utama agar link Portal Karyawan mengarah ke subdomain portal produksi
+$app->instance('request', \Illuminate\Http\Request::create("https://{$mainDomain}/"));
+
 $html = view('welcome')->render();
 
-// Normalisasi asset path menjadi relative path untuk static hosting
+// Normalisasi asset path & tautan portal untuk static hosting Vercel
 $html = str_replace(rtrim(asset('images'), '/') . '/', 'images/', $html);
 $html = preg_replace('#https?://[^/]+/images/#', 'images/', $html);
 $html = str_replace('images//', 'images/', $html);
+$html = str_replace(["http://localhost/login", "https://localhost/login"], "https://{$portalDomain}/login", $html);
 
 // Buat direktori landing-vercel dan images jika belum ada
 $outputDir = __DIR__ . '/../landing-vercel';
@@ -28,6 +35,7 @@ file_put_contents($outputDir . '/index.html', $html);
 // Salin gambar yang diperlukan
 $images = [
     'iconfav.png',
+    'spam_umbulan_facility.jpg',
     'uji.jpeg',
     'tbm.jpeg',
     'umbulan.jpg',
