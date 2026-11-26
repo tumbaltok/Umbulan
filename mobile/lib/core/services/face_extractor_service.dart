@@ -10,15 +10,22 @@ import 'package:webview_flutter/webview_flutter.dart';
 class FaceDescriptorExtractorService {
   HttpServer? _server;
   WebViewController? _controller;
+  final ValueNotifier<WebViewController?> _controllerNotifier =
+      ValueNotifier<WebViewController?>(null);
   bool _isReady = false;
   Completer<void>? _readyCompleter;
   final Map<String, Completer<List<double>>> _pending = {};
 
   Future<void> ensureInitialized() async {
-    if (_controller != null && _readyCompleter != null) {
+    if (_controller != null && _readyCompleter != null && _isReady) {
+      return _readyCompleter!.future;
+    }
+    if (_controller != null && _readyCompleter != null && !_readyCompleter!.isCompleted) {
       return _readyCompleter!.future;
     }
 
+    await _server?.close(force: true);
+    _isReady = false;
     _readyCompleter = Completer<void>();
     _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final port = _server!.port;
@@ -104,24 +111,34 @@ class FaceDescriptorExtractorService {
       },
     );
 
-    await ctrl.loadRequest(Uri.parse('http://127.0.0.1:$port/extractor.html'));
     _controller = ctrl;
+    _controllerNotifier.value = ctrl;
+    await ctrl.loadRequest(Uri.parse('http://127.0.0.1:$port/extractor.html'));
     return _readyCompleter!.future.timeout(
       const Duration(seconds: 30),
-      onTimeout: () => throw TimeoutException('Model wajah memerlukan waktu terlalu lama.'),
+      onTimeout: () {
+        _controller = null;
+        _controllerNotifier.value = null;
+        throw TimeoutException('Model wajah memerlukan waktu terlalu lama.');
+      },
     );
   }
 
   /// Widget offstage berukuran 1x1 agar engine JS WebView dapat mengekstrak vektor wajah.
   Widget buildOffstageHost() {
-    if (_controller == null) return const SizedBox.shrink();
-    return SizedBox(
-      width: 1,
-      height: 1,
-      child: Opacity(
-        opacity: 0.01,
-        child: WebViewWidget(controller: _controller!),
-      ),
+    return ValueListenableBuilder<WebViewController?>(
+      valueListenable: _controllerNotifier,
+      builder: (_, ctrl, _) {
+        if (ctrl == null) return const SizedBox.shrink();
+        return SizedBox(
+          width: 1,
+          height: 1,
+          child: Opacity(
+            opacity: 0.01,
+            child: WebViewWidget(controller: ctrl),
+          ),
+        );
+      },
     );
   }
 
@@ -149,6 +166,8 @@ class FaceDescriptorExtractorService {
     await _server?.close(force: true);
     _server = null;
     _controller = null;
+    _controllerNotifier.value = null;
+    _controllerNotifier.dispose();
     _isReady = false;
   }
 }
