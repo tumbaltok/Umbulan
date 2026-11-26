@@ -32,9 +32,24 @@
 
   <br>
 
-  <img src="public/images/water_transmission_hero.jpg" alt="Infrastruktur Transmisi SPAM Regional Umbulan" width="820">
+  <table>
+    <tr>
+      <td align="center" width="33%">
+        <img src="public/images/spam_umbulan_facility.jpg" alt="Jaringan Transmisi & Surge Tank SPAM Umbulan" height="190"><br>
+        <sub><strong>Transmisi Air Bersih 97 Km</strong><br>Pipa Utama &amp; Surge Tank (Dok. PT PII)</sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="public/images/booster.jpeg" alt="Stasiun Pompa Booster PT META Adhya Tirta Umbulan" height="190"><br>
+        <sub><strong>4 Stasiun Utama / Booster</strong><br>Rumah Pompa Operasional 24/7</sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="public/images/pdam.webp" alt="Reservoir dan Rumah Meter Offtake SPAM Umbulan" height="190"><br>
+        <sub><strong>18 Rumah Meter Offtake</strong><br>Pasuruan &ndash; Sidoarjo &ndash; Surabaya &ndash; Gresik</sub>
+      </td>
+    </tr>
+  </table>
   <p>
-    <sub><em>Jaringan Transmisi Air Bersih 97 Km (Pasuruan &ndash; Gresik) &bull; 4 Stasiun Utama/Kantor &bull; 18 Rumah Meter Offtake</em></sub>
+    <sub><em>Dokumentasi asli fasilitas operasional <strong>PT META Adhya Tirta Umbulan</strong> (KPBU SPAM Regional Umbulan &ndash; 4.000 L/detik)</em></sub>
   </p>
 </div>
 
