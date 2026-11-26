@@ -14,10 +14,10 @@
     <img src="https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 13">
     <img src="https://img.shields.io/badge/PHP-%5E8.3-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.3">
     <img src="https://img.shields.io/badge/Flutter-Android%20%26%20iOS-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter Mobile">
-    <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4"><br>
     <img src="https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8">
-    <img src="https://img.shields.io/badge/Biometrics-128--Vektor%20%2B%20Liveness-00ADD8?style=for-the-badge&logo=webgl&logoColor=white" alt="Face Biometrics">
-    <img src="https://img.shields.io/badge/Push%20Notif-Firebase%20FCM-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase FCM">
+    <img src="https://img.shields.io/badge/Face_Biometrics-128_Vektor-00ADD8?style=for-the-badge&logo=tensorflow&logoColor=white" alt="Face Biometrics">
+    <img src="https://img.shields.io/badge/Firebase-FCM_Push-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase FCM">
   </p>
 
   <p>
@@ -40,7 +40,7 @@
       </td>
       <td align="center" width="33%">
         <img src="public/images/booster.jpeg" alt="Stasiun Pompa Booster PT META Adhya Tirta Umbulan" height="190"><br>
-        <sub><strong>4 Stasiun Utama / Booster</strong><br>Rumah Pompa Operasional 24/7</sub>
+        <sub><strong>2 Stasiun Utama / Booster</strong><br>Rumah Pompa Operasional 24/7</sub>
       </td>
       <td align="center" width="33%">
         <img src="public/images/pdam.webp" alt="Reservoir dan Rumah Meter Offtake SPAM Umbulan" height="190"><br>
