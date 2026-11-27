@@ -155,15 +155,6 @@
 </head>
 <body class="font-sans text-slate-800 antialiased bg-white flex flex-col min-h-screen selection:bg-sky-100 selection:text-sky-900">
 
-    @php
-        $currentHost = strtolower(request()->getHost());
-        $mainDom = strtolower((string) config('app.main_domain', 'umbulan.site'));
-        $portalDom = strtolower((string) config('app.portal_domain', 'karyawan.umbulan.site'));
-        $portalLoginUrl = ($currentHost === $mainDom || $currentHost === 'www.' . $mainDom)
-            ? request()->getScheme() . '://' . $portalDom . '/login'
-            : route('login');
-    @endphp
-
     {{-- ======================================================== --}}
     {{-- HEADER / NAVBAR GLASSMODERN                              --}}
     {{-- ======================================================== --}}
@@ -197,14 +188,6 @@
                 <a href="#about-kami" class="hover:text-blue-600 transition py-1">Tentang Proyek</a>
                 <a href="#titik-distribusi" class="hover:text-blue-600 transition py-1">Wilayah Layanan</a>
             </nav>
-
-            <div class="h-5 w-px bg-slate-200"></div>
-
-            <a href="{{ $portalLoginUrl }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all">
-                <i class="fa-solid fa-right-to-bracket"></i>
-                <span>Portal Karyawan</span>
-            </a>
         </div>
 
         <button id="mobile-menu-btn" class="md:hidden p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-blue-600 border border-slate-200/80 transition focus:outline-none" aria-label="Toggle Menu">
@@ -241,12 +224,7 @@
                 </nav>
             </div>
             <div class="pt-4 border-t border-slate-100">
-                <a href="{{ $portalLoginUrl }}"
-                   class="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white text-sm font-bold shadow-md shadow-blue-600/20 transition">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Portal Karyawan</span>
-                </a>
-                <p class="text-[11px] text-slate-400 text-center mt-3">PT. Meta Adhya Tirta Umbulan</p>
+                <p class="text-[11px] text-slate-400 text-center">PT. Meta Adhya Tirta Umbulan</p>
             </div>
         </div>
     </div>
@@ -922,15 +900,11 @@
             </div>
 
             <div class="space-y-3">
-                <h4 class="text-white text-xs font-bold uppercase tracking-wider">Layanan &amp; Akses Staf</h4>
+                <h4 class="text-white text-xs font-bold uppercase tracking-wider">Kapasitas &amp; Operasi</h4>
                 <ul class="space-y-2.5 text-xs">
                     <li class="flex justify-between"><span>Operasional:</span> <span class="text-sky-400 font-bold">24 Jam Nonstop</span></li>
                     <li class="flex justify-between"><span>Monitoring Pipa:</span> <span class="text-sky-400 font-bold">18 Stasiun Online</span></li>
-                    <li class="pt-1">
-                        <a href="{{ $portalLoginUrl }}" class="inline-flex items-center gap-1.5 text-sky-400 hover:text-sky-300 font-bold transition">
-                            <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> Masuk Portal Karyawan
-                        </a>
-                    </li>
+                    <li class="flex justify-between"><span>Kapasitas Desain:</span> <span class="text-sky-400 font-bold">4.000 L/Detik</span></li>
                 </ul>
             </div>
         </div>

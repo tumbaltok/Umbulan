@@ -5,18 +5,16 @@ $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 $mainDomain = strtolower((string) config('app.main_domain', 'umbulan.site'));
-$portalDomain = strtolower((string) config('app.portal_domain', 'karyawan.umbulan.site'));
 
-// Simulasikan request pada domain utama agar link Portal Karyawan mengarah ke subdomain portal produksi
+// Simulasikan request pada domain utama publik untuk render landing portofolio
 $app->instance('request', \Illuminate\Http\Request::create("https://{$mainDomain}/"));
 
 $html = view('welcome')->render();
 
-// Normalisasi asset path & tautan portal untuk static hosting Vercel
+// Normalisasi asset path untuk static hosting Vercel
 $html = str_replace(rtrim(asset('images'), '/') . '/', 'images/', $html);
 $html = preg_replace('#https?://[^/]+/images/#', 'images/', $html);
 $html = str_replace('images//', 'images/', $html);
-$html = str_replace(["http://localhost/login", "https://localhost/login"], "https://{$portalDomain}/login", $html);
 
 // Buat direktori landing-vercel dan images jika belum ada
 $outputDir = __DIR__ . '/../landing-vercel';

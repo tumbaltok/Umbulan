@@ -15,7 +15,8 @@ class SubdomainRoutingTest extends TestCase
     {
         $this->get('https://umbulan.site/')
             ->assertStatus(200)
-            ->assertSee('https://karyawan.umbulan.site/login');
+            ->assertDontSee('/login')
+            ->assertDontSee('Portal Karyawan');
 
         $this->get('https://umbulan.site/login')
             ->assertStatus(302)
