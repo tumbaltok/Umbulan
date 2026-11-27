@@ -5,8 +5,10 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/screens/email_otp_screen.dart';
 import '../../common/widgets/readiness_banner.dart';
+import '../../common/widgets/ui_kit.dart';
 import '../../onboarding/screens/schedule_screen.dart';
 import '../../onboarding/screens/signature_screen.dart';
+import '../../submissions/screens/submission_forms.dart';
 import 'calendar_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -71,6 +73,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final schedule = (_data['today_schedule'] as Map<String, dynamic>?) ?? {};
     final leaveBalance = (_data['leave_balance'] as Map<String, dynamic>?) ?? {};
+    final sisaCuti = (leaveBalance['sisa_cuti_tahunan'] as num?)?.toInt() ?? 0;
+    final hakCuti = (leaveBalance['kuota_tahunan'] as num?)?.toInt() ?? 12;
+    final rasioSisa = hakCuti > 0 ? (sisaCuti / hakCuti).clamp(0.0, 1.0) : 0.0;
+    final isDayOff = schedule['is_day_off'] == true;
+
+    final hour = DateTime.now().hour;
+    final greeting = hour < 11
+        ? 'Selamat Pagi'
+        : (hour < 15 ? 'Selamat Siang' : (hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -78,44 +89,96 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await _loadDashboard();
       },
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          // Header Profil Singkat
+          // Hero Profil & Status Ringkas
           Container(
-            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppTheme.primary, AppTheme.primaryDark],
+                colors: [AppTheme.primaryDark, AppTheme.primary, Color(0xFF0284C7)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withValues(alpha: 0.22),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Text(
-                  'Halo, ${user.name}',
-                  style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${user.station?.name ?? 'Stasiun Kerja'} • ${user.roleNames.join(', ')}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    _QuickBadge(
-                      label: user.scheduleType == 'roster' ? 'Sistem Roster' : 'Jadwal Normal',
-                      icon: Icons.calendar_today,
+                Positioned(
+                  right: -28,
+                  top: -28,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 10),
-                    _QuickBadge(
-                      label: user.isAccountComplete ? 'Akun Siap' : 'Lengkapi Profil',
-                      icon: user.isAccountComplete ? Icons.verified_user : Icons.pending_actions,
+                  ),
+                ),
+                Positioned(
+                  right: 28,
+                  bottom: -36,
+                  child: Container(
+                    width: 88,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        greeting,
+                        style: TextStyle(
+                          color: const Color(0xFFBAE6FD).withValues(alpha: 0.95),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        user.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${user.station?.name ?? 'Stasiun Kerja'} • ${user.roleNames.join(', ')}',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12.5),
+                      ),
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _QuickBadge(
+                            label: user.scheduleType == 'roster' ? 'Sistem Roster' : 'Jadwal Normal',
+                            icon: Icons.calendar_today_rounded,
+                          ),
+                          _QuickBadge(
+                            label: user.isAccountComplete ? 'Akun Siap' : 'Lengkapi Profil',
+                            icon: user.isAccountComplete ? Icons.verified_user_rounded : Icons.pending_actions_rounded,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -135,15 +198,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: const Color(0xFFFEF2F2),
               child: Padding(
                 padding: const EdgeInsets.all(14),
-                child: Text(_error!, style: const TextStyle(color: AppTheme.danger)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: AppTheme.danger, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(_error!, style: const TextStyle(color: AppTheme.danger, fontSize: 13))),
+                  ],
+                ),
               ),
             )
           else if (_loading && _data.isEmpty)
             const Padding(
-              padding: EdgeInsets.all(32),
+              padding: EdgeInsets.all(36),
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
+            // Aksi Cepat Layanan
+            const UmbulanSectionHeader(
+              title: 'Layanan Cepat',
+              subtitle: 'Buat pengajuan atau pantau kalender shift Anda',
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickServiceButton(
+                    icon: Icons.event_available_rounded,
+                    label: 'Cuti',
+                    color: AppTheme.primary,
+                    onTap: () => user.isAccountComplete
+                        ? _openAndReload(const CreateCutiScreen())
+                        : widget.onGoToSubmissions(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _QuickServiceButton(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'CAR',
+                    color: AppTheme.teal,
+                    onTap: () => user.isAccountComplete
+                        ? _openAndReload(const CreateCarScreen())
+                        : widget.onGoToSubmissions(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _QuickServiceButton(
+                    icon: Icons.inventory_2_rounded,
+                    label: 'MPR',
+                    color: AppTheme.indigo,
+                    onTap: () => user.isAccountComplete
+                        ? _openAndReload(const CreateMprScreen())
+                        : widget.onGoToSubmissions(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _QuickServiceButton(
+                    icon: Icons.calendar_month_rounded,
+                    label: 'Kalender',
+                    color: AppTheme.accent,
+                    onTap: () => _openAndReload(const CalendarHistoryScreen()),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Kartu Jadwal Kerja Hari Ini
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -152,27 +275,91 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.access_time_filled, color: AppTheme.primary),
-                        const SizedBox(width: 8),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: (isDayOff ? AppTheme.danger : AppTheme.primary).withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            isDayOff ? Icons.weekend_rounded : Icons.access_time_filled_rounded,
+                            color: isDayOff ? AppTheme.danger : AppTheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'JADWAL HARI INI',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                schedule['shift_name']?.toString() ?? 'Jadwal Kerja',
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, color: AppTheme.textPrimary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: (isDayOff ? AppTheme.danger : AppTheme.success).withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
                           child: Text(
-                            schedule['shift_name']?.toString() ?? 'Jadwal Kerja',
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                            isDayOff ? 'Libur (OFF)' : 'Aktif',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: isDayOff ? AppTheme.danger : AppTheme.success,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      schedule['is_day_off'] == true
-                          ? 'Status hari ini: Libur Kerja (OFF).'
-                          : 'Jam Kerja: ${schedule['scheduled_in'] ?? '-'} s/d ${schedule['scheduled_out'] ?? '-'} WIB',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 13,
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.border),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isDayOff ? Icons.beach_access_outlined : Icons.schedule_rounded,
+                            size: 16,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              isDayOff
+                                  ? 'Hari ini Anda terjadwal libur kerja.'
+                                  : 'Jam Operasional: ${schedule['scheduled_in'] ?? '-'} – ${schedule['scheduled_out'] ?? '-'} WIB',
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
@@ -206,11 +393,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Sisa Cuti Tahunan', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Sisa Cuti Tahunan',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                                ),
+                              ),
+                              Icon(Icons.pie_chart_outline_rounded, size: 16, color: AppTheme.primary.withValues(alpha: 0.7)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           Text(
-                            '${leaveBalance['sisa_cuti_tahunan'] ?? 0} Hari',
+                            '$sisaCuti Hari',
                             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(99),
+                            child: LinearProgressIndicator(
+                              value: rasioSisa,
+                              minHeight: 5,
+                              backgroundColor: AppTheme.border,
+                              valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
+                            ),
                           ),
                         ],
                       ),
@@ -222,20 +429,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Card(
                     child: InkWell(
                       onTap: () => _openAndReload(const CalendarHistoryScreen()),
-                      borderRadius: BorderRadius.circular(16),
-                      child: const Padding(
-                        padding: EdgeInsets.all(16),
+                      borderRadius: BorderRadius.circular(18),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Kalender & Cuti', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                            SizedBox(height: 6),
                             Row(
                               children: [
-                                Text('Lihat Jadwal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accent)),
-                                Spacer(),
-                                Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.accent),
+                                const Expanded(
+                                  child: Text(
+                                    'Kalender & Cuti',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                                  ),
+                                ),
+                                Icon(Icons.calendar_today_outlined, size: 15, color: AppTheme.accent.withValues(alpha: 0.85)),
                               ],
+                            ),
+                            const SizedBox(height: 8),
+                            const Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Lihat Jadwal',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accent),
+                                  ),
+                                ),
+                                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.accent),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Shift & hari libur',
+                              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                             ),
                           ],
                         ),
@@ -247,6 +473,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _QuickServiceButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickServiceButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.11),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -13,10 +13,10 @@
                     <span>Dashboard</span>
                 </a>
                 <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 dark:text-slate-600"></i>
-                <span class="text-sky-600 dark:text-sky-400 font-bold">Riwayat CAR</span>
+                <span class="text-teal-600 dark:text-teal-400 font-bold">Riwayat CAR</span>
             </nav>
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-sky-600 bg-gradient-to-r from-sky-600 to-cyan-600 dark:from-sky-500 dark:to-cyan-500 flex items-center justify-center text-white shadow-md shadow-sky-600/25 shrink-0">
+                <div class="w-11 h-11 rounded-2xl bg-teal-600 bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-500 dark:to-cyan-500 flex items-center justify-center text-white shadow-md shadow-teal-600/25 shrink-0">
                     <i class="fa-solid fa-file-invoice-dollar text-lg text-white"></i>
                 </div>
                 <div>
@@ -33,7 +33,7 @@
         {{-- QUICK ACTION BUTTON --}}
         <div class="flex items-center gap-2 self-start sm:self-center">
             <a href="{{ route('car.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/25 hover:shadow-lg hover:shadow-sky-600/35 active:scale-95 group cursor-pointer">
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/25 hover:shadow-lg hover:shadow-teal-600/35 active:scale-95 group cursor-pointer">
                 <i class="fa-solid fa-plus text-xs text-white group-hover:rotate-90 transition-transform duration-200"></i>
                 <span class="text-white">Ajukan CAR Baru</span>
             </a>

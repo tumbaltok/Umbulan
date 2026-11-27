@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../common/widgets/ui_kit.dart';
 import 'submission_forms.dart';
 
 class SubmissionsScreen extends StatefulWidget {
@@ -151,26 +152,35 @@ class _SubmissionsScreenState extends State<SubmissionsScreen>
                         controller: _tabCtrl,
                         children: [
                           _SubmissionList(
+                            module: 'cuti',
                             items: _cutis,
-                            emptyText: 'Belum ada pengajuan Cuti.',
+                            emptyTitle: 'Belum Ada Pengajuan Cuti',
+                            emptySubtitle: 'Permohonan cuti tahunan atau izin kerja Anda akan muncul di sini.',
                             titleBuilder: (e) => (e['jenis_cuti']?['name_cuti'] ?? 'Cuti').toString(),
                             subtitleBuilder: (e) =>
-                                '${e['tanggal_mulai']?.toString().substring(0, 10) ?? ''} s/d ${e['tanggal_selesai']?.toString().substring(0, 10) ?? ''} (${e['total_hari']} hari)\n${e['alasan_cuti'] ?? ''}',
+                                '${_shortDate(e['tanggal_mulai'])} s/d ${_shortDate(e['tanggal_selesai'])} (${e['total_hari'] ?? '-'} hari)\n${e['alasan_cuti'] ?? ''}',
                             onRefresh: _loadAll,
+                            onCreateTap: _openCreateForm,
                           ),
                           _SubmissionList(
+                            module: 'car',
                             items: _cars,
-                            emptyText: 'Belum ada pengajuan CAR.',
+                            emptyTitle: 'Belum Ada Pengajuan CAR',
+                            emptySubtitle: 'Ajukan kasbon atau dana muka operasional melalui tombol di bawah.',
                             titleBuilder: (e) => (e['nomor_car'] ?? 'CAR').toString(),
                             subtitleBuilder: (e) => '${e['alasan_pembelian'] ?? ''}',
                             onRefresh: _loadAll,
+                            onCreateTap: _openCreateForm,
                           ),
                           _SubmissionList(
+                            module: 'mpr',
                             items: _mprs,
-                            emptyText: 'Belum ada pengajuan MPR.',
-                            titleBuilder: (e) => '${e['nomor_mpr'] ?? 'MPR'} (${e['priority'] ?? 'Normal'})',
+                            emptyTitle: 'Belum Ada Pengajuan MPR',
+                            emptySubtitle: 'Permintaan pengadaan barang atau sparepart teknik akan tercatat di sini.',
+                            titleBuilder: (e) => '${e['nomor_mpr'] ?? 'MPR'} • ${e['priority'] ?? 'Normal'}',
                             subtitleBuilder: (e) => '${e['keperluan_urgensi'] ?? ''}',
                             onRefresh: _loadAll,
+                            onCreateTap: _openCreateForm,
                           ),
                         ],
                       ),
@@ -181,80 +191,335 @@ class _SubmissionsScreenState extends State<SubmissionsScreen>
         onPressed: _openCreateForm,
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Ajukan'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Ajukan', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
     );
   }
 }
 
-class _SubmissionList extends StatelessWidget {
+String _shortDate(dynamic value) {
+  final raw = value?.toString() ?? '';
+  return raw.length >= 10 ? raw.substring(0, 10) : (raw.isEmpty ? '-' : raw);
+}
+
+class _SubmissionList extends StatefulWidget {
+  final String module;
   final List<Map<String, dynamic>> items;
-  final String emptyText;
+  final String emptyTitle;
+  final String emptySubtitle;
   final String Function(Map<String, dynamic>) titleBuilder;
   final String Function(Map<String, dynamic>) subtitleBuilder;
   final Future<void> Function() onRefresh;
+  final VoidCallback onCreateTap;
 
   const _SubmissionList({
+    required this.module,
     required this.items,
-    required this.emptyText,
+    required this.emptyTitle,
+    required this.emptySubtitle,
     required this.titleBuilder,
     required this.subtitleBuilder,
     required this.onRefresh,
+    required this.onCreateTap,
+  });
+
+  @override
+  State<_SubmissionList> createState() => _SubmissionListState();
+}
+
+class _SubmissionListState extends State<_SubmissionList> {
+  String _filter = 'all';
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = widget.items.where((e) {
+      if (_filter == 'all') return true;
+      final st = (e['status_akhir'] ?? 'pending').toString().toLowerCase();
+      return st == _filter;
+    }).toList();
+
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: widget.items.isEmpty
+          ? ListView(
+              children: [
+                const SizedBox(height: 40),
+                UmbulanEmptyState(
+                  icon: widget.module == 'car'
+                      ? Icons.receipt_long_rounded
+                      : (widget.module == 'mpr' ? Icons.inventory_2_rounded : Icons.event_available_rounded),
+                  title: widget.emptyTitle,
+                  subtitle: widget.emptySubtitle,
+                  actionLabel: 'Ajukan Sekarang',
+                  onAction: widget.onCreateTap,
+                ),
+              ],
+            )
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChipButton(
+                        label: 'Semua (${widget.items.length})',
+                        selected: _filter == 'all',
+                        onTap: () => setState(() => _filter = 'all'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChipButton(
+                        label: 'Menunggu',
+                        selected: _filter == 'pending',
+                        onTap: () => setState(() => _filter = 'pending'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChipButton(
+                        label: 'Disetujui',
+                        selected: _filter == 'approved',
+                        onTap: () => setState(() => _filter = 'approved'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChipButton(
+                        label: 'Ditolak',
+                        selected: _filter == 'rejected',
+                        onTap: () => setState(() => _filter = 'rejected'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (filtered.isEmpty)
+                  const Card(
+                    child: UmbulanEmptyState(
+                      icon: Icons.filter_list_off_rounded,
+                      title: 'Tidak Ada Data Sesuai Filter',
+                      subtitle: 'Coba pilih status lain untuk melihat daftar pengajuan Anda.',
+                    ),
+                  )
+                else
+                  ...filtered.map((e) {
+                    final status = (e['status_akhir'] ?? 'pending').toString().toLowerCase();
+                    final rejectNote = e['catatan_penolakan']?.toString() ?? '';
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => _showSubmissionDetail(context, widget.module, e),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  UmbulanModuleBadge(module: widget.module),
+                                  const Spacer(),
+                                  UmbulanStatusBadge(status: status),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                widget.titleBuilder(e),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.subtitleBuilder(e),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  height: 1.4,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              if (status == 'rejected' && rejectNote.isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFFECACA)),
+                                  ),
+                                  child: Text(
+                                    'Alasan penolakan: $rejectNote',
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.danger,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+              ],
+            ),
+    );
+  }
+
+  void _showSubmissionDetail(BuildContext context, String module, Map<String, dynamic> data) {
+    final status = (data['status_akhir'] ?? 'pending').toString();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.border,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  UmbulanModuleBadge(module: module),
+                  const Spacer(),
+                  UmbulanStatusBadge(status: status),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.titleBuilder(data),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Text(
+                  widget.subtitleBuilder(data),
+                  style: const TextStyle(fontSize: 13.5, height: 1.45, color: AppTheme.textPrimary),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StageBox(
+                      title: 'Tahap 1',
+                      value: (data['status_tahap_1'] ?? 'pending').toString(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _StageBox(
+                      title: 'Tahap 2',
+                      value: (data['status_tahap_2'] ?? 'pending').toString(),
+                    ),
+                  ),
+                ],
+              ),
+              if ((data['catatan_penolakan'] ?? '').toString().isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Catatan Penolakan: ${data['catatan_penolakan']}',
+                  style: const TextStyle(fontSize: 12.5, color: AppTheme.danger, fontWeight: FontWeight.w600),
+                ),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Tutup'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChipButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: items.isEmpty
-          ? ListView(
-              children: [
-                const SizedBox(height: 100),
-                Text(emptyText, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textSecondary)),
-              ],
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 84),
-              itemCount: items.length,
-              itemBuilder: (_, idx) {
-                final e = items[idx];
-                final status = (e['status_akhir'] ?? 'pending').toString().toLowerCase();
-                final color = status == 'approved'
-                    ? AppTheme.success
-                    : (status == 'rejected' ? AppTheme.danger : AppTheme.warning);
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            titleBuilder(e),
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            status.toUpperCase(),
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(subtitleBuilder(e), style: const TextStyle(fontSize: 12.5)),
-                    ),
-                  ),
-                );
-              },
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primary : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: selected ? AppTheme.primary : AppTheme.border),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : AppTheme.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StageBox extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _StageBox({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          UmbulanStatusBadge(status: value),
+        ],
+      ),
     );
   }
 }

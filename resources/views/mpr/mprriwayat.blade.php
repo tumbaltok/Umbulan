@@ -13,10 +13,10 @@
                     <span>Dashboard</span>
                 </a>
                 <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 dark:text-slate-600"></i>
-                <span class="text-sky-600 dark:text-sky-400 font-bold">Riwayat MPR</span>
+                <span class="text-indigo-600 dark:text-indigo-400 font-bold">Riwayat MPR</span>
             </nav>
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-sky-600 bg-gradient-to-r from-sky-600 to-cyan-600 dark:from-sky-500 dark:to-cyan-500 flex items-center justify-center text-white shadow-md shadow-sky-600/25 shrink-0">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-600 bg-gradient-to-r from-indigo-600 to-sky-600 dark:from-indigo-500 dark:to-sky-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/25 shrink-0">
                     <i class="fa-solid fa-boxes-packing text-lg text-white"></i>
                 </div>
                 <div>
@@ -33,7 +33,7 @@
         {{-- QUICK ACTION BUTTON --}}
         <div class="flex items-center gap-2 self-start sm:self-center">
             <a href="{{ route('mpr.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/25 hover:shadow-lg hover:shadow-sky-600/35 active:scale-95 group cursor-pointer">
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/35 active:scale-95 group cursor-pointer">
                 <i class="fa-solid fa-plus text-xs text-white group-hover:rotate-90 transition-transform duration-200"></i>
                 <span class="text-white">Ajukan MPR Baru</span>
             </a>

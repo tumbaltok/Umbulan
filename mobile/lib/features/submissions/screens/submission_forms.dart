@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/app_models.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../common/widgets/ui_kit.dart';
 
 class CreateCutiScreen extends StatefulWidget {
   const CreateCutiScreen({super.key});
@@ -124,83 +125,127 @@ class _CreateCutiScreenState extends State<CreateCutiScreen> {
   @override
   Widget build(BuildContext context) {
     final df = DateFormat('dd MMM yyyy');
+    final durationDays = _selesai.difference(_mulai).inDays + 1;
     return Scaffold(
       appBar: AppBar(title: const Text('Ajukan Cuti / Izin')),
       body: _loadingJenis
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DropdownButtonFormField<JenisCutiModel>(
-                    initialValue: _selectedJenis,
-                    decoration: const InputDecoration(labelText: 'Jenis Cuti *'),
-                    items: _jenisList
-                        .map((j) => DropdownMenuItem(value: j, child: Text(j.nameCuti)))
-                        .toList(),
-                    onChanged: (v) {
-                      setState(() {
-                        _selectedJenis = v;
-                        _selectedSub = (v != null && v.subCutis.isNotEmpty) ? v.subCutis.first : null;
-                      });
-                    },
-                  ),
-                  if (_selectedJenis != null && _selectedJenis!.subCutis.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<SubCutiModel>(
-                      initialValue: _selectedSub,
-                      decoration: const InputDecoration(labelText: 'Kategori / Sub Cuti'),
-                      items: _selectedJenis!.subCutis
-                          .map((s) => DropdownMenuItem(value: s, child: Text(s.nameCuti)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedSub = v),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const UmbulanSectionHeader(
+                            title: 'Rincian Cuti / Izin',
+                            subtitle: 'Pilih kategori cuti dan tentukan periode pelaksanaan',
+                          ),
+                          const SizedBox(height: 14),
+                          DropdownButtonFormField<JenisCutiModel>(
+                            initialValue: _selectedJenis,
+                            isExpanded: true,
+                            decoration: const InputDecoration(labelText: 'Jenis Cuti *'),
+                            items: _jenisList
+                                .map((j) => DropdownMenuItem(value: j, child: Text(j.nameCuti)))
+                                .toList(),
+                            onChanged: (v) {
+                              setState(() {
+                                _selectedJenis = v;
+                                _selectedSub = (v != null && v.subCutis.isNotEmpty) ? v.subCutis.first : null;
+                              });
+                            },
+                          ),
+                          if (_selectedJenis != null && _selectedJenis!.subCutis.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<SubCutiModel>(
+                              initialValue: _selectedSub,
+                              isExpanded: true,
+                              decoration: const InputDecoration(labelText: 'Kategori / Sub Cuti'),
+                              items: _selectedJenis!.subCutis
+                                  .map((s) => DropdownMenuItem(value: s, child: Text(s.nameCuti)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _selectedSub = v),
+                            ),
+                          ],
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _pickDate(isStart: true),
+                                  icon: const Icon(Icons.date_range_rounded, size: 18),
+                                  label: Text('Mulai: ${df.format(_mulai)}'),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _pickDate(isStart: false),
+                                  icon: const Icon(Icons.event_rounded, size: 18),
+                                  label: Text('Selesai: ${df.format(_selesai)}'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.hourglass_bottom_rounded, size: 16, color: AppTheme.primary),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Rentang dipilih: $durationDays hari kalender',
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: _alasanCtrl,
+                            maxLines: 3,
+                            decoration: const InputDecoration(labelText: 'Alasan Cuti *'),
+                          ),
+                          const SizedBox(height: 14),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              final files = await FilePicker.pickFiles(
+                                type: FileType.custom,
+                                allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                              );
+                              if (files.isNotEmpty) {
+                                setState(() => _dokumen = files.first);
+                              }
+                            },
+                            icon: const Icon(Icons.attach_file_rounded),
+                            label: Text(
+                              _dokumen == null ? 'Lampiran Dokumen (Opsional)' : _dokumen!.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _pickDate(isStart: true),
-                          icon: const Icon(Icons.date_range, size: 18),
-                          label: Text('Mulai: ${df.format(_mulai)}'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _pickDate(isStart: false),
-                          icon: const Icon(Icons.event, size: 18),
-                          label: Text('Selesai: ${df.format(_selesai)}'),
-                        ),
-                      ),
-                    ],
                   ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _alasanCtrl,
-                    maxLines: 3,
-                    decoration: const InputDecoration(labelText: 'Alasan Cuti *'),
-                  ),
-                  const SizedBox(height: 14),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final files = await FilePicker.pickFiles(
-                        type: FileType.custom,
-                        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-                      );
-                      if (files.isNotEmpty) {
-                        setState(() => _dokumen = files.first);
-                      }
-                    },
-                    icon: const Icon(Icons.attach_file),
-                    label: Text(_dokumen == null ? 'Lampiran Dokumen (Opsional)' : _dokumen!.name),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
                     onPressed: _submitting ? null : _submit,
-                    child: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan Cuti'),
+                    icon: const Icon(Icons.send_rounded, size: 18),
+                    label: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan Cuti'),
                   ),
                 ],
               ),
@@ -275,54 +320,89 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
     }
   }
 
+  double get _totalEstimasi {
+    double total = 0;
+    for (final i in _items) {
+      final qty = double.tryParse(i.qty.text) ?? 1;
+      final harga = double.tryParse(i.harga.text) ?? 0;
+      final ongkir = double.tryParse(i.ongkir.text) ?? 0;
+      total += (qty * harga) + ongkir;
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pengajuan CAR')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _alasanCtrl,
-              maxLines: 2,
-              decoration: const InputDecoration(labelText: 'Alasan Pembelian / Pengeluaran *'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _rekeningCtrl,
-              decoration: const InputDecoration(labelText: 'Rekening Penerima (Opsional)'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _noteCtrl,
-              decoration: const InputDecoration(labelText: 'Catatan Tambahan (Opsional)'),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                const Text('Daftar Item Barang', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => setState(() => _items.add(_ItemRow())),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Item'),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const UmbulanSectionHeader(
+                      title: 'Informasi Kebutuhan Dana',
+                      subtitle: 'Alasan pengeluaran & rekening pencairan',
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _alasanCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Alasan Pembelian / Pengeluaran *'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _rekeningCtrl,
+                      decoration: const InputDecoration(labelText: 'Rekening Penerima (Opsional)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _noteCtrl,
+                      decoration: const InputDecoration(labelText: 'Catatan Tambahan (Opsional)'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            const SizedBox(height: 16),
+            UmbulanSectionHeader(
+              title: 'Daftar Item Barang',
+              subtitle: 'Estimasi Total: ${formatRupiah(_totalEstimasi)}',
+              trailing: TextButton.icon(
+                onPressed: () => setState(() => _items.add(_ItemRow())),
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                label: const Text('Tambah Item'),
+              ),
+            ),
+            const SizedBox(height: 8),
             ..._items.asMap().entries.map((entry) {
               final idx = entry.key;
               final item = entry.value;
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          Text('Item #${idx + 1}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.teal.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Item #${idx + 1}',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.teal),
+                            ),
+                          ),
                           const Spacer(),
                           if (_items.length > 1)
                             IconButton(
@@ -331,6 +411,7 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
                             ),
                         ],
                       ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: item.nama,
                         decoration: const InputDecoration(labelText: 'Nama Barang *'),
@@ -342,6 +423,7 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
                             child: TextField(
                               controller: item.qty,
                               keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(labelText: 'Jumlah'),
                             ),
                           ),
@@ -361,6 +443,7 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
                             child: TextField(
                               controller: item.harga,
                               keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(labelText: 'Estimasi Harga'),
                             ),
                           ),
@@ -369,6 +452,7 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
                             child: TextField(
                               controller: item.ongkir,
                               keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(labelText: 'Ongkir'),
                             ),
                           ),
@@ -379,10 +463,12 @@ class _CreateCarScreenState extends State<CreateCarScreen> {
                 ),
               );
             }),
-            const SizedBox(height: 12),
-            FilledButton(
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.teal),
               onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan CAR'),
+              icon: const Icon(Icons.send_rounded, size: 18),
+              label: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan CAR'),
             ),
           ],
         ),
@@ -458,65 +544,99 @@ class _CreateMprScreenState extends State<CreateMprScreen> {
     }
   }
 
+  double get _totalEstimasiMpr {
+    double total = 0;
+    for (final i in _items) {
+      final qty = double.tryParse(i.qty.text) ?? 1;
+      final harga = double.tryParse(i.harga.text) ?? 0;
+      total += qty * harga;
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pengajuan MPR')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              initialValue: _priority,
-              decoration: const InputDecoration(labelText: 'Prioritas'),
-              items: const [
-                DropdownMenuItem(value: 'Normal', child: Text('Normal')),
-                DropdownMenuItem(value: 'Urgent', child: Text('Urgent')),
-                DropdownMenuItem(value: 'Emergency', child: Text('Emergency')),
-              ],
-              onChanged: (v) => setState(() => _priority = v ?? 'Normal'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _deptCtrl,
-              decoration: const InputDecoration(labelText: 'Departemen'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _deliveryCtrl,
-              decoration: const InputDecoration(labelText: 'Titik Pengiriman (Delivery Point)'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _urgensiCtrl,
-              maxLines: 2,
-              decoration: const InputDecoration(labelText: 'Keperluan & Urgensi *'),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                const Text('Daftar Material', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => setState(() => _items.add(_ItemRow())),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Item'),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const UmbulanSectionHeader(
+                      title: 'Detail Pengadaan Material',
+                      subtitle: 'Tentukan prioritas & titik pengiriman barang',
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: _priority,
+                      decoration: const InputDecoration(labelText: 'Prioritas'),
+                      items: const [
+                        DropdownMenuItem(value: 'Normal', child: Text('Normal')),
+                        DropdownMenuItem(value: 'Urgent', child: Text('Urgent')),
+                        DropdownMenuItem(value: 'Emergency', child: Text('Emergency')),
+                      ],
+                      onChanged: (v) => setState(() => _priority = v ?? 'Normal'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _deptCtrl,
+                      decoration: const InputDecoration(labelText: 'Departemen'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _deliveryCtrl,
+                      decoration: const InputDecoration(labelText: 'Titik Pengiriman (Delivery Point)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _urgensiCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Keperluan & Urgensi *'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            const SizedBox(height: 16),
+            UmbulanSectionHeader(
+              title: 'Daftar Material',
+              subtitle: 'Estimasi Total: ${formatRupiah(_totalEstimasiMpr)}',
+              trailing: TextButton.icon(
+                onPressed: () => setState(() => _items.add(_ItemRow())),
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                label: const Text('Tambah Item'),
+              ),
+            ),
+            const SizedBox(height: 8),
             ..._items.asMap().entries.map((entry) {
               final idx = entry.key;
               final item = entry.value;
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          Text('Item #${idx + 1}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.indigo.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Material #${idx + 1}',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.indigo),
+                            ),
+                          ),
                           const Spacer(),
                           if (_items.length > 1)
                             IconButton(
@@ -525,6 +645,7 @@ class _CreateMprScreenState extends State<CreateMprScreen> {
                             ),
                         ],
                       ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: item.nama,
                         decoration: const InputDecoration(labelText: 'Nama Material *'),
@@ -536,6 +657,7 @@ class _CreateMprScreenState extends State<CreateMprScreen> {
                             child: TextField(
                               controller: item.qty,
                               keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(labelText: 'Jumlah'),
                             ),
                           ),
@@ -551,6 +673,7 @@ class _CreateMprScreenState extends State<CreateMprScreen> {
                             child: TextField(
                               controller: item.harga,
                               keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(labelText: 'Est. Harga'),
                             ),
                           ),
@@ -561,10 +684,12 @@ class _CreateMprScreenState extends State<CreateMprScreen> {
                 ),
               );
             }),
-            const SizedBox(height: 12),
-            FilledButton(
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.indigo),
               onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan MPR'),
+              icon: const Icon(Icons.send_rounded, size: 18),
+              label: Text(_submitting ? 'Mengirim...' : 'Kirim Pengajuan MPR'),
             ),
           ],
         ),

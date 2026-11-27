@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../common/widgets/ui_kit.dart';
 
 class ApprovalsScreen extends StatefulWidget {
   final VoidCallback onProcessed;
@@ -126,24 +127,32 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
       child: all.isEmpty
           ? ListView(
               children: const [
-                SizedBox(height: 120),
-                Icon(Icons.task_alt, size: 52, color: AppTheme.textSecondary),
-                SizedBox(height: 12),
-                Text(
-                  'Tidak ada pengajuan menunggu persetujuan Anda.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary),
+                SizedBox(height: 48),
+                UmbulanEmptyState(
+                  icon: Icons.task_alt_rounded,
+                  title: 'Semua Pengajuan Telah Ditinjau',
+                  subtitle: 'Tidak ada permohonan Cuti, CAR, atau MPR yang menunggu persetujuan Anda saat ini.',
                 ),
               ],
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: all.length,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: all.length + 1,
               itemBuilder: (_, idx) {
-                final item = all[idx];
+                if (idx == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: UmbulanSectionHeader(
+                      title: 'Antrean Persetujuan (${all.length})',
+                      subtitle: 'Tinjau pengajuan staf di bawah wewenang Anda',
+                    ),
+                  );
+                }
+                final item = all[idx - 1];
                 final d = item.data;
                 final id = (d['id'] as num).toInt();
                 final pemohon = (d['user'] is Map ? d['user']['name'] : 'Karyawan').toString();
+                final initial = pemohon.trim().isNotEmpty ? pemohon.trim()[0].toUpperCase() : 'K';
                 final summary = switch (item.module) {
                   'cuti' =>
                     '${d['jenis_cuti']?['name_cuti'] ?? 'Cuti'} (${d['total_hari']} hari)\n${d['alasan_cuti'] ?? ''}',
@@ -162,48 +171,77 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
                               child: Text(
-                                item.module.toUpperCase(),
+                                initial,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
                                   color: AppTheme.primary,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                pemohon,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    pemohon,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  UmbulanModuleBadge(module: item.module),
+                                ],
                               ),
                             ),
+                            const UmbulanStatusBadge(status: 'pending'),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(summary, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13.5)),
                         const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceMuted,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: Text(
+                            summary,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              height: 1.45,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         Row(
                           children: [
                             Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(foregroundColor: AppTheme.danger),
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppTheme.danger,
+                                  side: BorderSide(color: AppTheme.danger.withValues(alpha: 0.45)),
+                                ),
                                 onPressed: () => _process(item.module, id, 'reject'),
-                                child: const Text('Tolak'),
+                                icon: const Icon(Icons.close_rounded, size: 18),
+                                label: const Text('Tolak'),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: FilledButton(
+                              child: FilledButton.icon(
                                 style: FilledButton.styleFrom(backgroundColor: AppTheme.success),
                                 onPressed: () => _process(item.module, id, 'approve'),
-                                child: const Text('Setujui'),
+                                icon: const Icon(Icons.check_rounded, size: 18),
+                                label: const Text('Setujui'),
                               ),
                             ),
                           ],

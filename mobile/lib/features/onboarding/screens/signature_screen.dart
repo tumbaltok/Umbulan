@@ -74,27 +74,80 @@ class _SignatureScreenState extends State<SignatureScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Tanda Tangan Digital')),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Gunakan jari Anda pada area di bawah untuk membuat tanda tangan resmi pengajuan.',
-              style: TextStyle(color: AppTheme.textSecondary),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.draw_rounded, color: AppTheme.primary, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Goreskan tanda tangan resmi Anda di area kanvas di bawah ini untuk pengesahan dokumen pengajuan.',
+                        style: TextStyle(fontSize: 12.5, height: 1.35, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.border, width: 1.5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25), width: 1.5),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Signature(
-                    controller: _controller,
-                    backgroundColor: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Stack(
+                    children: [
+                      const Positioned.fill(
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.gesture_rounded, size: 32, color: Color(0xFFE2E8F0)),
+                              SizedBox(height: 6),
+                              Text(
+                                'Area Tanda Tangan Resmi',
+                                style: TextStyle(
+                                  color: Color(0xFFCBD5E1),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 24,
+                        right: 24,
+                        bottom: 52,
+                        child: Container(
+                          height: 1.2,
+                          color: const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      Signature(
+                        controller: _controller,
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -105,8 +158,8 @@ class _SignatureScreenState extends State<SignatureScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _saving ? null : () => _controller.clear(),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Hapus'),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Ulangi'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -114,12 +167,13 @@ class _SignatureScreenState extends State<SignatureScreen> {
                   flex: 2,
                   child: FilledButton.icon(
                     onPressed: _saving ? null : _save,
-                    icon: const Icon(Icons.check),
+                    icon: const Icon(Icons.check_rounded),
                     label: Text(_saving ? 'Menyimpan...' : 'Simpan Tanda Tangan'),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

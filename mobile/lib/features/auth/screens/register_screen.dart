@@ -126,123 +126,204 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 )
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        TextFormField(
-                          controller: _nameCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Nama Lengkap *',
-                            prefixIcon: Icon(Icons.person_outline),
-                          ),
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama wajib diisi.' : null,
-                        ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: _nipCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'NIP (Opsional)',
-                            prefixIcon: Icon(Icons.badge_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: _emailCtrl,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Alamat Email *',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Email wajib diisi.';
-                            if (!v.contains('@')) return 'Format email tidak valid.';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 14),
-                        DropdownButtonFormField<int>(
-                          initialValue: _selectedGenderId,
-                          decoration: const InputDecoration(
-                            labelText: 'Jenis Kelamin *',
-                            prefixIcon: Icon(Icons.wc_outlined),
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 1, child: Text('Laki-laki')),
-                            DropdownMenuItem(value: 2, child: Text('Perempuan')),
-                          ],
-                          onChanged: (v) => setState(() => _selectedGenderId = v ?? 1),
-                        ),
-                        const SizedBox(height: 14),
-                        DropdownButtonFormField<int>(
-                          initialValue: _selectedStationId,
-                          decoration: const InputDecoration(
-                            labelText: 'Stasiun Penempatan *',
-                            prefixIcon: Icon(Icons.location_on_outlined),
-                          ),
-                          items: _stations
-                              .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
-                              .toList(),
-                          onChanged: (v) => setState(() => _selectedStationId = v),
-                        ),
-                        const SizedBox(height: 14),
-                        DropdownButtonFormField<String>(
-                          initialValue: _scheduleType,
-                          decoration: const InputDecoration(
-                            labelText: 'Pilih Jenis Jadwal Kerja *',
-                            prefixIcon: Icon(Icons.schedule_outlined),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'normal',
-                              child: Text('Jadwal Normal (Senin - Jumat, 07:00 - 16:00)'),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppTheme.primaryDark, AppTheme.primary],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            DropdownMenuItem(
-                              value: 'roster',
-                              child: Text('Jadwal Roster Shift (Pagi / Malam / Libur)'),
-                            ),
-                          ],
-                          onChanged: (v) => setState(() => _scheduleType = v ?? 'normal'),
-                        ),
-                        if (_scheduleType == 'roster') ...[
-                          const SizedBox(height: 14),
-                          DropdownButtonFormField<String>(
-                            initialValue: _shiftChoice,
-                            decoration: const InputDecoration(
-                              labelText: 'Shift Berjalan Minggu Ini',
-                              prefixIcon: Icon(Icons.timelapse),
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'pagi', child: Text('Shift Pagi (07:00 - 19:00)')),
-                              DropdownMenuItem(value: 'malam', child: Text('Shift Malam (19:00 - 07:00)')),
-                              DropdownMenuItem(value: 'libur', child: Text('Minggu Libur (OFF)')),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.badge_outlined, color: Color(0xFFBAE6FD), size: 28),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Aktivasi Akun Kepegawaian',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Lengkapi data diri, penempatan stasiun, dan pola jadwal kerja Anda.',
+                                      style: TextStyle(color: Color(0xFFE0F2FE), fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
-                            onChanged: (v) => setState(() => _shiftChoice = v ?? 'pagi'),
                           ),
-                        ],
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: _passCtrl,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Kata Sandi (Min. 8 karakter) *',
-                            prefixIcon: Icon(Icons.lock_outline),
-                          ),
-                          validator: (v) => (v == null || v.length < 8) ? 'Minimal 8 karakter.' : null,
                         ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: _confirmCtrl,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Konfirmasi Kata Sandi *',
-                            prefixIcon: Icon(Icons.lock_reset_outlined),
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  '1. Data Diri Karyawan',
+                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.primary),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _nameCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Nama Lengkap *',
+                                    prefixIcon: Icon(Icons.person_outline),
+                                  ),
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama wajib diisi.' : null,
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _nipCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'NIP (Opsional)',
+                                    prefixIcon: Icon(Icons.badge_outlined),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _emailCtrl,
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Alamat Email *',
+                                    prefixIcon: Icon(Icons.email_outlined),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Email wajib diisi.';
+                                    if (!v.contains('@')) return 'Format email tidak valid.';
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<int>(
+                                  initialValue: _selectedGenderId,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Jenis Kelamin *',
+                                    prefixIcon: Icon(Icons.wc_outlined),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(value: 1, child: Text('Laki-laki')),
+                                    DropdownMenuItem(value: 2, child: Text('Perempuan')),
+                                  ],
+                                  onChanged: (v) => setState(() => _selectedGenderId = v ?? 1),
+                                ),
+                              ],
+                            ),
                           ),
-                          validator: (v) => v != _passCtrl.text ? 'Konfirmasi sandi tidak cocok.' : null,
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 12),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  '2. Penempatan & Jadwal Kerja',
+                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.primary),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<int>(
+                                  initialValue: _selectedStationId,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Stasiun Penempatan *',
+                                    prefixIcon: Icon(Icons.location_on_outlined),
+                                  ),
+                                  items: _stations
+                                      .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
+                                      .toList(),
+                                  onChanged: (v) => setState(() => _selectedStationId = v),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  initialValue: _scheduleType,
+                                  isExpanded: true,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Pilih Jenis Jadwal Kerja *',
+                                    prefixIcon: Icon(Icons.schedule_outlined),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'normal',
+                                      child: Text('Jadwal Normal (Senin - Jumat, 07:00 - 16:00)', overflow: TextOverflow.ellipsis),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'roster',
+                                      child: Text('Jadwal Roster Shift (Pagi / Malam / Libur)', overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ],
+                                  onChanged: (v) => setState(() => _scheduleType = v ?? 'normal'),
+                                ),
+                                if (_scheduleType == 'roster') ...[
+                                  const SizedBox(height: 12),
+                                  DropdownButtonFormField<String>(
+                                    initialValue: _shiftChoice,
+                                    isExpanded: true,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Shift Berjalan Minggu Ini',
+                                      prefixIcon: Icon(Icons.timelapse),
+                                    ),
+                                    items: const [
+                                      DropdownMenuItem(value: 'pagi', child: Text('Shift Pagi (07:00 - 19:00)')),
+                                      DropdownMenuItem(value: 'malam', child: Text('Shift Malam (19:00 - 07:00)')),
+                                      DropdownMenuItem(value: 'libur', child: Text('Minggu Libur (OFF)')),
+                                    ],
+                                    onChanged: (v) => setState(() => _shiftChoice = v ?? 'pagi'),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  '3. Keamanan Kata Sandi',
+                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.primary),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _passCtrl,
+                                  obscureText: true,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Kata Sandi (Min. 8 karakter) *',
+                                    prefixIcon: Icon(Icons.lock_outline),
+                                  ),
+                                  validator: (v) => (v == null || v.length < 8) ? 'Minimal 8 karakter.' : null,
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _confirmCtrl,
+                                  obscureText: true,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Konfirmasi Kata Sandi *',
+                                    prefixIcon: Icon(Icons.lock_reset_outlined),
+                                  ),
+                                  validator: (v) => v != _passCtrl.text ? 'Konfirmasi sandi tidak cocok.' : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         FilledButton(
                           onPressed: auth.isBusy ? null : _submit,
                           child: auth.isBusy

@@ -148,15 +148,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                FilledButton(
+                FilledButton.icon(
                   onPressed: auth.isBusy ? null : _submit,
-                  child: auth.isBusy
+                  icon: auth.isBusy
                       ? const SizedBox(
-                          width: 22,
-                          height: 22,
+                          width: 20,
+                          height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
                         )
-                      : const Text('Masuk'),
+                      : const Icon(Icons.login_rounded, size: 19),
+                  label: Text(auth.isBusy ? 'Memproses...' : 'Masuk'),
                 ),
                 const SizedBox(height: 18),
                 Row(

@@ -57,24 +57,48 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan Jadwal Kerja')),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              initialValue: _scheduleType,
-              decoration: const InputDecoration(labelText: 'Tipe Jadwal Kerja'),
-              items: const [
-                DropdownMenuItem(value: 'normal', child: Text('Normal (Senin - Jumat, 07:00 - 16:00)')),
-                DropdownMenuItem(value: 'roster', child: Text('Roster Shift Mingguan')),
-              ],
-              onChanged: (v) => setState(() => _scheduleType = v ?? 'normal'),
+            const Text(
+              'Pilih Pola Jadwal Kerja',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textPrimary),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Jadwal ini digunakan untuk perhitungan kalender kerja dan validasi pengajuan cuti.',
+              style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 14),
+            _OptionCard(
+              title: 'Normal (Senin - Jumat)',
+              subtitle: 'Jam operasional reguler 07:00 - 16:00 WIB',
+              icon: Icons.business_center_outlined,
+              selected: _scheduleType == 'normal',
+              onTap: () => setState(() => _scheduleType = 'normal'),
+            ),
+            const SizedBox(height: 10),
+            _OptionCard(
+              title: 'Roster Shift Mingguan',
+              subtitle: 'Rotasi mingguan Shift Pagi, Malam, dan Minggu OFF',
+              icon: Icons.autorenew_rounded,
+              selected: _scheduleType == 'roster',
+              onTap: () => setState(() => _scheduleType = 'roster'),
             ),
             if (_scheduleType == 'roster') ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
+              const Text(
+                'Shift Berjalan Minggu Ini',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary),
+              ),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _shiftChoice,
-                decoration: const InputDecoration(labelText: 'Shift Saat Ini'),
+                decoration: const InputDecoration(
+                  labelText: 'Pilih Shift Saat Ini',
+                  prefixIcon: Icon(Icons.timelapse_rounded),
+                ),
                 items: const [
                   DropdownMenuItem(value: 'pagi', child: Text('Shift Pagi (07:00 - 19:00)')),
                   DropdownMenuItem(value: 'malam', child: Text('Shift Malam (19:00 - 07:00)')),
@@ -84,9 +108,84 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
             ],
             const Spacer(),
-            FilledButton(
+            FilledButton.icon(
               onPressed: _saving ? null : _save,
-              child: Text(_saving ? 'Menyimpan...' : 'Simpan Jadwal'),
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: Text(_saving ? 'Menyimpan...' : 'Simpan Jadwal'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OptionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _OptionCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primary.withValues(alpha: 0.06) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? AppTheme.primary : AppTheme.border,
+            width: selected ? 1.8 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: selected ? AppTheme.primary : AppTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: selected ? Colors.white : AppTheme.textSecondary, size: 21),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: selected ? AppTheme.primaryDark : AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+              color: selected ? AppTheme.primary : AppTheme.textSecondary,
             ),
           ],
         ),

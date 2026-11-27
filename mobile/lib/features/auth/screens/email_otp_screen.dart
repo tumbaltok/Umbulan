@@ -73,38 +73,76 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Verifikasi Email')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Icon(Icons.mark_email_unread_outlined, size: 56, color: AppTheme.primary),
-            const SizedBox(height: 16),
-            Text(
-              'Masukkan 6 digit kode OTP yang dikirim ke ${auth.user?.email ?? ''}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textSecondary),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.09),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mark_email_unread_rounded,
+                      size: 36,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Konfirmasi Kode OTP',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Masukkan 6 digit kode OTP yang dikirim ke ${auth.user?.email ?? ''}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, height: 1.45, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 22),
+                TextField(
+                  controller: _otpCtrl,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    letterSpacing: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryDark,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: '000000',
+                    counterText: '',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: auth.isBusy ? null : _verify,
+                  icon: const Icon(Icons.verified_outlined, size: 18),
+                  label: const Text('Verifikasi Email'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _resending ? null : _resend,
+                  child: Text(_resending ? 'Mengirim ulang...' : 'Kirim Ulang Kode OTP'),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _otpCtrl,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22, letterSpacing: 8, fontWeight: FontWeight.w700),
-              decoration: const InputDecoration(hintText: '000000'),
-            ),
-            const SizedBox(height: 18),
-            FilledButton(
-              onPressed: auth.isBusy ? null : _verify,
-              child: const Text('Verifikasi Email'),
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: _resending ? null : _resend,
-              child: Text(_resending ? 'Mengirim...' : 'Kirim Ulang Kode OTP'),
-            ),
-          ],
+          ),
         ),
       ),
     );

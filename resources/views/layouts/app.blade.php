@@ -47,16 +47,60 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Sembunyikan scrollbar bawaan peramban */
+        /* Scrollbar minimalis & aksesibel (Light & Dark Mode) */
         html, body, div, nav, aside, main, section {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+        }
+
+        html.dark, html.dark body, html.dark div, html.dark nav, html.dark aside, html.dark main, html.dark section {
+            scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+        }
+
+        *::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        *::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 9999px;
+        }
+        *::-webkit-scrollbar-thumb:hover {
+            background: rgba(14, 165, 233, 0.55);
+        }
+        html.dark *::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.5);
+        }
+        html.dark *::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.55);
+        }
+
+        .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
-        html::-webkit-scrollbar, body::-webkit-scrollbar, div::-webkit-scrollbar,
-        nav::-webkit-scrollbar, aside::-webkit-scrollbar, main::-webkit-scrollbar,
-        section::-webkit-scrollbar {
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
+        }
+
+        /* Token & utilitas visual terpadu ERP Umbulan */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .sidebar-nav-active::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 22%;
+            bottom: 22%;
+            width: 3.5px;
+            border-radius: 9999px;
+            background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.55);
         }
 
         /* Animasi dasar dropdown menu */
@@ -945,28 +989,31 @@
     <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 opacity-0 pointer-events-none md:hidden"></div>
 
     {{-- Area Konten Utama --}}
-    <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-        {{-- Header Utama dengan Jam Digital & Switcher Tema --}}
-        <header class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center sticky top-0 z-20 shadow-xs transition-colors">
-            <div class="flex items-center space-x-3">
-                <button id="toggleSidebarBtn" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 active:scale-95 transition-all shadow-xs cursor-pointer" title="Buka / Tutup Sidebar">
-                    <i class="fa-solid fa-bars-staggered text-lg"></i>
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50/90 dark:bg-slate-950 transition-colors duration-200">
+        {{-- Header Utama Frosted Glass dengan Jam Digital & Switcher Tema --}}
+        <header class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-4 sm:px-6 py-3 flex justify-between items-center gap-3 sticky top-0 z-20 shadow-2xs transition-colors">
+            <div class="flex items-center space-x-3 min-w-0">
+                <button id="toggleSidebarBtn" class="text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 p-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/80 active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0" title="Buka / Tutup Sidebar">
+                    <i class="fa-solid fa-bars-staggered text-base"></i>
                 </button>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tempat Kerja,</p>
-                    <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider truncate">Penempatan Kerja</p>
+                    <h1 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 leading-tight truncate">{{ Auth::user()->station->name ?? 'Stasiun Umbulan' }}</h1>
                 </div>
             </div>
 
-            <div class="fixed bottom-4 right-4 z-20 sm:static sm:right-auto flex flex-col items-center justify-center text-center px-4 py-1.5 sm:px-5 bg-slate-900/90 sm:bg-slate-50 dark:sm:bg-slate-800 text-white sm:text-slate-800 dark:sm:text-slate-100 backdrop-blur-md sm:backdrop-blur-none border border-slate-700/50 sm:border-slate-200/60 dark:sm:border-slate-700 rounded-2xl shadow-xl sm:shadow-inner transition-all duration-300">
-                <div class="flex items-center space-x-2 text-sky-400 sm:text-sky-600 dark:sm:text-sky-400 font-mono font-black text-xs sm:text-base md:text-lg tracking-wider">
-                    <i class="fa-solid fa-clock text-[10px] sm:text-xs text-sky-400 sm:text-sky-500"></i>
+            <div class="hidden md:flex flex-col items-center justify-center text-center px-4 py-1.5 bg-slate-50/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-2xs transition-all duration-300">
+                <div class="flex items-center space-x-2 text-sky-600 dark:text-sky-400 font-mono tabular-nums font-black text-sm lg:text-base tracking-wider">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
                     <span id="headerDigitalClock">00:00:00 WIB</span>
                 </div>
-                <span id="headerDateDisplay" class="text-[9px] sm:text-[10px] text-slate-300 sm:text-slate-500 dark:sm:text-slate-400 font-medium tracking-tight">--</span>
+                <span id="headerDateDisplay" class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold tracking-tight">--</span>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
                 @auth
                 {{-- TOMBOL THEME SWITCHER DARK / LIGHT MODE ELEGAN --}}
                 <button type="button"
@@ -1079,7 +1126,7 @@
             </div>
         </header>
 
-        <main id="mainContent" class="p-6 max-w-7xl w-full mx-auto pb-20 sm:pb-6 page-transition-enter">
+        <main id="mainContent" class="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-12 page-transition-enter">
             @yield('content')
         </main>
     </div>

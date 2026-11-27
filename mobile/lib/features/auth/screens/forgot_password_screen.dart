@@ -95,73 +95,109 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       appBar: AppBar(title: const Text('Pemulihan Kata Sandi')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Masukkan Email atau NIP akun Anda. Kode OTP 6 digit akan dikirimkan melalui Email Kepegawaian.',
-              style: TextStyle(color: AppTheme.textSecondary),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.lock_reset_rounded, color: AppTheme.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _otpSent ? 'Langkah 2 dari 2: Buat Sandi Baru' : 'Langkah 1 dari 2: Identitas Akun',
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Kode OTP 6 digit dikirimkan melalui Email Kepegawaian.',
+                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                TextField(
+                  controller: _identityCtrl,
+                  enabled: !_otpSent,
+                  decoration: const InputDecoration(
+                    labelText: 'Email atau NIP',
+                    prefixIcon: Icon(Icons.person_search_outlined),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (!_otpSent)
+                  FilledButton.icon(
+                    onPressed: _loading ? null : _sendOtp,
+                    icon: _loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.send_rounded, size: 18),
+                    label: Text(_loading ? 'Mengirim...' : 'Kirim Kode OTP ke Email'),
+                  )
+                else ...[
+                  TextField(
+                    controller: _otpCtrl,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20, letterSpacing: 6, fontWeight: FontWeight.w800),
+                    decoration: const InputDecoration(
+                      labelText: 'Kode OTP 6 Digit',
+                      counterText: '',
+                      prefixIcon: Icon(Icons.pin_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _passCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Kata Sandi Baru (Min. 8 karakter)',
+                      prefixIcon: Icon(Icons.lock_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirmCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Konfirmasi Kata Sandi Baru',
+                      prefixIcon: Icon(Icons.lock_reset_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: _loading ? null : _resetPassword,
+                    child: Text(_loading ? 'Menyimpan...' : 'Simpan Kata Sandi Baru'),
+                  ),
+                  const SizedBox(height: 6),
+                  TextButton(
+                    onPressed: _loading ? null : _sendOtp,
+                    child: const Text('Kirim Ulang OTP'),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _identityCtrl,
-              enabled: !_otpSent,
-              decoration: const InputDecoration(
-                labelText: 'Email atau NIP',
-                prefixIcon: Icon(Icons.person_search_outlined),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (!_otpSent)
-              FilledButton(
-                onPressed: _loading ? null : _sendOtp,
-                child: _loading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Kirim Kode OTP ke Email'),
-              )
-            else ...[
-              TextField(
-                controller: _otpCtrl,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Kode OTP 6 Digit',
-                  prefixIcon: Icon(Icons.pin_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Kata Sandi Baru (Min. 8 karakter)',
-                  prefixIcon: Icon(Icons.lock_outline),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _confirmCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Konfirmasi Kata Sandi Baru',
-                  prefixIcon: Icon(Icons.lock_reset_outlined),
-                ),
-              ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: _loading ? null : _resetPassword,
-                child: const Text('Simpan Kata Sandi Baru'),
-              ),
-              TextButton(
-                onPressed: _loading ? null : _sendOtp,
-                child: const Text('Kirim Ulang OTP'),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

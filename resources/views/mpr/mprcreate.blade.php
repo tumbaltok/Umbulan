@@ -16,7 +16,7 @@
                 <span class="text-sky-600 dark:text-sky-400 font-bold">Form Pengajuan MPR</span>
             </nav>
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-sky-600 bg-gradient-to-r from-sky-600 to-cyan-600 dark:from-sky-500 dark:to-cyan-500 flex items-center justify-center text-white shadow-md shadow-sky-600/25 dark:shadow-sky-500/30 shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 bg-gradient-to-r from-indigo-600 to-sky-600 dark:from-indigo-500 dark:to-sky-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/25 dark:shadow-indigo-500/30 shrink-0">
                     <i class="fa-solid fa-boxes-packing text-base text-white"></i>
                 </div>
                 <div>
