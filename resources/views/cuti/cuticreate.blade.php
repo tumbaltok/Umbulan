@@ -1186,14 +1186,14 @@
 
                 if (isPria) {
                     subCutis = subCutis.filter(sub => {
-                        const namaLower = sub.nama_sub_cuti.toLowerCase();
-                        if (namaLower.includes('haid') || namaLower.includes('bersalin')) return false;
+                        const namaLower = (sub.nama_sub_cuti || sub.name_cuti || '').toLowerCase();
+                        if (namaLower.includes('haid') || namaLower.includes('bersalin') || namaLower.includes('gugur')) return false;
                         if (namaLower.includes('melahirkan') && !namaLower.includes('istri')) return false;
                         return true;
                     });
                 } else {
                     subCutis = subCutis.filter(sub => {
-                        const namaLower = sub.nama_sub_cuti.toLowerCase();
+                        const namaLower = (sub.nama_sub_cuti || sub.name_cuti || '').toLowerCase();
                         return !namaLower.includes('istri melahirkan');
                     });
                 }
@@ -1204,10 +1204,11 @@
                     subCutiSelect.setAttribute('required', 'required');
 
                     subCutis.forEach(function (sub) {
+                        const subName = sub.nama_sub_cuti || sub.name_cuti || '-';
                         const option = document.createElement('option');
                         option.value = sub.id;
-                        option.textContent = `${sub.nama_sub_cuti} ${sub.durasi_default ? '(' + sub.durasi_default + ' Hari)' : ''}`;
-                        option.setAttribute('data-nama-sub', sub.nama_sub_cuti);
+                        option.textContent = `${subName} ${sub.durasi_default ? '(' + sub.durasi_default + ' Hari)' : ''}`;
+                        option.setAttribute('data-nama-sub', subName);
                         option.setAttribute('data-durasi', sub.durasi_default || '');
                         option.setAttribute('data-wajib-dokumen', sub.apakah_wajib_dokumen ? '1' : '0');
 

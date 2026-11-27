@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../common/widgets/server_url_dialog.dart';
+import '../../common/widgets/ui_kit.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
@@ -68,20 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 16),
-                Container(
-                  width: 64,
-                  height: 64,
+                const SizedBox(height: 12),
+                const Align(
                   alignment: Alignment.centerLeft,
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.water_drop_rounded, color: Colors.white, size: 30),
-                  ),
+                  child: UmbulanBrandMark(size: 62, darkSurface: true),
                 ),
                 const SizedBox(height: 18),
                 const Text(

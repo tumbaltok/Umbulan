@@ -31,6 +31,7 @@ void main() {
     });
 
     expect(user.email, 'budi@umbulan.co.id');
+    expect(user.isPerempuan, false);
     expect(user.completionStatus.completedCount, 2);
     expect(user.completionStatus.progress, closeTo(2 / 3, 0.001));
     expect(user.isAccountComplete, false);

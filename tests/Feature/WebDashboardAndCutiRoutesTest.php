@@ -103,9 +103,15 @@ class WebDashboardAndCutiRoutesTest extends TestCase
         // Form pengajuan Cuti, CAR, & MPR saat akun lengkap (3 syarat terpenuhi)
         $karyawan->forceFill(['signature' => 'signatures/dummy.png'])->save();
         foreach (['/cuti/ajukan', '/car/ajukan', '/mpr/ajukan'] as $createPath) {
-            $this->actingAs($karyawan)
+            $response = $this->actingAs($karyawan)
                 ->get("https://karyawan.umbulan.site{$createPath}")
                 ->assertStatus(200);
+
+            if ($createPath === '/cuti/ajukan') {
+                $response->assertViewHas('jenisCuti', function ($items) {
+                    return $items->every(fn ($item) => $item->parent_id === null);
+                });
+            }
         }
     }
 }

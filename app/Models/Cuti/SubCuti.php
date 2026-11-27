@@ -25,6 +25,11 @@ class SubCuti extends Model
         'apakah_wajib_dokumen' => 'boolean',
     ];
 
+    protected $appends = [
+        'nama_sub_cuti',
+        'jenis_cuti_id',
+    ];
+
     protected static function booted(): void
     {
         static::addGlobalScope('is_sub', fn ($q) => $q->whereNotNull('parent_id'));

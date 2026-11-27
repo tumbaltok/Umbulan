@@ -14,6 +14,7 @@ use App\Models\Mpr\PengajuanMpr;
 use App\Models\Mpr\PengajuanMprDetail;
 use App\Services\ApprovalRoutingService;
 use App\Services\CalendarScheduleService;
+use App\Services\ScheduleService;
 use App\Traits\CutiHelperTrait;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -28,7 +29,8 @@ class PengajuanApiController extends Controller
 
     public function __construct(
         protected ApprovalRoutingService $approvalRouting,
-        protected CalendarScheduleService $calendarService
+        protected CalendarScheduleService $calendarService,
+        protected ScheduleService $scheduleService
     ) {}
 
     /**
@@ -142,19 +144,138 @@ class PengajuanApiController extends Controller
         ]);
     }
 
-    /**
-     * Daftar master jenis cuti beserta sub-cuti.
-     */
-    public function jenisCuti(): JsonResponse
+    private function isFemaleOnlyLeaveName(string $name): bool
     {
-        $data = JenisCuti::with('subCutis')
+        $lower = strtolower($name);
+        return str_contains($lower, 'haid')
+            || str_contains($lower, 'bersalin')
+            || str_contains($lower, 'gugur')
+            || (str_contains($lower, 'melahirkan') && !str_contains($lower, 'istri'));
+    }
+
+    /**
+     * Daftar master jenis cuti beserta sub-cuti (tersaring berdasarkan gender) dan ringkasan kuota.
+     */
+    public function jenisCuti(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $isPerempuan = $user ? $user->isPerempuan() : false;
+
+        $parents = JenisCuti::with(['subCutis' => fn ($q) => $q->orderBy('id')])
             ->whereNull('parent_id')
             ->orderBy('id')
             ->get();
 
+        $data = $parents
+            ->filter(fn ($jenis) => $isPerempuan || !$this->isFemaleOnlyLeaveName((string) $jenis->name_cuti))
+            ->map(function ($jenis) use ($isPerempuan) {
+                $filteredSubs = $jenis->subCutis
+                    ->filter(function ($sub) use ($isPerempuan) {
+                        $subName = (string) ($sub->nama_sub_cuti ?? $sub->name_cuti ?? '');
+                        if (!$isPerempuan) {
+                            return !$this->isFemaleOnlyLeaveName($subName);
+                        }
+                        return !str_contains(strtolower($subName), 'istri melahirkan');
+                    })
+                    ->values();
+
+                $jenis->setRelation('subCutis', $filteredSubs);
+                return $jenis;
+            })
+            ->values();
+
+        $meta = [];
+        if ($user) {
+            $now = Carbon::now('Asia/Jakarta');
+            $tahun = (int) $now->year;
+            $cutiTahunanId = $this->getCutiTahunanId();
+            $cutiTahunan = JenisCuti::find($cutiTahunanId);
+            $saldoTahunan = SaldoCuti::where('user_id', $user->id)
+                ->where('jenis_cuti_id', $cutiTahunanId)
+                ->where('tahun', $tahun)
+                ->first();
+
+            $kuotaAwal = (int) ($saldoTahunan->kuota_awal ?? $cutiTahunan?->kuota_default ?? 12);
+            $sisaSaldo = (int) ($saldoTahunan->sisa_saldo ?? 0);
+            $cutiTerpakai = max(0, $kuotaAwal - $sisaSaldo);
+            $pendingHari = (int) DB::table('pengajuan_cutis')
+                ->where('user_id', $user->id)
+                ->where('jenis_cuti_id', $cutiTahunanId)
+                ->where('status_akhir', 'pending')
+                ->sum('total_hari');
+
+            $sisaHaid = 0;
+            $haidTerpakai = 0;
+            if ($isPerempuan) {
+                $subHaid = SubCuti::whereRaw('LOWER(name_cuti) LIKE ?', ['%haid%'])->first();
+                $haidQuery = DB::table('pengajuan_cutis')
+                    ->where('user_id', $user->id)
+                    ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
+                    ->whereMonth('tanggal_mulai', $now->month)
+                    ->whereYear('tanggal_mulai', $tahun);
+                if ($subHaid) {
+                    $haidQuery->where(function ($q) use ($subHaid) {
+                        $q->where('sub_cuti_id', $subHaid->id)
+                          ->orWhere('jenis_cuti_id', $subHaid->id);
+                    });
+                }
+                $haidTerpakai = (int) $haidQuery->sum('total_hari');
+                $sisaHaid = max(0, 2 - $haidTerpakai);
+            }
+
+            $holidays = $this->calendarService->getNationalHolidays($tahun);
+            try {
+                $nextHolidays = $this->calendarService->getNationalHolidays($tahun + 1);
+                if (is_array($nextHolidays)) {
+                    $holidays = array_merge($holidays, $nextHolidays);
+                }
+            } catch (\Throwable) {
+            }
+
+            $rosterOffDates = [];
+            if ($user->schedule_type === 'roster' && !empty($user->roster_start_date)) {
+                $curr = $now->copy()->startOfMonth();
+                $end = $now->copy()->addMonths(2)->endOfMonth();
+                while ($curr->lte($end)) {
+                    $sched = $this->scheduleService->getTodaySchedule($user, $curr->format('Y-m-d'));
+                    if (($sched['is_day_off'] ?? false) || ($sched['shift_type'] ?? '') === 'libur') {
+                        $rosterOffDates[] = $curr->format('Y-m-d');
+                    }
+                    $curr->addDay();
+                }
+            }
+
+            $route = $this->approvalRouting->resolveApprovalRoute($user, 'cuti');
+
+            $meta = [
+                'leave_summary' => [
+                    'tahun' => $tahun,
+                    'kuota_awal' => $kuotaAwal,
+                    'sisa_saldo' => $sisaSaldo,
+                    'cuti_terpakai' => $cutiTerpakai,
+                    'pending_hari' => $pendingHari,
+                    'quota_haid_per_bulan' => $isPerempuan ? 2 : 0,
+                    'haid_terpakai_bulan_ini' => $haidTerpakai,
+                    'sisa_cuti_haid' => $sisaHaid,
+                ],
+                'approval_route' => [
+                    'success' => (bool) ($route['success'] ?? false),
+                    'levels' => (int) ($route['levels'] ?? 1),
+                    'is_top_level' => (bool) ($route['is_top_level'] ?? false),
+                    'approver_1_name' => $route['approver_1_role']->role_name ?? 'Atasan Langsung',
+                    'approver_2_name' => $route['approver_2_role']->role_name ?? null,
+                ],
+                'schedule_type' => $user->schedule_type ?? 'normal',
+                'schedule_label' => $user->schedule_label,
+                'holidays' => $holidays,
+                'roster_off_dates' => $rosterOffDates,
+            ];
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => $data,
+            'meta' => $meta,
         ]);
     }
 
@@ -194,9 +315,42 @@ class PengajuanApiController extends Controller
 
         $jenisDb = JenisCuti::find($jenisCutiId);
         $subDb = $subCutiId ? SubCuti::find($subCutiId) : null;
+        $namaJenis = (string) ($jenisDb?->name_cuti ?? '');
+        $namaSub = (string) ($subDb?->nama_sub_cuti ?? $subDb?->name_cuti ?? '');
+
+        if (($this->isFemaleOnlyLeaveName($namaJenis) || $this->isFemaleOnlyLeaveName($namaSub)) && !$user->isPerempuan()) {
+            $label = $namaSub !== '' ? $namaSub : ($namaJenis !== '' ? $namaJenis : 'Cuti Khusus Perempuan');
+            return response()->json([
+                'status' => 'error',
+                'message' => "Pengajuan {$label} hanya diperuntukkan bagi karyawan perempuan.",
+            ], 422);
+        }
+
+        if ((str_contains(strtolower($namaJenis), 'istri melahirkan') || str_contains(strtolower($namaSub), 'istri melahirkan')) && $user->isPerempuan()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pengajuan Cuti Istri Melahirkan hanya diperuntukkan bagi karyawan laki-laki.',
+            ], 422);
+        }
+
+        $wajibDokumen = (bool) ($subDb?->apakah_wajib_dokumen || $jenisDb?->apakah_wajib_dokumen || str_contains(strtolower($namaSub), 'sakit'));
+        if ($wajibDokumen && !$request->hasFile('dokumen_pendukung')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Dokumen pendukung (Surat Keterangan / Medis) wajib diunggah untuk jenis cuti ini.',
+            ], 422);
+        }
 
         $mulai = Carbon::parse($validated['tanggal_mulai'], 'Asia/Jakarta')->startOfDay();
         $selesai = Carbon::parse($validated['tanggal_selesai'], 'Asia/Jakarta')->startOfDay();
+
+        $isHaid = str_contains(strtolower($namaSub), 'haid') || str_contains(strtolower($namaJenis), 'haid');
+        if ($isHaid && $mulai->format('Y-m') !== $selesai->format('Y-m')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pengajuan Cuti Haid tidak boleh melintasi pergantian bulan.',
+            ], 422);
+        }
 
         $totalHari = $this->hitungTotalHariCuti($user, $mulai, $selesai, $jenisDb, $subDb);
         if ($totalHari <= 0) {
@@ -204,21 +358,6 @@ class PengajuanApiController extends Controller
                 'status' => 'error',
                 'message' => 'Rentang tanggal yang dipilih tidak memiliki hari kerja efektif.',
             ], 422);
-        }
-
-        if ($subDb && str_contains(strtolower($subDb->nama_sub_cuti ?? ''), 'haid')) {
-            if (!$user->isPerempuan()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Cuti Haid hanya diperuntukkan bagi karyawan perempuan.',
-                ], 422);
-            }
-            if ($mulai->format('Y-m') !== $selesai->format('Y-m')) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Pengajuan Cuti Haid tidak boleh melintasi pergantian bulan.',
-                ], 422);
-            }
         }
 
         $route = $this->approvalRouting->resolveApprovalRoute($user, 'cuti');
@@ -238,10 +377,16 @@ class PengajuanApiController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($subCutiId && $subDb && str_contains(strtolower($subDb->nama_sub_cuti ?? ''), 'haid')) {
+            if ($isHaid) {
                 $totalHaidBulanIni = DB::table('pengajuan_cutis')
                     ->where('user_id', $user->id)
-                    ->where('sub_cuti_id', $subCutiId)
+                    ->where(function ($q) use ($subCutiId, $jenisCutiId) {
+                        if ($subCutiId) {
+                            $q->where('sub_cuti_id', $subCutiId);
+                        } else {
+                            $q->where('jenis_cuti_id', $jenisCutiId);
+                        }
+                    })
                     ->whereIn(DB::raw('LOWER(status_akhir)'), ['pending', 'approved'])
                     ->whereMonth('tanggal_mulai', $bulanSekarang)
                     ->whereYear('tanggal_mulai', $tahunSekarang)

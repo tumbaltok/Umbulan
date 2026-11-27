@@ -73,7 +73,23 @@ class PengajuanCutiController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
-        $jenisCuti = JenisCuti::with('subCutis')->get();
+        $jenisCuti = JenisCuti::with(['subCutis' => function ($q) use ($user) {
+            $q->orderBy('id');
+            if (!$user->isPerempuan()) {
+                $q->whereRaw('LOWER(name_cuti) NOT LIKE ?', ['%haid%'])
+                    ->whereRaw('LOWER(name_cuti) NOT LIKE ?', ['%bersalin%'])
+                    ->whereRaw('LOWER(name_cuti) NOT LIKE ?', ['%gugur%'])
+                    ->where(function ($sub) {
+                        $sub->whereRaw('LOWER(name_cuti) NOT LIKE ?', ['%melahirkan%'])
+                            ->orWhereRaw('LOWER(name_cuti) LIKE ?', ['%istri%']);
+                    });
+            } else {
+                $q->whereRaw('LOWER(name_cuti) NOT LIKE ?', ['%istri melahirkan%']);
+            }
+        }])
+            ->whereNull('parent_id')
+            ->orderBy('id')
+            ->get();
 
         $cutiTahunan = JenisCuti::where('kode_cuti', 'CT')
             ->orWhere('name_cuti', 'LIKE', '%Tahunan%')
@@ -202,25 +218,34 @@ class PengajuanCutiController extends Controller
         $tahunSekarang = Carbon::parse($request->tanggal_mulai)->year;
         $bulanSekarang = Carbon::parse($request->tanggal_mulai)->month;
 
-        if ($subCutiId) {
-            $subDb = SubCuti::find($subCutiId);
-            if ($subDb) {
-                $namaSub = strtolower($subDb->nama_sub_cuti);
+        $jenisDb = JenisCuti::find($jenisCutiId);
+        $namaJenis = strtolower($jenisDb?->name_cuti ?? '');
+        $subDb = $subCutiId ? SubCuti::find($subCutiId) : null;
+        $namaSub = strtolower($subDb?->nama_sub_cuti ?? '');
 
-                // [L-04 FIX] Validasi Gender: Cuti Haid & Melahirkan hanya untuk Karyawan Perempuan
-                if (str_contains($namaSub, 'haid') || str_contains($namaSub, 'lahir')) {
-                    if (!$user->isPerempuan()) {
-                        return back()->withErrors(['error' => 'Pengajuan ' . $subDb->nama_sub_cuti . ' hanya diperuntukkan bagi karyawan perempuan.'])->withInput();
-                    }
-                }
+        $isKhususPerempuan = static function (string $name): bool {
+            return str_contains($name, 'haid')
+                || str_contains($name, 'bersalin')
+                || str_contains($name, 'gugur')
+                || (str_contains($name, 'melahirkan') && !str_contains($name, 'istri'));
+        };
 
-                if (str_contains($namaSub, 'haid')) {
-                    // [SEC-06 FIX] Validasi Lintas Bulan Kalender (Cross-Month Boundary Guard)
-                    $mulaiBulan = Carbon::parse($request->tanggal_mulai)->month;
-                    $selesaiBulan = Carbon::parse($request->tanggal_selesai)->month;
-                    if ($mulaiBulan !== $selesaiBulan) {
-                        return back()->withErrors(['error' => 'Pengajuan Cuti Haid tidak boleh melintasi pergantian bulan kalender. Silakan buat pengajuan terpisah untuk masing-masing bulan.'])->withInput();
-                    }
+        if (($isKhususPerempuan($namaJenis) || $isKhususPerempuan($namaSub)) && !$user->isPerempuan()) {
+            $label = $subDb?->nama_sub_cuti ?? $jenisDb?->name_cuti ?? 'Cuti Khusus Perempuan';
+            return back()->withErrors(['error' => 'Pengajuan ' . $label . ' hanya diperuntukkan bagi karyawan perempuan.'])->withInput();
+        }
+
+        if ((str_contains($namaJenis, 'istri melahirkan') || str_contains($namaSub, 'istri melahirkan')) && $user->isPerempuan()) {
+            return back()->withErrors(['error' => 'Pengajuan Cuti Istri Melahirkan hanya diperuntukkan bagi karyawan laki-laki.'])->withInput();
+        }
+
+        if ($subCutiId && $subDb) {
+            if (str_contains($namaSub, 'haid')) {
+                // [SEC-06 FIX] Validasi Lintas Bulan Kalender (Cross-Month Boundary Guard)
+                $mulaiBulan = Carbon::parse($request->tanggal_mulai)->month;
+                $selesaiBulan = Carbon::parse($request->tanggal_selesai)->month;
+                if ($mulaiBulan !== $selesaiBulan) {
+                    return back()->withErrors(['error' => 'Pengajuan Cuti Haid tidak boleh melintasi pergantian bulan kalender. Silakan buat pengajuan terpisah untuk masing-masing bulan.'])->withInput();
                 }
             }
         }
@@ -484,8 +509,25 @@ class PengajuanCutiController extends Controller
     // Mengambil daftar sub-cuti berdasarkan ID jenis cuti induk (JSON)
     public function handleSubCuti(int $id)
     {
-        $jenis = JenisCuti::with('subCutis')->findOrFail($id);
+        $user = Auth::user();
+        $jenis = JenisCuti::with(['subCutis' => fn ($q) => $q->orderBy('id')])
+            ->whereNull('parent_id')
+            ->findOrFail($id);
 
-        return response()->json($jenis->subCutis);
+        $subs = $jenis->subCutis->filter(function ($sub) use ($user) {
+            $name = strtolower($sub->nama_sub_cuti ?? $sub->name_cuti ?? '');
+            if (!$user->isPerempuan()) {
+                if (str_contains($name, 'haid') || str_contains($name, 'bersalin') || str_contains($name, 'gugur')) {
+                    return false;
+                }
+                if (str_contains($name, 'melahirkan') && !str_contains($name, 'istri')) {
+                    return false;
+                }
+                return true;
+            }
+            return !str_contains($name, 'istri melahirkan');
+        })->values();
+
+        return response()->json($subs);
     }
 }

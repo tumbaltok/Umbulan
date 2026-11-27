@@ -15,49 +15,37 @@ class UmbulanBrandMark extends StatelessWidget {
     return Container(
       width: size,
       height: size,
+      padding: EdgeInsets.all(size * 0.10),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: darkSurface
-              ? const [Color(0xFF0EA5E9), Color(0xFF0B4F8A)]
-              : const [Color(0xFFFFFFFF), Color(0xFFE0F2FE)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(size * 0.28),
         border: Border.all(
-          color: Colors.white.withValues(alpha: darkSurface ? 0.28 : 0.9),
+          color: darkSurface ? const Color(0xFFBAE6FD) : const Color(0xFFE0F2FE),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0B4F8A).withValues(alpha: 0.22),
+            color: const Color(0xFF0B4F8A).withValues(alpha: darkSurface ? 0.16 : 0.24),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            top: size * 0.14,
-            right: size * 0.16,
-            child: Container(
-              width: size * 0.16,
-              height: size * 0.16,
-              decoration: BoxDecoration(
-                color: (darkSurface ? Colors.white : const Color(0xFF38BDF8))
-                    .withValues(alpha: 0.35),
-                shape: BoxShape.circle,
-              ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.20),
+        child: Image.asset(
+          'assets/images/iconfav.png',
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: const Color(0xFFF0F9FF),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.water_drop_rounded,
+              size: size * 0.54,
+              color: const Color(0xFF0B4F8A),
             ),
           ),
-          Icon(
-            Icons.water_drop_rounded,
-            size: size * 0.54,
-            color: darkSurface ? Colors.white : const Color(0xFF0B4F8A),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -75,6 +75,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final leaveBalance = (_data['leave_balance'] as Map<String, dynamic>?) ?? {};
     final sisaCuti = (leaveBalance['sisa_cuti_tahunan'] as num?)?.toInt() ?? 0;
     final hakCuti = (leaveBalance['kuota_tahunan'] as num?)?.toInt() ?? 12;
+    final cutiTerpakai = (leaveBalance['cuti_terpakai'] as num?)?.toInt() ?? 0;
+    final pendingHari = (leaveBalance['pending_hari'] as num?)?.toInt() ?? 0;
+    final sisaCutiHaid = (leaveBalance['sisa_cuti_haid'] as num?)?.toInt() ?? 0;
     final rasioSisa = hakCuti > 0 ? (sisaCuti / hakCuti).clamp(0.0, 1.0) : 0.0;
     final isDayOff = schedule['is_day_off'] == true;
 
@@ -409,6 +412,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '$sisaCuti Hari',
                             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.primary),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Terpakai $cutiTerpakai H • Pending $pendingHari H',
+                            style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 8),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(99),
@@ -471,6 +479,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+            if (user.isPerempuan) ...[
+              const SizedBox(height: 10),
+              Card(
+                color: const Color(0xFFFFF1F2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFFECDD3)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE11D48).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.favorite_rounded, color: Color(0xFFE11D48), size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Saldo Cuti Haid (Bulan Ini)',
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF881337)),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Jatah khusus karyawan perempuan maks. 2 hari/bulan',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF9F1239)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: const Color(0xFFFDA4AF)),
+                        ),
+                        child: Text(
+                          '$sisaCutiHaid / 2 Hari',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFE11D48),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),

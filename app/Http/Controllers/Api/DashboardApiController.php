@@ -41,15 +41,42 @@ class DashboardApiController extends Controller
         $todaySchedule = $this->scheduleService->getTodaySchedule($user);
 
         $cutiTahunan = JenisCuti::whereNull('parent_id')
-            ->whereRaw('LOWER(name_cuti) LIKE ?', ['%tahunan%'])
+            ->where(function ($q) {
+                $q->where('kode_cuti', 'CT')
+                  ->orWhereRaw('LOWER(name_cuti) LIKE ?', ['%tahunan%'])
+                  ->orWhere('name_cuti', 'Cuti');
+            })
             ->first();
 
-        $saldoTahunan = $cutiTahunan
+        $saldoTahunanRow = $cutiTahunan
             ? SaldoCuti::where('user_id', $user->id)
                 ->where('jenis_cuti_id', $cutiTahunan->id)
                 ->where('tahun', $tahunSekarang)
-                ->value('sisa_saldo')
+                ->first()
             : null;
+
+        $kuotaTahunan = (int) ($saldoTahunanRow->kuota_awal ?? $cutiTahunan?->kuota_default ?? 12);
+        $sisaSaldoTahunan = (int) ($saldoTahunanRow->sisa_saldo ?? 0);
+        $cutiTerpakai = max(0, $kuotaTahunan - $sisaSaldoTahunan);
+        $pendingHari = $cutiTahunan
+            ? (int) PengajuanCuti::where('user_id', $user->id)
+                ->where('jenis_cuti_id', $cutiTahunan->id)
+                ->where('status_akhir', 'pending')
+                ->sum('total_hari')
+            : 0;
+
+        $sisaCutiHaid = 0;
+        if ($user->isPerempuan()) {
+            $haidSub = \App\Models\Cuti\SubCuti::whereRaw('LOWER(name_cuti) LIKE ?', ['%haid%'])->first();
+            $haidQuery = PengajuanCuti::where('user_id', $user->id)
+                ->whereIn('status_akhir', ['pending', 'approved'])
+                ->whereMonth('tanggal_mulai', $now->month)
+                ->whereYear('tanggal_mulai', $tahunSekarang);
+            if ($haidSub) {
+                $haidQuery->where('sub_cuti_id', $haidSub->id);
+            }
+            $sisaCutiHaid = max(0, 2 - (int) $haidQuery->sum('total_hari'));
+        }
 
         $recentCuti = PengajuanCuti::with(['jenisCuti:id,name_cuti', 'subCuti:id,name_cuti'])
             ->where('user_id', $user->id)
@@ -85,8 +112,12 @@ class DashboardApiController extends Controller
                 'today_schedule' => $todaySchedule,
                 'leave_balance' => [
                     'tahun' => $tahunSekarang,
-                    'sisa_cuti_tahunan' => (int) ($saldoTahunan ?? 0),
+                    'kuota_tahunan' => $kuotaTahunan,
+                    'sisa_cuti_tahunan' => $sisaSaldoTahunan,
+                    'cuti_terpakai' => $cutiTerpakai,
+                    'pending_hari' => $pendingHari,
                     'quota_haid_per_bulan' => $user->isPerempuan() ? 2 : 0,
+                    'sisa_cuti_haid' => $sisaCutiHaid,
                 ],
                 'recent_cuti' => $recentCuti,
                 'recent_car' => $recentCar,

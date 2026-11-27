@@ -284,6 +284,92 @@ class ApiNativeIntegrationTest extends TestCase
             ])
             ->assertStatus(201);
 
+        // 4b. Validasi filter gender pada /api/cuti/jenis dan penolakan Cuti Haid oleh pria
+        $impiParent = JenisCuti::create([
+            'parent_id' => null,
+            'kode_cuti' => 'IMPI-TEST',
+            'name_cuti' => 'Ijin Meninggalkan Pekerjaan',
+            'apakah_wajib_dokumen' => false,
+            'butuh_surat_dokter' => false,
+        ]);
+        $subHaid = JenisCuti::create([
+            'parent_id' => $impiParent->id,
+            'name_cuti' => 'Haid',
+            'durasi_default' => 2,
+            'apakah_wajib_dokumen' => false,
+            'butuh_surat_dokter' => false,
+        ]);
+        $subIstriLahir = JenisCuti::create([
+            'parent_id' => $impiParent->id,
+            'name_cuti' => 'Istri Melahirkan',
+            'durasi_default' => 3,
+            'apakah_wajib_dokumen' => false,
+            'butuh_surat_dokter' => false,
+        ]);
+        $parentMelahirkan = JenisCuti::create([
+            'parent_id' => null,
+            'kode_cuti' => 'CM-TEST',
+            'name_cuti' => 'Cuti Melahirkan',
+            'apakah_wajib_dokumen' => true,
+            'butuh_surat_dokter' => true,
+        ]);
+
+        $jenisPriaRes = $this->withToken($karyawanToken)->getJson('/api/cuti/jenis')->assertStatus(200);
+        $parentNamesPria = collect($jenisPriaRes->json('data'))->pluck('name_cuti')->all();
+        $this->assertNotContains('Cuti Melahirkan', $parentNamesPria);
+        $impiPria = collect($jenisPriaRes->json('data'))->firstWhere('id', $impiParent->id);
+        $subNamesPria = collect($impiPria['sub_cutis'] ?? [])->pluck('name_cuti')->all();
+        $this->assertNotContains('Haid', $subNamesPria);
+        $this->assertContains('Istri Melahirkan', $subNamesPria);
+
+        $nextTuesday = $weekday->copy()->addWeek();
+        $this->withToken($karyawanToken)
+            ->postJson('/api/cuti', [
+                'jenis_cuti_id' => $impiParent->id,
+                'sub_cuti_id' => $subHaid->id,
+                'tanggal_mulai' => $nextTuesday->toDateString(),
+                'tanggal_selesai' => $nextTuesday->toDateString(),
+                'alasan_cuti' => 'Percobaan haid oleh karyawan pria',
+            ])
+            ->assertStatus(422);
+
+        $this->withToken($karyawanToken)
+            ->postJson('/api/cuti', [
+                'jenis_cuti_id' => $parentMelahirkan->id,
+                'tanggal_mulai' => $nextTuesday->toDateString(),
+                'tanggal_selesai' => $nextTuesday->toDateString(),
+                'alasan_cuti' => 'Percobaan cuti melahirkan oleh karyawan pria',
+            ])
+            ->assertStatus(422);
+
+        $femaleUser = User::create([
+            'name' => 'Pemohon Wanita API',
+            'email' => 'wanita.api@umbulan.co.id',
+            'password' => bcrypt('Password123!'),
+            'role_id' => $this->roleKaryawan->id,
+            'level' => 3,
+            'gender' => 'Perempuan',
+            'gender_id' => 2,
+            'station_id' => $this->station->id,
+            'schedule_type' => 'normal',
+            'email_verified_at' => now(),
+            'signature' => 'signatures/wanita.png',
+        ]);
+        $femaleUser->roles()->syncWithoutDetaching([$this->roleKaryawan->id => ['is_primary' => true]]);
+        $femaleToken = $femaleUser->createToken('apk-wanita')->plainTextToken;
+
+        $this->app['auth']->forgetGuards();
+
+        $jenisWanitaRes = $this->withToken($femaleToken)->getJson('/api/cuti/jenis')->assertStatus(200);
+        $parentNamesWanita = collect($jenisWanitaRes->json('data'))->pluck('name_cuti')->all();
+        $this->assertContains('Cuti Melahirkan', $parentNamesWanita);
+        $impiWanita = collect($jenisWanitaRes->json('data'))->firstWhere('id', $impiParent->id);
+        $subNamesWanita = collect($impiWanita['sub_cutis'] ?? [])->pluck('name_cuti')->all();
+        $this->assertContains('Haid', $subNamesWanita);
+        $this->assertNotContains('Istri Melahirkan', $subNamesWanita);
+
+        $this->app['auth']->forgetGuards();
+
         // Pastikan Supervisor menerima notifikasi di kotak masuk aplikasi
         $this->app['auth']->forgetGuards();
         $supervisorToken = $supervisor->createToken('apk-atasan')->plainTextToken;

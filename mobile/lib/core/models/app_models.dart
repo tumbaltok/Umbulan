@@ -67,6 +67,12 @@ class UserModel {
   final bool isAccountComplete;
   final CompletionStatus completionStatus;
 
+  bool get isPerempuan {
+    if (genderId == 2) return true;
+    final g = gender.toLowerCase().trim();
+    return g == 'perempuan' || g == 'wanita' || g == 'female' || g == 'p';
+  }
+
   UserModel({
     required this.id,
     this.nip,
@@ -121,16 +127,22 @@ class UserModel {
 
 class JenisCutiModel {
   final int id;
+  final String? kodeCuti;
   final String nameCuti;
+  final int? kuotaDefault;
   final bool wajibDokumen;
   final bool butuhSuratDokter;
+  final String? keteranganOpsional;
   final List<SubCutiModel> subCutis;
 
   JenisCutiModel({
     required this.id,
+    this.kodeCuti,
     required this.nameCuti,
+    this.kuotaDefault,
     required this.wajibDokumen,
     required this.butuhSuratDokter,
+    this.keteranganOpsional,
     required this.subCutis,
   });
 
@@ -138,9 +150,12 @@ class JenisCutiModel {
     final subs = (json['sub_cutis'] as List?) ?? [];
     return JenisCutiModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
+      kodeCuti: json['kode_cuti']?.toString(),
       nameCuti: json['name_cuti']?.toString() ?? '',
+      kuotaDefault: (json['kuota_default'] as num?)?.toInt(),
       wajibDokumen: json['apakah_wajib_dokumen'] == true,
       butuhSuratDokter: json['butuh_surat_dokter'] == true,
+      keteranganOpsional: json['keterangan_opsional']?.toString(),
       subCutis: subs
           .whereType<Map<String, dynamic>>()
           .map(SubCutiModel.fromJson)
@@ -155,6 +170,7 @@ class SubCutiModel {
   final String nameCuti;
   final int? durasiDefault;
   final bool wajibDokumen;
+  final String? keteranganOpsional;
 
   SubCutiModel({
     required this.id,
@@ -162,15 +178,17 @@ class SubCutiModel {
     required this.nameCuti,
     this.durasiDefault,
     required this.wajibDokumen,
+    this.keteranganOpsional,
   });
 
   factory SubCutiModel.fromJson(Map<String, dynamic> json) {
     return SubCutiModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
       parentId: (json['parent_id'] as num?)?.toInt() ?? 0,
-      nameCuti: json['name_cuti']?.toString() ?? '',
+      nameCuti: (json['name_cuti'] ?? json['nama_sub_cuti'])?.toString() ?? '',
       durasiDefault: (json['durasi_default'] as num?)?.toInt(),
       wajibDokumen: json['apakah_wajib_dokumen'] == true,
+      keteranganOpsional: json['keterangan_opsional']?.toString(),
     );
   }
 }
