@@ -33,7 +33,7 @@
                 </span>
                 <div>
                     <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100">Kalender Hari Libur & Cuti Bersama</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Sinkronisasi otomatis SKB 3 Menteri untuk presensi, izin cuti, dan perhitungan payroll.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Sinkronisasi otomatis SKB 3 Menteri untuk penentuan jadwal kerja dan pengajuan izin cuti.</p>
                 </div>
             </div>
         </div>

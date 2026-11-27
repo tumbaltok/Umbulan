@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'core/config/app_config.dart';
 import 'core/network/api_client.dart';
 import 'core/providers/auth_provider.dart';
-import 'core/services/face_extractor_service.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -35,7 +34,6 @@ class UmbulanApp extends StatelessWidget {
 
     final apiClient = ApiClient();
     final pushService = PushNotificationService();
-    final faceExtractor = FaceDescriptorExtractorService();
     final authProvider = AuthProvider(apiClient: apiClient, pushService: pushService)
       ..bootstrap();
 
@@ -43,21 +41,12 @@ class UmbulanApp extends StatelessWidget {
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<PushNotificationService>.value(value: pushService),
-        Provider<FaceDescriptorExtractorService>.value(value: faceExtractor),
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
       ],
       child: MaterialApp(
         title: AppConfig.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        builder: (context, child) {
-          return Stack(
-            children: [
-              ?child,
-              faceExtractor.buildOffstageHost(),
-            ],
-          );
-        },
         home: const _RootGate(),
       ),
     );

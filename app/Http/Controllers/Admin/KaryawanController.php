@@ -189,39 +189,12 @@ class KaryawanController extends Controller
                         'sisa_saldo' => $saldo->sisa_saldo,
                     ];
                 }) : [],
-                'is_face_registered' => ! empty($karyawan->face_descriptor),
             ], 200);
 
         } catch (\Throwable $e) {
             Log::error("Gagal mengambil detail karyawan: " . $e->getMessage());
             return response()->json(['message' => 'Terjadi kesalahan sistem saat memuat data karyawan.'], 500);
         }
-    }
-
-    // Reset data biometrik wajah karyawan (khusus Administrator Level 1)
-    public function resetBiometric(Request $request, int $id): JsonResponse
-    {
-        $currentUser = Auth::user();
-
-        // Otoritas khusus Admin / Superadmin (Level 1)
-        $isAdmin = $currentUser->isLevel1();
-
-        if (! $isAdmin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Akses ditolak: Hanya Administrator (Level 1) yang berwenang mereset biometrik wajah.',
-            ], 403);
-        }
-
-        $karyawan = User::findOrFail($id);
-        $karyawan->update([
-            'face_descriptor' => null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Data biometrik wajah karyawan {$karyawan->name} berhasil di-reset. Karyawan kini dapat melakukan perekaman wajah ulang 1x.",
-        ]);
     }
 
     // Memperbarui sisa saldo cuti karyawan (Khusus Admin Level 1) [M-03 FIX]

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../approvals/screens/approvals_screen.dart';
-import '../../attendance/screens/attendance_screen.dart';
 import '../../common/widgets/server_url_dialog.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../onboarding/screens/schedule_screen.dart';
@@ -33,7 +32,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
     final pages = <Widget>[
       DashboardScreen(
-        onGoToAttendance: () => setState(() => _selectedIndex = 1),
+        onGoToSubmissions: () => setState(() => _selectedIndex = 1),
         onSyncCounts: (unread, pending) {
           if (mounted && (unread != _unreadCount || pending != _pendingApprovals)) {
             setState(() {
@@ -43,7 +42,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
           }
         },
       ),
-      AttendanceScreen(onSuccessRefresh: () => auth.refreshMe()),
       SubmissionsScreen(onAccountUpdated: () => auth.refreshMe()),
       if (isApprover) ApprovalsScreen(onProcessed: () => auth.refreshMe()),
       NotificationsScreen(
@@ -92,10 +90,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Beranda',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.fingerprint),
-            label: 'Absensi',
           ),
           const NavigationDestination(
             icon: Icon(Icons.assignment_outlined),

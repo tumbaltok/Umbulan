@@ -5,7 +5,6 @@ import '../../../core/theme/app_theme.dart';
 class ReadinessBanner extends StatelessWidget {
   final CompletionStatus status;
   final VoidCallback onVerifyEmail;
-  final VoidCallback onRegisterFace;
   final VoidCallback onSetupSignature;
   final VoidCallback onSetupSchedule;
 
@@ -13,7 +12,6 @@ class ReadinessBanner extends StatelessWidget {
     super.key,
     required this.status,
     required this.onVerifyEmail,
-    required this.onRegisterFace,
     required this.onSetupSignature,
     required this.onSetupSchedule,
   });
@@ -29,13 +27,6 @@ class ReadinessBanner extends StatelessWidget {
         done: status.emailVerified,
         icon: Icons.mark_email_read_outlined,
         onTap: onVerifyEmail,
-      ),
-      _ReadinessItem(
-        title: 'Biometrik Wajah',
-        subtitle: 'Perekaman wajah 128-point',
-        done: status.faceRegistered,
-        icon: Icons.face_retouching_natural,
-        onTap: onRegisterFace,
       ),
       _ReadinessItem(
         title: 'Tanda Tangan Digital',
@@ -72,7 +63,7 @@ class ReadinessBanner extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Kelengkapan Akun: ${status.completedCount}/4 Syarat Selesai ($pct%)',
+                  'Kelengkapan Akun: ${status.completedCount}/3 Syarat Selesai ($pct%)',
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -93,78 +84,73 @@ class ReadinessBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 1.55,
-            ),
-            itemBuilder: (_, idx) {
-              final item = items[idx];
-              return InkWell(
-                onTap: item.done ? null : item.onTap,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: item.done
-                          ? AppTheme.success.withValues(alpha: 0.4)
-                          : const Color(0xFFFCD34D),
+          Column(
+            children: items.map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  onTap: item.done ? null : item.onTap,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: item.done
+                            ? AppTheme.success.withValues(alpha: 0.4)
+                            : const Color(0xFFFCD34D),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            item.done ? Icons.check_circle : item.icon,
-                            size: 18,
-                            color: item.done ? AppTheme.success : const Color(0xFFD97706),
-                          ),
-                          const Spacer(),
-                          Text(
-                            item.done ? 'Selesai' : 'Lengkapi',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: item.done ? AppTheme.success : AppTheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        item.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
-                          color: AppTheme.textPrimary,
+                    child: Row(
+                      children: [
+                        Icon(
+                          item.done ? Icons.check_circle : item.icon,
+                          size: 20,
+                          color: item.done ? AppTheme.success : const Color(0xFFD97706),
                         ),
-                      ),
-                      Text(
-                        item.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          color: AppTheme.textSecondary,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                item.subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Text(
+                          item.done ? 'Selesai' : 'Lengkapi',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: item.done ? AppTheme.success : AppTheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
-            },
+            }).toList(),
           ),
         ],
       ),

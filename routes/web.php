@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\Absen\JadwalController;
-use App\Http\Controllers\Absen\KehadiranController;
-use App\Http\Controllers\Admin\AbsensiAdminController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\RecordController;
@@ -132,14 +129,8 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         Route::get('/profile', [AccountController::class, 'index'])->name('account.index');
         Route::put('/profile/update', [AccountController::class, 'update'])->name('account.update');
 
-        // Presensi Kehadiran
-        Route::get('/attendance/biometric-challenge', [KehadiranController::class, 'getBiometricChallenge'])->name('attendance.biometric_challenge');
-        Route::post('/attendance/check-in', [KehadiranController::class, 'checkIn'])->name('attendance.checkin');
-        Route::post('/attendance/check-out', [KehadiranController::class, 'checkOut'])->name('attendance.checkout');
-
-        // Jadwal Kerja & Registrasi Biometrik
-        Route::post('/user/schedule/update', [JadwalController::class, 'updateSchedule'])->name('user.schedule.update');
-        Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('user.face.register');
+        // Jadwal Kerja
+        Route::post('/user/schedule/update', [AccountController::class, 'updateSchedule'])->name('user.schedule.update');
 
         // Modul Cuti
         Route::get('/cuti/riwayat', [PengajuanCutiController::class, 'riwayatView'])->name('cuti.riwayat');
@@ -172,8 +163,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
         });
 
         // Pengaturan Shift Awal Roster
-        Route::get('/user/schedule/set-initial-shift', [JadwalController::class, 'showInitialShiftForm'])->name('user.schedule.show_initial_shift');
-        Route::post('/user/schedule/set-initial-shift', [JadwalController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
+        Route::post('/user/schedule/set-initial-shift', [AccountController::class, 'setInitialShift'])->name('user.schedule.set_initial_shift');
 
         // ==========================================================
         // GRUP KHUSUS ATASAN & ADMINISTRATOR
@@ -208,7 +198,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             Route::put('/admin/karyawan/saldo-cuti/{id}/update', [KaryawanController::class, 'updateSaldoCuti'])->name('admin.karyawan.saldo.update');
             Route::put('/admin/karyawan/{id}/roles', [KaryawanController::class, 'updateRoles'])->name('admin.karyawan.roles.update');
             Route::put('/admin/karyawan/{id}/station', [KaryawanController::class, 'updateStation'])->name('admin.karyawan.station.update');
-            Route::post('/admin/karyawan/{id}/reset-biometric', [KaryawanController::class, 'resetBiometric'])->name('admin.karyawan.reset_biometric');
 
             // CRUD Stasiun Kerja
             Route::get('/admin/stations', [StationController::class, 'index'])->name('admin.stations.index');
@@ -235,10 +224,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
             // Record MPR
             Route::get('/admin/record/mpr', [RecordController::class, 'mpr'])->name('admin.record.mpr');
             Route::get('/admin/record/mpr/export', [RecordController::class, 'exportMpr'])->name('admin.record.mpr.export');
-
-            // Rekap Absensi Harian
-            Route::get('/admin/absensi', [AbsensiAdminController::class, 'index'])->name('admin.absensi.index');
-            Route::get('/admin/absensi/export', [AbsensiAdminController::class, 'export'])->name('admin.absensi.export');
 
             // Update Hierarchy Matrix
             Route::post('/admin/role/hierarchy/update', [RoleController::class, 'updateHierarchyMatrix'])->name('admin.role.hierarchy.update');

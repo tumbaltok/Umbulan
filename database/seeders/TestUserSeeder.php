@@ -21,9 +21,6 @@ class TestUserSeeder extends Seeder
             [
                 'name' => 'Stasiun Umbulan',
                 'type' => 'stasiun',
-                'latitude' => -7.7572565,
-                'longitude' => 112.9314949,
-                'radius_meters' => 1000,
             ]
         );
 

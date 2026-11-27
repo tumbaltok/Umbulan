@@ -16,18 +16,16 @@
     <img src="https://img.shields.io/badge/Flutter-Android%20%26%20iOS-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter Mobile">
     <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4"><br>
     <img src="https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8">
-    <img src="public/images/badge-biometrics.svg" alt="Face Biometrics">
     <img src="https://img.shields.io/badge/Firebase-FCM_Push-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase FCM">
   </p>
 
   <p>
     <a href="#2-arsitektur-sistem--pemisahan-domain">Arsitektur</a> &bull;
-    <a href="#4-pengaturan-profil-verifikasi-email--4-kriteria-kelayakan-akun">Akses &amp; 4-Syarat</a> &bull;
-    <a href="#5-modul-kehadiran-hari-off-lintas-hari-geofencing--biometrik">Presensi &amp; Lintas Hari</a> &bull;
-    <a href="#6-modul-pengajuan-cuti-validasi-kuota--kalibrasi-hari-libur">Cuti &amp; Pengadaan</a> &bull;
-    <a href="#8-rest-api-sanctum-aplikasi-mobile-flutter--fcm">REST API &amp; Mobile</a> &bull;
-    <a href="#10-panduan-pengembangan-lokal-web--mobile-flutter">Setup Lokal</a> &bull;
-    <a href="#11-panduan-deployment-server-produksi">Deploy Produksi</a>
+    <a href="#4-pengaturan-profil-verifikasi-email--3-kriteria-kelayakan-akun">Akses &amp; 3-Syarat</a> &bull;
+    <a href="#5-modul-pengajuan-cuti-validasi-kuota--kalibrasi-hari-libur">Cuti &amp; Pengadaan</a> &bull;
+    <a href="#7-rest-api-sanctum-aplikasi-mobile-flutter--fcm">REST API &amp; Mobile</a> &bull;
+    <a href="#9-panduan-pengembangan-lokal-web--mobile-flutter">Setup Lokal</a> &bull;
+    <a href="#10-panduan-deployment-server-produksi">Deploy Produksi</a>
   </p>
 
   <br>
@@ -56,19 +54,19 @@
 ---
 
 > [!NOTE]
-> **Single Source of Truth:** Seluruh arsitektur, alur logika bisnis, REST API Sanctum, aplikasi Mobile Flutter (`mobile/`), dan panduan deployment pada dokumen ini telah disinkronkan langsung dengan implementasi kode terkini (**64/64 PHPUnit Tests & Flutter Analyze Clean**).
+> **Single Source of Truth:** Seluruh arsitektur, alur logika bisnis, REST API Sanctum, aplikasi Mobile Flutter (`mobile/`), dan panduan deployment pada dokumen ini disinkronkan langsung dengan implementasi kode terkini (**46/46 PHPUnit Tests, 2/2 Flutter Tests & Flutter Analyze Clean**).
 
 ### ✨ Ringkasan Kapabilitas Utama
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <strong>📅 Dual-Pattern Jadwal &amp; Hari OFF</strong><br>
-      Mendukung pola <strong>Normal (Senin&ndash;Jumat)</strong> terkalibrasi SKB 3 Menteri dan <strong>Roster 24/7 (3 Pekan)</strong>, lengkap dengan dukungan absen masuk pada jadwal OFF menggunakan keterangan wajib untuk pencatatan kehadiran dan uang makan.
+      <strong>📅 Dual-Pattern Jadwal Kerja &amp; SKB 3 Menteri</strong><br>
+      Mendukung pola <strong>Normal (Senin&ndash;Jumat)</strong> terkalibrasi hari libur nasional SKB 3 Menteri dan <strong>Roster 24/7 (3 Pekan)</strong> sebagai basis perhitungan hari efektif cuti, kalender kerja, serta penjadwalan notifikasi tindak lanjut atasan.
     </td>
     <td width="50%" valign="top">
-      <strong>🛡️ Biometrik Wajah, Liveness &amp; Lintas Hari</strong><br>
-      Pengenalan wajah 128-vektor (Web Face-API.js &amp; Mobile Google ML Kit) dengan uji kedipan/pencahayaan, <em>geofencing</em> 22 titik stasiun (Haversine), serta aturan <strong>Wajib Absen Pulang Lintas Hari</strong> (Lupa Absen vs Menginap/Lembur).
+      <strong>🔐 3 Kriteria Kelayakan Akun &amp; TTD Digital</strong><br>
+      Kewajiban verifikasi <strong>Email OTP</strong>, <strong>Tanda Tangan Digital</strong> (unggah atau kanvas dengan penghapusan latar transparan), serta <strong>Jadwal Kerja Aktif</strong> sebelum dapat mengajukan dokumen dinas.
     </td>
   </tr>
   <tr>
@@ -89,14 +87,13 @@
 - [1. Tujuan & Ruang Lingkup Sistem](#1-tujuan--ruang-lingkup-sistem)
 - [2. Arsitektur Sistem & Pemisahan Domain](#2-arsitektur-sistem--pemisahan-domain)
 - [3. Hirarki Hak Akses & Matriks Persetujuan Dinamis](#3-hirarki-hak-akses--matriks-persetujuan-dinamis)
-- [4. Pengaturan Profil, Verifikasi Email & 4 Kriteria Kelayakan Akun](#4-pengaturan-profil-verifikasi-email--4-kriteria-kelayakan-akun)
-- [5. Modul Kehadiran, Hari OFF, Lintas Hari, Geofencing & Biometrik](#5-modul-kehadiran-hari-off-lintas-hari-geofencing--biometrik)
-- [6. Modul Pengajuan Cuti, Validasi Kuota & Kalibrasi Hari Libur](#6-modul-pengajuan-cuti-validasi-kuota--kalibrasi-hari-libur)
-- [7. Modul CAR (Cash Advance) & MPR (Material Purchase)](#7-modul-car-cash-advance--mpr-material-purchase)
-- [8. REST API Sanctum, Aplikasi Mobile Flutter & FCM](#8-rest-api-sanctum-aplikasi-mobile-flutter--fcm)
-- [9. Automasi Latar Belakang (Task Scheduler & Cron Jobs)](#9-automasi-latar-belakang-task-scheduler--cron-jobs)
-- [10. Panduan Pengembangan Lokal (Web & Mobile Flutter)](#10-panduan-pengembangan-lokal-web--mobile-flutter)
-- [11. Panduan Deployment Server Produksi](#11-panduan-deployment-server-produksi)
+- [4. Pengaturan Profil, Verifikasi Email & 3 Kriteria Kelayakan Akun](#4-pengaturan-profil-verifikasi-email--3-kriteria-kelayakan-akun)
+- [5. Modul Pengajuan Cuti, Validasi Kuota & Kalibrasi Hari Libur](#5-modul-pengajuan-cuti-validasi-kuota--kalibrasi-hari-libur)
+- [6. Modul CAR (Cash Advance) & MPR (Material Purchase)](#6-modul-car-cash-advance--mpr-material-purchase)
+- [7. REST API Sanctum, Aplikasi Mobile Flutter & FCM](#7-rest-api-sanctum-aplikasi-mobile-flutter--fcm)
+- [8. Automasi Latar Belakang (Task Scheduler & Cron Jobs)](#8-automasi-latar-belakang-task-scheduler--cron-jobs)
+- [9. Panduan Pengembangan Lokal (Web & Mobile Flutter)](#9-panduan-pengembangan-lokal-web--mobile-flutter)
+- [10. Panduan Deployment Server Produksi](#10-panduan-deployment-server-produksi)
 
 </details>
 
@@ -104,11 +101,11 @@
 
 ## 1. Tujuan & Ruang Lingkup Sistem
 
-Sistem mengelola operasional pegawai administratif dan operator transmisi lapangan sepanjang 97 kilometer (Kab. Pasuruan hingga Kab. Gresik) melalui **2 Pola Jadwal Kerja Baku** yang terkunci di [ScheduleService.php](app/Services/ScheduleService.php):
+Sistem mengelola administrasi pengajuan Cuti/Izin, Cash Advance Request (`CAR`), dan Material Purchase Request (`MPR`) untuk pegawai administratif maupun operator lapangan sepanjang 97 kilometer (Kab. Pasuruan hingga Kab. Gresik) berbasis **2 Pola Jadwal Kerja Baku** yang terkunci di [ScheduleService.php](app/Services/ScheduleService.php):
 
 ```mermaid
 flowchart LR
-    SPAM["KPBU SPAM Umbulan\n97 Km Transmisi | 22 Titik Geofence"]
+    SPAM["KPBU SPAM Umbulan\n97 Km Transmisi | 22 Unit & Rumah Meter"]
     SPAM --> Normal["Jadwal Normal (normal)\nSenin - Jumat | 07:00 - 16:00 WIB\nIkut Libur Nasional SKB 3 Menteri"]
     SPAM --> Roster["Jadwal Roster 24/7 (roster)\nRotasi Tiap Selasa 07:00 WIB\nAbaikan Tanggal Merah Nasional"]
     Roster --> P1["Pekan I: Shift Pagi\n07:00 - 19:00 WIB"]
@@ -121,8 +118,7 @@ flowchart LR
 | **Label Antarmuka** | `Normal (Senin – Jumat)` | `Roster / Shift (12 Jam)` |
 | **Pola Hari Kerja** | Senin s/d Jumat (Sabtu & Minggu OFF) | Siklus 3 Pekan (Pagi, Malam, OFF Roster) |
 | **Jam Kerja Baku** | `07:00` – `16:00` WIB | Pagi: `07:00`–`19:00` \| Malam: `19:00`–`07:00` WIB |
-| **Hari Libur Nasional** | Otomatis libur sesuai SKB 3 Menteri | Tetap dinas operasional 24/7 |
-| **Kerja Saat Hari OFF** | Diizinkan dengan keterangan wajib (Uang Makan) | Diizinkan dengan keterangan wajib (Uang Makan) |
+| **Hari Libur Nasional** | Otomatis libur sesuai SKB 3 Menteri | Tetap dinas operasional 24/7 (cuti mengikuti hari shift aktif) |
 
 ---
 
@@ -134,8 +130,8 @@ flowchart LR
 flowchart TD
     subgraph Client ["Client & Presentation Layer"]
         WebLanding["Web Landing Publik\numbulan.site"]
-        WebPortal["Portal Karyawan & Admin\nkaryawan.umbulan.site\nBlade + Tailwind v4 + Face-API.js"]
-        MobileApp["Aplikasi Mobile Flutter\nAndroid & iOS (mobile/)\nML Kit + Biometrics + Geolocator"]
+        WebPortal["Portal Karyawan & Admin\nkaryawan.umbulan.site\nBlade + Tailwind v4"]
+        MobileApp["Aplikasi Mobile Flutter\nAndroid & iOS (mobile/)\nSanctum + Signature + FCM"]
     end
 
     subgraph App ["Application & REST API Layer (Laravel 13 / PHP 8.3)"]
@@ -173,10 +169,9 @@ flowchart TD
 | **PHP & Laravel** | `^8.3` / `^13.8` | Core MVC, REST API, Eloquent ORM, Queue, Scheduler ([composer.json](composer.json)). |
 | **Laravel Sanctum** | `^4.0` | Token API berbasis Bearer untuk aplikasi Flutter ([routes/api.php](routes/api.php)). |
 | **Barryvdh DomPDF** | `^3.1 / ^4.0` | Generator PDF resmi A4 untuk Cuti, CAR, dan MPR dengan TTD digital inline. |
-| **PHP GD Extension** | Bawaan PHP | Pembubuhan watermark metadata presensi pada foto bukti alasan ([KehadiranController.php](app/Http/Controllers/Absen/KehadiranController.php)). |
+| **PHP GD Extension** | Bawaan PHP | Penghapusan latar belakang transparan berkas Tanda Tangan Digital ([AccountController.php](app/Http/Controllers/User/AccountController.php)). |
 | **Tailwind CSS v4** | `^4.0` | Styling antarmuka Web via `@tailwindcss/vite` dengan Dark/Light Mode adaptif. |
-| **Face-API Assets** | Lokal `.bin` | Model `tiny_face_detector`, `face_landmark_68`, `face_recognition_model` pada `public/models/face-api/` & `mobile/assets/models/face-api/`. |
-| **Flutter SDK** | `^3.14.0` | Aplikasi mobile [mobile/](mobile/) (`dio`, `provider`, `camera`, `google_mlkit_face_detection`, `geolocator`, `firebase_messaging`, `flutter_local_notifications`). |
+| **Flutter SDK** | `^3.14.0` | Aplikasi mobile [mobile/](mobile/) (`dio`, `provider`, `shared_preferences`, `signature`, `file_picker`, `firebase_messaging`, `flutter_local_notifications`). |
 | **Push & Holiday Service** | Internal | `PushNotificationService` (In-App + FCM) & `HolidayService` (sinkronisasi SKB 3 Menteri). |
 
 ---
@@ -187,9 +182,9 @@ Sistem memadukan otorisasi **Level Pengguna (`users.level` 1–3)** dengan **Rol
 
 ```mermaid
 flowchart TD
-    L1["Level 1: Admin & Eksekutif (BOD / GM)\nFull Control, Master Data, Reset Biometrik, Approval Matrix"]
+    L1["Level 1: Admin & Eksekutif (BOD / GM)\nFull Control, Master Data, Approval Matrix"]
     L2["Level 2: Pengawas Menengah (Manager / Supervisor)\nMonitoring Staf & Otoritas Approve / Reject Berjenjang"]
-    L3["Level 3: Staf Pelaksana, Operator & Pipeline\nPresensi Biometrik & Pengajuan Cuti / CAR / MPR"]
+    L3["Level 3: Staf Pelaksana, Operator & Pipeline\nKalender Jadwal & Pengajuan Cuti / CAR / MPR"]
     L1 --> L2 --> L3
 ```
 
@@ -202,77 +197,34 @@ flowchart TD
 
 ---
 
-## 4. Pengaturan Profil, Verifikasi Email & 4 Kriteria Kelayakan Akun
+## 4. Pengaturan Profil, Verifikasi Email & 3 Kriteria Kelayakan Akun
 
 Identitas login, verifikasi kepemilikan akun, dan pemulihan kata sandi sepenuhnya menggunakan **Email Kepegawaian** (tanpa ketergantungan nomor telepon/WhatsApp).
 
 ```mermaid
 flowchart LR
-    C1["1. Email Terverifikasi\nSigned URL / OTP Email"] --> C2["2. Biometrik Wajah\n128-Vektor Descriptor"]
-    C2 --> C3["3. Tanda Tangan Digital\nCanvas Signature"]
-    C3 --> C4["4. Jadwal Kerja Aktif\nNormal atau Roster"]
-    C4 --> OK["Akun Siap Operasi\nAkses Penuh Cuti, CAR & MPR"]
+    C1["1. Email Terverifikasi\nSigned URL / OTP Email"] --> C2["2. Tanda Tangan Digital\nCanvas Signature"]
+    C2 --> C3["3. Jadwal Kerja Aktif\nNormal atau Roster"]
+    C3 --> OK["Akun Siap Operasi\nAkses Penuh Cuti, CAR & MPR"]
 ```
 
-* **Guard Kelengkapan Akun ([EnsureAccountIsComplete.php](app/Http/Middleware/EnsureAccountIsComplete.php)):** Middleware `account.complete` menolak akses pengajuan Cuti, CAR, dan MPR dengan respons `HTTP 403` (API) atau redirect + alert (Web) sampai ke-4 syarat di atas terpenuhi.
+* **Guard Kelengkapan Akun ([EnsureAccountIsComplete.php](app/Http/Middleware/EnsureAccountIsComplete.php)):** Middleware `account.complete` menolak akses pengajuan Cuti, CAR, dan MPR dengan respons `HTTP 403` (API) atau redirect + alert (Web) sampai ke-3 syarat di atas terpenuhi.
 * **Lupa Kata Sandi ([ForgotPasswordController.php](app/Http/Controllers/Auth/ForgotPasswordController.php)):** Mendukung identifikasi via Email atau NIP dengan perlindungan *anti-account enumeration*, pengiriman OTP 6-digit ke Email (`PasswordResetOtpMail`), *rate limiting*, *cooldown* 60 detik, kedaluwarsa 5 menit, dan lockout 5x salah input.
-* **Integritas Profil ([AccountController.php](app/Http/Controllers/User/AccountController.php)):** Penguncian `gender_id` hanya dapat diubah oleh Admin Level 1; mendukung penugasan multi-jabatan (`role_user`) dan multi-Rumah Meter (`station_user`).
+* **Integritas Profil & Jadwal ([AccountController.php](app/Http/Controllers/User/AccountController.php)):** Penguncian `gender_id` hanya dapat diubah oleh Admin Level 1; mendukung penugasan multi-jabatan (`role_user`), multi-Rumah Meter (`station_user`), dan pengaturan Jadwal Kerja (`Normal` atau `Roster`).
 
 ---
 
-## 5. Modul Kehadiran, Hari OFF, Lintas Hari, Geofencing & Biometrik
-
-### A. Alur Presensi Cerdas (Hari OFF & Wajib Pulang Lintas Hari)
-
-```mermaid
-flowchart TD
-    Start(["Buka Menu Presensi\nWeb / Mobile Flutter"]) --> CekPrev{"Ada sesi sebelumnya\nbelum Absen Pulang?"}
-
-    CekPrev -- Ya --> CekMalam{"Shift Malam kemarin\n& jam < 11:00 WIB?"}
-    CekMalam -- Ya --> OutNormal["Absen Pulang Normal\n(Tanpa Popup Lintas Hari)"]
-    CekMalam -- Tidak --> LockIn["Tombol Absen Masuk DIBLOKIR\nTampil Tombol Absen Pulang Kemarin"]
-    LockIn --> PopupCross{"Popup Pilihan Wajib\nAbsen Pulang Lintas Hari"}
-    PopupCross --> OpsiLupa["Kemarin Lupa Absen Pulang\n(forgot_checkout)\nBoleh Absen Masuk Hari Ini"]
-    PopupCross --> OpsiInap["Menginap / Lembur di Station\n(overnight_overtime)\nKotak Peringatan IMPORTANT"]
-    OpsiInap --> RestLock["Hari Ini Terkunci Istirahat\nis_rest_after_overtime = true\nStatus: Libur"]
-
-    CekPrev -- Tidak --> CekRest{"Hari ini terkunci\nIstirahat Pasca Lembur?"}
-    CekRest -- Ya --> InfoRest["Tidak Bisa Absen Masuk\nMasa Istirahat Wajib"]
-    CekRest -- Tidak --> CekOff{"Jadwal Hari Ini OFF?"}
-    CekOff -- Ya --> BtnOff["Tombol: Absen Masuk (Jadwal OFF)\nWajib Isi Keterangan (Uang Makan)\nTercatat Status: Hadir"]
-    CekOff -- Tidak --> BtnNormal["Absen Masuk / Pulang Normal\nAuto-Submit Saat Liveness Lolos"]
-```
-
-### B. Ringkasan Aturan Bisnis Presensi ([KehadiranController.php](app/Http/Controllers/Absen/KehadiranController.php))
-1. **Masuk Kerja saat Jadwal OFF:** Karyawan tetap dapat melakukan absen masuk apabila ada keperluan kerja di hari OFF. Sistem mewajibkan keterangan alasan (HTTP `422` bila kosong), mencatat `shift_type = 'Masuk Hari OFF'`, `is_off_day_work = true`, dan `status = 'Hadir'` agar terbaca pada rekap admin & hak uang makan.
-2. **Wajib Absen Pulang Lintas Hari:** Selama record tanggal sebelumnya belum memiliki `check_out`, absen masuk hari ini ditolak (`requires_cross_day_checkout = true`). Ketika melakukan check-out lintas hari (kecuali Shift Malam kemarin sebelum pukul `11:00` WIB), pengguna wajib memilih:
-   * `forgot_checkout` (*Kemarin Lupa Absen Pulang*) &rarr; menutup sesi kemarin dan membuka kembali akses absen masuk hari ini.
-   * `overnight_overtime` (*Menginap / Lembur di Station*) &rarr; menampilkan peringatan **`IMPORTANT`**, menutup sesi kemarin, dan mengunci tanggal hari ini dengan `is_rest_after_overtime = true` (`status = 'Libur'`).
-3. **Rekap & Ekspor Admin:** Halaman rekap [recordabsensi.blade.php](resources/views/admin/record/recordabsensi.blade.php) dan ekspor CSV [AbsensiAdminController.php](app/Http/Controllers/Admin/AbsensiAdminController.php) menampilkan penanda **`Masuk OFF (Uang Makan)`**, **`Istirahat Lembur`**, **`Lupa Checkout`**, dan **`Menginap Lembur`**, beserta durasi kerja lintas tanggal (`date` s/d `checkout_date`).
-
-### C. Geofencing Multi-Stasiun (Haversine) & Biometrik 128-Vektor
-* **Formula Haversine:** Mengukur jarak koordinat GPS pengguna terhadap 22 stasiun operasional resmi ($R = 6.371.000\text{ m}$):
-
-$$\Delta\sigma = 2 \cdot \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)}\right), \quad d = R \cdot \Delta\sigma$$
-
-* **Biometrik Client-Side + Liveness + Server Guard:**
-  * **Web:** Face-API.js mengekstrak 128-vektor + uji kedipan mata (*Eye Aspect Ratio*); langsung *auto-submit* jika tidak ada kondisi khusus, atau diarahkan ke `#modalKonfirmasiAbsen` bila terlambat, pulang awal, di luar radius, **masuk di hari OFF**, atau **pulang lintas hari**.
-  * **Mobile ([face_scan_screen.dart](mobile/lib/features/onboarding/screens/face_scan_screen.dart)):** *Auto-detect* wajah tanpa klik tombol dengan panduan *real-time* (jarak terlalu jauh/dekat, geser kiri/kanan, cahaya redup/silau, dan verifikasi kedipan mata).
-  * **Backend Guard:** Memvalidasi `biometric_nonce`, deduplikasi `selfie_frame`, batas akurasi GPS ($\le 150\text{ m}$), Euclidean Distance ($\le 0.58$), transaksi atomik `lockForUpdate()`, dan pembatasan perekaman wajah 1x (reset hanya oleh Admin Level 1).
-
----
-
-## 6. Modul Pengajuan Cuti, Validasi Kuota & Kalibrasi Hari Libur
+## 5. Modul Pengajuan Cuti, Validasi Kuota & Kalibrasi Hari Libur
 
 * **Kalibrasi SKB 3 Menteri ([HolidayService.php](app/Services/HolidayService.php)):** Caching tabel `holidays` 24 jam, auto-sync berkala, baseline darurat offline, serta perlindungan data manual admin (`source = 'manual_admin'`).
 * **Pemotongan Saldo Adil ([CutiHelperTrait.php](app/Traits/CutiHelperTrait.php)):**
   * Jadwal Normal menghitung hari efektif Senin–Jumat di luar tanggal merah nasional; Jadwal Roster menghitung sesuai hari dinas aktif di luar libur Roster Pekan III.
   * Hanya **Cuti Tahunan (`CT`)** yang memotong saldo (dilindungi `is_cut_saldo`); **Cuti Haid** khusus wanita dibatasi **2 hari/bulan kalender**.
-  * Pengajuan cuti yang disetujui otomatis disinkronkan ke tabel `kehadirans` (`status = 'Izin'`).
+  * Pengajuan cuti yang disetujui otomatis memotong kuota terkait dan langsung terefleksi di Kalender Jadwal Kerja karyawan.
 
 ---
 
-## 7. Modul CAR (Cash Advance) & MPR (Material Purchase)
+## 6. Modul CAR (Cash Advance) & MPR (Material Purchase)
 
 | Aspek | Cash Advance Request (`CAR`) | Material Purchase Request (`MPR`) |
 | :--- | :--- | :--- |
@@ -282,7 +234,7 @@ $$\Delta\sigma = 2 \cdot \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta\phi}{2}\rig
 
 ---
 
-## 8. REST API Sanctum, Aplikasi Mobile Flutter & FCM
+## 7. REST API Sanctum, Aplikasi Mobile Flutter & FCM
 
 Seluruh komunikasi antara aplikasi Flutter Android/iOS ([mobile/](mobile/)) dan server menggunakan endpoint REST API berikut ([routes/api.php](routes/api.php)):
 
@@ -293,11 +245,10 @@ Seluruh komunikasi antara aplikasi Flutter Android/iOS ([mobile/](mobile/)) dan 
 | :--- | :---: | :--- | :---: | :--- |
 | **Auth & Akun** | `POST` | `/api/login`, `/api/register` | Publik | Login Sanctum (plus simpan `fcm_token`) & registrasi |
 | **Master & OTP** | `GET` / `POST` | `/api/master-data`, `/api/forgot-password/*` | Publik | Daftar role/stasiun & reset sandi OTP email |
-| **Sesi & Profil** | `GET` / `POST` | `/api/me`, `/api/logout`, `/api/email/*` | `auth:sanctum` | Profil + 4-kriteria status, verifikasi email OTP, cabut token |
-| **Dashboard** | `GET` | `/api/dashboard`, `/api/calendar`, `/api/attendance/history` | `auth:sanctum` | Ringkasan jadwal, status lintas hari/OFF, riwayat presensi |
-| **Presensi** | `GET` / `POST` | `/api/attendance/challenge`, `/check-in`, `/check-out` | `auth:sanctum` | Nonce biometrik & eksekusi absensi GPS + 128-vektor |
-| **Kesiapan Akun** | `POST` / `PUT` | `/api/user/face/register`, `/user/schedule`, `/user/signature` | `auth:sanctum` | Pendaftaran biometrik 1x, jadwal kerja, tanda tangan digital |
-| **Pengajuan** | `GET` / `POST` | `/api/cuti`, `/api/car`, `/api/mpr` | `auth:sanctum` + `account.complete` | Daftar & pengajuan transaksi (wajib 4 kriteria akun) |
+| **Sesi & Profil** | `GET` / `POST` | `/api/me`, `/api/logout`, `/api/email/*` | `auth:sanctum` | Profil + 3-kriteria status, verifikasi email OTP, cabut token |
+| **Dashboard** | `GET` | `/api/dashboard`, `/api/calendar` | `auth:sanctum` | Ringkasan jadwal hari ini, kuota cuti, kalender kerja & histori |
+| **Kesiapan Akun** | `PUT` / `POST` | `/api/user/schedule`, `/api/user/signature` | `auth:sanctum` | Pengaturan jadwal kerja & unggah tanda tangan digital |
+| **Pengajuan** | `GET` / `POST` | `/api/cuti`, `/api/car`, `/api/mpr` | `auth:sanctum` + `account.complete` | Daftar & pengajuan transaksi (wajib 3 kriteria akun) |
 | **Notifikasi FCM** | `POST` / `GET` | `/api/devices/fcm-token`, `/api/notifications/*` | `auth:sanctum` | Registrasi token perangkat FCM & kotak masuk notifikasi |
 
 </details>
@@ -306,7 +257,7 @@ Seluruh komunikasi antara aplikasi Flutter Android/iOS ([mobile/](mobile/)) dan 
 
 ---
 
-## 9. Automasi Latar Belakang (Task Scheduler & Cron Jobs)
+## 8. Automasi Latar Belakang (Task Scheduler & Cron Jobs)
 
 Dikonfigurasi deklaratif di [routes/console.php](routes/console.php) dan dipicu setiap menit melalui Crontab:
 
@@ -319,7 +270,7 @@ Dikonfigurasi deklaratif di [routes/console.php](routes/console.php) dan dipicu 
 
 ---
 
-## 10. Panduan Pengembangan Lokal (Web & Mobile Flutter)
+## 9. Panduan Pengembangan Lokal (Web & Mobile Flutter)
 
 ### A. Backend & Web Portal (Laravel)
 
@@ -367,12 +318,12 @@ flutter build apk --release --split-per-abi    # APK produksi per arsitektur CPU
 
 ---
 
-## 11. Panduan Deployment Server Produksi
+## 10. Panduan Deployment Server Produksi
 
 > [!IMPORTANT]
 > Gunakan placeholder aman (`domain-anda.com`, `nama_database_anda`, `password_database_kuat`) saat mengatur server produksi dan jangan pernah men-commit berkas `.env` maupun kunci Service Account Firebase (`storage/app/firebase-*.json`) ke repositori publik.
 
-### 11.0. ⚡ Jalur Cepat: One-Click Auto-Deployer (`deploy.sh`)
+### 10.0. ⚡ Jalur Cepat: One-Click Auto-Deployer (`deploy.sh`)
 
 Skrip [deploy.sh](deploy.sh) dirancang *idempotent* untuk deployment perdana maupun pembaruan kode rutin di Ubuntu/Debian VPS dan **aaPanel**:
 
@@ -397,7 +348,7 @@ flowchart LR
 ---
 
 <details>
-<summary><strong>🛠️ 11.1 – 11.12. Panduan Manual Step-by-Step Ubuntu 22.04 / 24.04 LTS + Nginx</strong></summary>
+<summary><strong>🛠️ 10.1 – 10.12. Panduan Manual Step-by-Step Ubuntu 22.04 / 24.04 LTS + Nginx</strong></summary>
 
 1. **Firewall UFW & Paket Dasar:**
    ```bash
@@ -484,7 +435,7 @@ flowchart LR
    ```cron
    * * * * * cd /var/www/umbulan && php artisan schedule:run >> /dev/null 2>&1
    ```
-7. **Konfigurasi Nginx Multi-Domain + Cache Aset Statis `.bin` (`/etc/nginx/sites-available/umbulan.conf`):**
+7. **Konfigurasi Nginx Multi-Domain (`/etc/nginx/sites-available/umbulan.conf`):**
    ```nginx
    server {
        listen 80;
@@ -512,7 +463,7 @@ flowchart LR
            try_files $uri $uri/ /index.php?$query_string;
        }
 
-       location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff|woff2|ttf|svg|webp|bin)$ {
+       location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff|woff2|ttf|svg|webp)$ {
            expires 30d;
            add_header Cache-Control "public, no-transform";
            access_log off;
@@ -545,7 +496,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><strong>📄 11.13. Lihat Kode Lengkap Skrip <code>deploy.sh</code></strong></summary>
+<summary><strong>📄 10.13. Lihat Kode Lengkap Skrip <code>deploy.sh</code></strong></summary>
 
 ```bash
 #!/usr/bin/env bash
@@ -723,12 +674,12 @@ echo "=================================================================="
 
 </details>
 
-### 11.14. Checklist Pengujian Pasca-Deploy (Go-Live Verification)
+### 10.14. Checklist Pengujian Pasca-Deploy (Go-Live Verification)
 
 - [ ] **Subdomain Routing & SSL:** `https://domain-anda.com` menampilkan landing page publik dan `https://karyawan.domain-anda.com` mengarah ke portal karyawan dengan SSL valid.
-- [ ] **Email OTP & 4-Syarat Kelayakan:** Registrasi dan OTP email terkirim normal; pengguna baru berhasil mengisi verifikasi email, biometrik wajah, tanda tangan digital, dan jadwal kerja.
-- [ ] **Presensi Biometrik, Hari OFF & Lintas Hari:** Aset `/models/face-api/` (`.bin`) termuat tanpa 404; absen pada jadwal OFF wajib mengisi alasan; check-out lintas hari menampilkan popup **Lupa Absen Pulang** vs **Menginap (Lembur)**.
-- [ ] **Mobile Flutter & FCM:** API `/api/login`, `/api/dashboard`, `/api/attendance/*`, dan notifikasi push FCM diterima di perangkat Android/iOS melalui queue worker.
+- [ ] **Email OTP & 3-Syarat Kelayakan:** Registrasi dan OTP email terkirim normal; pengguna baru berhasil mengisi verifikasi email, tanda tangan digital, dan jadwal kerja.
+- [ ] **Pengajuan Cuti, CAR & MPR:** Kalender jadwal kerja termuat normal beserta hari libur SKB 3 Menteri; pengajuan, approval berjenjang, dan cetak PDF A4 berjalan lancar.
+- [ ] **Mobile Flutter & FCM:** API `/api/login`, `/api/dashboard`, `/api/cuti`, `/api/car`, `/api/mpr`, dan notifikasi push FCM diterima di perangkat Android/iOS melalui queue worker.
 - [ ] **Audit Log Produksi:**
   ```bash
   tail -n 50 /var/www/umbulan/storage/logs/laravel-$(date +%Y-%m-%d).log

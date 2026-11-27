@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\Absen\JadwalController;
-use App\Http\Controllers\Absen\KehadiranController;
 use App\Http\Controllers\Api\ApprovalApiController;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\DashboardApiController;
@@ -41,27 +39,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/read', [NotificationApiController::class, 'markAsRead'])->name('api.notifications.read');
     });
 
-    // Dashboard, Kalender & Riwayat Absensi
+    // Dashboard & Kalender Kerja
     Route::get('/dashboard', [DashboardApiController::class, 'index'])->name('api.dashboard');
     Route::get('/calendar', [DashboardApiController::class, 'calendar'])->name('api.calendar');
-    Route::get('/attendance/history', [DashboardApiController::class, 'attendanceHistory'])->name('api.attendance.history');
 
-    // Absensi Biometrik & Geolokasi
-    Route::prefix('attendance')->group(function () {
-        Route::get('/challenge', [KehadiranController::class, 'getBiometricChallenge'])->name('api.attendance.challenge');
-        Route::post('/check-in', [KehadiranController::class, 'checkIn'])->name('api.attendance.check_in');
-        Route::post('/check-out', [KehadiranController::class, 'checkOut'])->name('api.attendance.check_out');
-    });
-
-    // Kelengkapan Akun & Profil (Biometrik Wajah, Jadwal Kerja, TTD)
-    Route::post('/user/face/register', [JadwalController::class, 'registerFace'])->name('api.user.face_register');
+    // Kelengkapan Akun & Profil (Jadwal Kerja & TTD Digital)
     Route::put('/user/schedule', [PengajuanApiController::class, 'updateSchedule'])->name('api.user.schedule');
     Route::post('/user/signature', [PengajuanApiController::class, 'updateSignature'])->name('api.user.signature');
 
     // Master Jenis Cuti
     Route::get('/cuti/jenis', [PengajuanApiController::class, 'jenisCuti'])->name('api.cuti.jenis');
 
-    // Pengajuan Cuti, CAR & MPR (Memerlukan 4 Syarat Kesiapan Akun)
+    // Pengajuan Cuti, CAR & MPR (Memerlukan 3 Syarat Kesiapan Akun)
     Route::middleware('account.complete')->group(function () {
         Route::get('/cuti', [PengajuanApiController::class, 'cutiIndex'])->name('api.cuti.index');
         Route::post('/cuti', [PengajuanApiController::class, 'cutiStore'])->name('api.cuti.store');

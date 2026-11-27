@@ -35,7 +35,7 @@ trait Auditable
             $ignored = array_merge(
                 ['created_at', 'updated_at'],
                 $model->getHidden() ?? [],
-                ['password', 'remember_token', 'face_descriptor']
+                ['password', 'remember_token']
             );
 
             $oldValues = null;

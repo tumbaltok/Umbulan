@@ -1,23 +1,21 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
-import '../../../core/models/app_models.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/screens/email_otp_screen.dart';
 import '../../common/widgets/readiness_banner.dart';
-import '../../onboarding/screens/face_scan_screen.dart';
 import '../../onboarding/screens/schedule_screen.dart';
 import '../../onboarding/screens/signature_screen.dart';
 import 'calendar_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final VoidCallback onGoToAttendance;
+  final VoidCallback onGoToSubmissions;
   final void Function(int unreadNotifications, int pendingApprovals) onSyncCounts;
 
   const DashboardScreen({
     super.key,
-    required this.onGoToAttendance,
+    required this.onGoToSubmissions,
     required this.onSyncCounts,
   });
 
@@ -72,14 +70,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (user == null) return const SizedBox.shrink();
 
     final schedule = (_data['today_schedule'] as Map<String, dynamic>?) ?? {};
-    final att = _data['today_attendance'] is Map<String, dynamic>
-        ? AttendanceRecord.fromJson(_data['today_attendance'] as Map<String, dynamic>)
-        : null;
-    final openPrev = _data['open_previous_attendance'] is Map<String, dynamic>
-        ? AttendanceRecord.fromJson(_data['open_previous_attendance'] as Map<String, dynamic>)
-        : null;
-    final requiresCrossDayCheckout = _data['requires_cross_day_checkout'] == true;
-    final isRestAfterOvertime = _data['is_rest_after_overtime'] == true;
     final leaveBalance = (_data['leave_balance'] as Map<String, dynamic>?) ?? {};
 
     return RefreshIndicator(
@@ -117,13 +107,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   children: [
                     _QuickBadge(
-                      label: 'Masuk: ${att?.checkIn ?? '--:--'}',
-                      icon: Icons.login,
+                      label: user.scheduleType == 'roster' ? 'Sistem Roster' : 'Jadwal Normal',
+                      icon: Icons.calendar_today,
                     ),
                     const SizedBox(width: 10),
                     _QuickBadge(
-                      label: 'Pulang: ${att?.checkOut ?? '--:--'}',
-                      icon: Icons.logout,
+                      label: user.isAccountComplete ? 'Akun Siap' : 'Lengkapi Profil',
+                      icon: user.isAccountComplete ? Icons.verified_user : Icons.pending_actions,
                     ),
                   ],
                 ),
@@ -132,11 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Guard 4 Syarat Kelengkapan Akun
+          // Guard 3 Syarat Kelengkapan Akun
           ReadinessBanner(
             status: user.completionStatus,
             onVerifyEmail: () => _openAndReload(const EmailOtpScreen()),
-            onRegisterFace: () => _openAndReload(const FaceScanScreen(mode: FaceScanMode.register)),
             onSetupSignature: () => _openAndReload(const SignatureScreen()),
             onSetupSchedule: () => _openAndReload(const ScheduleScreen()),
           ),
@@ -175,21 +164,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      requiresCrossDayCheckout
-                          ? 'Anda belum absen pulang sesi ${openPrev?.date ?? 'sebelumnya'} (wajib absen pulang dahulu).'
-                          : isRestAfterOvertime
-                              ? 'Istirahat Wajib Pasca Menginap / Lembur di Station (tidak bisa absen masuk hari ini).'
-                              : schedule['is_day_off'] == true
-                                  ? 'Status hari ini: Libur Kerja (OFF) — tetap bisa absen masuk jika ada keperluan.'
-                                  : 'Jam Kerja: ${schedule['scheduled_in'] ?? '-'} s/d ${schedule['scheduled_out'] ?? '-'} WIB',
-                      style: TextStyle(
-                        color: requiresCrossDayCheckout
-                            ? AppTheme.danger
-                            : (isRestAfterOvertime ? AppTheme.primary : AppTheme.textSecondary),
+                      schedule['is_day_off'] == true
+                          ? 'Status hari ini: Libur Kerja (OFF).'
+                          : 'Jam Kerja: ${schedule['scheduled_in'] ?? '-'} s/d ${schedule['scheduled_out'] ?? '-'} WIB',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
                         fontSize: 13,
-                        fontWeight: (requiresCrossDayCheckout || isRestAfterOvertime)
-                            ? FontWeight.w600
-                            : FontWeight.normal,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -197,15 +177,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: widget.onGoToAttendance,
-                            icon: const Icon(Icons.face_retouching_natural, size: 18),
-                            label: Text(
-                              requiresCrossDayCheckout
-                                  ? 'Absen Pulang Kemarin'
-                                  : (schedule['is_day_off'] == true && !isRestAfterOvertime && att?.checkIn == null)
-                                      ? 'Absen (Hari OFF)'
-                                      : 'Buka Absensi',
-                            ),
+                            onPressed: widget.onGoToSubmissions,
+                            icon: const Icon(Icons.assignment_add, size: 18),
+                            label: const Text('Buat Pengajuan'),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -247,18 +221,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: Card(
                     child: InkWell(
-                      onTap: () => _openAndReload(const CalendarHistoryScreen(initialTabIndex: 1)),
+                      onTap: () => _openAndReload(const CalendarHistoryScreen()),
                       borderRadius: BorderRadius.circular(16),
                       child: const Padding(
                         padding: EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Riwayat Kehadiran', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                            Text('Kalender & Cuti', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                             SizedBox(height: 6),
                             Row(
                               children: [
-                                Text('Lihat Log', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accent)),
+                                Text('Lihat Jadwal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accent)),
                                 Spacer(),
                                 Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.accent),
                               ],

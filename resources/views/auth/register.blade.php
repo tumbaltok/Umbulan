@@ -85,7 +85,7 @@
                     </h1>
 
                     <p class="text-cyan-100/85 text-xs font-light leading-relaxed">
-                        Lengkapi pendaftaran akun resmi kedinasan Anda untuk mengakses portal mandiri karyawan: Presensi biometrik wajah berbasis lokasi kerja, pengajuan dokumen dinas (CAR & MPR), serta administrasi kepegawaian.
+                        Lengkapi pendaftaran akun resmi kedinasan Anda untuk mengakses portal mandiri karyawan: pengajuan Cuti & Izin Kerja, dokumen dinas (CAR & MPR), serta administrasi kepegawaian.
                     </p>
                 </div>
 
@@ -139,8 +139,8 @@
                         <span class="text-[11px] font-medium text-cyan-100">Gunakan Email Perusahaan & Identitas SK</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
-                        <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Presensi Biometrik Wajah Berbasis Geofencing</span>
+                        <i class="fa-solid fa-file-signature text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Pengajuan Digital Cuti, CAR & MPR Terintegrasi</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
                         <i class="fa-solid fa-shield-halved text-cyan-300 text-xs shrink-0"></i>
@@ -1046,7 +1046,7 @@
             }
         });
 
-        // Jam Real-Time Portal Presensi (WIB)
+        // Jam Real-Time Portal (WIB)
         function updateLiveClock() {
             const clockEl = document.getElementById('liveClock');
             if (!clockEl) return;

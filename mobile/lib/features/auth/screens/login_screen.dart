@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Gunakan alamat email perusahaan terdaftar untuk absensi dan pengajuan.',
+                  'Gunakan alamat email perusahaan terdaftar untuk mengelola jadwal dan pengajuan.',
                   style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 28),

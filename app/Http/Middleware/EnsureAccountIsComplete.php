@@ -17,9 +17,9 @@ class EnsureAccountIsComplete
             return redirect()->route('login');
         }
 
-        // Validasi 4 kriteria kelayakan akun (Email, Biometrik Wajah, TTD, Jadwal)
+        // Validasi 3 kriteria kelayakan akun (Email, TTD, Jadwal)
         if (!$user->isAccountComplete()) {
-            $pesanDitolak = 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.';
+            $pesanDitolak = 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.';
 
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([

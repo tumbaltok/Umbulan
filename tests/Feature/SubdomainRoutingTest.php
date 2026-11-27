@@ -48,9 +48,6 @@ class SubdomainRoutingTest extends TestCase
             [
                 'name' => 'Stasiun Subdomain',
                 'type' => 'stasiun',
-                'latitude' => -7.75,
-                'longitude' => 112.91,
-                'radius_meters' => 100,
             ]
         );
 

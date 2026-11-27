@@ -33,7 +33,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         // Format nomor CAR: [No] / META / PAS / CAR / [Romawi] / [Tahun]
@@ -89,7 +89,7 @@ class PengajuanCarController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $request->validate([

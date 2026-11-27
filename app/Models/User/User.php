@@ -2,7 +2,6 @@
 
 namespace App\Models\User;
 
-use App\Models\Absen\Kehadiran;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\Cuti\SaldoCuti;
@@ -41,7 +40,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'normal_check_in',
         'normal_check_out',
         'roster_start_date',
-        'face_descriptor',
     ];
 
     protected $hidden = [
@@ -55,7 +53,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'normal_work_days' => 'array',
-            'face_descriptor' => 'encrypted:array',
             'roster_start_date' => 'date',
             'jobdesk' => 'array',
         ];
@@ -313,29 +310,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserDevice::class, 'user_id');
     }
 
-    // Evaluasi kelengkapan 4 syarat akun (Email, Biometrik Wajah, TTD, Jadwal)
+    // Evaluasi kelengkapan 3 syarat akun (Email, TTD, Jadwal)
     public function isAccountComplete(): bool
     {
         return !is_null($this->email_verified_at)
-            && !empty($this->face_descriptor)
             && !empty($this->signature)
             && !empty($this->schedule_type);
     }
 
-    // Rincian status kelengkapan 4 syarat akun
+    // Rincian status kelengkapan 3 syarat akun
     public function getAccountCompletionStatus(): array
     {
         $hasEmail = !is_null($this->email_verified_at);
-        $hasFace = !empty($this->face_descriptor);
         $hasSignature = !empty($this->signature);
         $hasSchedule = !empty($this->schedule_type);
 
         return [
             'email_verified'  => $hasEmail,
-            'face_registered' => $hasFace,
             'signature_set'   => $hasSignature,
             'schedule_set'    => $hasSchedule,
-            'is_complete'     => $hasEmail && $hasFace && $hasSignature && $hasSchedule,
+            'is_complete'     => $hasEmail && $hasSignature && $hasSchedule,
         ];
     }
 
@@ -418,12 +412,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('jenis_cuti_id', self::CUTI_HAID_ID)
             ->where('bulan', date('n'))
             ->where('tahun', date('Y'));
-    }
-
-    // Relasi ke seluruh riwayat absensi kehadiran
-    public function attendances(): HasMany
-    {
-        return $this->hasMany(Kehadiran::class, 'user_id');
     }
 
     // Relasi ke seluruh catatan saldo cuti

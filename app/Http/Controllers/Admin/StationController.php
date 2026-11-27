@@ -37,31 +37,6 @@ class StationController extends Controller
         return view('admin.daftar.stationindex', compact('daftarStasiunUtama', 'daftarRumahMeter', 'daftarStasiun'));
     }
 
-    // Mengekstrak koordinat latitude dan longitude dari tautan Google Maps
-    private function parseGoogleMapsUrl(string $url): ?array
-    {
-        $url = trim($url);
-        if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        if (preg_match('/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        if (preg_match('/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        if (preg_match('/[?&]center=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        if (preg_match('/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        if (preg_match('/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/', $url, $matches)) {
-            return ['latitude' => $matches[1], 'longitude' => $matches[2]];
-        }
-        return null;
-    }
-
     // Menyimpan data stasiun/lokasi baru (mendukung single atau multi-row repeater)
     public function store(Request $request)
     {
@@ -72,9 +47,6 @@ class StationController extends Controller
                 'stations.*.kode_stasiun' => 'required|string|unique:stations,kode_stasiun',
                 'stations.*.name' => 'required|string|max:255',
                 'stations.*.type' => 'required|in:kantor,stasiun,rumah_meter',
-                'stations.*.latitude' => 'required|numeric',
-                'stations.*.longitude' => 'required|numeric',
-                'stations.*.radius_meters' => 'required|numeric|min:10',
             ]);
 
             foreach ($request->stations as $stasiunData) {
@@ -82,9 +54,6 @@ class StationController extends Controller
                     'kode_stasiun' => strtoupper($stasiunData['kode_stasiun']),
                     'name' => $stasiunData['name'],
                     'type' => strtolower($stasiunData['type']),
-                    'latitude' => $stasiunData['latitude'],
-                    'longitude' => $stasiunData['longitude'],
-                    'radius_meters' => $stasiunData['radius_meters'],
                 ]);
             }
 
@@ -96,34 +65,12 @@ class StationController extends Controller
             'kode_stasiun' => 'required|string|unique:stations,kode_stasiun',
             'name' => 'required|string|max:255',
             'type' => 'required|in:kantor,stasiun,rumah_meter',
-            'maps_url' => 'nullable|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'radius_meters' => 'required|numeric|min:10',
         ]);
-
-        $lat = $request->latitude;
-        $lng = $request->longitude;
-
-        if ($request->filled('maps_url')) {
-            $parsed = $this->parseGoogleMapsUrl($request->maps_url);
-            if ($parsed) {
-                $lat = $parsed['latitude'];
-                $lng = $parsed['longitude'];
-            }
-        }
-
-        if (is_null($lat) || is_null($lng)) {
-            return redirect()->back()->withErrors(['maps_url' => 'Gagal membaca koordinat dari URL Google Maps. Harap masukkan koordinat manual atau periksa URL Anda.'])->withInput();
-        }
 
         Station::create([
             'kode_stasiun' => strtoupper($request->kode_stasiun),
             'name' => $request->name,
             'type' => strtolower($request->type),
-            'latitude' => $lat,
-            'longitude' => $lng,
-            'radius_meters' => $request->radius_meters,
         ]);
 
         return redirect()->back()->with('success', 'Lokasi/Stasiun kerja baru berhasil ditambahkan!');
@@ -145,18 +92,12 @@ class StationController extends Controller
             'kode_stasiun' => 'required|string|unique:stations,kode_stasiun,'.$id,
             'name' => 'required|string|max:255',
             'type' => 'required|in:kantor,stasiun,rumah_meter',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'radius_meters' => 'required|numeric|min:10',
         ]);
 
         $station->update([
             'kode_stasiun' => strtoupper($request->kode_stasiun),
             'name' => $request->name,
             'type' => strtolower($request->type),
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'radius_meters' => $request->radius_meters,
         ]);
 
         return redirect()->back()->with('success', 'Data lokasi/stasiun kerja berhasil diperbarui!');

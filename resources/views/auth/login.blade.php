@@ -62,9 +62,9 @@
                 </div>
             </div>
 
-            {{-- 2. Visual Informasi Portal Kepegawaian & Presensi Digital (Disembunyikan di Mobile, Tampil di md:flex) --}}
+            {{-- 2. Visual Informasi Portal Kepegawaian & Pengajuan Digital (Disembunyikan di Mobile, Tampil di md:flex) --}}
             <div class="my-auto py-6 z-10 hidden md:flex flex-col items-start w-full">
-                {{-- Kartu Status Informasi & Waktu Presensi Portal --}}
+                {{-- Kartu Status Informasi Portal --}}
                 <div class="w-full bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-sky-950/50 mb-5 relative overflow-hidden">
                     <div class="absolute -right-8 -top-8 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
 
@@ -85,19 +85,19 @@
                     {{-- Grid 3 Pilar Layanan Mandiri --}}
                     <div class="grid grid-cols-3 gap-2 text-center mb-3.5">
                         <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Presensi</span>
-                            <span class="text-xs sm:text-sm font-black text-cyan-200 font-mono">Biometrik</span>
-                            <span class="text-[9px] text-white/60 block">Geofencing</span>
+                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Pengajuan</span>
+                            <span class="text-xs sm:text-sm font-black text-cyan-200 font-mono">Terpadu</span>
+                            <span class="text-[9px] text-white/60 block">Cuti • CAR • MPR</span>
                         </div>
                         <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Layanan</span>
-                            <span class="text-xs sm:text-sm font-black text-white font-mono">Mandiri</span>
-                            <span class="text-[9px] text-white/60 block">Cuti & Tugas</span>
+                            <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Jadwal</span>
+                            <span class="text-xs sm:text-sm font-black text-white font-mono">Dinamis</span>
+                            <span class="text-[9px] text-white/60 block">Roster & Normal</span>
                         </div>
                         <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
                             <span class="text-[9px] text-cyan-200/80 uppercase tracking-wider block font-semibold">Keamanan</span>
                             <span class="text-xs sm:text-sm font-black text-emerald-300 font-mono">Terenkripsi</span>
-                            <span class="text-[9px] text-white/60 block">Akses Aman</span>
+                            <span class="text-[9px] text-white/60 block">TTD Digital</span>
                         </div>
                     </div>
 
@@ -123,14 +123,14 @@
                 </h1>
                 
                 <p class="text-cyan-100/85 text-xs sm:text-sm font-light leading-relaxed mb-5">
-                    Sistem pintu masuk terpadu untuk pencatatan presensi biometrik wajah berbasis lokasi kerja, administrasi cuti, pengajuan dokumen dinas, serta tata kelola kepegawaian.
+                    Sistem pintu masuk terpadu untuk administrasi cuti, pengajuan dokumen pengadaan dinas (CAR & MPR), pengelolaan jadwal kerja, serta tata kelola kepegawaian.
                 </p>
 
                 {{-- 2 Pilar Layanan Karyawan --}}
                 <div class="grid grid-cols-1 gap-2 w-full text-xs">
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
-                        <i class="fa-solid fa-fingerprint text-cyan-300 text-xs shrink-0"></i>
-                        <span class="text-[11px] font-medium text-cyan-100">Presensi Biometrik Wajah Berbasis Geofencing Lokasi Kerja</span>
+                        <i class="fa-solid fa-file-signature text-cyan-300 text-xs shrink-0"></i>
+                        <span class="text-[11px] font-medium text-cyan-100">Pengajuan Digital Cuti, CAR & MPR dengan Tanda Tangan Terverifikasi</span>
                     </div>
                     <div class="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10">
                         <i class="fa-solid fa-shield-halved text-cyan-300 text-xs shrink-0"></i>
@@ -350,7 +350,7 @@
             }
         });
 
-        // Jam Real-Time Portal Presensi (WIB)
+        // Jam Real-Time Portal (WIB)
         function updateLiveClock() {
             const clockEl = document.getElementById('liveClock');
             if (!clockEl) return;

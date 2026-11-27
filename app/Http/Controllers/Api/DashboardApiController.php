@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Absen\Kehadiran;
 use App\Models\Car\PengajuanCar;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\PengajuanCuti;
@@ -16,7 +15,6 @@ use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class DashboardApiController extends Controller
 {
@@ -27,7 +25,7 @@ class DashboardApiController extends Controller
     ) {}
 
     /**
-     * Data ringkasan dashboard APK Native (jadwal hari ini, absensi, saldo cuti, riwayat, & kesiapan akun).
+     * Data ringkasan dashboard APK Native (jadwal hari ini, saldo cuti, riwayat pengajuan, & kesiapan akun).
      */
     public function index(Request $request): JsonResponse
     {
@@ -36,32 +34,11 @@ class DashboardApiController extends Controller
         $today = $now->toDateString();
         $tahunSekarang = (int) date('Y');
 
-        $stations = Cache::remember('daftar_stasiun_geofence', now()->addHours(12), function () {
-            return Station::orderBy('name')->get([
-                'id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters',
-            ]);
-        });
+        $stations = Station::orderBy('name')->get([
+            'id', 'name', 'type', 'kode_stasiun',
+        ]);
 
         $todaySchedule = $this->scheduleService->getTodaySchedule($user);
-        $todayAttendance = Kehadiran::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
-
-        $openPreviousAttendance = Kehadiran::where('user_id', $user->id)
-            ->whereNotNull('check_in')
-            ->whereNull('check_out')
-            ->whereDate('date', '<', $today)
-            ->orderByDesc('date')
-            ->first();
-
-        $requiresCrossDayCheckout = $openPreviousAttendance !== null;
-        $needsCrossDayResolution = false;
-        if ($openPreviousAttendance) {
-            $isYesterday = $openPreviousAttendance->date && $openPreviousAttendance->date->copy()->addDay()->toDateString() === $today;
-            $isNightShift = str_contains(strtolower((string) $openPreviousAttendance->shift_type), 'malam');
-            $needsCrossDayResolution = !($isYesterday && $isNightShift && $now->hour < 11);
-        }
-        $isRestAfterOvertime = (bool) ($todayAttendance?->is_rest_after_overtime ?? false);
 
         $cutiTahunan = JenisCuti::whereNull('parent_id')
             ->whereRaw('LOWER(name_cuti) LIKE ?', ['%tahunan%'])
@@ -106,11 +83,6 @@ class DashboardApiController extends Controller
                 'stations' => $stations,
                 'today' => $today,
                 'today_schedule' => $todaySchedule,
-                'today_attendance' => $todayAttendance,
-                'open_previous_attendance' => $openPreviousAttendance,
-                'requires_cross_day_checkout' => $requiresCrossDayCheckout,
-                'needs_cross_day_resolution' => $needsCrossDayResolution,
-                'is_rest_after_overtime' => $isRestAfterOvertime,
                 'leave_balance' => [
                     'tahun' => $tahunSekarang,
                     'sisa_cuti_tahunan' => (int) ($saldoTahunan ?? 0),
@@ -153,43 +125,6 @@ class DashboardApiController extends Controller
                 'year' => $year,
                 'days' => $this->calendarService->getMonthlyCalendar($request->user(), $month, $year),
                 'holidays' => $this->calendarService->getNationalHolidays($year),
-            ],
-        ]);
-    }
-
-    /**
-     * Riwayat kehadiran pengguna dengan filter bulan & tahun.
-     */
-    public function attendanceHistory(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'month' => 'nullable|integer|between:1,12',
-            'year' => 'nullable|integer|between:2020,2100',
-            'per_page' => 'nullable|integer|min:1|max:50',
-        ]);
-
-        $query = Kehadiran::where('user_id', $request->user()->id)
-            ->orderByDesc('date');
-
-        if (!empty($validated['month'])) {
-            $query->whereMonth('date', (int) $validated['month']);
-        }
-        if (!empty($validated['year'])) {
-            $query->whereYear('date', (int) $validated['year']);
-        }
-
-        $items = $query->paginate((int) ($validated['per_page'] ?? 20));
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'items' => $items->items(),
-                'pagination' => [
-                    'current_page' => $items->currentPage(),
-                    'last_page' => $items->lastPage(),
-                    'per_page' => $items->perPage(),
-                    'total' => $items->total(),
-                ],
             ],
         ]);
     }

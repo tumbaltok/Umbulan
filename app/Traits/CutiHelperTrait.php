@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-use App\Models\Absen\Kehadiran;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\PengajuanCuti;
 use App\Models\Cuti\SaldoCuti;
@@ -126,7 +125,7 @@ trait CutiHelperTrait
         }
     }
 
-    // Sinkronisasi status pengajuan yang disetujui ke pemotongan saldo dan tabel kehadiran
+    // Sinkronisasi status pengajuan yang disetujui ke pemotongan saldo cuti
     public function sinkronisasiCutiDanAbsen(PengajuanCuti $pengajuan): void
     {
         $apakahMemotongSaldo = $this->alurPotongSaldo($pengajuan->jenis_cuti_id, $pengajuan->sub_cuti_id);
@@ -135,23 +134,6 @@ trait CutiHelperTrait
         if (!$pengajuan->is_cut_saldo && $apakahMemotongSaldo) {
             $this->potongSaldoDatabase($pengajuan);
             $pengajuan->update(['is_cut_saldo' => true]);
-        }
-
-        $tanggalMulai = Carbon::parse($pengajuan->tanggal_mulai);
-        $tanggalSelesai = Carbon::parse($pengajuan->tanggal_selesai);
-
-        // Buat atau perbarui catatan absensi berstatus Cuti pada setiap hari rentang tanggal
-        for ($date = $tanggalMulai->copy(); $date->lte($tanggalSelesai); $date->addDay()) {
-            Kehadiran::updateOrCreate(
-                [
-                    'user_id' => $pengajuan->user_id,
-                    'date'    => $date->format('Y-m-d'),
-                ],
-                [
-                    'shift_type'      => 'Cuti',
-                    'reason_checkout' => 'Izin Cuti Disetujui',
-                ]
-            );
         }
     }
 }

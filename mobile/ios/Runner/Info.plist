@@ -16,10 +16,6 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>META Umbulan</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Kamera digunakan untuk perekaman wajah dan verifikasi absensi biometrik karyawan.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Lokasi GPS digunakan untuk memverifikasi area stasiun kerja saat melakukan absensi masuk dan pulang.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Akses galeri diperlukan untuk mengunggah lampiran dokumen pengajuan cuti atau pengadaan.</string>
 	<key>UIBackgroundModes</key>

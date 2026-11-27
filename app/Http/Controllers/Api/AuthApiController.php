@@ -204,7 +204,7 @@ class AuthApiController extends Controller
     public function masterData(): JsonResponse
     {
         $stations = Station::orderBy('name')->get([
-            'id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters',
+            'id', 'name', 'type', 'kode_stasiun',
         ]);
 
         $jenisCutis = JenisCuti::with(['subCutis' => function ($query) {
@@ -580,16 +580,12 @@ class AuthApiController extends Controller
                 'name' => $user->station->name,
                 'type' => $user->station->type,
                 'kode_stasiun' => $user->station->kode_stasiun,
-                'latitude' => $user->station->latitude,
-                'longitude' => $user->station->longitude,
-                'radius_meters' => $user->station->radius_meters,
             ] : null,
             'schedule_type' => $user->schedule_type,
             'normal_work_days' => $user->normal_work_days,
             'normal_check_in' => $user->normal_check_in,
             'normal_check_out' => $user->normal_check_out,
             'roster_start_date' => $user->roster_start_date,
-            'has_face_descriptor' => !empty($user->face_descriptor),
             'has_signature' => !empty($user->signature),
             'profile_photo' => $user->profile_photo,
             'is_approver' => $user->level <= 2 || $hasChildRole || $user->hasRole('Super Admin') || $user->hasRole('HRD'),

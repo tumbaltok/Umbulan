@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Absen\Kehadiran;
 use App\Models\Car\PengajuanCar;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
 use App\Models\Mpr\PengajuanMpr;
-use App\Models\User\Station;
 use App\Models\User\User;
 use App\Services\CalendarScheduleService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -30,7 +27,7 @@ class DashboardController extends Controller
         $this->calendarService = $calendarService;
     }
 
-    // Menampilkan halaman utama dashboard pengguna dengan rekapitulasi jadwal, absensi, dan pengajuan
+    // Menampilkan halaman utama dashboard pengguna dengan rekapitulasi jadwal kerja dan pengajuan Cuti/CAR/MPR
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -40,11 +37,6 @@ class DashboardController extends Controller
         $tahunSekarang = $now->year;
         $today = $now->format('Y-m-d');
 
-        // Data seluruh titik stasiun & Rumah Meter untuk geofencing
-        $daftarStasiun = Cache::remember('daftar_stasiun_geofence', 3600, function () {
-            return Station::select('id', 'name', 'type', 'kode_stasiun', 'latitude', 'longitude', 'radius_meters')->get();
-        });
-
         // Parameter navigasi kalender
         $selectedMonth = (int) $request->get('month', $now->month);
         $selectedYear = (int) $request->get('year', $now->year);
@@ -52,67 +44,6 @@ class DashboardController extends Controller
         // Kalender bulanan dan jadwal kerja hari ini
         $calendarDays = $this->calendarService->getMonthlyCalendar($user, $selectedMonth, $selectedYear);
         $todaySchedule = $this->scheduleService->getTodaySchedule($user, $today);
-
-        // Data presensi hari ini & cek sesi absensi lintas hari yang belum di-checkout
-        $todayAttendance = Kehadiran::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
-
-        $openPreviousAttendance = Kehadiran::where('user_id', $user->id)
-            ->whereNotNull('check_in')
-            ->whereNull('check_out')
-            ->whereDate('date', '<', $today)
-            ->orderByDesc('date')
-            ->first();
-
-        $requiresCrossDayCheckout = $openPreviousAttendance !== null;
-        $needsCrossDayResolution = false;
-        if ($openPreviousAttendance) {
-            $isYesterday = $openPreviousAttendance->date && $openPreviousAttendance->date->copy()->addDay()->toDateString() === $today;
-            $isNightShift = str_contains(strtolower((string) $openPreviousAttendance->shift_type), 'malam');
-            // Jika shift malam kemarin dan check-out masih pada pagi hari (<= 11:00 WIB), tidak dianggap lupa/menginap
-            $needsCrossDayResolution = !($isYesterday && $isNightShift && $now->hour < 11);
-        }
-
-        $isRestAfterOvertime = (bool) ($todayAttendance?->is_rest_after_overtime ?? false);
-
-        // Cek Peringatan Terlambat & Waktunya Pulang
-        $isLateNotCheckedIn = false;
-        $canCheckOutNow = false;
-
-        if (! empty($todaySchedule) && empty($todaySchedule['is_day_off']) && !$requiresCrossDayCheckout && !$isRestAfterOvertime) {
-            $scheduledInStr = $todaySchedule['scheduled_in'] ?? null;
-            $scheduledOutStr = $todaySchedule['scheduled_out'] ?? null;
-
-            if ($scheduledInStr && $scheduledInStr !== '--:--') {
-                try {
-                    $scheduledInTime = Carbon::parse($today.' '.$scheduledInStr, 'Asia/Jakarta');
-                    if ((! $todayAttendance || empty($todayAttendance->check_in)) && $now->gt($scheduledInTime)) {
-                        $isLateNotCheckedIn = true;
-                    }
-                } catch (\Exception $e) {
-                }
-            }
-
-            if ($scheduledOutStr && $scheduledOutStr !== '--:--' && $todayAttendance && ! empty($todayAttendance->check_in) && empty($todayAttendance->check_out)) {
-                try {
-                    $scheduledInTime = Carbon::parse($today.' '.$scheduledInStr, 'Asia/Jakarta');
-                    $scheduledOutTime = Carbon::parse($today.' '.$scheduledOutStr, 'Asia/Jakarta');
-
-                    if ($scheduledOutTime->lt($scheduledInTime)) {
-                        $scheduledOutNextDay = $scheduledOutTime->copy()->addDay();
-                        if ($now->gte($scheduledOutNextDay) || ($now->lt($scheduledInTime) && $now->gte($scheduledOutTime))) {
-                            $canCheckOutNow = true;
-                        }
-                    } else {
-                        if ($now->gte($scheduledOutTime)) {
-                            $canCheckOutNow = true;
-                        }
-                    }
-                } catch (\Exception $e) {
-                }
-            }
-        }
 
         // 5. Penentuan ID Cuti Tahunan secara Aman
         $cutiTahunanId = defined('App\Models\User\User::CUTI_TAHUNAN_ID')
@@ -209,7 +140,6 @@ class DashboardController extends Controller
 
         return view('dashboard.dashboardindex', compact(
             'user',
-            'daftarStasiun',
             'kuotaTahunan',
             'totalCutiDiambil',
             'totalPending',
@@ -220,17 +150,10 @@ class DashboardController extends Controller
             'riwayatCar',
             'riwayatMpr',
             'todaySchedule',
-            'todayAttendance',
-            'openPreviousAttendance',
-            'requiresCrossDayCheckout',
-            'needsCrossDayResolution',
-            'isRestAfterOvertime',
             'calendarDays',
             'selectedMonth',
             'selectedYear',
-            'currentCarbonDate',
-            'isLateNotCheckedIn',
-            'canCheckOutNow'
+            'currentCarbonDate'
         ));
     }
 }

@@ -41,7 +41,7 @@ class _SubmissionsScreenState extends State<SubmissionsScreen>
       setState(() {
         _loading = false;
         _blockedMessage =
-            'Lengkapi 4 syarat kelengkapan akun di Beranda (Email, Biometrik Wajah, TTD Digital, Jadwal Kerja) untuk membuat dan melihat pengajuan.';
+            'Lengkapi 3 syarat kelengkapan akun di Beranda (Email, TTD Digital, Jadwal Kerja) untuk membuat dan melihat pengajuan.';
       });
       return;
     }
@@ -84,7 +84,7 @@ class _SubmissionsScreenState extends State<SubmissionsScreen>
     if (user == null || !user.isAccountComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap lengkapi 4 syarat kelengkapan akun di tab Beranda terlebih dahulu.'),
+          content: Text('Harap lengkapi 3 syarat kelengkapan akun di tab Beranda terlebih dahulu.'),
           backgroundColor: AppTheme.warning,
         ),
       );

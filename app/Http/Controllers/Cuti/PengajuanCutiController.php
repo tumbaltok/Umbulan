@@ -70,7 +70,7 @@ class PengajuanCutiController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $jenisCuti = JenisCuti::with('subCutis')->get();
@@ -154,7 +154,7 @@ class PengajuanCutiController extends Controller
     {
         $user = Auth::user();
         if (!$user->isAccountComplete()) {
-            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, biometrik wajah, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Anda wajib melengkapi verifikasi email, tanda tangan digital (TTD), dan jadwal kerja sebelum dapat membuat pengajuan.');
         }
 
         $aturanDokumen = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';

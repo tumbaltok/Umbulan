@@ -833,13 +833,6 @@
 
                         <div class="dropdown-content space-y-1 pl-4 pr-1 mt-1 relative before:absolute before:left-7 before:top-1.5 before:bottom-1.5 before:w-[1.5px] before:bg-gradient-to-b before:from-sky-400/50 before:via-slate-200 before:to-transparent dark:before:from-sky-500/30 dark:before:via-slate-800 dark:before:to-transparent">
 
-                            {{-- Rekap Absensi Harian --}}
-                            <a href="{{ Route::has('admin.absensi.index') ? route('admin.absensi.index') : '/admin/absensi' }}"
-                                class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-all relative ml-5 group/sub {{ request()->is('admin/absensi*') ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:font-semibold dark:border-sky-500/30 shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/60' }}">
-                                <i class="fa-solid fa-clipboard-user text-xs {{ request()->is('admin/absensi*') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400 group-hover/sub:text-sky-600 dark:text-slate-500 dark:group-hover/sub:text-sky-300' }}"></i>
-                                <span class="hide-on-collapse">Rekap Absensi Harian</span>
-                            </a>
-
                             {{-- Sub-Menu Daftar Data Master --}}
                             <div class="sub-dropdown-container" data-active="{{ $isDaftarActive ? 'true' : 'false' }}">
                                 <button type="button"
@@ -1692,7 +1685,7 @@
                 <div class="space-y-1.5">
                     <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">Apakah Anda yakin ingin keluar?</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-                        Sesi aktif Anda akan diakhiri demi keamanan akun. Anda perlu login kembali untuk mengakses sistem absensi dan dashboard.
+                        Sesi aktif Anda akan diakhiri demi keamanan akun. Anda perlu login kembali untuk mengakses portal pengajuan dan dashboard.
                     </p>
                 </div>
             </div>

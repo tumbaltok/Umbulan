@@ -34,7 +34,7 @@
                             Profil Pegawai
                         </span>
                     </div>
-                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Perbarui data profil, berkas tanda tangan (TTD), status biometrik, jadwal kerja, dan kata sandi akun.</p>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Perbarui data profil, berkas tanda tangan (TTD), jadwal kerja, dan kata sandi akun.</p>
                 </div>
             </div>
             <div class="hidden sm:flex items-center gap-2">
@@ -58,8 +58,8 @@
                     <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Identitas & Berkas Verifikasi</h3>
                 </div>
 
-                {{-- Container Foto Profil, TTD, & Biometrik Wajah --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7 pb-7 border-b border-slate-100 dark:border-slate-700/80">
+                {{-- Container Foto Profil & Tanda Tangan (TTD) --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-7 pb-7 border-b border-slate-100 dark:border-slate-700/80">
                     {{-- Foto Profil --}}
                     <div class="flex flex-col items-center justify-between text-center p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700/60 transition-all shadow-xs group">
                         <div class="flex flex-col items-center w-full">
@@ -162,39 +162,6 @@
                             <i class="fa-solid fa-file-signature text-xs"></i>
                             <span>{{ $hasValidSignature ? 'Ubah TTD' : 'Unggah TTD' }}</span>
                         </button>
-                    </div>
-
-                    {{-- Biometrik Wajah --}}
-                    <div class="flex flex-col items-center justify-between text-center p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700/60 transition-all shadow-xs group">
-                        <div class="flex flex-col items-center w-full">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Biometrik Wajah</span>
-                            <div class="w-22 h-22 rounded-2xl {{ !empty($user->face_descriptor) ? 'bg-gradient-to-tr from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80' : 'bg-gradient-to-tr from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80' }} flex items-center justify-center text-3xl shadow-sm ring-4 {{ !empty($user->face_descriptor) ? 'ring-emerald-500/10 dark:ring-emerald-500/20' : 'ring-amber-500/10 dark:ring-amber-500/20' }} group-hover:scale-105 transition-transform">
-                                <i class="fa-solid {{ !empty($user->face_descriptor) ? 'fa-face-smile text-emerald-600 dark:text-emerald-400' : 'fa-camera-rotate' }}"></i>
-                            </div>
-
-                            <div class="mt-2.5">
-                                @if(!empty($user->face_descriptor))
-                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                                        <i class="fa-solid fa-lock text-emerald-600 dark:text-emerald-400 mr-1.5 text-[9px]"></i> Biometrik Terkunci
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
-                                        <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5 text-[9px]"></i> Belum Terdaftar
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if(!empty($user->face_descriptor))
-                            <div class="mt-3 p-2 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800/60 rounded-xl text-[10.5px] text-slate-600 dark:text-slate-300 leading-snug text-center">
-                                <i class="fa-solid fa-circle-check text-sky-600 dark:text-sky-400 mr-1"></i> Terverifikasi untuk presensi.
-                            </div>
-                        @else
-                            <a href="{{ route('dashboard') }}" class="mt-3 px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.02] active:scale-95 flex items-center space-x-1.5">
-                                <i class="fa-solid fa-camera text-xs"></i>
-                                <span>Rekam di Dashboard</span>
-                            </a>
-                        @endif
                     </div>
                 </div>
 

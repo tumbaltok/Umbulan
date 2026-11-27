@@ -39,9 +39,6 @@ class ApiNativeIntegrationTest extends TestCase
             [
                 'name' => 'Stasiun API Test',
                 'type' => 'stasiun',
-                'latitude' => -7.7556,
-                'longitude' => 112.9125,
-                'radius_meters' => 150,
             ]
         );
 
@@ -115,7 +112,6 @@ class ApiNativeIntegrationTest extends TestCase
         $registerRes->assertStatus(201)
             ->assertJsonPath('data.user.email', 'mobile@umbulan.co.id')
             ->assertJsonPath('data.user.completion_status.email_verified', false)
-            ->assertJsonPath('data.user.completion_status.face_registered', false)
             ->assertJsonPath('data.user.completion_status.signature_set', false)
             ->assertJsonPath('data.user.completion_status.schedule_set', true)
             ->assertJsonPath('data.user.completion_status.is_complete', false);
@@ -192,7 +188,6 @@ class ApiNativeIntegrationTest extends TestCase
             'station_id' => $this->station->id,
             'schedule_type' => 'normal',
             'email_verified_at' => now(),
-            'face_descriptor' => json_encode([0.1, 0.2, 0.3]),
             'signature' => 'signatures/atasan.png',
         ]);
         $supervisor->roles()->syncWithoutDetaching([$this->roleSupervisor->id => ['is_primary' => true]]);
@@ -208,8 +203,7 @@ class ApiNativeIntegrationTest extends TestCase
             'station_id' => $this->station->id,
             'schedule_type' => 'normal',
             'email_verified_at' => now(),
-            'face_descriptor' => null, // Belum lengkap!
-            'signature' => null,
+            'signature' => null, // Belum lengkap!
         ]);
         $karyawan->roles()->syncWithoutDetaching([$this->roleKaryawan->id => ['is_primary' => true]]);
 
@@ -238,24 +232,22 @@ class ApiNativeIntegrationTest extends TestCase
             ->assertStatus(403)
             ->assertJsonPath('completion_status.is_complete', false);
 
-        // 2. Lengkapi tanda tangan digital via API & biometrik wajah
+        // 2. Lengkapi tanda tangan digital via API
         $dummyBase64Png = 'data:image/png;base64,' . base64_encode('fake-png-bytes');
         $this->withToken($karyawanToken)
             ->postJson('/api/user/signature', ['signature_base64' => $dummyBase64Png])
             ->assertStatus(200);
 
-        $karyawan->forceFill(['face_descriptor' => array_fill(0, 128, 0.05)])->save();
         $karyawan->refresh();
         $this->assertTrue($karyawan->isAccountComplete());
         $this->app['auth']->forgetGuards();
 
-        // 3. Cek dashboard menunjukkan semua 4 syarat selesai
+        // 3. Cek dashboard menunjukkan semua 3 syarat selesai
         $this->withToken($karyawanToken)
             ->getJson('/api/dashboard')
             ->assertStatus(200)
             ->assertJsonPath('data.is_account_complete', true)
             ->assertJsonPath('data.completion_status.email_verified', true)
-            ->assertJsonPath('data.completion_status.face_registered', true)
             ->assertJsonPath('data.completion_status.signature_set', true)
             ->assertJsonPath('data.completion_status.schedule_set', true)
             ->assertJsonPath('data.completion_status.is_complete', true);
