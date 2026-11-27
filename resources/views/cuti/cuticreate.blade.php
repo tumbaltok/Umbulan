@@ -128,8 +128,7 @@
                                         <option value="" disabled selected hidden>-- Pilih Jenis Cuti / Izin --</option>
                                         @foreach($jenisCuti as $jenis)
                                             @php
-                                                $userGender = strtolower(auth()->user()->gender->name ?? auth()->user()->gender ?? '');
-                                                $isPria = ($userGender === 'pria' || userGender === 'male' || userGender === '1');
+                                                $isPria = !auth()->user()->isPerempuan();
                                                 $namaCutiLower = strtolower($jenis->name_cuti);
                                             @endphp
 
@@ -729,8 +728,7 @@
         const oldJenisCutiId = "{{ old('jenis_cuti_id') }}";
         const oldSubCutiId = "{{ old('sub_cuti_id') }}";
 
-        const userGender = "{{ strtolower(auth()->user()->gender->name ?? auth()->user()->gender ?? '') }}";
-        const isPria = (userGender === 'pria' || userGender === 'male' || userGender === '1');
+        const isPria = @json(!auth()->user()->isPerempuan());
 
         // SINKRONISASI JADWAL DAN LIBUR NASIONAL
         const scheduleType = "{{ auth()->user()->schedule_type ?? 'normal' }}";

@@ -19,7 +19,7 @@ class AccountController extends Controller
     // Menampilkan halaman pengaturan akun dan profil pengguna
     public function index()
     {
-        $user = User::with(['gender', 'roles', 'role', 'station', 'assignedStations'])->find(Auth::id());
+        $user = User::with(['roles', 'role', 'station', 'assignedStations'])->find(Auth::id());
 
         // Ambil data stasiun kerja utama (selain Rumah Meter)
         $daftarStasiun = Station::where('type', '!=', 'rumah_meter')

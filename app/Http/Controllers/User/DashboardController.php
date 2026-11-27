@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Car\PengajuanCar;
 use App\Models\Cuti\JenisCuti;
 use App\Models\Cuti\SaldoCuti;
+use App\Models\Cuti\SubCuti;
 use App\Models\Mpr\PengajuanMpr;
 use App\Models\User\User;
 use App\Services\CalendarScheduleService;
@@ -77,14 +78,12 @@ class DashboardController extends Controller
             ->count();
 
         // Hitung pending CAR
-        $pendingCar = DB::table('pengajuan_cars')
-            ->where('user_id', $user->id)
+        $pendingCar = PengajuanCar::where('user_id', $user->id)
             ->where('status_akhir', 'pending')
             ->count();
 
         // Hitung pending MPR
-        $pendingMpr = DB::table('pengajuan_mprs')
-            ->where('user_id', $user->id)
+        $pendingMpr = PengajuanMpr::where('user_id', $user->id)
             ->where('status_akhir', 'pending')
             ->count();
 
@@ -98,10 +97,8 @@ class DashboardController extends Controller
         $saldoCutiHaid = 0;
 
         if ($isPerempuan) {
-            $subHaid = DB::table('sub_cutis')
-                ->where('nama_sub_cuti', 'LIKE', '%Haid%')
-                ->first();
-            $subHaidId = $subHaid ? $subHaid->id : 2;
+            $subHaid = SubCuti::where('name_cuti', 'LIKE', '%Haid%')->first();
+            $subHaidId = $subHaid ? $subHaid->id : 6;
 
             $haidDiambilBulanIni = (int) DB::table('pengajuan_cutis')
                 ->where('user_id', $user->id)

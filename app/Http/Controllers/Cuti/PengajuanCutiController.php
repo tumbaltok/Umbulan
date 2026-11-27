@@ -359,9 +359,9 @@ class PengajuanCutiController extends Controller
     {
         $pengajuanCuti = DB::table('pengajuan_cutis')
             ->leftJoin('jenis_cutis', 'pengajuan_cutis.jenis_cuti_id', '=', 'jenis_cutis.id')
-            ->leftJoin('sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
+            ->leftJoin('jenis_cutis as sub_cutis', 'pengajuan_cutis.sub_cuti_id', '=', 'sub_cutis.id')
             ->where('pengajuan_cutis.user_id', $request->user()->id)
-            ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti', 'sub_cutis.nama_sub_cuti')
+            ->select('pengajuan_cutis.*', 'jenis_cutis.name_cuti', 'sub_cutis.name_cuti as nama_sub_cuti')
             ->orderBy('pengajuan_cutis.created_at', 'desc')
             ->get();
 

@@ -54,7 +54,7 @@
 ---
 
 > [!NOTE]
-> **Single Source of Truth:** Seluruh arsitektur, alur logika bisnis, REST API Sanctum, aplikasi Mobile Flutter (`mobile/`), dan panduan deployment pada dokumen ini disinkronkan langsung dengan implementasi kode terkini (**46/46 PHPUnit Tests, 2/2 Flutter Tests & Flutter Analyze Clean**).
+> **Single Source of Truth:** Seluruh arsitektur, alur logika bisnis, REST API Sanctum, aplikasi Mobile Flutter (`mobile/`), dan panduan deployment pada dokumen ini disinkronkan langsung dengan implementasi kode terkini (**47/47 PHPUnit Tests, 2/2 Flutter Tests & Flutter Analyze Clean**).
 
 ### ✨ Ringkasan Kapabilitas Utama
 
